@@ -214,14 +214,19 @@ GLuint GLWidget::makeObject()
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
 
-    GLdouble atoms[][3] = { {0.0, 0.0, 0.0}, {1.0, 1.0, 0.5} };
+    GLdouble atoms[][3] = {
+     {0.0, 0.0, 0.0},
+     {1.0, 1.0, 0.5},
+     {-1.0, 0.5, -1.0} };
     make_axes();
     color(1.0, 1.0, 0.0, 0.0);
     sphere(atoms[0], 0.2);
-    color(0.0, 1.0, 1.0, 0.0);
-    cylinder(atoms[0], atoms[1], 0.1, 0.1);
     color(0.7, 0.7, 0.7, 0.0);
     sphere(atoms[1], 0.2);
+    sphere(atoms[2], 0.2);
+    color(0.0, 1.0, 1.0, 0.0);
+    cylinder(atoms[0], atoms[1], 0.1, 0.1);
+    cylinder(atoms[1], atoms[2], 0.1, 0.1);
 
     glEndList();
     return list;
@@ -242,9 +247,9 @@ void GLWidget::sphere(GLdouble xyz[], GLdouble r)
 
 }
 
-void GLWidget::align_to_z(GLdouble a[], GLdouble b[])
+void GLWidget::align_from_z(GLdouble a[], GLdouble b[])
 {
-    GLdouble delx, dely, delz, vlen;
+    GLdouble delx, dely, delz, vlen, v;
     GLdouble dircosx, dircosy, dircosz;
     GLdouble xangle, yangle;
 
@@ -255,20 +260,21 @@ void GLWidget::align_to_z(GLdouble a[], GLdouble b[])
     dircosx = delx / vlen;
     dircosy = dely / vlen;
     dircosz = delz / vlen;
-    if (vlen == 0.0) {
+    v = sqrt(dircosz*dircosz + dircosy*dircosy);
+    if (v == 0.0) {
       xangle = 0;
       //yangle = M_PI_2;
       yangle = 90.0;
     } else {
-      xangle = (180.0 / M_PI ) * acos(dircosz/vlen);
-      yangle = (180.0 / M_PI ) * acos(vlen);
+      xangle = (180.0 / M_PI ) * acos(dircosz/v);
+      yangle = (180.0 / M_PI ) * acos(v);
     }
     if (dely < 0.0) xangle = -xangle;
     if (delx > 0.0) yangle = -yangle;
 
+    glTranslated(a[0], a[1], a[2]);
     glRotated(-xangle, 1.0, 0.0, 0.0);
     glRotated(-yangle, 0.0, 1.0, 0.0);
-    glTranslated(a[0], a[1], a[2]);
 }
 
 void GLWidget::cylinder(GLdouble bxyz[], GLdouble txyz[], GLdouble b, GLdouble t)
@@ -279,7 +285,7 @@ void GLWidget::cylinder(GLdouble bxyz[], GLdouble txyz[], GLdouble b, GLdouble t
     GLdouble dz = txyz[2] - bxyz[2];
     GLdouble h = sqrt(dx*dx + dy*dy + dz*dz);
     glPushMatrix();
-    align_to_z(bxyz, txyz);
+    align_from_z(bxyz, txyz);
     GLUquadricObj* quadric = gluNewQuadric();
     gluQuadricDrawStyle(quadric, GLU_FILL);
     gluQuadricOrientation(quadric, GLU_OUTSIDE);
