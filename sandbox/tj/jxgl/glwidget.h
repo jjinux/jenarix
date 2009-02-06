@@ -79,6 +79,8 @@ private:
     GLuint makeObject();
     void sphere(GLdouble xyz[], GLdouble r);
     void cylinder(GLdouble bxyz[], GLdouble txyz[], GLdouble b, GLdouble t);
+    void make_axes();
+    void align_to_z(GLdouble a[], GLdouble b[]);
     void color(GLdouble r, GLdouble g, GLdouble b, GLdouble a);
     void normalizeAngle(int *angle);
 

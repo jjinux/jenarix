@@ -115,7 +115,7 @@ void GLWidget::initializeGL()
     GLfloat mat_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat mat_shininess[] = { 50.0 };
-    GLfloat light_position[] = { 0.5, 1.0, -1.0, 0.0 };
+    GLfloat light_position[] = { 0.5, 1.0, 1.0, 0.0 };
     GLfloat model_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
@@ -165,8 +165,7 @@ void GLWidget::resizeGL(int width, int height)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //glOrtho(-0.5, +0.5, +0.5, -0.5, 4.0, 15.0);
-    glOrtho(-2.0, +2.0, +2.0, -2.0, 15.0, 4.0);
+    glOrtho(-2.0, +2.0, -2.0, +2.0, 4.0, 15.0);
     glMatrixMode(GL_MODELVIEW);
 }
 //! [8]
@@ -195,7 +194,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 }
 //! [10]
 
-void make_axes()
+void GLWidget::make_axes()
 {
     glBegin(GL_LINES);
     color(1.0, 0.0, 0.0, 0.0);
@@ -243,7 +242,7 @@ void GLWidget::sphere(GLdouble xyz[], GLdouble r)
 
 }
 
-void align_to_z(GLdouble a[], GLdouble b[])
+void GLWidget::align_to_z(GLdouble a[], GLdouble b[])
 {
     GLdouble delx, dely, delz, vlen;
     GLdouble dircosx, dircosy, dircosz;
