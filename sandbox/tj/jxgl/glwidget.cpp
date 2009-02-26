@@ -41,6 +41,7 @@
 #include <math.h>
 
 #include "glwidget.h"
+#include "jenarix.h"
 
 //! [0]
 GLWidget::GLWidget(QWidget *parent)
@@ -139,10 +140,6 @@ void GLWidget::initializeGL()
 //! [6]
 
 //! [7]
-void GLWidget::color(GLdouble r, GLdouble g, GLdouble b, GLdouble a)
-{
-    glColor4f(r,g,b,a);
-}
 
 void GLWidget::paintGL()
 {
@@ -165,7 +162,7 @@ void GLWidget::resizeGL(int width, int height)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-2.0, +2.0, -2.0, +2.0, 4.0, 15.0);
+    glOrtho(-8.0, +8.0, -8.0, +8.0, -20.0, +20.0);
     glMatrixMode(GL_MODELVIEW);
 }
 //! [8]
@@ -194,106 +191,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 }
 //! [10]
 
-void GLWidget::make_axes()
-{
-    glBegin(GL_LINES);
-    color(1.0, 0.0, 0.0, 0.0);
-    glVertex3d(0.0, 0.0, 0.0);
-    glVertex3d(0.0, 0.0, 1.0);
-    color(0.0, 1.0, 0.0, 0.0);
-    glVertex3d(0.0, 0.0, 0.0);
-    glVertex3d(0.0, 1.0, 0.0);
-    color(0.0, 0.0, 1.0, 0.0);
-    glVertex3d(0.0, 0.0, 0.0);
-    glVertex3d(1.0, 0.0, 0.0);
-    glEnd();
-}
-
 GLuint GLWidget::makeObject()
 {
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
 
-    GLdouble atoms[][3] = {
-     {0.0, 0.0, 0.0},
-     {1.0, 1.0, 0.5},
-     {-1.0, 0.5, -1.0} };
-    make_axes();
-    color(1.0, 1.0, 0.0, 0.0);
-    sphere(atoms[0], 0.2);
-    color(0.7, 0.7, 0.7, 0.0);
-    sphere(atoms[1], 0.2);
-    sphere(atoms[2], 0.2);
-    color(0.0, 1.0, 1.0, 0.0);
-    cylinder(atoms[0], atoms[1], 0.1, 0.1);
-    cylinder(atoms[1], atoms[2], 0.1, 0.1);
+    Json::Value tree;
+    Jenarix::parseJSON(tree);
+    Jenarix::processJSON(tree);
 
     glEndList();
     return list;
-}
-
-void GLWidget::sphere(GLdouble xyz[], GLdouble r)
-{
-
-    glPushMatrix();
-    glTranslated(xyz[0], xyz[1], xyz[2]);
-    GLUquadricObj* quadric = gluNewQuadric();
-    gluQuadricDrawStyle(quadric, GLU_FILL);
-    gluQuadricOrientation(quadric, GLU_OUTSIDE);
-    gluQuadricNormals(quadric, GLU_SMOOTH);
-    gluSphere(quadric, r, 20, 20);
-    gluDeleteQuadric(quadric);
-    glPopMatrix();
-
-}
-
-void GLWidget::align_from_z(GLdouble a[], GLdouble b[])
-{
-    GLdouble delx, dely, delz, vlen, v;
-    GLdouble dircosx, dircosy, dircosz;
-    GLdouble xangle, yangle;
-
-    delx = b[0] - a[0];
-    dely = b[1] - a[1];
-    delz = b[2] - a[2];
-    vlen = sqrt(delx*delx + dely*dely + delz*delz);
-    dircosx = delx / vlen;
-    dircosy = dely / vlen;
-    dircosz = delz / vlen;
-    v = sqrt(dircosz*dircosz + dircosy*dircosy);
-    if (v == 0.0) {
-      xangle = 0;
-      //yangle = M_PI_2;
-      yangle = 90.0;
-    } else {
-      xangle = (180.0 / M_PI ) * acos(dircosz/v);
-      yangle = (180.0 / M_PI ) * acos(v);
-    }
-    if (dely < 0.0) xangle = -xangle;
-    if (delx > 0.0) yangle = -yangle;
-
-    glTranslated(a[0], a[1], a[2]);
-    glRotated(-xangle, 1.0, 0.0, 0.0);
-    glRotated(-yangle, 0.0, 1.0, 0.0);
-}
-
-void GLWidget::cylinder(GLdouble bxyz[], GLdouble txyz[], GLdouble b, GLdouble t)
-{
-
-    GLdouble dx = txyz[0] - bxyz[0];
-    GLdouble dy = txyz[1] - bxyz[1];
-    GLdouble dz = txyz[2] - bxyz[2];
-    GLdouble h = sqrt(dx*dx + dy*dy + dz*dz);
-    glPushMatrix();
-    align_from_z(bxyz, txyz);
-    GLUquadricObj* quadric = gluNewQuadric();
-    gluQuadricDrawStyle(quadric, GLU_FILL);
-    gluQuadricOrientation(quadric, GLU_OUTSIDE);
-    gluQuadricNormals(quadric, GLU_SMOOTH);
-    gluCylinder(quadric, b, t, h, 20, 20);
-    gluDeleteQuadric(quadric);
-    glPopMatrix();
-
 }
 
 void GLWidget::normalizeAngle(int *angle)
