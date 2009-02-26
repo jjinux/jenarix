@@ -24,5 +24,6 @@ for i in range(0,int(nbonds)):
   a,b,type,rest = line.strip().split(None,3)
   cylinder.append([coords[int(a)-1], coords[int(b)-1], 0.25])
 
-primitives = [title,{"atoms":["sphere",sphere],"bonds":["cylinder",cylinder]}]
+#primitives = [title,{"atoms":["sphere",sphere],"bonds":["cylinder",cylinder]}]
+primitives = ["sphere",sphere, "cylinder",cylinder]
 print simplejson.dumps(primitives)
