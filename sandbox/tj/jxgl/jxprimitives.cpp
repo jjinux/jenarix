@@ -21,12 +21,15 @@ Jenarix::processJSON( Json::Value &value )
       
       if ( !value[index].asString().compare("cylinder") ) {
         ++index;
-        color(0.5, 1.0, 0.5, 0.0);
+        //color(0.25, 1.0, 0.5, 0.0);
         Jenarix::cylinder( value[index] );
       } else if ( !value[index].asString().compare("sphere") ) {
         ++index;
-        color(0.5, 0.5, 1.0, 0.0);
+        //color(0.5, 0.5, 1.0, 0.0);
         Jenarix::sphere( value[index] );
+      } else if ( !value[index].asString().compare("colorsphere") ) {
+        ++index;
+        Jenarix::colorsphere( value[index] );
       } else {
         printf ("unrecognized primitive type '%s'\n", value[index].asString().c_str() );
       }
@@ -91,7 +94,40 @@ int Jenarix::sphere( Json::Value &value )
       gluQuadricNormals(quadric, GLU_SMOOTH);
       //printf ("%f %f %f\n", xyz[0], xyz[1], xyz[2]);
       get_double((value[index])[irad], r);
-      gluSphere(quadric, r/3.0, 20, 20);
+      gluSphere(quadric, r, 20, 20);
+      //printf ("%f\n", r);
+      gluDeleteQuadric(quadric);
+      glPopMatrix();
+    }
+
+   return nval;
+}
+
+int Jenarix::colorsphere( Json::Value &value )
+{
+
+    GLdouble xyz[3], r, rgb[3];
+    unsigned int ixyz = 0;
+    unsigned int irgb = 1;
+    unsigned int irad = 2;
+    assert (value.type() == Json::arrayValue);
+    int nval = value.size();
+    //printf ("%d sphere\n", nval);
+
+    for ( int index = 0; index < nval; ++index ) {
+      glPushMatrix();
+      //printf ("%d\n", value[index].size());
+      get_3double((value[index])[ixyz], xyz);
+      glTranslated(xyz[0], xyz[1], xyz[2]);
+      get_3double((value[index])[irgb], rgb);
+      color(rgb[0], rgb[1], rgb[2], 0.0);
+      GLUquadricObj* quadric = gluNewQuadric();
+      gluQuadricDrawStyle(quadric, GLU_FILL);
+      gluQuadricOrientation(quadric, GLU_OUTSIDE);
+      gluQuadricNormals(quadric, GLU_SMOOTH);
+      //printf ("%f %f %f\n", xyz[0], xyz[1], xyz[2]);
+      get_double((value[index])[irad], r);
+      gluSphere(quadric, r, 20, 20);
       //printf ("%f\n", r);
       gluDeleteQuadric(quadric);
       glPopMatrix();
