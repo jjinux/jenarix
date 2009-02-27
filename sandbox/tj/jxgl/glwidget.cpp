@@ -195,6 +195,7 @@ GLuint GLWidget::makeObject()
 {
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
+    //Jenarix::make_axes();
     // define a default color
     Jenarix::color(0.25, 1.0, 0.5, 0.0);
 

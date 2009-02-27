@@ -10,6 +10,8 @@ namespace Jenarix {
    int sphere(Json::Value &value );
    int colorsphere(Json::Value &value );
    int cylinder( Json::Value &value );
+   int triangle( Json::Value &value, bool clockwise);
+   int trianglenormal( Json::Value &value, bool clockwise);
    void align_from_z(GLdouble a[], GLdouble b[]);
    void color(GLdouble r, GLdouble g, GLdouble b, GLdouble a);
    void make_axes();
