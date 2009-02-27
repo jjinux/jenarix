@@ -3,7 +3,7 @@
 
 namespace Jenarix {
 
-   bool  parseJSON  ( Json::Value &value );
+   bool parseJSON  ( Json::Value &value );
    int  processJSON( Json::Value &value );
    void printJSON  ( Json::Value &value );
 

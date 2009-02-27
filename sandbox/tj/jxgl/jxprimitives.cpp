@@ -6,6 +6,21 @@
 #if defined(_MSC_VER)  &&  _MSC_VER >= 1310
 # pragma warning( disable: 4996 )     // disable fopen deprecation warning
 #endif
+bool
+
+Jenarix::parseJSON( Json::Value &root )
+{
+   Json::Reader reader;
+   bool parsingSuccessful = reader.parse( std::cin, root );
+   if ( !parsingSuccessful )
+   {
+      printf( "Failed to parse <stdin> %s\n", 
+              reader.getFormatedErrorMessages().c_str() );
+      return false;
+   }
+
+   return true;
+}
 
 int
 Jenarix::processJSON( Json::Value &value )
@@ -41,28 +56,13 @@ Jenarix::processJSON( Json::Value &value )
   return nprimitives;
 }
 
-bool
-Jenarix::parseJSON( Json::Value &root )
-{
-   Json::Reader reader;
-   bool parsingSuccessful = reader.parse( std::cin, root );
-   if ( !parsingSuccessful )
-   {
-      printf( "Failed to parse <stdin> %s\n", 
-              reader.getFormatedErrorMessages().c_str() );
-      return false;
-   }
-
-   return true;
-}
-
-int get_double( Json::Value &value, GLdouble &q ) {
+int get_real( Json::Value &value, GLdouble &q ) {
     assert (value.type() == Json::realValue);
     q = value.asDouble();
     return 0;
 }
 
-int get_3double( Json::Value &value, GLdouble xyz[3] ) {
+int get_3real( Json::Value &value, GLdouble xyz[3] ) {
 
     assert (value.type() == Json::arrayValue);
     assert (value.size() == 3);
@@ -86,14 +86,14 @@ int Jenarix::sphere( Json::Value &value )
     for ( int index = 0; index < nval; ++index ) {
       glPushMatrix();
       //printf ("%d\n", value[index].size());
-      get_3double((value[index])[ixyz], xyz);
+      get_3real((value[index])[ixyz], xyz);
       glTranslated(xyz[0], xyz[1], xyz[2]);
       GLUquadricObj* quadric = gluNewQuadric();
       gluQuadricDrawStyle(quadric, GLU_FILL);
       gluQuadricOrientation(quadric, GLU_OUTSIDE);
       gluQuadricNormals(quadric, GLU_SMOOTH);
       //printf ("%f %f %f\n", xyz[0], xyz[1], xyz[2]);
-      get_double((value[index])[irad], r);
+      get_real((value[index])[irad], r);
       gluSphere(quadric, r, 20, 20);
       //printf ("%f\n", r);
       gluDeleteQuadric(quadric);
@@ -117,16 +117,16 @@ int Jenarix::colorsphere( Json::Value &value )
     for ( int index = 0; index < nval; ++index ) {
       glPushMatrix();
       //printf ("%d\n", value[index].size());
-      get_3double((value[index])[ixyz], xyz);
+      get_3real((value[index])[ixyz], xyz);
       glTranslated(xyz[0], xyz[1], xyz[2]);
-      get_3double((value[index])[irgb], rgb);
+      get_3real((value[index])[irgb], rgb);
       color(rgb[0], rgb[1], rgb[2], 0.0);
       GLUquadricObj* quadric = gluNewQuadric();
       gluQuadricDrawStyle(quadric, GLU_FILL);
       gluQuadricOrientation(quadric, GLU_OUTSIDE);
       gluQuadricNormals(quadric, GLU_SMOOTH);
       //printf ("%f %f %f\n", xyz[0], xyz[1], xyz[2]);
-      get_double((value[index])[irad], r);
+      get_real((value[index])[irad], r);
       gluSphere(quadric, r, 20, 20);
       //printf ("%f\n", r);
       gluDeleteQuadric(quadric);
@@ -149,9 +149,9 @@ int Jenarix::cylinder( Json::Value &value )
     //printf ("%d cylinder\n", nval);
     for ( int index = 0; index < nval; ++index ) {
       //printf ("%d\n", value[index].size());
-      get_3double((value[index])[ibxyz], bxyz);
+      get_3real((value[index])[ibxyz], bxyz);
       //printf ("%f %f %f\n", bxyz[0], bxyz[1], bxyz[2]);
-      get_3double((value[index])[itxyz], txyz);
+      get_3real((value[index])[itxyz], txyz);
       //printf ("%f %f %f\n", txyz[0], txyz[1], txyz[2]);
       dx = txyz[0] - bxyz[0];
       dy = txyz[1] - bxyz[1];
@@ -163,7 +163,7 @@ int Jenarix::cylinder( Json::Value &value )
       gluQuadricDrawStyle(quadric, GLU_FILL);
       gluQuadricOrientation(quadric, GLU_OUTSIDE);
       gluQuadricNormals(quadric, GLU_SMOOTH);
-      get_double((value[index])[irad], r);
+      get_real((value[index])[irad], r);
       //printf ("%f\n", r);
       gluCylinder(quadric, r, r, h, 20, 20);
       gluDeleteQuadric(quadric);
