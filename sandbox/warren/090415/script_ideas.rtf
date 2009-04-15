@@ -1,7 +1,7 @@
 {\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf440
 {\fonttbl\f0\fmodern\fcharset77 CourierNewPS-BoldMT;}
 {\colortbl;\red255\green255\blue255;}
-\margl1440\margr1440\vieww15680\viewh15680\viewkind0
+\margl1440\margr1440\vieww19060\viewh17020\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
 
 \f0\b\fs48 \cf0 \
@@ -9,11 +9,12 @@
 # predefined nodes (could be builtin C objects)\
 \
 from library_A import node_type_A\
-from library_A import node_type_B\
+\
+import library_B\
 \
 # defining a non-builtin node\
 \
-node node_typeD:\
+node node_type_D:\
 \
     # every node automatically has\
 \
@@ -24,7 +25,7 @@ node node_typeD:\
     port named_port_1, named_port_2\
 \
     local_symbol_A = node_type_A()\
-    local_symbol_B = node_type_B()\
+    local_symbol_B = library_B.node_type_B()\
     local_symbol_C = node_type_A()\
 \
     # implicit use of input and output ports\
@@ -44,6 +45,31 @@ node node_typeD:\
     named_port_2 | local_symbol_C.named_port_3\
 \
     \
+    # branching ideas...\
+\
+    src_node.src_port | (dst_node_A.port_1, dst_node_B.port_2)\
+\
+    src_node | (dst_node_A | output, dst_node_B)\
+    \
+    src_node | (dst_node_A, dst_node_B) | output\
+\
+    # what about nested definitions?\
+\
+    node node_type_E:\
+        ....\
+\
+    local_symbol_E = node_type_E()\
+\
+node_type_D()\
+\
+# what about re-using existing definitions?\
+\
+node node_type_X(node_typeD):\
+\
+    local_symbol_A = libraryB.node_type_E\
+\
+    ...\
+\
 \
 \
 }
