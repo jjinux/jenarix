@@ -1,0 +1,59 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf440
+{\fonttbl\f0\fmodern\fcharset77 CourierNewPS-BoldMT;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww18680\viewh13940\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs48 \cf0 \
+- hold a weekly conference call (Friday).\
+\
+Primary quarterly goal:\
+\
+Develop a prototype Jenarix implementation which consists of\
+\
+(1) a Python-based multithreaded network manager/scheduler capable of integrating native C and C++ nodes which run concurrently.\
+\
+(2) A Qt-based GUI node written in C++ which provides an OpenGL context capable of accepting simple UI events.\
+\
+(3) A scenegraph rendering node written in C.\
+\
+(4) A graphics generator node written in C.\
+\
+What do we need?\
+\
+Container system written in C, passed through Python as CObjects, with memory management handled by the network manager?\
+ \
+Unanswered questions?\
+\
+ownership / management of read-only entities?\
+\
+ad hoc calls, especially synchronous "RPC"\
+\
+stateful vs. stateless nodes\
+\
+tolerating one (or perhaps more than one) node which owns its own thread permanently (e.g. having called the Qt exec method or Tk mainloop).\
+\
+tear down / cleanup\
+\
+Discrete tasks:\
+\
+- development of a C library / interface for creating, using, destroying native Jenarix data objects [not nodes!].\
+\
+- development of a Python based network manager with concurrency support using Python payloads\
+\
+- extension of the above network manager to handle native C/C++ nodes with CObject payloads (no read-only support yet).\
+\
+- extension of the above network manager to accommodate a C/C++ node with its own dedicated thread.\
+\
+- definition of the Jenarix network language and creation of a compiler into Python (for starters).\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}
