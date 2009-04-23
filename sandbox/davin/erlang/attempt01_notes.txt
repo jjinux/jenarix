@@ -1,0 +1,68 @@
+20090422 DMP notes
+
+The attempt01_server.erl and supporting attempt01_supervisor.erl files
+currently re-implement functionality from the attempt01.py prototype.
+Things are left simpler and less polished to keep from getting too
+distracted by cruft at this point as it's already enough of a mental
+bender to grok Erlang/OTP.
+
+Present here, but not in the attempt01.py prototype:
+* Concurrent execution
+* Scheduler for execution on multi-core/SMPs/distributed-cores
+* Persistence of jenarix nodes and network within VM
+
+Absent here, but present in the attempt01.py prototype:
+* Error port not implemented (some conflict with Erlang philosophy here)
+* Scope limitations on inter-node communication
+
+
+As an example, setting up a jenarix node network with a single "Adds One"
+node, then sending it a message to its "input port":
+---------------------------------------------------------------------
+davin/erlang> erl
+Erlang (BEAM) emulator version 5.6.5 [source] [64-bit] [smp:2] [async-threads:0] [hipe] [kernel-poll:false]
+
+Eshell V5.6.5  (abort with ^G)
+1> {ok, SuperPid} = supervisor:start_link(attempt01_supervisor, []).
+DBG Info: attempt01_supervisor starting
+{ok,<0.68.0>}
+2> supervisor:start_child(SuperPid, [addsone1, m_adds_one, [], []]).
+{ok,<0.85.0>}
+3> gen_server:cast(pid(0,85,0), 1).
+"DBG AddsOne result: 2"
+ok
+4>
+
+---------------------------------------------------------------------
+Continuing this session, let's add another node to create the following
+jenarix node network:  input | AddsOne_2 | AddsOne_1 | output
+and then send in some input:
+---------------------------------------------------------------------
+26> supervisor:start_child(SuperPid6, [addsone2, m_adds_one, [pid(0,85,0)], []]).
+{ok,<0.92.0>}
+27> gen_server:cast(pid(0,92,0), 1).                                             
+"DBG AddsOne result: 2"
+"DBG AddsOne result: 3"
+ok
+
+---------------------------------------------------------------------
+Now let's get fancy and create the following branching jenarix node network:
+input | AddsOne_3 | (Doubles_1, Negate_1) | AddsOne_2 | AddsOne_1 | output
+and send it some input to show off some concurrency:
+---------------------------------------------------------------------
+28> supervisor:start_child(SuperPid6, [doubles1, m_doubles, [pid(0,92,0)], []]). 
+{ok,<0.95.0>}
+29> supervisor:start_child(SuperPid6, [negate1, m_negate, [pid(0,92,0)], []]).  
+{ok,<0.97.0>}
+30> supervisor:start_child(SuperPid6, [addsone3, m_adds_one, [pid(0,95,0), pid(0,97,0)], []]).
+{ok,<0.99.0>}
+31> gen_server:cast(pid(0,99,0), 0).                                                          
+"DBG AddsOne result: 1"
+"DBG Doubles result: 2"
+"DBG Negate result: -1"
+"DBG AddsOne result: 3"
+"DBG AddsOne result: 0"
+"DBG AddsOne result: 4"
+"DBG AddsOne result: 1"
+ok
+32> 
