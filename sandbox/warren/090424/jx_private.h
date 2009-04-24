@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef struct {
   jx_int size;
   jx_bool homogenous_flag;
-  jx_int homogenous_type;
+  jx_int homogenous_meta;
   union {
     jx_ob *ob_array; /* heterogeneous */
     jx_char *char_array; 
@@ -54,7 +54,8 @@ typedef struct {
 
 typedef struct {
   jx_int size;
-  jx_hash_entry *entry;
+  jx_list content;
+  jx_list table;
   /* etc */
 } jx_hash;
 
