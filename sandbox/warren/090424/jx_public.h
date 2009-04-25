@@ -71,6 +71,7 @@ jx_ob jx_ob_from_str(jx_char *str); /* copies string into new storage */
 
 /* unboxing */
 
+jx_bool   jx_ob_as_bool(jx_ob ob);
 jx_int    jx_ob_as_int(jx_ob ob);
 jx_float  jx_ob_as_float(jx_ob ob);
 
@@ -84,6 +85,7 @@ jx_char  *jx_ob_as_str(jx_ob *ob); /* returns borrowed (volatile)
 /* determining object type */
 
 jx_status jx_ob_is_null(jx_ob ob);
+jx_status jx_ob_is_bool(jx_ob ob);
 jx_status jx_ob_is_int(jx_ob ob);
 jx_status jx_ob_is_float(jx_ob ob);
 jx_status jx_ob_is_str(jx_ob ob);
@@ -95,20 +97,22 @@ jx_status jx_ob_is_hash(jx_ob ob);
 jx_ob jx_ob_copy(jx_ob ob); /* deep (recursive) copy */
 
 /* variable length array (vla) functions provide untyped, auto-zeroed,
-   size and record-length aware, variable length arrays */
+   null-protected, size and record-length aware variable length arrays */
 
-void *jx_vla_new(jx_int rec_size, jx_int size);
+void     *jx_vla_new(jx_int rec_size, jx_int size);
+jx_int    jx_vla_get_size(void *vla);
 jx_status jx_vla_resize(void **vla, jx_int new_size);
+jx_status jx_vla_grow_check(void **vla, jx_int index);
 jx_status jx_vla_free(void *vla);
 
 /* lists */
 
-jx_ob jx_list_new(void);
-jx_ob jx_list_new_from_float_vla(jx_float *array); /* takes ownership of vla */
-jx_ob jx_list_new_from_int_vla(jx_int *array); /* takes ownership of vla */
+jx_ob     jx_list_new(void);
+jx_ob     jx_list_new_from_float_vla(jx_float *vla); /* takes ownership of vla */
+jx_ob     jx_list_new_from_int_vla(jx_int *vla); /* takes ownership of vla */
 
-jx_int jx_list_get_size(jx_ob list);
-jx_int jx_list_set_size(jx_ob list, jx_ob fill); /* borrows and copies fill object (as necessary) */
+jx_int    jx_list_get_size(jx_ob list);
+jx_int    jx_list_set_size(jx_ob list, jx_ob fill); /* borrows and copies fill object (as necessary) */
 
 jx_status jx_list_append(jx_ob list, jx_ob ob); /* takes ownership of ob */
 jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob); /* takes ownership of ob */
@@ -122,11 +126,11 @@ jx_int   *jx_list_as_int_array(jx_ob list); /* if list is homogenous int, else N
 
 /* hashes */
 
-jx_ob jx_hash_new(void);
+jx_ob     jx_hash_new(void);
 
-jx_ob jx_hash_set(jx_ob hash, jx_ob key, jx_ob value); /* assumes ownership of both key & value */
+jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value); /* assumes ownership of both key & value */
 
-jx_ob jx_hash_keys(jx_ob hash); /* returns owned list of hash keys */
+jx_ob     jx_hash_keys(jx_ob hash); /* returns owned list of copied hash keys */
 
 jx_status jx_hash_has_key(jx_ob hash, jx_ob key); /* borrows key */
 

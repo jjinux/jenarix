@@ -1,6 +1,3 @@
-#ifndef _H_jx_private
-#define _H_jx_private
-
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -33,27 +30,29 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+
 #include "jx_public.h"
 
-struct jx__list {
-  jx_meta packed_meta;
-  union {
-    jx_ob    *ob_vla; /* heterogeneous */
-    jx_float *float_vla;
-    jx_int   *int_vla;
-    void     *vla;
-  } data;
-};
 
-typedef struct {
-  jx_ob key;
-  jx_ob value;
-} jx_hash_entry;
+int main(int argc, char **argv)
+{
+  jx_ob list = jx_list_new();
 
-struct jx__hash {
-  jx_int size;
-  jx_list content;
-  jx_list table;
-};
+  printf("0 == %d\n",jx_list_get_size(list));
 
-#endif
+  printf("0 == %d\n",jx_list_append(list, jx_ob_from_int(9)));
+  printf("1 == %d\n",jx_list_get_size(list));
+  printf("9 == %d\n",jx_ob_as_int(jx_list_borrow(list,0)));
+  printf("0 == %d\n",jx_list_append(list, jx_ob_from_int(8)));
+  printf("2 == %d\n",jx_list_get_size(list));
+  printf("8 == %d\n",jx_ob_as_int(jx_list_borrow(list,1)));
+
+  printf("0 == %d\n",jx_list_append(list, jx_ob_from_float(2.0F)));
+  printf("3 == %d\n",jx_list_get_size(list));
+  printf("9 == %d\n",jx_ob_as_int(jx_list_borrow(list,0)));
+  printf("8 == %d\n",jx_ob_as_int(jx_list_borrow(list,1)));
+  printf("2.0 == %f\n",jx_ob_as_float(jx_list_borrow(list,2)));
+  jx_ob_free(list);
+}
+

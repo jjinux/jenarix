@@ -76,6 +76,11 @@ struct jx__ob {
   } data;
 };
 
+typedef struct {
+  jx_int size;
+  jx_int rec_size;
+} jx_vla; 
+
 /* meta flag bits */
 
 #define JX_META_BIT_GC          0x80000000 
@@ -85,8 +90,10 @@ struct jx__ob {
 #define JX_META_BIT_FLOAT       0x20000000
 #define JX_META_BIT_INT         0x10000000
 #define JX_META_BIT_BOOL        0x08000000
+#define JX_META_BIT_LIST        0x04000000
+#define JX_META_BIT_HASH        0x02000000
 
-#define JX_META_MASK_TYPE_BITS  0x78000000
+#define JX_META_MASK_TYPE_BITS  0x7FFF0000
 
 #define JX_META_MASK_TINY_SIZE  0x000000FF
 
@@ -102,11 +109,31 @@ struct jx__ob {
 #define JX_OB_LIST     { JX_META_BIT_GC | JX_META_BIT_LIST, JX_DATA_INIT }
 #define JX_OB_HASH     { JX_META_BIT_GC | JX_META_BIT_HASH, JX_DATA_INIT }
 
-jx_status jx__ob_free(jx_ob ob);
-
 /* inline methods */
 
 #define JX_INLINE __inline__ static
+
+jx_status jx_vla_resize(void **vla, jx_int new_size);
+
+JX_INLINE jx_int jx_vla_get_size(void *vla)
+{
+  if(vla) {
+    return ((jx_vla*)vla)[-1].size;
+  } else {
+    return 0;
+  }
+}
+
+JX_INLINE jx_status jx_vla_grow_check(void **vla, jx_int index)
+{
+  if(((jx_vla*)(*vla))[-1].size > index) {
+    return JX_TRUE;
+  } else {
+    return (jx_vla_resize(vla, index+1) == JX_SUCCESS);
+  }
+}
+
+jx_status jx__ob_free(jx_ob ob);
 
 JX_INLINE jx_status jx_ob_free(jx_ob ob)
 {
@@ -144,7 +171,42 @@ JX_INLINE jx_ob jx_ob_from_float(jx_float float_)
   return result;
 }
 
-
+JX_INLINE jx_bool jx_ob_as_bool(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_BOOL) ? ob.data.bool_ : JX_FALSE;
+}
+JX_INLINE jx_int jx_ob_as_int(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_INT) ? ob.data.int_ : 0;
+}
+JX_INLINE jx_float jx_ob_as_float(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_FLOAT) ? ob.data.float_ : 0.0F;
+}
+JX_INLINE jx_status jx_ob_is_null(jx_ob ob)
+{
+  return !ob.meta;
+}
+JX_INLINE jx_status jx_ob_is_int(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
+}
+JX_INLINE jx_status jx_ob_is_float(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_FLOAT) ? JX_TRUE : JX_FALSE;
+}
+JX_INLINE jx_status jx_ob_is_str(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_STR) ? JX_TRUE : JX_FALSE;
+}
+JX_INLINE jx_status jx_ob_is_list(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_LIST) ? JX_TRUE : JX_FALSE;
+}
+JX_INLINE jx_status jx_ob_is_hash(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;
+}
 #endif
 
 
