@@ -1,6 +1,3 @@
-#ifndef _H_jx_private
-#define _H_jx_private
-
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -33,29 +30,47 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+
 #include "jx_public.h"
 
-struct jx__list {
-  jx_int size;
-  jx_bool homogenous_flag;
-  jx_int homogenous_meta;
-  union {
-    jx_ob *ob_array; /* heterogeneous */
-    jx_char *char_array; 
-    jx_float *float_array;
-    jx_int *int_array; 
-  } data;
-};
+static void dump_hex(jx_char *message, void *ptr, jx_int size)
+{
+  unsigned char *ch = (unsigned char*)ptr;
+  printf("%s: ",message);
+  while(size--) {
+    printf("%02x",*(ch++));
+    if(size) printf(" ");
+  }
+  printf("\n");
+}
 
-typedef struct {
-  jx_ob key;
-  jx_ob value;
-} jx_hash_entry;
-
-struct jx__hash {
-  jx_int size;
-  jx_list content;
-  jx_list table;
-};
-
+int main(int argc, char **argv)
+{
+#if JX_TINY_STR_SIZE == 4
+  jx_ob tiny = jx_ob_from_str("123");
+#else
+#if JX_TINY_STR_SIZE == 8
+  jx_ob tiny = jx_ob_from_str("1234567");
+#else
+#if JX_TINY_STR_SIZE == 16
+  jx_ob tiny = jx_ob_from_str("123456789012345");
 #endif
+#endif
+#endif
+
+  jx_ob heap = jx_ob_from_str("heap_string_for_sure");
+
+  dump_hex("tiny", &tiny, sizeof(jx_ob));
+  dump_hex("heap", &heap, sizeof(jx_ob));
+
+  printf("tiny: %s\n",jx_ob_as_str(&tiny));
+  printf("heap: %s\n",jx_ob_as_str(&heap));
+
+  tiny = jx_ob_from_int(1);
+  dump_hex("one", &tiny,sizeof(jx_ob));  
+
+  jx_ob_free(tiny);
+  jx_ob_free(heap);
+}
+

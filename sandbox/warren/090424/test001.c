@@ -1,6 +1,3 @@
-#ifndef _H_jx_private
-#define _H_jx_private
-
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -33,29 +30,19 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+
 #include "jx_public.h"
 
-struct jx__list {
-  jx_int size;
-  jx_bool homogenous_flag;
-  jx_int homogenous_meta;
-  union {
-    jx_ob *ob_array; /* heterogeneous */
-    jx_char *char_array; 
-    jx_float *float_array;
-    jx_int *int_array; 
-  } data;
-};
+int main(int argc, char **argv)
+{
+  jx_ob tiny = jx_ob_from_str("tiny_st");
+  jx_ob heap = jx_ob_from_str("heap_string");
 
-typedef struct {
-  jx_ob key;
-  jx_ob value;
-} jx_hash_entry;
+  printf("tiny_str: %s\n",jx_ob_as_str(&tiny));
+  printf("heap_str: %s\n",jx_ob_as_str(&heap));
 
-struct jx__hash {
-  jx_int size;
-  jx_list content;
-  jx_list table;
-};
+  jx_ob_free(tiny);
+  jx_ob_free(heap);
+}
 
-#endif
