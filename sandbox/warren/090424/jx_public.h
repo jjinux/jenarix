@@ -42,6 +42,7 @@ typedef  char         jx_char;
 typedef  int          jx_status;
 
 typedef  int          jx_int32;
+typedef  unsigned int jx_uint32; /* for hash codes, etc. */
 typedef  long long    jx_int64;
 
 /* our ubuitous object jenarix object type */
@@ -55,6 +56,8 @@ typedef struct jx__ob jx_ob;
 
 #define JX_FALSE     0  
 #define JX_TRUE      1
+
+#define JX_NULL      NULL
 
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by the developer as private */
@@ -92,9 +95,13 @@ jx_status jx_ob_is_str(jx_ob ob);
 jx_status jx_ob_is_list(jx_ob ob);
 jx_status jx_ob_is_hash(jx_ob ob);
 
+/* comparing objects */
+
+jx_bool jx_ob_identical(jx_ob left, jx_ob right);
+
 /* copying */
 
-jx_ob jx_ob_copy(jx_ob ob); /* deep (recursive) copy */
+jx_ob jx_ob_copy(jx_ob ob); /* always deep and recursive */
 
 /* strings */
 
@@ -134,15 +141,19 @@ jx_ob     jx_list_new_with_float_vla(jx_float *vla); /* takes ownership of new v
 jx_float *jx_list_as_float_vla(jx_ob ob); /* borrows vla if homogenous, else NULL */
 jx_status jx_list_set_float_vla(jx_ob ob, jx_float *vla); /* update list vla */
 
-/* hashes */
+/* hashes and hashing */
+
+jx_uint32 jx_ob_hash_code(jx_ob ob);
 
 jx_ob     jx_hash_new(void);
+
+jx_int    jx_hash_size(jx_ob hash);
 
 jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value); /* assumes ownership of both key & value */
 
 jx_ob     jx_hash_keys(jx_ob hash); /* returns owned list of copied hash keys */
 
-jx_status jx_hash_has_key(jx_ob hash, jx_ob key); /* borrows key */
+jx_bool   jx_hash_has_key(jx_ob hash, jx_ob key); /* borrows key */
 
 jx_ob     jx_hash_borrow(jx_ob hash, jx_ob key); /* borrows key and returns borrowed value */
 jx_ob     jx_hash_remove(jx_ob hash, jx_ob key); /* borrows key and returns owned value */

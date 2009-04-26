@@ -139,7 +139,7 @@ void jx__free(void *ptr, char *file, int line)
 
 void *jx_vla_new(jx_int rec_size,jx_int size)
 {
-  jx_vla *vla = jx_calloc(1, sizeof(jx_vla) + rec_size * size);
+  jx_vla *vla = (jx_vla*)jx_calloc(1, sizeof(jx_vla) + rec_size * size);
   if(vla) {
     vla->size = size;
     vla->rec_size = rec_size;
@@ -311,10 +311,8 @@ jx_status jx__vla_free(void **ref)
   if(*ref) {
     jx_free( ((jx_vla*)(*ref)) - 1 );
     (*ref) = NULL;
-    return JX_SUCCESS;
-  } else {
-    return JX_FAILURE;
   }
+  return JX_SUCCESS;
 }
 
 /* strings */
@@ -366,12 +364,36 @@ jx_char *jx_ob_as_str(jx_ob *ob) {
   return NULL;
 }
 
+/* comparison */
+
+jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
+{
+  /* on entry, we know left.meta == right.meta and that
+     both objects are GC'd */
+  switch(left.meta & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+    {
+      jx_char *left_st = jx_ob_as_str(&left);
+      jx_char *right_st = jx_ob_as_str(&right);
+      if(left_st && right_st) {
+        return (!strcmp(left_st,right_st));
+      }
+    }
+    break;
+  case JX_META_BIT_LIST:
+    break;
+  case JX_META_BIT_HASH:
+    break;
+  }
+  return JX_FALSE;
+}
+
 /* lists */
 
 jx_ob jx_list_new(void)
 {
   jx_ob result = JX_OB_LIST;
-  result.data.list = jx_calloc(1,sizeof(jx_list));
+  result.data.list = (jx_list*)jx_calloc(1,sizeof(jx_list));
   return result;
 }
 
@@ -395,8 +417,7 @@ jx_ob jx_list_new_from_float_array(jx_float *array, jx_float size)
   return result;
 }
 
-
-static void jx_list_free(jx_list *list)
+static jx_status jx_list_free(jx_list *list)
 {
   if(!list->packed_meta) {
     jx_int i, size = jx_vla_size(&list->data.vla);
@@ -407,6 +428,7 @@ static void jx_list_free(jx_list *list)
   }
   jx_vla_free(&list->data.vla);
   jx_free(list);
+  return JX_SUCCESS;
 }
 
 jx_int jx_list_size(jx_ob ob)
@@ -855,15 +877,1848 @@ jx_ob jx_ob_to_json(jx_ob ob)
   return jx_ob_from_null();
 }
 
+/* hashing */
+
+static jx_uint32 jx__c_str_hash(jx_char *str)
+{
+  register unsigned char *p = (unsigned char*)str;
+  register jx_uint32 x, len = 0;
+  register unsigned char c;
+  
+  x = *p << 7;
+  while ( (c=*(p++)) ) {
+#if 0
+    /* PYTHON (time: G5 = 3.2, P3 = 19.3, P4=11.1)*/
+    x = (1000003*x) + c;    
+#endif
+#if 0
+    /* aho (G5 = 3.6 sec, P3 = 15.2?!, P4=3.6) */
+    x = (x << 6) + (x << 16) - x + c; 
+#endif
+#if 1
+    /*  djb2 (G5 = 2.8, P3 = 18.7, P4=2.9) FASTEST OVERALL */
+    x = (x << 5) + x + c;   
+#endif
+    len++;
+  }
+  x ^= len;
+  return x ? x : 1; /* zero is reserved as the hash code of an
+                       unhashable object */
+}
+
+jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
+{
+  if(ob.meta & JX_META_BIT_STR) { /* right now, we only hash GC strings */
+    return jx__c_str_hash(jx_ob_as_str(&ob));
+  } else {
+    return 0; /* unhashable */
+  }
+}
+
+/* hash objects */
+
+jx_ob jx_hash_new(void)
+{
+  jx_ob result = JX_OB_HASH;
+  result.data.hash = (jx_hash*)jx_calloc(1,sizeof(jx_hash));
+  return result;
+}
+
+static jx_status jx_hash_free(jx_hash *I)
+{
+  jx_int size = jx_vla_size( &I->key_value );
+  if(size) {
+    jx_ob *ob = I->key_value;
+    jx_int i;
+    for(i=0;i<size;i++) {
+      jx_ob_free( *(ob++) );
+    }
+  }
+  jx_vla_free( &I->key_value );
+  jx_vla_free( &I->info );
+  jx_free(I);
+  return JX_SUCCESS;
+}
+
+jx_int jx__hash_size(jx_hash *I)
+{
+  jx_int result = 0;
+  if(I->key_value) {
+    if(!I->info) { /* no info mode -- search & match objects directly  */
+      result = jx_vla_size(&I->key_value) >> 1;
+    } else {
+      jx_hash_info *info = (jx_hash_info*)I->info;
+      result = info->usage;
+    }
+  }
+  return result;
+}
+
+JX_INLINE jx_uint32 jx__new_mask_from_min_size(jx_uint32 min_size)
+{
+  jx_uint32 new_mask = 0;
+  jx_uint32 tmp_usage = ((3*min_size) >> 1);
+  while(tmp_usage) {
+    new_mask = (new_mask << 1) + 1;
+    tmp_usage = (tmp_usage >> 1);
+  }
+  while(new_mask<min_size) {
+    new_mask = (new_mask << 1);
+  }
+  return new_mask;
+}
+
+jx_bool jx__hash_recondition(jx_hash *I, jx_int mode, jx_bool pack)
+{
+  /* note that on recondition we assume that there are no two
+     identical keys present in the hash */
+
+  jx_bool result = JX_TRUE;
+  jx_uint32 usage = 0;
+  jx_uint32 old_mode = JX_HASH_RAW;
+  jx_uint32 min_size = 0;
+#if 0
+  putchar('$');
+#endif
+  if(!I->info) {
+    usage = jx_vla_size(&I->key_value) >> 1;
+    if(min_size < usage)
+      min_size = usage;
+    if(mode > JX_HASH_LINEAR) { 
+      I->info = jx_vla_new( sizeof(jx_uint32), (2*min_size) + JX_HASH_INFO_SIZE);
+      if(I->info) {
+        jx_hash_info *info = (jx_hash_info*)I->info;
+        info->mode = mode;
+      }
+    }
+  } else {
+    jx_hash_info *info = (jx_hash_info*)I->info;
+    old_mode = info->mode;
+    usage = info->usage;
+    if(min_size<usage)
+      min_size = usage;
+  }
+
+  switch(mode) {
+  case JX_HASH_ONE_TO_ANY:
+  case JX_HASH_ONE_TO_ONE:
+  case JX_HASH_ONE_TO_NIL:
+    min_size = usage+1; /* always make sure there is space for a new entry */
+    break;
+  }
+
+  if(!I->key_value) {
+    if(min_size) {
+      I->key_value = jx_vla_new(sizeof(jx_ob), 0);
+    }
+  }
+  if(!min_size) {
+    /* empty table stays empty */
+    if(I->key_value) {
+      jx_vla_resize(&I->key_value, 0);
+    }
+    /* free info field unless we've selected non-default behaviors */
+    switch(mode) {
+    case JX_HASH_ONE_TO_ONE:
+    case JX_HASH_ONE_TO_NIL:
+      break;
+    default:
+      jx_vla_free( &I->info );
+      break;
+    }
+  } else {
+    switch(mode) {
+    case JX_HASH_RAW: /* to */
+      switch(old_mode) {
+      case JX_HASH_LINEAR: /* from */
+        if(I->key_value) {
+          jx_vla_resize( &I->key_value, (usage<<1) );
+        }
+        jx_vla_free( &I->info );
+        break;
+      case JX_HASH_ONE_TO_ANY: /* from */
+      case JX_HASH_ONE_TO_ONE:
+      case JX_HASH_ONE_TO_NIL:
+        {
+          jx_hash_info *old_info = (jx_hash_info*)I->info;
+          jx_ob *new_key_value = jx_vla_new(sizeof(jx_ob), (usage<<1));
+          if(new_key_value) {
+            jx_ob *old_key_value = I->key_value, *new_ptr = new_key_value;
+            jx_uint32 *old_hash = old_info->start;
+            if(old_info->mask) {
+              jx_uint32 c = old_info->mask + 1;
+              while(c--) { 
+                if(old_hash[1] & JX_HASH_ACTIVE) { /* only process actives */ 
+                  jx_uint32 old_i = old_hash[1] & JX_HASH_OFFSET_MASK;
+                  /* copy object into new key_value table */
+                  *(new_ptr++) = old_key_value[old_i];
+                  *(new_ptr++) = old_key_value[old_i+1];  /* for ONE_TO_NIL, these will be null */
+                }
+                old_hash += 2;
+              }
+            }
+            jx_vla_free( &I->key_value );
+            I->key_value = new_key_value;
+            jx_vla_free( &I->info );
+          }
+        }
+        break;
+      }
+      break;
+    case JX_HASH_LINEAR: /* to */
+      switch(old_mode) {
+      case JX_HASH_RAW: /* from */
+        {
+          I->info = jx_vla_new( sizeof(jx_uint32), usage + JX_HASH_INFO_SIZE);
+          if(I->info) {
+            jx_hash_info *info = (jx_hash_info*)I->info;
+            jx_uint32 i = usage;
+            jx_ob *ob = I->key_value;
+            jx_uint32 *hash_entry_ptr = info->start;
+            while(i--) {
+              *(hash_entry_ptr) = jx_ob_hash_code( *ob );
+              hash_entry_ptr++;
+              ob += 2;
+            }
+            info->mode = mode;
+            info->usage = usage;
+          }
+        }
+        break;
+      case JX_HASH_LINEAR: /* from */
+        /* do nuttin' */
+        break;
+      case JX_HASH_ONE_TO_ANY: /* from */
+      case JX_HASH_ONE_TO_ONE:
+      case JX_HASH_ONE_TO_NIL:
+        {
+          jx_hash_info *old_info = (jx_hash_info*)I->info;
+          jx_ob *new_key_value = jx_vla_new( sizeof(jx_ob), (usage<<1));
+          jx_hash_info *new_info = (jx_hash_info*)jx_vla_new( sizeof(jx_uint32), usage + JX_HASH_INFO_SIZE);
+          if( new_key_value && new_info ) {
+            jx_ob *old_key_value = I->key_value, *new_ptr = new_key_value;
+            jx_uint32 *old_hash = old_info->start;
+            jx_uint32 *new_hash = new_info->start;
+            if(old_info->mask) {
+              jx_uint32 c = old_info->mask + 1;
+              jx_uint32 new_i = 0;
+              new_info->mode = mode;
+              new_info->usage = usage;
+              while(c--) { 
+                if(old_hash[1] & JX_HASH_ACTIVE) { /* only process actives */ 
+                  jx_uint32 old_i = old_hash[1] & JX_HASH_OFFSET_MASK;
+                  /* copy object into new key_value table */
+                  *(new_ptr++) = old_key_value[old_i];
+                  *(new_ptr++) = old_key_value[old_i+1];
+                  *(new_hash++) = old_hash[0];
+                  new_i += 2;
+                }
+                old_hash += 2;
+              }
+            }
+            jx_vla_free( &I->key_value );
+            I->key_value = new_key_value;
+            jx_vla_free( &I->info );
+            I->info = (jx_uint32*)new_info;
+          } else {
+            jx_vla_free( &new_key_value );
+            jx_vla_free( &new_info );
+          }
+        }
+        break;
+      }
+      break;
+    case JX_HASH_ONE_TO_ANY: /* to */
+    case JX_HASH_ONE_TO_NIL:
+      {
+        jx_uint32 new_mask = jx__new_mask_from_min_size(min_size);
+        {
+          /* prepare new info block */
+          jx_hash_info *new_info = (jx_hash_info*)jx_vla_new( sizeof(jx_uint32),2*(new_mask + 1) + JX_HASH_INFO_SIZE);
+          if(new_info) {
+            new_info->mode = mode;
+            new_info->usage = usage;
+            new_info->mask = new_mask;
+            switch(old_mode) {
+            case JX_HASH_RAW: /* from */
+              {
+                jx_ob *ob = I->key_value;
+                jx_uint32 *hash = new_info->start;
+                jx_uint32 i = 0;
+                jx_uint32 size = (usage<<1);
+                while(i<size) {
+                  jx_uint32 hash_code = jx_ob_hash_code( *ob );
+                  jx_uint32 index = new_mask & hash_code;
+                  jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                  if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                    hash_entry_ptr[0] = hash_code;
+                    hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                  } else {
+                    jx_uint32 give_up = index;
+                    index = (index+1) & new_mask;
+                    while(index != give_up) {
+                      hash_entry_ptr = hash + (index<<1);
+                      if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                        hash_entry_ptr[0] = hash_code;
+                        hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                        break;
+                      }
+                      index = (index+1) & new_mask;
+                    }
+                  }
+                  i+=2;
+                  ob+=2;
+                }
+                jx_vla_free( &I->info );
+                I->info = (jx_uint32*)new_info;
+                new_info = NULL;
+              }
+              break;
+            case JX_HASH_LINEAR: /* from */
+              {
+                jx_hash_info *old_info = (jx_hash_info*)I->info;
+                jx_uint32 *old_hash_code = old_info->start;
+                jx_uint32 *hash = new_info->start;
+                jx_uint32 i = 0;
+                jx_uint32 size = (usage<<1);
+                while(i<size) {
+                  jx_uint32 hash_code = *(old_hash_code++);
+                  jx_uint32 index = new_mask & hash_code;
+                  jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                  if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE) ) {
+                    hash_entry_ptr[0] = hash_code;
+                    hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                  } else {
+                    jx_uint32 give_up = index;
+                    index = (index+1) & new_mask;
+                    while(index != give_up) {
+                      hash_entry_ptr = hash + (index<<1);
+                      if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE) ) {
+                        hash_entry_ptr[0] = hash_code;
+                        hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                        break;
+                      }
+                      index = (index+1) & new_mask;
+                    }
+                  }
+                  i+=2;
+                }
+                jx_vla_free( &I->info );
+                I->info = (jx_uint32*)new_info;
+                new_info = NULL;
+              }
+              break;
+            case JX_HASH_ONE_TO_ANY: /* from */
+            case JX_HASH_ONE_TO_ONE:
+            case JX_HASH_ONE_TO_NIL:
+              {
+                jx_hash_info *old_info = (jx_hash_info*)I->info;
+#if 0                
+                printf("\n(%p:%x->%x:%d)",(void*)I,(int)old_info->mask,(int)new_mask,(int)pack);
+#endif
+                if(pack || (new_mask < old_info->mask)) {
+                  /* we're going to pack key_value and eliminate inactive blocks */
+                  jx_ob *new_key_value = jx_vla_new( sizeof(jx_ob),  (usage<<1));
+                  if(new_key_value) {
+                    jx_ob *old_key_value = I->key_value;
+                    jx_uint32 *old_hash = old_info->start;
+                    jx_uint32 *hash = new_info->start;
+                    jx_uint32 c = old_info->mask+1;
+                    jx_uint32 new_i = 0;
+                    while(c--) { 
+                      if(old_hash[1] & JX_HASH_ACTIVE) { /* only process actives */ 
+                        jx_uint32 hash_code = old_hash[0];
+                        jx_uint32 index = new_mask & hash_code;
+                        jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                        jx_uint32 old_i = old_hash[1] & JX_HASH_OFFSET_MASK;
+                        /* copy object into new key_value table */
+                        new_key_value[new_i] = old_key_value[old_i];
+                        new_key_value[new_i+1] = old_key_value[old_i+1];
+                        if( !hash_entry_ptr[1]) {
+                          hash_entry_ptr[0] = hash_code;
+                          hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                        } else {
+                          jx_uint32 give_up = index;
+                          index = (index+1) & new_mask;
+                          while(index != give_up) {
+                            hash_entry_ptr = hash + (index<<1);
+                            if( !hash_entry_ptr[1] ) {
+                              hash_entry_ptr[0] = hash_code;
+                              hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                              break;
+                            }
+                            index = (index+1) & new_mask;
+                          }
+                        }
+                        new_i += 2;
+                      }
+                      old_hash += 2;
+                    }
+                    jx_vla_free( &I->key_value );
+                    I->key_value = new_key_value;
+                    jx_vla_free( &I->info );
+                    I->info = (jx_uint32*)new_info;
+                    new_info = NULL;
+                  }
+                } else if(new_mask > old_info->mask) {
+                  /* we copy deleted entries too since they point at vacant key_value slots */
+                  jx_uint32 *old_hash = old_info->start;
+                  jx_uint32 *hash = new_info->start;
+                  new_info->stale = old_info->stale;
+                  if(old_info->mask) {
+                    jx_uint32 c = old_info->mask + 1;
+                    while(c--) { 
+                      if(old_hash[1]) { /* only skip virgin entries */
+                        jx_uint32 hash_code = old_hash[0];
+                        jx_uint32 index = new_mask & hash_code;
+                        jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                        if( !hash_entry_ptr[1]) {
+                          hash_entry_ptr[0] = hash_code;
+                          hash_entry_ptr[1] = old_hash[1];
+                        } else {
+                          jx_uint32 give_up = index;
+                          index = (index+1) & new_mask;
+                          while(index != give_up) {
+                            hash_entry_ptr = hash + (index<<1);
+                            if( !hash_entry_ptr[1] ) {
+                              hash_entry_ptr[0] = hash_code;
+                              hash_entry_ptr[1] = old_hash[1];
+                              break;
+                            }
+                            index = (index+1) & new_mask;
+                          }
+                        }
+                      }
+                      old_hash+=2;
+                    }
+                  }
+                  jx_vla_free( &I->info );
+                  I->info = (jx_uint32*)new_info;
+                  new_info = JX_NULL;
+                }
+              }
+              break;
+            }
+            /* if something went wrong, then we simply free new new info and keep the old */
+            jx_vla_free( &new_info );
+          }
+        }
+      }
+      break;
+    case JX_HASH_ONE_TO_ONE: /* to */
+      {
+        jx_uint32 new_mask = jx__new_mask_from_min_size(min_size);
+        {
+          /* prepare new info block */
+          jx_hash_info *new_info = jx_vla_new( sizeof(jx_uint32),  4*(new_mask + 1) + JX_HASH_INFO_SIZE);
+          if(new_info) {
+            new_info->mode = mode;
+            new_info->usage = usage;
+            new_info->mask = new_mask;
+            switch(old_mode) {
+            case JX_HASH_RAW: /* from */
+              {
+                jx_ob *ob = I->key_value;
+                jx_uint32 *hash = new_info->start;
+                jx_uint32 *rev_hash = new_info->start + ((new_mask+1)<<1);
+                jx_uint32 hash_code;
+                jx_uint32 i = 0;
+                jx_uint32 size = (usage<<1);
+
+                while(i<size) {
+
+                  /* forward */
+                  hash_code = jx_ob_hash_code( ob[0] );
+                  {
+                    jx_uint32 index = new_mask & hash_code;
+                    jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                    if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                      hash_entry_ptr[0] = hash_code;
+                      hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                    } else {
+                      jx_uint32 give_up = index;
+                      index = (index+1) & new_mask;
+                      while(index != give_up) {
+                        hash_entry_ptr = hash + (index<<1);
+                        if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                          hash_entry_ptr[0] = hash_code;
+                          hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                          break;
+                        }
+                        index = (index+1) & new_mask;
+                      }
+                    }
+                  }
+                  /* reverse */
+                  hash_code = jx_ob_hash_code( ob[1] );
+                  if( !hash_code ) { /* value not hashable */
+                    result = JX_FALSE;
+                    break;
+                  } else { 
+                    jx_uint32 index = new_mask & hash_code;
+                    jx_uint32 *hash_entry_ptr = rev_hash + (index<<1);
+                    jx_ob *key_value = I->key_value;
+                    if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                      hash_entry_ptr[0] = hash_code;
+                      hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                    } else if((hash_entry_ptr[0] == hash_code) && 
+                              jx_ob_identical(key_value[1+(hash_entry_ptr[1] & JX_HASH_OFFSET_MASK)], ob[1])) {
+                      result = JX_FALSE;
+                      break;
+                    } else {
+                      jx_uint32 give_up = index;
+                      index = (index+1) & new_mask;
+                      while(index != give_up) {
+                        hash_entry_ptr = rev_hash + (index<<1);
+                        if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                          hash_entry_ptr[0] = hash_code;
+                          hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                          break;
+                        } else if((hash_entry_ptr[0] == hash_code) && 
+                                  jx_ob_identical(key_value[1+(hash_entry_ptr[1] & JX_HASH_OFFSET_MASK)], ob[1])) {
+                          result = JX_FALSE;
+                          break;
+                        }
+                        index = (index+1) & new_mask;
+                      }
+                    }
+                  }
+                  i+=2;
+                  ob+=2;
+                }
+                if(result) {
+                  jx_vla_free( &I->info );
+                  I->info = (jx_uint32*)new_info;
+                  new_info = JX_NULL;
+                } 
+              }
+              break;
+            case JX_HASH_LINEAR: /* from */
+              { 
+                jx_hash_info *old_info = (jx_hash_info*)I->info;
+                jx_uint32 *old_hash_code = old_info->start;
+                jx_ob *ob = I->key_value;
+                jx_uint32 *hash = new_info->start;
+                jx_uint32 *rev_hash = new_info->start + ((new_mask+1)<<1);
+                jx_uint32 hash_code;
+                jx_uint32 i = 0;
+                jx_uint32 size = (usage<<1);
+                while(i<size) {
+                  /* forward */
+                  hash_code = *(old_hash_code++);
+                  { 
+                    jx_uint32 index = new_mask & hash_code;
+                    jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                    if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE) ) {
+                      hash_entry_ptr[0] = hash_code;
+                      hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                    } else {
+                      jx_uint32 give_up = index;
+                      index = (index+1) & new_mask;
+                      while(index != give_up) {
+                        hash_entry_ptr = hash + (index<<1);
+                        if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE) ) {
+                          hash_entry_ptr[0] = hash_code;
+                          hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                          break;
+                        }
+                        index = (index+1) & new_mask;
+                      }
+                    }
+                  }
+                  /* reverse */
+                  hash_code = jx_ob_hash_code( ob[1] );
+                  if( !hash_code ) {
+                    result = JX_FALSE;
+                    break;
+                  } else { 
+                    jx_uint32 index = new_mask & hash_code;
+                    jx_uint32 *hash_entry_ptr = rev_hash + (index<<1);
+                    jx_ob *key_value = I->key_value;
+                    if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                      hash_entry_ptr[0] = hash_code;
+                      hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                    } else if((hash_entry_ptr[0] == hash_code) && 
+                              jx_ob_identical(key_value[1+(hash_entry_ptr[1] & JX_HASH_OFFSET_MASK)], ob[1])) {
+                      result = JX_FALSE;
+                      break;
+                    } else {
+                      jx_uint32 give_up = index;
+                      index = (index+1) & new_mask;
+                      while(index != give_up) {
+                        hash_entry_ptr = rev_hash + (index<<1);
+                        if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                          hash_entry_ptr[0] = hash_code;
+                          hash_entry_ptr[1] = (i | JX_HASH_ACTIVE);
+                          break;
+                        } else if((hash_entry_ptr[0] == hash_code) && 
+                                  jx_ob_identical(key_value[1+(hash_entry_ptr[1] & JX_HASH_OFFSET_MASK)], ob[1])) {
+                          result = JX_FALSE;
+                          break;
+                        }
+                        index = (index+1) & new_mask;
+                      }
+                    }
+                  }
+                  i+=2;
+                  ob+=2;
+                }
+                if(result) {
+                  jx_vla_free( &I->info );
+                  I->info = (jx_uint32*)new_info;
+                  new_info = JX_NULL;
+                }
+              }
+              break;
+            case JX_HASH_ONE_TO_ANY: /* from */
+            case JX_HASH_ONE_TO_NIL:
+              {
+                jx_hash_info *old_info = (jx_hash_info*)I->info;
+
+                if(pack || (new_mask < old_info->mask)) {
+                  /* we're going to pack key_value and eliminate inactive blocks */
+                  jx_ob *new_key_value = jx_vla_new( sizeof(jx_ob), (usage<<1));
+                  if(new_key_value) {
+                    jx_ob *old_key_value = I->key_value;
+                    jx_uint32 *old_hash = old_info->start;
+                    jx_uint32 *hash = new_info->start;
+                    jx_uint32 *rev_hash = new_info->start + ((new_mask+1)<<1);
+                    jx_uint32 c = old_info->mask+1;
+                    jx_uint32 new_i = 0;
+                    while(c--) { 
+                      if(old_hash[1] & JX_HASH_ACTIVE) { /* only process actives */ 
+                        jx_uint32 old_i = old_hash[1] & JX_HASH_OFFSET_MASK;
+                        
+                        { /* forward */
+                          jx_uint32 hash_code = old_hash[0];
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                          /* copy object into new key_value table */
+                          new_key_value[new_i] = old_key_value[old_i];
+                          new_key_value[new_i+1] = old_key_value[old_i+1];
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+
+                        { /* reverse */
+                          jx_uint32 hash_code = jx_ob_hash_code( old_key_value[1+(old_hash[1]&JX_HASH_OFFSET_MASK)] );
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = rev_hash + (index<<1);
+                          
+                          if(!hash_code) {
+                            result = JX_FALSE;
+                            break;
+                          } else if(!hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                          } else if((hash_entry_ptr[0] == hash_code) && 
+                                    jx_ob_identical(new_key_value[1+(hash_entry_ptr[1]&&JX_HASH_OFFSET_MASK)],
+                                                    new_key_value[new_i+1])) {
+                            result = JX_FALSE;
+                            break;
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = rev_hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                                break;
+                              } else if((hash_entry_ptr[0] == hash_code) && 
+                                        jx_ob_identical(new_key_value[1+(hash_entry_ptr[1]&&JX_HASH_OFFSET_MASK)],
+                                                        new_key_value[new_i+1])) {
+                                result = JX_FALSE;
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+                        new_i += 2;
+                      }
+                      old_hash += 2;
+                    }
+                    if(result) {
+                      jx_vla_free( &I->key_value );
+                      I->key_value = new_key_value;
+                      new_key_value = JX_NULL;
+                      jx_vla_free( &I->info );
+                      I->info = (jx_uint32*)new_info;
+                      new_info = JX_NULL;
+                    }
+                    jx_vla_free( &new_key_value );
+                  }
+                } else if(new_mask > old_info->mask) {
+                  /* we copy stale entries too since they point at vacant key_value slots */
+                  jx_uint32 *old_hash = old_info->start;
+                  jx_uint32 *hash = new_info->start;
+                  jx_uint32 *rev_hash = new_info->start + ((new_mask+1)<<1);
+                  jx_ob *key_value = I->key_value;
+                  new_info->stale = old_info->stale;
+                  if(old_info->mask) {
+                    jx_uint32 c = old_info->mask+1;
+                    while(c--) { 
+                      if(old_hash[1]) { /* only skip virgin entries */
+                        { /* forward */
+                          jx_uint32 hash_code = old_hash[0];
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = old_hash[1];
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = old_hash[1];
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+                        if( old_hash[1] & JX_HASH_ACTIVE ) { /* reverse for actives only */
+                          jx_uint32 hash_code = jx_ob_hash_code( key_value[1+(old_hash[1]&JX_HASH_OFFSET_MASK)] );  
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = rev_hash + (index<<1);
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = old_hash[1];
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = rev_hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = old_hash[1];
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+                      }
+                      old_hash+=2;
+                    }
+                  }
+                  if(result) {
+                    jx_vla_free( &I->info );
+                    I->info = (jx_uint32*)new_info;
+                    new_info = JX_NULL;
+                  }
+                }
+              }
+              break;
+            case JX_HASH_ONE_TO_ONE: /* from */
+              {
+                jx_hash_info *old_info = (jx_hash_info*)I->info;
+                if(pack || (new_mask < old_info->mask)) {
+                  /* we're going to pack key_value and eliminate inactive blocks */
+                  jx_ob *new_key_value = jx_vla_new( sizeof(jx_ob),  (usage<<1));
+                  if(new_key_value) {
+                    jx_ob *old_key_value = I->key_value;
+                    jx_uint32 *old_hash = old_info->start;
+                    jx_uint32 *hash = new_info->start;
+                    jx_uint32 *rev_hash = new_info->start + ((new_mask+1)<<1);
+                    jx_uint32 c = old_info->mask+1;
+                    jx_uint32 new_i = 0;
+                    while(c--) { 
+                      if(old_hash[1] & JX_HASH_ACTIVE) { /* only process actives */ 
+                        jx_uint32 old_i = old_hash[1] & JX_HASH_OFFSET_MASK;
+                        /* forward */
+                        { 
+                          jx_uint32 hash_code = old_hash[0];
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                          /* copy object into new key_value table */
+                          new_key_value[new_i] = old_key_value[old_i];
+                          new_key_value[new_i+1] = old_key_value[old_i+1];
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+                        /* reverse */
+                        { 
+                          jx_uint32 hash_code = jx_ob_hash_code(old_key_value[1+(old_hash[1]&JX_HASH_OFFSET_MASK)]);
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = rev_hash + (index<<1);
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = rev_hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = (new_i | JX_HASH_ACTIVE);
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+                        new_i += 2;
+                      }
+                      old_hash += 2;
+                    }
+                    jx_vla_free( &I->key_value );
+                    I->key_value = new_key_value;
+                    jx_vla_free( &I->info );
+                    I->info = (jx_uint32*)new_info;
+                    new_info = JX_NULL;
+                  }
+                } else if(new_mask > old_info->mask) {
+                  /* we copy stale entries too since they point at vacant key_value slots */
+                  jx_uint32 *old_hash = old_info->start;
+                  jx_uint32 *hash = new_info->start;
+                  jx_uint32 *rev_hash = new_info->start + ((new_mask+1)<<1);
+                  jx_ob *key_value = I->key_value;
+                  new_info->stale = old_info->stale;
+                  if(old_info->mask) {
+                    jx_uint32 c = old_info->mask+1;
+                    while(c--) { 
+                      if(old_hash[1]) { /* only skip virgin entries */
+
+                        { /* forward */
+                          jx_uint32 hash_code = old_hash[0];
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = old_hash[1];
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = old_hash[1];
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+
+                        if( old_hash[1] & JX_HASH_ACTIVE ) { /* reverse for actives only */
+                          jx_uint32 hash_code = jx_ob_hash_code( key_value[1+(old_hash[1]&JX_HASH_OFFSET_MASK)] );  
+                          jx_uint32 index = new_mask & hash_code;
+                          jx_uint32 *hash_entry_ptr = rev_hash + (index<<1);
+                          if( !hash_entry_ptr[1]) {
+                            hash_entry_ptr[0] = hash_code;
+                            hash_entry_ptr[1] = old_hash[1];
+                          } else {
+                            jx_uint32 give_up = index;
+                            index = (index+1) & new_mask;
+                            while(index != give_up) {
+                              hash_entry_ptr = rev_hash + (index<<1);
+                              if( !hash_entry_ptr[1] ) {
+                                hash_entry_ptr[0] = hash_code;
+                                hash_entry_ptr[1] = old_hash[1];
+                                break;
+                              }
+                              index = (index+1) & new_mask;
+                            }
+                          }
+                        }
+                      }
+                      old_hash+=2;
+                    }
+                  }
+                  jx_vla_free( &I->info );
+                  I->info = (jx_uint32*)new_info;
+                  new_info = JX_NULL;
+                }
+              }
+              break;
+            }
+            /* if something went wrong, then we simply free new new info and keep the old */
+            jx_vla_free( &new_info );
+          }
+        }
+      }
+      break;
+    }
+    if(I->info && I->key_value) {
+      jx_hash_info *info = (jx_hash_info*)I->info;
+      jx_uint32 n_ent = jx_vla_size(&I->key_value);
+#if 0
+      putchar('0'+old_mode);
+      putchar('>');
+      putchar('0'+info->mode);
+      putchar(' ');
+#endif
+      if(n_ent/2 != (info->usage + info->stale)) {
+        printf("mismatch %d != %d+%d = %d\n",
+               (int)n_ent/2, (int)info->usage, (int)info->stale,
+               (int)info->usage + (int)info->stale);
+      }
+    }
+  }
+  return result;
+}
+
+jx_status jx__hash_set(jx_hash *I, jx_ob key, jx_ob value)
+{
+  jx_status result = JX_FAILURE;
+  jx_uint32 hash_code = jx_ob_hash_code(key);
+  if(!hash_code) { /* unhashable key */
+    return JX_FAILURE;
+  } else {
+    if(!I->info) { /* "no info" mode -- search & match objects directly  */
+      if(!I->key_value) {
+        /* new table, first entry  */
+        I->key_value = jx_vla_new(sizeof(jx_ob), 2);
+        if(I->key_value) {
+          I->key_value[0] = key; /* takes ownership */
+          I->key_value[1] = value; /* takes ownership */
+          result = JX_SUCCESS;
+        }
+      } else {
+        jx_uint32 size = jx_vla_size( &I->key_value );
+        if(1) {
+          jx_bool found = JX_FALSE;
+          register jx_uint32 i = (size >> 1);
+          register jx_ob *ob = I->key_value;
+          while(i--) {
+            if(jx_ob_identical(*ob, key)) {            
+              found = JX_TRUE;
+              jx_ob_free(I->key_value[0]);
+              jx_ob_free(I->key_value[1]);
+              I->key_value[0] = key;
+              I->key_value[1] = value;
+              result = JX_SUCCESS;
+              break;
+            }
+            ob+=2;
+          }
+          if(!found) {
+            if(jx_ok( jx_vla_grow_check( &I->key_value, size+1))) {
+              I->key_value[size] = key;
+              I->key_value[size+1] = value;
+              result = JX_SUCCESS;
+#if 1
+              jx__hash_recondition(I, JX_HASH_LINEAR, JX_FALSE); /* switch to linear at N=2 */
+#endif
+            }
+          }
+        }
+      }
+    } else { /* we have an info record */
+      if(!I->key_value) {
+        I->key_value = jx_vla_new( sizeof(jx_ob), 0);
+      }
+      if(I->key_value && I->info ) {
+        jx_hash_info *info = (jx_hash_info*)I->info;
+        switch(info->mode) {
+        case JX_HASH_LINEAR:
+          {
+            register jx_uint32 i = info->usage;
+            register jx_uint32 *hash_entry_ptr = info->start;
+            register jx_ob *ob = I->key_value;
+            
+            jx_bool found = JX_FALSE;
+            while(i--) {
+              if( *hash_entry_ptr == hash_code ) {
+                if(jx_ob_identical(*ob,key)) {            
+                  found = JX_TRUE;
+                  break;
+                }
+              }
+              hash_entry_ptr++;
+              ob+=2;
+            }
+            if(!found) {
+              jx_uint32 usage = info->usage;
+              if( jx_ok( jx_vla_grow_check( &I->info, usage + JX_HASH_INFO_SIZE)) &&
+                  jx_ok( jx_vla_grow_check( &I->key_value, (usage<<1)+1 ))) {
+                info = (jx_hash_info*)I->info;
+                hash_entry_ptr = info->start + usage;
+                ob = I->key_value + (usage << 1);
+                info->usage++;
+                *hash_entry_ptr = hash_code;
+                ob[0] = key;
+                ob[1] = value;
+                result = JX_SUCCESS;
+                if(info->usage > 15) {
+                  jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE); /* switch to true hash */
+                }
+              }
+            } else {
+              jx_ob_free(ob[0]);
+              jx_ob_free(ob[1]);
+              ob[0] = key;
+              ob[1] = value;
+              result = JX_SUCCESS;
+            }
+          }
+          break;
+        case JX_HASH_ONE_TO_ANY:           
+        case JX_HASH_ONE_TO_NIL:           
+          if( (info->usage+1) > (3*info->mask)>>2) { /* more than ~3/4'rs full */
+            jx__hash_recondition(I, info->mode, JX_FALSE);
+            info = (jx_hash_info*)I->info;
+          }
+          {
+            jx_uint32 mask = info->mask;
+            jx_uint32 *hash = info->start;
+            jx_uint32 usage = info->usage;
+            jx_ob *key_value = I->key_value;
+            jx_uint32 index = mask & hash_code;
+            jx_uint32 *hash_entry_ptr = hash + (index<<1);
+            jx_uint32 *dest_ptr = JX_NULL;
+            jx_bool found = JX_FALSE;
+            jx_bool virgin = JX_FALSE;
+            if(!hash_entry_ptr[1]) {
+              dest_ptr = hash_entry_ptr;
+              virgin = JX_TRUE;
+              /* available */
+            } else if( (hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == hash_code) &&
+                       jx_ob_identical(key_value[hash_entry_ptr[1] & JX_HASH_OFFSET_MASK], key)) {
+              dest_ptr = hash_entry_ptr;
+              found = JX_TRUE;
+            } else {
+              jx_uint32 give_up = index;
+              index = (index+1) & mask;
+              while(index != give_up) {
+                hash_entry_ptr = hash + (index<<1);
+                if(!hash_entry_ptr[1]) {
+                  /* virgin slot terminates probe... */
+                  if(!dest_ptr) {
+                    dest_ptr = hash_entry_ptr;
+                    virgin = JX_TRUE;
+                  }
+                  break;
+                } else if(!(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                  /* deleted slot -- save for future insertion */
+                  if(!dest_ptr) dest_ptr = hash_entry_ptr;
+                } else if((hash_entry_ptr[0] == hash_code) &&
+                          jx_ob_identical(key_value[hash_entry_ptr[1] & JX_HASH_OFFSET_MASK], key)) { 
+                  /* matched key, so we must replace */
+                  dest_ptr = hash_entry_ptr;
+                  found = JX_TRUE;
+                  break;
+                }
+                index = (index+1) & mask;
+              }
+            }
+            
+            if(dest_ptr) {
+              if(!found) {
+                jx_uint32 i;
+                if(virgin) {
+                  i = ((info->stale+usage)<<1) | JX_HASH_ACTIVE; /* allocate new key_value */
+                } else {
+                  i = (dest_ptr[1]&JX_HASH_OFFSET_MASK) | JX_HASH_ACTIVE; /* use existing key_value */
+                }
+                
+                if(jx_ok( jx_vla_grow_check( &I->key_value, i ) )) {
+                  key_value = I->key_value;
+                  
+                  if(!virgin) info->stale--;
+                  dest_ptr[0] = hash_code;
+                  dest_ptr[1] = i;
+                  key_value[i-1] = key;
+                  key_value[i] = value;
+                  result = JX_SUCCESS;
+                  info->usage++;
+                } else {
+                  result = JX_FAILURE;
+                }
+              } else {
+                jx_uint32 i = (dest_ptr[1]&JX_HASH_OFFSET_MASK) | JX_HASH_ACTIVE;
+                jx_ob_free(key_value[i-1]);
+                jx_ob_free(key_value[i]);
+                key_value[i-1] = key;
+                key_value[i] = value;
+                result = JX_SUCCESS;
+              }
+            }
+          }
+          break;
+        case JX_HASH_ONE_TO_ONE:
+          {
+            jx_uint32 rev_hash_code = jx_ob_hash_code( value );
+            if(!rev_hash_code) {
+              result = JX_FAILURE;
+            } else {
+              if( (info->usage+1) > (3*info->mask)>>2) { /* more than ~3/4'rs full */
+                jx__hash_recondition(I, info->mode, JX_FALSE);
+                info = (jx_hash_info*)I->info;
+              }
+              {
+                jx_uint32 mask = info->mask;
+                jx_uint32 *hash = info->start;
+                jx_uint32 usage = info->usage;
+                jx_ob *key_value = I->key_value;
+                jx_uint32 index = mask & hash_code;
+                jx_uint32 *hash_entry_ptr = hash + (index<<1);
+                jx_uint32 *dest_forward_ptr = JX_NULL;
+                jx_uint32 *dest_reverse_ptr = JX_NULL;
+                jx_bool forward_found = JX_FALSE;
+                jx_bool reverse_found = JX_FALSE;
+                jx_bool virgin_forward = JX_FALSE;
+                jx_bool virgin_reverse = JX_FALSE;
+                if(!hash_entry_ptr[1]) {
+                  dest_forward_ptr = hash_entry_ptr;
+                  virgin_forward = JX_TRUE;
+                  /* available */
+                } else if( (hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == hash_code) &&
+                           jx_ob_identical(key_value[hash_entry_ptr[1] & JX_HASH_OFFSET_MASK], key)) {
+                  forward_found = JX_TRUE;
+                } else {
+                  jx_uint32 give_up = index;
+                  index = (index+1) & mask;
+                  while(index != give_up) {
+                    hash_entry_ptr = hash + (index<<1);
+                    if(!hash_entry_ptr[1]) {
+                      if(!dest_forward_ptr) {
+                        dest_forward_ptr = hash_entry_ptr;
+                        virgin_forward = JX_TRUE;
+                      }
+                      break;
+                    } else if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                      if(!dest_forward_ptr) dest_forward_ptr = hash_entry_ptr;
+                    } else if((hash_entry_ptr[0] == hash_code) &&
+                              jx_ob_identical(key_value[hash_entry_ptr[1] & JX_HASH_OFFSET_MASK], key)) {
+                      forward_found = JX_TRUE;
+                      break;
+                    }
+                    index = (index+1) & mask;
+                  }
+                }
+                if(1) {
+                  hash = info->start + ((mask+1)<<1);
+                  index = mask & rev_hash_code;
+                  hash_entry_ptr = hash + (index<<1);
+                
+                  if(!hash_entry_ptr[1]) {
+                    dest_reverse_ptr = hash_entry_ptr;
+                    virgin_reverse = JX_TRUE;
+                  } else if( (hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == rev_hash_code) &&
+                             jx_ob_identical(key_value[1+(hash_entry_ptr[1] & JX_HASH_OFFSET_MASK)], value)) {
+                    reverse_found = JX_TRUE;
+                  } else {
+                    jx_uint32 give_up = index;
+                    index = (index+1) & mask;
+                    while(index != give_up) {
+                      hash_entry_ptr = hash + (index<<1);
+                  
+                      if(!hash_entry_ptr[1]) {
+                        if(!dest_reverse_ptr) {
+                          dest_reverse_ptr = hash_entry_ptr;
+                          virgin_reverse = JX_TRUE;
+                        }
+                        break;
+                      } else if( !(hash_entry_ptr[1] & JX_HASH_ACTIVE)) {
+                        if(!dest_reverse_ptr) dest_reverse_ptr = hash_entry_ptr;
+                      } else if((hash_entry_ptr[0] == rev_hash_code) &&
+                                jx_ob_identical(key_value[1+(hash_entry_ptr[1] & JX_HASH_OFFSET_MASK)], value)) {
+                        reverse_found = JX_TRUE;
+                        break;
+                      }
+                      index = (index+1) & mask;
+                    }
+                  }
+                }
+
+                if(!(forward_found||reverse_found)) {
+                  jx_uint32 i;
+                  if(virgin_forward&&virgin_reverse) {
+                    i = ((info->stale+usage)<<1) + 1;
+                  } else if(!virgin_forward) {
+                    i = (dest_forward_ptr[1]&JX_HASH_OFFSET_MASK) | JX_HASH_ACTIVE;
+                  } else {
+                    i = (dest_reverse_ptr[1]&JX_HASH_OFFSET_MASK) | JX_HASH_ACTIVE;
+                  }
+                  if(jx_ok( jx_vla_grow_check( &I->key_value, i ) )) {
+                    key_value = I->key_value;
+
+                    if(!(virgin_forward||virgin_reverse)) info->stale--;
+
+                    dest_forward_ptr[0] = hash_code;
+                    dest_forward_ptr[1] = i;
+
+                    dest_reverse_ptr[0] = rev_hash_code;
+                    dest_reverse_ptr[1] = i;
+
+                    key_value[i-1] = key;
+                    key_value[i] = value;
+
+                    result = JX_SUCCESS;
+                    info->usage++;
+                  }
+                }
+              }
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+#if 0
+  {
+    if(result) {
+      putchar('.');
+    } else {
+      jx_hash_info *info = (jx_hash_info*)I->info;
+      putchar('x');
+      printf("(%d %p %d)",(int)jx__hash_size(I),(void*)I->info,(int)info->mode);
+    }
+  }
+#endif
+  return result;
+}
+
+jx_bool jx__hash_has_key(jx_hash *I, jx_ob key)
+{
+  jx_bool found = JX_FALSE;
+  jx_uint32 size = jx_vla_size( &I->key_value );
+  if(size) {
+    register jx_uint32 hash_code = jx_ob_hash_code(key);
+    if(hash_code) {
+      if(I->key_value) {
+        if(!I->info) { /* JX_HASH_RAW */
+          register jx_uint32 i = (size>>1);
+          jx_ob *ob = I->key_value;
+          while(i--) {
+            if(jx_ob_identical(*ob, key)) {            
+              found = JX_TRUE;
+              break;
+            }
+            ob += 2;
+          }
+        } else {
+          jx_hash_info *info = (jx_hash_info*)I->info;
+          switch(info->mode) {
+          case JX_HASH_LINEAR:
+            {
+              register jx_uint32 i = info->usage;
+              register jx_uint32 *hash_ptr = info->start;
+              register jx_ob *ob = I->key_value;
+              while(i--) {
+                if( *hash_ptr == hash_code ) {
+                  if(jx_ob_identical(*ob, key)) {            
+                    found = JX_TRUE;
+                    break;
+                  }
+                }
+                hash_ptr++;
+                ob += 2;
+              }
+            }
+            break;
+          case JX_HASH_ONE_TO_ANY:
+          case JX_HASH_ONE_TO_ONE:
+          case JX_HASH_ONE_TO_NIL:
+            {
+              jx_uint32 mask = info->mask;
+              jx_uint32 *hash = info->start;
+              jx_ob *key_value = I->key_value;
+              jx_uint32 index = mask & hash_code;
+              jx_uint32 *hash_ptr = hash + (index<<1);
+              if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) { /* active slot with matching hash code */
+                jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+                if(jx_ob_identical(key_value[i], key)) {
+                  found = JX_TRUE;
+                }
+              }
+              if(!found) { 
+                /* otherwise, probe... */
+                jx_uint32 give_up = index;
+                index = (index+1) & mask;
+                while(index != give_up) {
+                  hash_ptr = hash + (index<<1);
+                  if( !hash_ptr[1] ) 
+                    break; /* virgin slot terminates probe */
+                  else if((hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) {
+                    jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+                    if(jx_ob_identical(key_value[i], key)) {
+                      found = JX_TRUE;
+                      break;
+                    }
+                  }
+                  index = (index+1) & mask;
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+  return found;
+}
+
+jx_bool jx__hash_get(jx_ob *result, jx_hash *I, jx_ob key)
+{
+  jx_bool found = JX_FALSE;
+  jx_uint32 size = jx_vla_size( &I->key_value );
+  if(size) {
+    register jx_uint32 hash_code = jx_ob_hash_code(key);
+    if(hash_code) {
+      if(!I->info) { /* JX_HASH_RAW */
+        register jx_int i = (size>>1);
+        register jx_ob *ob = I->key_value;
+        while(i--) {
+          if(jx_ob_identical(*ob, key)) {            
+            found = JX_TRUE;
+            *result = ob[1]; /* borrowing */
+            break;
+          }
+          ob += 2;
+        }
+      } else {
+        jx_hash_info *info = (jx_hash_info*)I->info;
+        switch(info->mode) {
+        case JX_HASH_LINEAR:
+          {
+            register jx_uint32 i = info->usage;
+            register jx_uint32 *hash_ptr = info->start;
+            register jx_ob *ob = I->key_value;
+            while(i--) {
+              if( *hash_ptr == hash_code ) {
+                if(jx_ob_identical(*ob, key)) {            
+                  found = JX_TRUE;
+                  *result = ob[1]; /* borrowing */
+                  break;
+                }
+              }
+              hash_ptr++;
+              ob += 2;
+            }
+          }
+          break;
+        case JX_HASH_ONE_TO_ANY:
+        case JX_HASH_ONE_TO_ONE:
+        case JX_HASH_ONE_TO_NIL:
+          {
+            jx_uint32 mask = info->mask;
+            jx_uint32 *hash = info->start;
+            jx_ob *key_value = I->key_value;
+            jx_uint32 index = mask & hash_code;
+            jx_uint32 *hash_ptr = hash + (index<<1);
+            if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) { /* active slot with matching hash code */
+              jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+              if(jx_ob_identical(key_value[i], key)) {
+                *result = key_value[i+1]; /* borrowing */
+                found = JX_TRUE;
+                break;
+              }
+            }
+            if(!found) { 
+              /* otherwise, probe... */
+              jx_uint32 give_up = index;
+              index = (index+1) & mask;
+              while(index != give_up) {
+                hash_ptr = hash + (index<<1);
+                if( !hash_ptr[1] ) 
+                  break; /* virgin slot terminates probe */
+                else if((hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) {
+                  jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+                  if(jx_ob_identical(key_value[i], key)) {
+                    *result = key_value[i+1]; /* borrowing */
+                    found = JX_TRUE;
+                    break;
+                  }
+                }
+                index = (index+1) & mask;
+              }
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+  return found;
+}
+
+#if 0
+
+JX_INLINE jx_bool jx__hash_mark(jx_hash *I, jx_ob key)
+{
+#if 0
+    jx_hash_info *info = (jx_hash_info*)I->info;
+    putchar('~');
+    if(info) {
+      putchar('0'+info->mode);
+    }
+  jx_bool result = jx__hash_set(I,key,jx_none);
+#if 0
+  if(key.data.uword == 0x407738) {
+    putchar('s');putchar('\n');
+  }
+#endif
+  if(!result) {
+    printf("set failed for %p in %p %d\n",(void*)key.data.gc,(void*)I,
+           (int)jx__hash_size(I));
+  } else {
+    jx_hash_info *info = (jx_hash_info*)I->info;
+    putchar('+');
+    if(info) {
+      putchar('0'+info->mode);
+    }
+  }
+  return result;
+#if 0
+      {
+        jx_ob tst = {0x40, {0x407738}};
+        putchar(jx__hash_check(I,tst) ? 'y' : 'n');
+      }
+#endif
+#else
+  return jx__hash_set(I,key,jx_none);
+#endif
+}
+
+JX_INLINE jx_bool jx__hash_clear(jx_hash *I, jx_ob key)
+{
+#if 0
+  jx_bool result = jx__hash_delete(I,key);
+#if 0
+      {
+        jx_ob tst = {0x40, {0x407738}};
+        putchar(jx__hash_check(I,tst) ? '+' : '-');
+      }
+#endif
+
+  if(!result) {
+    printf("clear failed for %p %p %d\n",(void*)key.data.gc,(void*)I,
+           (int)jx__hash_size(I));
+  } else {
+    jx_hash_info *info = (jx_hash_info*)I->info;
+    putchar('-');
+    if(info) {
+      putchar('0'+info->mode);
+    }
+  }
+#if 0
+      {
+        jx_ob tst = {0x40, {0x407738}};
+        putchar(jx__hash_check(I,tst) ? '+' : '-');
+      }
+#endif
+
+  return result;
+#else
+  return jx__hash_delete(I,key);
+#endif
+}
+
+
+JX_INLINE jx_bool jx__hash_get_key(jx_ob *result, 
+                                         jx_hash *I, jx_ob value)
+{
+  jx_bool found = JX_FALSE;
+  if(I->key_value && !(value.meta & JX_BIT_MUTABLE)) {
+    if(!I->info) { /* JX_HASH_RAW */
+      jx_size size = 0;
+      if(jx_ok( JX_HEAP_VLA_GET_SIZE( &size, I->key_value ))) {
+        register jx_int i = (size>>1);
+        jx_ob *ptr = I->key_value;
+        while(i--) {
+          if(jx_ob_identical(ptr[1], value)) {            
+            found = JX_TRUE;
+            *result = jx_retain(ptr[0]);
+          }
+          ptr+=2;
+        }
+      }
+    } else { /* not JX_HASH_RAW */
+      jx_hash_info *info = (jx_hash_info*)I->info;
+      register jx_uint32 hash_code;
+      
+      if((value.meta & JX_META_STR_CONST) == JX_META_STR_CONST) {
+        hash_code = jx__get_c_str_hash((const jx_uchar8*)value.data.str_const);
+      } else {
+        hash_code = jx_ob_hash_code(value);
+      }
+
+      switch(info->mode) { /* brute-force table scan */
+      case JX_HASH_LINEAR:
+      case JX_HASH_ONE_TO_ANY:
+      case JX_HASH_ONE_TO_NIL:
+        {
+          jx_size size = 0;
+          if(jx_ok( JX_HEAP_VLA_GET_SIZE( &size, I->key_value ))) {
+            register jx_int i = (size>>1);
+            jx_ob *ptr = I->key_value;
+            while(i--) {
+              if(jx_ob_identical(ptr[1], value)) {            
+                found = JX_TRUE;
+                *result = jx_retain(ptr[0]);
+              }
+              ptr+=2;
+            }
+          }
+        }
+        break;
+      case JX_HASH_ONE_TO_ONE:
+        {
+          jx_uint32 mask = info->mask;
+          jx_uint32 *hash = info->start + ((mask+1)<<1);
+          jx_ob *key_value = I->key_value;
+          jx_uint32 index = mask & hash_code;
+          jx_uint32 *hash_ptr = hash + (index<<1);
+          if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) { /* active slot with matching hash code */
+            jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+            if(jx_ob_identical(key_value[i+1], value)) {
+              *result = jx_retain(key_value[i]);
+              found = JX_TRUE;
+              break;
+            }
+          }
+          if(!found) { 
+            /* otherwise, probe... */
+            jx_uint32 give_up = index;
+            index = (index+1) & mask;
+            while(index != give_up) {
+              hash_ptr = hash + (index<<1);
+              if( !hash_ptr[1] ) 
+                break; /* virgin slot terminates probe */
+              else if((hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) {
+                jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+                if(jx_ob_identical(key_value[i+1], value)) {
+                  *result = jx_retain(key_value[i]);
+                  found = JX_TRUE;
+                  break;
+                }
+              }
+              index = (index+1) & mask;
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+
+
+
+jx_bool jx__hash_delete(jx_hash *I, jx_ob key)
+
+{  
+  jx_bool found = JX_FALSE;
+  if((key.meta & JX_BIT_HANDLE) || (!(key.meta & JX_BIT_MUTABLE))) {
+
+#if 0
+      {
+        jx_ob tst = {0x40, {0x407738}};
+        putchar(jx__hash_check(I,tst) ? 'M' : '_');
+        if((key.meta == tst.meta)&&(key.data.uword == tst.data.uword)) { 
+          putchar('D');
+        } else {
+          putchar('N');
+        }
+      }
+#endif
+
+    if(!I->info) { /* JX_HASH_RAW */
+      jx_size size = 0;
+      if(jx_ok( JX_HEAP_VLA_GET_SIZE( &size, I->key_value ))) {
+        register jx_int i = (size>>1);
+        jx_ob *ob = I->key_value;
+        while(i--) {
+          if(jx_ob_identical(*ob, key)) {            
+            found = JX_TRUE;
+            jx_release(ob[0]);
+            jx_release(ob[1]);
+            if(size>2) {
+              ob[0] = I->key_value[size-2];
+              ob[1] = I->key_value[size-1];
+            }
+            if(!jx_ok( jx_vla_resize( &I->key_value, size-2) )) {
+              ob[0] = jx_ob_from_null();             
+              ob[1] = jx_ob_from_null();
+            }
+            break;
+          }
+          ob+=2;
+        }
+      }
+    } else {
+      jx_hash_info *info = (jx_hash_info*)I->info;
+
+      switch(info->mode) {
+      case JX_HASH_LINEAR:
+        {
+          register jx_uint32 i = info->usage;
+          register jx_uint32 hash_code = jx_ob_hash_code( key );
+          register jx_uint32 *hash_entry_ptr = info->start;
+          register jx_ob *ob = I->key_value;
+          while(i--) {
+            if( *hash_entry_ptr == hash_code ) {
+              if(jx_ob_identical(*ob, key)) {                          
+                jx_size size = ((info->usage-1) << 1);
+                found = JX_TRUE;
+                jx_release(ob[0]);
+                jx_release(ob[1]);
+                if(size) {
+                  ob[0] = I->key_value[size];
+                  ob[1] = I->key_value[size+1];
+                  *hash_entry_ptr = info->start[info->usage-1];
+                }
+                if(!jx_ok( jx_vla_resize( &I->key_value, size ))) {
+                  ob[0] = jx_ob_from_null();             
+                  ob[1] = jx_ob_from_null();
+                }
+                info->usage--;
+                break;
+              }
+            }
+            hash_entry_ptr++;
+            ob+=2;
+          }
+        }
+        break;
+      case JX_HASH_ONE_TO_ANY:
+      case JX_HASH_ONE_TO_NIL:
+        {
+          jx_uint32 hash_code = jx_ob_hash_code( key );
+          jx_uint32 mask = info->mask;
+          jx_uint32 *hash = info->start;
+          jx_ob *key_value = I->key_value;
+          jx_uint32 index = mask & hash_code;
+          jx_uint32 *hash_entry_ptr = hash + (index<<1);
+
+          if( (hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == hash_code)) { /* active slot with matching hash code */
+            jx_uint32 i = hash_entry_ptr[1] & JX_HASH_OFFSET_MASK;
+            if(jx_ob_identical(key_value[i], key)) {
+              jx_ob *ob = key_value + i;
+              hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+              jx_release(ob[0]);
+              jx_release(ob[1]);
+              jx_os_memset( ob, 0, sizeof(jx_ob)*2);
+              info->usage--;
+              info->stale++;
+              found = JX_TRUE;
+            }
+          }
+          if(!found) { 
+            /* otherwise, probe... */
+            jx_uint32 give_up = index;
+            index = (index+1) & mask;
+            while(index != give_up) {
+              hash_entry_ptr = hash + (index<<1);
+              if( !hash_entry_ptr[1] ) {
+                break; /* virgin slot terminates probe */
+              } else if((hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == hash_code)) {
+                jx_uint32 i = hash_entry_ptr[1] & JX_HASH_OFFSET_MASK;
+                if(jx_ob_identical(key_value[i], key)) {
+                  jx_ob *ob = key_value + i;
+                  hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+                  jx_release(ob[0]);
+                  jx_release(ob[1]);
+                  jx_os_memset( ob, 0, sizeof(jx_ob)*2);
+                  info->usage--;
+                  info->stale++;
+                  found = JX_TRUE;
+                  break;
+                }
+              }
+              index = (index+1) & mask;
+            }
+          }
+
+          {
+            jx_size usage = info->usage;
+            if(!usage) {
+              jx__hash_recondition(I,JX_HASH_RAW,JX_TRUE); /* purge empty hash table */
+            } else if(found && (info->stale > usage) && 
+                      (usage+info->stale) > (info->mask)>>1) {
+              jx__hash_recondition(I,info->mode,JX_TRUE); /* pack & (possibly) shrink */
+            }
+          }
+        }
+        break;
+      case JX_HASH_ONE_TO_ONE:
+        {
+          jx_uint32 hash_code = jx_ob_hash_code( key );
+          jx_uint32 mask = info->mask;
+          jx_uint32 *hash = info->start;
+          jx_ob *key_value = I->key_value;
+          jx_uint32 index = mask & hash_code;
+          jx_uint32 *hash_entry_ptr = hash + (index<<1);
+          if( (hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == hash_code)) { /* active slot with matching hash code */
+            jx_uint32 i = hash_entry_ptr[1] & JX_HASH_OFFSET_MASK;
+            if(jx_ob_identical(key_value[i], key)) {
+              jx_ob *ob = key_value + i;
+              hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+
+              { /* reverse */
+                jx_uint32 rev_hash_code = jx_ob_hash_code( ob[1] );
+                jx_uint32 *rev_hash = info->start + ((mask+1)<<1);
+                jx_uint32 rev_index = mask & rev_hash_code;
+                jx_uint32 *rev_hash_entry_ptr = rev_hash + (rev_index<<1);
+                
+                if( (rev_hash_entry_ptr[1] & JX_HASH_ACTIVE) && (rev_hash_entry_ptr[0] == hash_code) && 
+                    jx_ob_identical(key_value[rev_hash_entry_ptr[1]], ob[1])) {
+                  rev_hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+                } else {
+                  jx_uint32 give_up = rev_index;
+                  rev_index = (rev_index+1) & mask;
+                  while(rev_index != give_up) {
+                    rev_hash_entry_ptr = hash + (rev_index<<1);
+                    if( (rev_hash_entry_ptr[1] & JX_HASH_ACTIVE) && (rev_hash_entry_ptr[0] == hash_code) && 
+                        jx_ob_identical(key_value[rev_hash_entry_ptr[1]], ob[1])) {
+                      rev_hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+                      break;
+                    }
+                    rev_index = (rev_index+1) & mask;
+                  }
+                }
+              }
+                
+              jx_release(ob[0]);
+              jx_release(ob[1]);
+              jx_os_memset( ob, 0, sizeof(jx_ob)*2);
+              info->usage--;
+              info->stale++;
+              found = JX_TRUE;
+            }
+          }
+          if(!found) { 
+            /* otherwise, probe... */
+            jx_uint32 give_up = index;
+            index = (index+1) & mask;
+            while(index != give_up) {
+              hash_entry_ptr = hash + (index<<1);
+              if( !hash_entry_ptr[1] ) {
+                break; /* virgin slot terminates probe */
+              } else if((hash_entry_ptr[1] & JX_HASH_ACTIVE) && (hash_entry_ptr[0] == hash_code)) {
+                jx_uint32 i = hash_entry_ptr[1] & JX_HASH_OFFSET_MASK;
+                if(jx_ob_identical(key_value[i], key)) {
+                  jx_ob *ob = key_value + i;
+                  hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+
+                  { /* reverse */
+                    jx_uint32 rev_hash_code = jx_ob_hash_code( ob[1] );
+                    jx_uint32 *rev_hash = info->start + ((mask+1)<<1);
+                    jx_uint32 rev_index = mask & rev_hash_code;
+                    jx_uint32 *rev_hash_entry_ptr = rev_hash + (rev_index<<1);
+                    
+                    if( (rev_hash_entry_ptr[1] & JX_HASH_ACTIVE) && (rev_hash_entry_ptr[0] == hash_code) && 
+                        jx_ob_identical(key_value[rev_hash_entry_ptr[1]], ob[1])) {
+                      rev_hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+                    } else {
+                      jx_uint32 give_up = rev_index;
+                      rev_index = (rev_index+1) & mask;
+                      while(rev_index != give_up) {
+                        rev_hash_entry_ptr = hash + (rev_index<<1);
+                        if( (rev_hash_entry_ptr[1] & JX_HASH_ACTIVE) && (rev_hash_entry_ptr[0] == hash_code) && 
+                            jx_ob_identical(key_value[rev_hash_entry_ptr[1]], ob[1])) {
+                          rev_hash_entry_ptr[1] = (i | JX_HASH_DELETED);
+                          break;
+                        }
+                        rev_index = (rev_index+1) & mask;
+                      }
+                    }
+                  }
+ 
+                  jx_release(ob[0]);
+                  jx_release(ob[1]);
+                  jx_os_memset( ob, 0, sizeof(jx_ob)*2);
+                  info->usage--;
+                  info->stale++;
+                  found = JX_TRUE;
+                  break;
+                }
+              }
+              index = (index+1) & mask;
+            }
+          }
+
+          {
+            jx_size usage = info->usage;
+            if(found && (info->stale > usage) && 
+               ((usage+info->stale) > ((info->mask)>>1))) {
+              jx__hash_recondition(I,info->mode,JX_TRUE); /* pack & (possibly) shrink */
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+#if 0
+      {
+        jx_ob tst = {0x40, {0x407738}};
+        putchar(jx__hash_check(I,tst) ? 'm' : '~');
+        if((key.meta == tst.meta)&&(key.data.uword == tst.data.uword)) { 
+          putchar('D');
+        }
+      }
+#endif
+#if 0
+  {
+    if(found) {
+      putchar('_');
+    } else {
+      putchar('x');
+    }
+  }
+#endif
+  return found;
+}
+
+
+#endif
+
+/* general purpose free method */
+
 jx_status jx__ob_free(jx_ob ob)
 {
   if(ob.meta & JX_META_BIT_GC) {
     switch(ob.meta & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_STR:
-      jx_vla_free(&ob.data.str);
+      return jx_vla_free(&ob.data.str);
       break;
     case JX_META_BIT_LIST:
-      jx_list_free(ob.data.list);
+      return jx_list_free(ob.data.list);
+      break;
+    case JX_META_BIT_HASH:
+      return jx_hash_free(ob.data.hash);
       break;
     }
     /* handle based on type */

@@ -268,6 +268,105 @@ JX_INLINE jx_int jx_str_len(jx_ob ob)
           : 0);
 }
 
+jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right);
+
+JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
+{
+  if(left.meta != right.meta) { 
+    return JX_FALSE;
+  } else if(left.meta & JX_META_BIT_GC) {
+    return jx__ob_gc_identical(left,right);
+  } else {
+#if (JX_TINY_STR_SIZE == 4) ||  (JX_TINY_STR_SIZE == 8)
+    return ((left.meta == right.meta) && 
+            (left.data.raw == right.data.raw));
+#else
+#if (JX_TINY_STR_SIZE == 16)
+    return ((left.meta == right.meta) && 
+            (left.data.raw[0] == right.data.raw[0]) &&
+            (left.data.raw[1] == right.data.raw[1]));
+#endif
+#endif
+  }
+}
+
+/* hashing */
+
+JX_INLINE jx_uint32 jx__ob_hash_code(jx_meta meta, jx_data data)
+{
+#if (JX_TINY_STR_SIZE == 4)
+  register jx_uint32 a = ((jx_uint32)meta)^((jx_uint32)data);
+#else
+#if (JX_TINY_STR_SIZE == 8)
+  register jx_uint32 a = (((jx_uint32)meta)^
+                          ((jx_uint32)data)^
+                          ((jx_uint32)(data>>32)));
+#else
+#if (JX_TINY_STR_SIZE == 16)
+  register jx_uint32 a = (((jx_uint32)meta)^
+                          ((jx_uint32)data[0])^
+                          ((jx_uint32)(data[0]>>32))^
+                          ((jx_uint32)data[1])^
+                          ((jx_uint32)(data[1]>>64)));
+#endif
+#endif
+#endif
+  a += ~(a<<15);
+  a ^=  (a>>10);
+  a +=  (a<<3);
+  a ^=  (a>>6);
+  a += ~(a<<11);
+  a ^=  (a>>16);
+  return (a ? a : 1); /* zero is reserved as the hash code of an
+                         unhashable object */
+}
+
+jx_uint32 jx__ob_gc_hash_code(jx_ob);
+JX_INLINE jx_uint32 jx_ob_hash_code(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_GC) ?
+    jx__ob_gc_hash_code(ob) :
+    jx__ob_hash_code(ob.meta, ob.data.raw);
+
+}
+
+jx_int jx__hash_size(jx_hash *I);
+JX_INLINE jx_int jx_hash_size(jx_ob hash)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_size(hash.data.hash);
+  }
+  return 0;
+}
+
+jx_int jx__hash_set(jx_hash *I, jx_ob key, jx_ob value);
+JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_set(hash.data.hash, key, value);
+  }
+  return JX_FAILURE;
+}
+
+jx_int jx__hash_has_key(jx_hash *I, jx_ob key);
+JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_has_key(hash.data.hash, key);
+  }
+  return JX_FALSE;
+}
+
+jx_bool jx__hash_get(jx_ob *result, jx_hash *I, jx_ob key);
+JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result;
+    if(jx__hash_get(&result, hash.data.hash, key))
+      return result;
+  }
+  return jx_ob_from_null();
+}
 
 #endif
 

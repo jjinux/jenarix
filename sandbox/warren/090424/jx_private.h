@@ -45,15 +45,58 @@ struct jx__list {
   } data;
 };
 
+#define JX_ZERO_ARRAY_SIZE 1
+
 typedef struct {
-  jx_ob key;
-  jx_ob value;
-} jx_hash_entry;
+  jx_int    mode; 
+  jx_uint32 mask; /* 2^n - 1 */
+  jx_uint32 usage;
+  jx_uint32 stale;
+  jx_uint32 start[JX_ZERO_ARRAY_SIZE];
+} jx_hash_info;
+
+/* hash table modes */
+
+#define JX_HASH_RAW         0
+#define JX_HASH_LINEAR      1
+#define JX_HASH_ONE_TO_ANY  2
+#define JX_HASH_ONE_TO_ONE  3
+#define JX_HASH_ONE_TO_NIL  4
+
+/* 
+   If info is null, then mode RAW is implied, meaning that client must
+   simply probe the content vla for a match without local packed
+   copies of the hash codes.
+
+   LINEAR:
+   
+   table simply contains object hash codes in same order as the vla.
+
+   ONE_TO_MANY:
+
+   table contains [hash_code, offset]
+
+   ONE_TO_ONE:
+
+   table contains forward: [hash_code, offset] and reverse: [hash_code,offset] 
+   
+   ONE_TO_NIL:
+
+   simple set behavior -- keys but no values.  This behavior is not
+   yet optimized for storage or performance: right now it is simply behaves 
+   as ONE_TO_ANY with all null values.
+
+*/
+
+#define JX_HASH_INFO_SIZE (sizeof(jx_hash_info)/sizeof(jx_uint32))
+
+#define JX_HASH_ACTIVE         0x00000001
+#define JX_HASH_DELETED        0x80000000
+#define JX_HASH_OFFSET_MASK  (~0x80000001)
 
 struct jx__hash {
-  jx_int size;
-  jx_list content;
-  jx_list table;
+  jx_ob *key_value; /* variable length array of key/value objects owned by the table */
+  jx_uint32 *info; /* variable length array of the table itself */
 };
 
 #endif
