@@ -34,25 +34,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 
+#define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
+#define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
 
 int main(int argc, char **argv)
 {
-  jx_ob list = jx_list_new();
-
-  printf("0 == %d\n",jx_list_get_size(list));
-
-  printf("0 == %d\n",jx_list_append(list, jx_ob_from_int(9)));
-  printf("1 == %d\n",jx_list_get_size(list));
-  printf("9 == %d\n",jx_ob_as_int(jx_list_borrow(list,0)));
-  printf("0 == %d\n",jx_list_append(list, jx_ob_from_int(8)));
-  printf("2 == %d\n",jx_list_get_size(list));
-  printf("8 == %d\n",jx_ob_as_int(jx_list_borrow(list,1)));
-
-  printf("0 == %d\n",jx_list_append(list, jx_ob_from_float(2.0F)));
-  printf("3 == %d\n",jx_list_get_size(list));
-  printf("9 == %d\n",jx_ob_as_int(jx_list_borrow(list,0)));
-  printf("8 == %d\n",jx_ob_as_int(jx_list_borrow(list,1)));
-  printf("2.0 == %f\n",jx_ob_as_float(jx_list_borrow(list,2)));
-  jx_ob_free(list);
+  {
+    jx_ob list = jx_list_new();
+    
+    P1( "0 == %d", jx_list_size(list));
+    
+    P1( "0 == %d", jx_list_append(list, jx_ob_from_int(9)));
+    P1( "1 == %d", jx_list_size(list));
+    P1( "9 == %d", jx_ob_as_int(jx_list_borrow(list,0)));
+    P1( "0 == %d", jx_list_append(list, jx_ob_from_int(8)));
+    P1( "2 == %d", jx_list_size(list));
+    P1( "8 == %d", jx_ob_as_int(jx_list_borrow(list,1))); 
+    
+    P1( "0 == %d", jx_list_append(list, jx_ob_from_float(2.0F)));
+    P1( "3 == %d", jx_list_size(list));
+    P1( "9 == %d", jx_ob_as_int(jx_list_borrow(list,0)));
+    P1( "8 == %d", jx_ob_as_int(jx_list_borrow(list,1)));
+    P1( "2.0 == %f",jx_ob_as_float(jx_list_borrow(list,2)));
+    P1( "0 == %d", jx_ob_free(list));
+  }
 }
 

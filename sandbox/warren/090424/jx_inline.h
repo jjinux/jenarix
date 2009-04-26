@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef  jx_int32     jx_meta;
 
-#define JX_TINY_STR_SIZE 16
+#define JX_TINY_STR_SIZE 8
 
 /* adapt to tiny string size (must be at least as wide as a machine
  * pointer) */
@@ -83,17 +83,17 @@ typedef struct {
 
 /* meta flag bits */
 
-#define JX_META_BIT_GC          0x80000000 
+#define JX_META_BIT_GC          0x00004000
 /* set if object has garbage collected resourcese */
 
-#define JX_META_BIT_STR         0x40000000
-#define JX_META_BIT_FLOAT       0x20000000
-#define JX_META_BIT_INT         0x10000000
-#define JX_META_BIT_BOOL        0x08000000
-#define JX_META_BIT_LIST        0x04000000
-#define JX_META_BIT_HASH        0x02000000
+#define JX_META_BIT_STR         0x00002000
+#define JX_META_BIT_FLOAT       0x00001000
+#define JX_META_BIT_INT         0x00000800
+#define JX_META_BIT_BOOL        0x00000400
+#define JX_META_BIT_LIST        0x00000200
+#define JX_META_BIT_HASH        0x00000100
 
-#define JX_META_MASK_TYPE_BITS  0x7FFF0000
+#define JX_META_MASK_TYPE_BITS  0x00003F00
 
 #define JX_META_MASK_TINY_SIZE  0x000000FF
 
@@ -113,24 +113,71 @@ typedef struct {
 
 #define JX_INLINE __inline__ static
 
-jx_status jx_vla_resize(void **vla, jx_int new_size);
+/* variable length array (vla) functions provide untyped, auto-zeroed,
+   null-protected, size and record-length aware variable length arrays   
+   ALWAYS PASSED BY REFERENCE (since pointer location may change) */
 
-JX_INLINE jx_int jx_vla_get_size(void *vla)
+void     *jx_vla_new(jx_int rec_size, jx_int size);
+/* macros to avoid annoying type mismatch warnings with (void**) parameter */
+#define   jx_vla_size(r)            jx__vla_size((void**)(r))
+#define   jx_vla_resize(r,s)        jx__vla_resize((void**)(r),(s))
+#define   jx_vla_grow_check(r,i)    jx__vla_grow_check((void**)(r),(i))
+#define   jx_vla_append(r,c)        jx__vla_append((void**)(r),(c))
+#define   jx_vla_append_c_str(r,s)  jx__vla_append_c_str((void**)(r),(s))
+#define   jx_vla_append_ob_str(r,o) jx__vla_append_ob_str((void**)(r),(o))
+#define   jx_vla_insert(r,i,c)      jx__vla_insert((void**)(r),(i),(c))
+#define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(r1),((void**)(r2)));
+#define   jx_vla_remove(r,i,c)      jx__vla_remove((void**)(r),(i),(c))
+#define   jx_vla_free(r)            jx__vla_free((void**)(r))
+
+JX_INLINE jx_int jx__vla_size(void **ref)
 {
-  if(vla) {
-    return ((jx_vla*)vla)[-1].size;
+  if(*ref) {
+    return ((jx_vla*)(*ref))[-1].size;
   } else {
     return 0;
   }
 }
-
-JX_INLINE jx_status jx_vla_grow_check(void **vla, jx_int index)
+jx_status jx__vla_resize(void **ref, jx_int new_size);
+JX_INLINE jx_status jx__vla_grow_check(void **ref, jx_int index)
 {
-  if(((jx_vla*)(*vla))[-1].size > index) {
+  if(((jx_vla*)(*ref))[-1].size > index) {
     return JX_TRUE;
   } else {
-    return (jx_vla_resize(vla, index+1) == JX_SUCCESS);
+    return (jx_vla_resize(ref, index+1) == JX_SUCCESS);
   }
+}
+jx_status jx__vla_append(void **ref, jx_int count);
+jx_status jx__vla_append_c_str(void **ref, jx_char *str);
+jx_status jx__vla_append_ob_str(void **ref, jx_ob ob);
+jx_status jx__vla_insert(void **ref, jx_int index, jx_int count);
+jx_status jx__vla_extend(void **ref1, void **ref2);
+jx_status jx__vla_remove(void **ref, jx_int index, jx_int count);
+jx_status jx__vla_free(void **ref);
+
+JX_INLINE jx_int *jx_int_vla_new(jx_int size) 
+{
+  return jx_vla_new(sizeof(jx_int),size);
+}
+JX_INLINE jx_status jx_int_vla_resize(jx_int **ref,jx_int size) 
+{
+  return jx_vla_resize((void**)ref,size);
+}
+JX_INLINE jx_status jx_int_vla_free(jx_int *vla)
+{
+  return jx_vla_free(&vla);
+}
+JX_INLINE jx_float *jx_float_vla_new(jx_float size) 
+{
+  return jx_vla_new(sizeof(jx_float),size);
+}
+JX_INLINE jx_status jx_float_vla_resize(jx_float **ref,jx_int size) 
+{
+  return jx_vla_resize((void**)ref,size);
+}
+JX_INLINE jx_status jx_float_vla_free(jx_float *vla)
+{
+  return jx_vla_free(&vla);
 }
 
 jx_status jx__ob_free(jx_ob ob);
@@ -207,6 +254,20 @@ JX_INLINE jx_status jx_ob_is_hash(jx_ob ob)
 {
   return (ob.meta & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;
 }
+JX_INLINE jx_bool jx_ok(jx_status status)
+{
+  return (status>=0);
+}
+
+JX_INLINE jx_int jx_str_len(jx_ob ob)
+{
+  return ((ob.meta & JX_META_BIT_STR) ?
+          ((ob.meta & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str)-1 : 
+           ob.meta & JX_META_MASK_TINY_SIZE)
+          : 0);
+}
+
+
 #endif
 
 

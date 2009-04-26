@@ -34,15 +34,41 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 
+#define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
+#define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
+
 int main(int argc, char **argv)
 {
-  jx_ob tiny = jx_ob_from_str("tiny_st");
-  jx_ob heap = jx_ob_from_str("heap_string");
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int),0);
+    
+    P1( "1 && %p", (void*)vla);
+    P1( "0 == %d", jx_vla_insert(&vla, 0, 1));
+    P1( "1 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_insert(&vla, 1, 1));
+    P1( "0 == %d", jx_vla_insert(&vla, 0, 1));
+    P1( "3 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_free(&vla));
+  }
 
-  printf("tiny_str: %s\n",jx_ob_as_str(&tiny));
-  printf("heap_str: %s\n",jx_ob_as_str(&heap));
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int),10);
+    P1( "1 && %p", (void*)vla);
+    P1( "10 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_insert(&vla, 0, 10));    
+    P1( "20 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_remove(&vla, 5, 10));    
+    P1( "10 == %d", jx_vla_size(&vla));
+    P1( "-1 == %d", jx_vla_remove(&vla, 5, 10));    
+    P1( "10 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_append(&vla, 5));
+    P1( "15 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_remove(&vla, 5, 10));    
+    P1( "5 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_remove(&vla, 0, 5));    
+    P1( "0 == %d", jx_vla_size(&vla));
+    P1( "0 == %d", jx_vla_free(&vla));
+  }    
 
-  jx_ob_free(tiny);
-  jx_ob_free(heap);
 }
 

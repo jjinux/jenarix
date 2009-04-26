@@ -34,6 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 
+#define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
+#define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
+
 static void dump_hex(jx_char *message, void *ptr, jx_int size)
 {
   unsigned char *ch = (unsigned char*)ptr;
@@ -48,29 +51,29 @@ static void dump_hex(jx_char *message, void *ptr, jx_int size)
 int main(int argc, char **argv)
 {
 #if JX_TINY_STR_SIZE == 4
-  jx_ob tiny = jx_ob_from_str("123");
+#define TINY_TEST "123"
 #else
 #if JX_TINY_STR_SIZE == 8
-  jx_ob tiny = jx_ob_from_str("1234567");
+#define TINY_TEST "1234567"
 #else
 #if JX_TINY_STR_SIZE == 16
-  jx_ob tiny = jx_ob_from_str("123456789012345");
+#define TINY_TEST "123456789012345"
 #endif
 #endif
 #endif
-
+  jx_ob tiny = jx_ob_from_str(TINY_TEST);
   jx_ob heap = jx_ob_from_str("heap_string_for_sure");
 
-  dump_hex("tiny", &tiny, sizeof(jx_ob));
-  dump_hex("heap", &heap, sizeof(jx_ob));
+  P2("'%s' eq '%s'",TINY_TEST,jx_ob_as_str(&tiny));
+  P1("'heap_string_for_sure' eq '%s'",jx_ob_as_str(&heap));
 
-  printf("tiny: %s\n",jx_ob_as_str(&tiny));
-  printf("heap: %s\n",jx_ob_as_str(&heap));
+  dump_hex("# tiny", &tiny, sizeof(jx_ob));
+  dump_hex("# heap", &heap, sizeof(jx_ob));
 
   tiny = jx_ob_from_int(1);
-  dump_hex("one", &tiny,sizeof(jx_ob));  
+  dump_hex("# one", &tiny,sizeof(jx_ob));  
 
-  jx_ob_free(tiny);
-  jx_ob_free(heap);
+  P1("0 == %d", jx_ob_free(tiny));
+  P1("0 == %d", jx_ob_free(heap));
 }
 

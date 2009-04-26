@@ -96,33 +96,41 @@ jx_status jx_ob_is_hash(jx_ob ob);
 
 jx_ob jx_ob_copy(jx_ob ob); /* deep (recursive) copy */
 
-/* variable length array (vla) functions provide untyped, auto-zeroed,
-   null-protected, size and record-length aware variable length arrays */
+/* strings */
 
-void     *jx_vla_new(jx_int rec_size, jx_int size);
-jx_int    jx_vla_get_size(void *vla);
-jx_status jx_vla_resize(void **vla, jx_int new_size);
-jx_status jx_vla_grow_check(void **vla, jx_int index);
-jx_status jx_vla_free(void *vla);
+jx_int     jx_str_size(jx_ob ob);
 
 /* lists */
 
 jx_ob     jx_list_new(void);
-jx_ob     jx_list_new_from_float_vla(jx_float *vla); /* takes ownership of vla */
-jx_ob     jx_list_new_from_int_vla(jx_int *vla); /* takes ownership of vla */
 
-jx_int    jx_list_get_size(jx_ob list);
+jx_int    jx_list_size(jx_ob list);
 jx_int    jx_list_set_size(jx_ob list, jx_ob fill); /* borrows and copies fill object (as necessary) */
 
 jx_status jx_list_append(jx_ob list, jx_ob ob); /* takes ownership of ob */
 jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob); /* takes ownership of ob */
 
-jx_ob     jx_list_borrow(jx_ob list, jx_int index); /* borrows ownership of list member */
-jx_ob     jx_list_remove(jx_ob list, jx_int index); /* returns ownership of result */
+jx_ob     jx_list_borrow(jx_ob list, jx_int index); /* borrows ownership of list entry */
+jx_ob     jx_list_remove(jx_ob list, jx_int index); /* returns ownership of removed entry */
 jx_status jx_list_eliminate(jx_ob list, jx_int index); /* free entry at index */
 
-jx_float *jx_list_as_float_array(jx_ob list); /* if list is homogenous float, else NULL */
-jx_int   *jx_list_as_int_array(jx_ob list); /* if list is homogenous int, else NULL */
+/* expose variable length arrays (vla's) inside of homogeneous lists */
+
+jx_int   *jx_int_vla_new(jx_int size);
+jx_status jx_int_vla_resize(jx_int **ref, jx_int size);
+jx_status jx_int_vla_free(jx_int *vla);
+
+jx_ob     jx_list_new_with_int_vla(jx_int *vla); /* takes ownership of vla */
+jx_int   *jx_list_as_int_vla(jx_ob ob); /* borrows homogeneous vla, else NULL */
+jx_status jx_list_set_int_vla(jx_ob ob, jx_int *vla); /* update list vla */
+
+jx_float *jx_float_vla_new(jx_float size);
+jx_status jx_float_vla_resize(jx_float **ref, jx_int size);
+jx_status jx_float_vla_free(jx_float *vla);
+
+jx_ob     jx_list_new_with_float_vla(jx_float *vla); /* takes ownership of new vla */
+jx_float *jx_list_as_float_vla(jx_ob ob); /* borrows homogeneous vla, else NULL */
+jx_status jx_list_set_float_vla(jx_ob ob, jx_float *vla); /* update list vla */
 
 /* hashes */
 
@@ -137,6 +145,10 @@ jx_status jx_hash_has_key(jx_ob hash, jx_ob key); /* borrows key */
 jx_ob     jx_hash_borrow(jx_ob hash, jx_ob key); /* borrows key and returns borrowed value */
 jx_ob     jx_hash_remove(jx_ob hash, jx_ob key); /* borrows key and returns owned value */
 jx_status jx_hash_eliminate(jx_ob hash, jx_ob key); /* borrows key and eliminates value */
+
+/* json output */
+
+jx_ob     jx_ob_to_json(jx_ob ob);
 
 /* destroying owned objects */
 
