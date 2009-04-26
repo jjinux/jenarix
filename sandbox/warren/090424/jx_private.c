@@ -148,6 +148,19 @@ void *jx_vla_new(jx_int rec_size,jx_int size)
     return NULL;
 }
 
+void *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content)
+{
+  jx_vla *vla = jx_malloc(sizeof(jx_vla) + rec_size * size);
+  if(vla) {
+    jx_char *base = (jx_char*)(vla + 1);
+    vla->size = size;
+    vla->rec_size = rec_size;
+    memcpy(base, content, rec_size * size);
+    return (void*)base;
+  } else
+    return NULL;
+}
+
 jx_status jx__vla_resize(void **ref, jx_int new_size)
 {
   if(*ref) {
@@ -241,11 +254,11 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
       vla = jx_realloc(vla, sizeof(jx_vla) + vla->rec_size * new_size);
       if(vla) {
         jx_char *base = (jx_char*)(vla+1);
-        vla->size = new_size;
         (*ref) = base;
-        memmove(base + index * vla->rec_size, 
-                base + (index+count) * vla->rec_size,
-                vla->rec_size * count );
+        memmove(base + (index+count) * vla->rec_size, 
+                base + index * vla->rec_size,
+                (vla->size - index) * vla->rec_size);
+        vla->size = new_size;
         memset(base + index * vla->rec_size, 0, vla->rec_size * count);
         return JX_SUCCESS;
       }
@@ -361,6 +374,27 @@ jx_ob jx_list_new(void)
   result.data.list = jx_calloc(1,sizeof(jx_list));
   return result;
 }
+
+jx_ob jx_list_new_from_int_array(jx_int *array, jx_int size)
+{
+  jx_ob result = jx_list_new();
+  if(result.meta & JX_META_BIT_LIST) {
+    result.data.list->packed_meta = JX_META_BIT_INT;
+    result.data.list->data.vla = jx_vla_new_with_content(sizeof(jx_int),size,array);
+  }
+  return result;
+}
+
+jx_ob jx_list_new_from_float_array(jx_float *array, jx_float size)
+{
+  jx_ob result = jx_list_new();
+  if(result.meta & JX_META_BIT_LIST) {
+    result.data.list->packed_meta = JX_META_BIT_FLOAT;
+    result.data.list->data.vla = jx_vla_new_with_content(sizeof(jx_float),size,array);
+  }
+  return result;
+}
+
 
 static void jx_list_free(jx_list *list)
 {
@@ -566,6 +600,44 @@ jx_status jx_list_append(jx_ob list, jx_ob ob)
   return JX_FAILURE;
 }
 
+jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    jx_list *rec = list.data.list;
+    if(rec->data.vla && rec->packed_meta && (rec->packed_meta != ob.meta)) {
+      if(!jx_ok(jx_list_unpack_data(rec)))
+        return JX_FAILURE;
+    }
+    if(rec->data.vla) {
+      if(!jx_ok(jx_vla_insert(&rec->data.vla,index,1)))
+        return JX_FAILURE;
+      else if(rec->packed_meta && (rec->packed_meta == ob.meta)) {
+        jx_list_set_packed_data(rec, index, ob);
+      } else if(!rec->packed_meta) {
+        rec->data.ob_vla[index] = ob;
+      }
+      return JX_SUCCESS;
+    } else if(index==0) { 
+      jx_int packed_size = jx_meta_get_packed_size(ob.meta);
+      if(packed_size) {
+        rec->packed_meta = ob.meta;
+        rec->data.vla = jx_vla_new(packed_size,1);
+        if(rec->data.vla) {
+          jx_list_set_packed_data(rec, 0, ob);
+          return JX_SUCCESS;
+        }
+      } else {
+        rec->data.vla = jx_vla_new(sizeof(jx_ob),1);
+        if(rec->data.vla) {
+          rec->data.ob_vla[0] = ob;
+          return JX_SUCCESS;
+        }
+      }
+    }
+  }
+  return JX_FAILURE;
+}
+
 jx_ob jx_list_borrow(jx_ob list, jx_int index)
 {
   jx_ob result = JX_OB_NULL;
@@ -615,6 +687,18 @@ jx_int *jx_list_as_int_vla(jx_ob ob)
   return NULL;
 }
 
+jx_status jx_list_set_int_vla(jx_ob ob,jx_int *vla)
+{
+  if(ob.meta & JX_META_BIT_LIST) {
+    jx_list *list = ob.data.list;
+    if(list->packed_meta & JX_META_BIT_INT) {
+      list->data.int_vla = vla;
+      return JX_SUCCESS;
+    }
+  }
+  return JX_FAILURE;
+}
+
 jx_float *jx_list_as_float_vla(jx_ob ob)
 {
   if(ob.meta & JX_META_BIT_LIST) {
@@ -626,14 +710,25 @@ jx_float *jx_list_as_float_vla(jx_ob ob)
         return list->data.float_vla;
       } else if(!list->data.vla) { 
         list->packed_meta = JX_META_BIT_FLOAT;
-        list->data.int_vla = (jx_int*)jx_vla_new(sizeof(float),0);
-        return list->data.int_vla;
+        list->data.float_vla = (jx_float*)jx_vla_new(sizeof(float),0);
+        return list->data.float_vla;
       }
     }
   }
   return NULL;
 }
 
+jx_status jx_list_set_float_vla(jx_ob ob,jx_float *vla)
+{
+  if(ob.meta & JX_META_BIT_LIST) {
+    jx_list *list = ob.data.list;
+    if(list->packed_meta & JX_META_BIT_FLOAT) {
+      list->data.float_vla = vla;
+      return JX_SUCCESS;
+    }
+  }
+  return JX_FAILURE;
+}
 
 /* JSON output */
 
@@ -666,10 +761,10 @@ static jx_ob jx_list_to_json(jx_list *list)
         break;
       case JX_META_BIT_FLOAT:
         {
-          jx_ob ob = JX_OB_INT;
+          jx_ob ob = JX_OB_FLOAT;
           jx_float *float_ = list->data.float_vla;
           for(i=0;i<size;i++) {
-            ob.data.int_ = *(float_++);
+            ob.data.float_ = *(float_++);
             {
               jx_ob str = jx_ob_to_json(ob);
               if(comma) {

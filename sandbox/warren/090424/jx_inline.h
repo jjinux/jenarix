@@ -118,6 +118,7 @@ typedef struct {
    ALWAYS PASSED BY REFERENCE (since pointer location may change) */
 
 void     *jx_vla_new(jx_int rec_size, jx_int size);
+void     *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 /* macros to avoid annoying type mismatch warnings with (void**) parameter */
 #define   jx_vla_size(r)            jx__vla_size((void**)(r))
 #define   jx_vla_resize(r,s)        jx__vla_resize((void**)(r),(s))

@@ -103,6 +103,8 @@ jx_int     jx_str_size(jx_ob ob);
 /* lists */
 
 jx_ob     jx_list_new(void);
+jx_ob     jx_list_new_from_int_array(jx_int *array, jx_int size); /* copies array */
+jx_ob     jx_list_new_from_float_array(jx_float *array, jx_float size); /* copies array */
 
 jx_int    jx_list_size(jx_ob list);
 jx_int    jx_list_set_size(jx_ob list, jx_ob fill); /* borrows and copies fill object (as necessary) */
@@ -114,14 +116,14 @@ jx_ob     jx_list_borrow(jx_ob list, jx_int index); /* borrows ownership of list
 jx_ob     jx_list_remove(jx_ob list, jx_int index); /* returns ownership of removed entry */
 jx_status jx_list_eliminate(jx_ob list, jx_int index); /* free entry at index */
 
-/* expose variable length arrays (vla's) inside of homogeneous lists */
+/* homogenous lists with variable length arrays (vla's)  */
 
 jx_int   *jx_int_vla_new(jx_int size);
 jx_status jx_int_vla_resize(jx_int **ref, jx_int size);
 jx_status jx_int_vla_free(jx_int *vla);
 
 jx_ob     jx_list_new_with_int_vla(jx_int *vla); /* takes ownership of vla */
-jx_int   *jx_list_as_int_vla(jx_ob ob); /* borrows homogeneous vla, else NULL */
+jx_int   *jx_list_as_int_vla(jx_ob ob); /* borrows vla if homogenous, else NULL */
 jx_status jx_list_set_int_vla(jx_ob ob, jx_int *vla); /* update list vla */
 
 jx_float *jx_float_vla_new(jx_float size);
@@ -129,7 +131,7 @@ jx_status jx_float_vla_resize(jx_float **ref, jx_int size);
 jx_status jx_float_vla_free(jx_float *vla);
 
 jx_ob     jx_list_new_with_float_vla(jx_float *vla); /* takes ownership of new vla */
-jx_float *jx_list_as_float_vla(jx_ob ob); /* borrows homogeneous vla, else NULL */
+jx_float *jx_list_as_float_vla(jx_ob ob); /* borrows vla if homogenous, else NULL */
 jx_status jx_list_set_float_vla(jx_ob ob, jx_float *vla); /* update list vla */
 
 /* hashes */

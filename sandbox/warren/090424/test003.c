@@ -56,6 +56,7 @@ int main(int argc, char **argv)
     P1( "9 == %d", jx_ob_as_int(jx_list_borrow(list,0)));
     P1( "8 == %d", jx_ob_as_int(jx_list_borrow(list,1)));
     P1( "2.0 == %f",jx_ob_as_float(jx_list_borrow(list,2)));
+
     P1( "0 == %d", jx_ob_free(list));
   }
 }

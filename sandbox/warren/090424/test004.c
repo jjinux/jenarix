@@ -164,6 +164,21 @@ int main(int argc, char **argv)
   {
     jx_ob list = jx_list_new();
 
+    P1("0 == %d", jx_list_insert(list, 0, jx_ob_from_int(1)));
+    P1("0 == %d", jx_list_insert(list, 0, jx_ob_from_int(2)));
+    P1("0 == %d", jx_list_insert(list, 1, jx_ob_from_int(3)));
+    P1("0 == %d", jx_list_insert(list, 3, jx_ob_from_int(4)));
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[2,3,1,4]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    P1("0 == %d", jx_ob_free(list));
+  }
+
+  {
+    jx_ob list = jx_list_new();
+
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(1)));
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(2)));
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(3)));
@@ -243,11 +258,48 @@ int main(int argc, char **argv)
 
     {
       jx_int *vla = jx_list_as_int_vla(list);
-      vla[0] = 10;
-      vla[1] = 6;
-      vla[2] = 8;
+      jx_int *new_vla = jx_int_vla_new(3);
+      jx_int_vla_free(vla);
+      new_vla[1] = 3;
+      jx_list_set_int_vla(list, new_vla);
     }
 
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[0,3,0]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+
+    {
+      jx_float *vla = jx_float_vla_new(2);
+      P1("-1 == %d", jx_list_set_float_vla(list, vla));
+      jx_float_vla_free(vla);
+    }
+    
+    P1("0 == %d", jx_ob_free(list));
+  }
+
+  {
+    int array[] = {3, 2, 1};
+    jx_ob list = jx_list_new_from_int_array(array,3);
+    
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[3,2,1]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    P1("0 == %d", jx_ob_free(list));
+  }
+
+  {
+    float array[] = {1.0F, 2.0F, 3.0F};
+    jx_ob list = jx_list_new_from_float_array(array,3);
+    
+    {
+      jx_ob json = jx_ob_to_json(list);
+      printf("# %s\n",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
     P1("0 == %d", jx_ob_free(list));
   }
 
