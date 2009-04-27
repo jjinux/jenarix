@@ -67,5 +67,52 @@ int main(int argc, char **argv)
 
     P1( "0 == %d", jx_ob_free(list));
   }
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int),4);
+    jx_int i;
+    for(i=0;i<4;i++) {
+      vla[i] = i;
+    }
+    {
+      jx_ob list = jx_list_new_with_int_vla(vla);
+      P1( "4 == %d", jx_list_size(list));      
+      P1( "3 == %d", jx_ob_as_int(jx_list_borrow(list,3)));
+      P1( "0 == %d", jx_ob_free(list));
+    }
+  }
+  {
+    jx_float *vla = jx_vla_new(sizeof(jx_float),4);
+    jx_int i;
+    for(i=0;i<4;i++) {
+      vla[i] = i/10.0F;
+    }
+    {
+      jx_ob list = jx_list_new_with_float_vla(vla);
+      P1( "4 == %d", jx_list_size(list));      
+      P1( "0.3 == %f", jx_ob_as_float(jx_list_borrow(list,3)));
+      P1( "0 == %d", jx_ob_free(list));
+    }
+  }
+  {
+    jx_int int_array[] = { 1, 2 };
+    jx_float float_array[] = { 1.0, 2.0 };
+
+    jx_ob list1 = jx_list_new_from_int_array(int_array,2);
+    jx_ob list2 = jx_list_new_from_int_array(int_array,2);
+    jx_ob list3 = jx_list_new_from_float_array(float_array,2);
+
+    P1("1 && %p", (void*)jx_list_as_int_vla(list1));
+
+    P1("0 == %d",jx_list_combine(list1,list2));
+
+    P1("1 && %p", (void*)jx_list_as_int_vla(list1));
+
+    P1("0 == %d",jx_list_combine(list1,list3));
+
+    P1("0 == %p", (void*)jx_list_as_int_vla(list1));    
+
+    P1( "0 == %d", jx_ob_free(list1));
+  }
+
 }
 

@@ -1,7 +1,8 @@
 
-CFLAGS =  -g -Wall -ansi -pedantic -std=gnu99
+CFLAGS =  -O3 -Wall -ansi -pedantic -std=gnu99
+LDFLAGS =
 
-tests: test001 test002 test003 test004 test005
+tests: test001 test002 test003 test004 test005 test006
 
 jx_private.o: jx_private.c jx_inline.h jx_private.h jx_public.h
 
@@ -15,6 +16,8 @@ test004.o: test004.c jx_public.h jx_inline.h
 
 test005.o: test005.c jx_public.h jx_inline.h
 
+test006.o: test006.c jx_public.h jx_inline.h
+
 test001: test001.o jx_private.o
 
 test002: test002.o jx_private.o 
@@ -25,5 +28,15 @@ test004: test004.o jx_private.o
 
 test005: test005.o jx_private.o
 
+test006: test006.o jx_private.o
+
 clean: 
 	/bin/rm -f *.o
+
+test:
+	test001 | perl
+	test002 | perl
+	test003 | perl
+	test004 | perl
+	test005 | perl
+	test006 | perl

@@ -95,6 +95,8 @@ typedef struct {
 
 #define JX_META_MASK_TYPE_BITS  0x00003F00
 
+#define JX_META_NOT_AN_OB       0x80000000
+
 #define JX_META_MASK_TINY_SIZE  0x000000FF
 
 /* object initializers */
@@ -128,7 +130,7 @@ void     *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 #define   jx_vla_append_c_str(r,s)  jx__vla_append_c_str((void**)(r),(s))
 #define   jx_vla_append_ob_str(r,o) jx__vla_append_ob_str((void**)(r),(o))
 #define   jx_vla_insert(r,i,c)      jx__vla_insert((void**)(r),(i),(c))
-#define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(r1),((void**)(r2)));
+#define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(r1),((void**)(r2)))
 #define   jx_vla_remove(r,i,c)      jx__vla_remove((void**)(r),(i),(c))
 #define   jx_vla_free(r)            jx__vla_free((void**)(r))
 void *jx__vla_copy(void **ref);
@@ -238,7 +240,7 @@ JX_INLINE jx_status jx_null_check(jx_ob ob)
 }
 JX_INLINE jx_status jx_bool_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
+  return (ob.meta & JX_META_BIT_BOOL) ? JX_TRUE : JX_FALSE;
 }
 JX_INLINE jx_status jx_int_check(jx_ob ob)
 {
@@ -304,6 +306,82 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
   }
 }
 
+/* lists */
+
+jx_status jx__list_append(jx_list *I, jx_ob ob);
+JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    return jx__list_append(list.data.list, ob);
+  }
+  return JX_FAILURE;
+}
+jx_status jx__list_insert(jx_list *I, jx_int index, jx_ob ob);
+JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    return jx__list_insert(list.data.list, index, ob);
+  }
+  return JX_FAILURE;
+}
+jx_status jx__list_replace(jx_list *I, jx_int index, jx_ob ob);
+JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    return jx__list_replace(list.data.list, index, ob);
+  }
+  return JX_FAILURE;
+}
+
+jx_status jx__list_combine(jx_list *list1,jx_list *list2);
+JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
+{
+  if((list1.meta & JX_META_BIT_LIST) && 
+     (list2.meta & JX_META_BIT_LIST)) {
+    return jx__list_combine(list1.data.list, list2.data.list);
+  }
+  return JX_FAILURE;
+}
+
+jx_ob jx__list_borrow(jx_list *I, jx_int index);
+JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    return jx__list_borrow(list.data.list, index);
+  }
+  return jx_ob_from_null();
+}
+#define JX__HASH_COPY_KEYS   0x1
+#define JX__HASH_COPY_VALUES 0x2
+jx_ob jx__hash_copy_members(jx_hash *I,jx_int flags);
+JX_INLINE jx_ob jx_list_new_from_hash(jx_ob hash)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_copy_members(hash.data.hash,
+                                 JX__HASH_COPY_KEYS | 
+                                 JX__HASH_COPY_VALUES);
+  }
+  return jx_ob_from_null();
+}
+jx_ob jx_list_new(void);
+jx_status jx__list_with_hash(jx_list *list, jx_hash *hash);
+JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result = jx_list_new();
+    if(result.meta & JX_META_BIT_LIST) {
+      if(jx_ok(jx__list_with_hash(result.data.list, hash.data.hash))) {
+        jx_ob_free(hash);
+      } else {
+        jx_ob_free(result);
+        result = hash;
+      }
+    }
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
 /* hashing */
 
 JX_INLINE jx_uint32 jx__ob_hash_code(jx_meta meta, jx_data data)
@@ -321,7 +399,7 @@ JX_INLINE jx_uint32 jx__ob_hash_code(jx_meta meta, jx_data data)
                           ((jx_uint32)data[0])^
                           ((jx_uint32)(data[0]>>32))^
                           ((jx_uint32)data[1])^
-                          ((jx_uint32)(data[1]>>64)));
+                          ((jx_uint32)(data[1]>>32)));
 #endif
 #endif
 #endif
@@ -344,6 +422,40 @@ JX_INLINE jx_uint32 jx_ob_hash_code(jx_ob ob)
 
 }
 
+jx_ob jx_hash_new(void);
+jx_status jx__hash_from_list(jx_hash *hast, jx_list *list);
+JX_INLINE jx_ob jx_hash_new_from_list(jx_ob list)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    jx_ob result = jx_hash_new();
+    if(result.meta & JX_META_BIT_HASH) {
+      if(!jx_ok(jx__hash_from_list(result.data.hash,list.data.list))) {
+        jx_ob_free(result);
+        result = jx_ob_from_null();
+      }
+    }
+    return result;
+  }
+  return jx_ob_from_null();
+}
+jx_status jx__hash_with_list(jx_hash *hash, jx_list *list);
+JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
+{
+  if(list.meta & JX_META_BIT_LIST) {
+    jx_ob result = jx_hash_new();
+    if(result.meta & JX_META_BIT_HASH) {
+      if(jx_ok(jx__hash_with_list(result.data.hash,list.data.list))) {
+        jx_ob_free(list);
+      } else {
+        jx_ob_free(result);
+        result = list;
+      }
+    }
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
 jx_int jx__hash_size(jx_hash *I);
 JX_INLINE jx_int jx_hash_size(jx_ob hash)
 {
@@ -353,7 +465,7 @@ JX_INLINE jx_int jx_hash_size(jx_ob hash)
   return 0;
 }
 
-jx_int jx__hash_set(jx_hash *I, jx_ob key, jx_ob value);
+jx_status jx__hash_set(jx_hash *I, jx_ob key, jx_ob value);
 JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
 {
   if(hash.meta & JX_META_BIT_HASH) {
@@ -362,7 +474,7 @@ JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
   return JX_FAILURE;
 }
 
-jx_int jx__hash_has_key(jx_hash *I, jx_ob key);
+jx_bool jx__hash_has_key(jx_hash *I, jx_ob key);
 JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
 {
   if(hash.meta & JX_META_BIT_HASH) {
@@ -371,9 +483,6 @@ JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
   return JX_FALSE;
 }
 
-#define JX__HASH_COPY_KEYS   0x1
-#define JX__HASH_COPY_VALUES 0x2
-jx_ob jx__hash_copy_members(jx_hash *I,jx_int flags);
 JX_INLINE jx_ob jx_hash_keys(jx_ob hash)
 {
   if(hash.meta & JX_META_BIT_HASH) {
@@ -385,14 +494,6 @@ JX_INLINE jx_ob jx_hash_values(jx_ob hash)
 {
   if(hash.meta & JX_META_BIT_HASH) {
     return jx__hash_copy_members(hash.data.hash, JX__HASH_COPY_VALUES);
-  }
-  return jx_ob_from_null();
-}
-JX_INLINE jx_ob jx_hash_to_list(jx_ob hash)
-{
-  if(hash.meta & JX_META_BIT_HASH) {
-    return jx__hash_copy_members(hash.data.hash,
-                                 JX__HASH_COPY_KEYS | JX__HASH_COPY_VALUES);
   }
   return jx_ob_from_null();
 }
@@ -428,7 +529,7 @@ JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_status jx_hash_eliminate(jx_ob hash, jx_ob key)
+JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
 {
   if(hash.meta & JX_META_BIT_HASH) {
     jx_ob result;

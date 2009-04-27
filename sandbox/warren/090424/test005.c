@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 
+#define C1(ex,s1) printf("# %s (%s line %d,);\n",s1,__FILE__,__LINE__);
 #define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
 #define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
 
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
     P1("0x8a9830b0 == 0x%08x",jx_ob_hash_code(ob_1));
     P1("0x231eb015 == 0x%08x",jx_ob_hash_code(ob_2));
 
-    P1("0x4a38819a == 0x%08x",jx_ob_hash_code(ob_3pt0));
+    P2("(0x4a38819a == 0x%08x) || (0x46b50a9f == 0x%08x)",jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
 
     P1("0xb555fa5d == 0x%08x",jx_ob_hash_code(ob_tiny));
 
@@ -129,7 +130,6 @@ int main(int argc, char **argv)
         P1("'heap string as a hash value' eq '%s'",jx_ob_as_str(&borrowed));
       }
 
-      //   P2("'%s' == '%s'",jx_ob_as_str(&value1), jx_hash_size(hash));      
       jx_ob_free(key2);
     }
 
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     }
 
     P1("1 == %d",jx_hash_has_key(hash,key1));
-    P1("0 == %d",jx_hash_eliminate(hash, key1));
+    P1("0 == %d",jx_hash_delete(hash, key1));
     P1("0 == %d",jx_hash_has_key(hash,key1));
     
     P1("0 == %d",jx_ob_free(key1));        
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     }
 
     for(i=0;i<48;i++) {
-      P1("0 == %d",jx_hash_eliminate(hash,jx_ob_from_int(i)));
+      P1("0 == %d",jx_hash_delete(hash,jx_ob_from_int(i)));
       {
         jx_ob list = jx_hash_keys(hash);
         jx_ob json = jx_ob_to_json(list);
@@ -208,12 +208,24 @@ int main(int argc, char **argv)
     }
 
     {
-      jx_ob list = jx_hash_to_list(hash);
-      jx_ob json = jx_ob_to_json(list);
-      printf("# %s\n",jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob list = jx_list_new_from_hash(hash);
+      {
+        jx_ob json = jx_ob_to_json(list);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+      {
+        jx_ob hash2 = jx_hash_new_from_list(list);
+        jx_ob json1 = jx_ob_to_json(hash);
+        jx_ob json2 = jx_ob_to_json(hash2);
+        P2("'%s' eq '%s'", jx_ob_as_str(&json1), jx_ob_as_str(&json2));
+        P1("0 == %d",jx_ob_free(json1));  
+        P1("0 == %d",jx_ob_free(json2));  
+        P1("0 == %d",jx_ob_free(hash2));  
+      }
       jx_ob_free(list);
     }
+
     P1("0 == %d",jx_ob_free(hash));  
   }
   {
@@ -242,7 +254,8 @@ int main(int argc, char **argv)
       }
     }
     for(i=0;i<16;i++) { /* confirm ability to do reverse mapping */
-      P2("%d == %d",i,jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
+      jx_ob borrowed = jx_hash_borrow_key(hash,jx_ob_from_int(-i));
+      P2("%d == %d",(int)i,(int)jx_ob_as_int(borrowed));
     }
 
     for(i=0;i<16;i++) { /* confirm ability to set duplicate values */
@@ -254,7 +267,7 @@ int main(int argc, char **argv)
       }
     }
     for(i=0;i<16;i++) { /* confirm randomness of reverse mapping */
-      P2("%d == abs(%d)",i,jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
+      P2("%d == abs(%d)",(int)i,(int)jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
     }
     P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(13),jx_ob_from_int(-13)));
     P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(-1),jx_ob_from_int(1)));
@@ -276,11 +289,88 @@ int main(int argc, char **argv)
       P1("-1 == %d",jx_hash_set(hash,jx_ob_from_int(-i),jx_ob_from_int(-i)));
     }
     for(i=0;i<12;i++) { /* confirm ability to do reverse mapping */
-      P2("%d == %d",i,jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
+      P2("%d == %d",(int)i,(int)jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
     }
     P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(13),jx_ob_from_int(-13)));
     P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(-1),jx_ob_from_int(1)));
     P1("0 == %d",jx_ob_free(hash));  
   }
-
+  {
+    jx_int array[] = { 1, -1, 3, -3 };
+    jx_ob list = jx_list_new_from_int_array(array,4);
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[1,-1,3,-3]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    {
+      jx_ob hash = jx_hash_new_with_list(list);
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        P1("'{1:-1,3:-3}' eq '%s'",jx_ob_as_str(&json));      
+        jx_ob_free(json);
+      }
+      {
+        jx_ob list2 = jx_list_new_with_hash(hash);
+        {
+          jx_ob json = jx_ob_to_json(list2);
+          P1("'[1,-1,3,-3]' eq '%s'",jx_ob_as_str(&json));
+          jx_ob_free(json);
+        }
+        P1("0 == %d",jx_ob_free(list2));  
+      }
+    }
+  }
+  {
+    jx_int array[] = { 1,2,3,4,5,6,7,8,9,10 };
+    jx_ob list = jx_list_new_from_int_array(array,10);
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[1,2,3,4,5,6,7,8,9,10]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    {
+      jx_ob hash = jx_hash_new_with_list(list);
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        P1("'{1:2,3:4,5:6,7:8,9:10}' eq '%s'",jx_ob_as_str(&json));      
+        jx_ob_free(json);
+      }
+      {
+        jx_ob list2 = jx_list_new_with_hash(hash);
+        {
+          jx_ob json = jx_ob_to_json(list2);
+          P1("'[1,2,3,4,5,6,7,8,9,10]' eq '%s'",jx_ob_as_str(&json));
+          jx_ob_free(json);
+        }
+        P1("0 == %d",jx_ob_free(list2));  
+      }
+    }
+  }
+  {
+    jx_int array[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 };
+    jx_ob list = jx_list_new_from_int_array(array,18);
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    {
+      jx_ob hash = jx_hash_new_with_list(list);
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        C1("%s",jx_ob_as_str(&json));      
+        jx_ob_free(json);
+      }
+      {
+        jx_ob list2 = jx_list_new_with_hash(hash);
+        {
+          jx_ob json = jx_ob_to_json(list2);
+          P1("'[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]' eq '%s'",jx_ob_as_str(&json));
+          jx_ob_free(json);
+        }
+        P1("0 == %d",jx_ob_free(list2));  
+      }
+    }
+  }
 }

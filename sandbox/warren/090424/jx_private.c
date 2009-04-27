@@ -5,45 +5,49 @@
 
 #include "jx_private.h"
 
-/* optional memory logger, counter, & overrun detection wrapper */
-#if 0
+#if 1
 #define jx_malloc(s) malloc(s)
 #define jx_calloc(c,s) calloc(c,s)
 #define jx_realloc(p,s) realloc(p,s)
 #define jx_free(p) free(p)
 #else
+/* optional memory logger, counter, & overrun detector */
 #define JX_MEM_LOG_ALL 0
+#define JX_MEM_LOG_SUMMARY 1
 #define jx_malloc(s) jx__malloc(s,__FILE__,__LINE__)
 #define jx_calloc(c,s) jx__calloc(c,s,__FILE__,__LINE__)
 #define jx_realloc(p,s) jx__realloc(p,s,__FILE__,__LINE__)
 #define jx_free(p) jx__free(p,__FILE__,__LINE__)
-#define JX_TRIPWIRE_SIZE 128
+#define JX_TRIP_WIRE_SIZE 16
 typedef struct {
   size_t size;
   jx_int active;
-  jx_char tripwire[JX_TRIPWIRE_SIZE];
+  jx_char trip_wire[JX_TRIP_WIRE_SIZE];
 } jx_mem_hdr;
 typedef struct {
-  jx_char tripwire[JX_TRIPWIRE_SIZE];
+  jx_char trip_wire[JX_TRIP_WIRE_SIZE];
   size_t size;
 } jx_mem_ftr;
-static jx_int jx_mem_count = 0; 
+static jx_int jx_mem_count = 0, jx_mem_count_max = 0;
 static void jx_mem_dump(void)
 {
-  if(JX_MEM_LOG_ALL || jx_mem_count)
-    fprintf(stderr,"jx_mem_count: %d heap blocks remain allocated.\n",jx_mem_count);
+  if(JX_MEM_LOG_ALL || JX_MEM_LOG_SUMMARY || jx_mem_count)
+    fprintf(stderr,"jx_mem_count: %d of %d heap blocks remain allocated.\n",
+            jx_mem_count,jx_mem_count_max);
 }
 static jx_int jx_mem_count_init = 1;
 static void jx_mem_count_inc(void)
 {
   if(jx_mem_count_init) { jx_mem_count_init=0; atexit(jx_mem_dump); }
   jx_mem_count++; /* not atomic - not thread-accurate */
+  if(jx_mem_count_max < jx_mem_count)
+    jx_mem_count_max = jx_mem_count;
 }
 static void jx_mem_count_dec(void)
 {
   jx_mem_count--;  /* not atomic - not thread-accurate */
 }
-static void *jx_tripwire_set(void *ptr, size_t size)
+static void *jx_trip_wire_set(void *ptr, size_t size)
 {
   jx_mem_hdr *hdr = (jx_mem_hdr*)ptr;
   void *result = hdr + 1;
@@ -53,39 +57,39 @@ static void *jx_tripwire_set(void *ptr, size_t size)
   ftr->size = size;
   {
     jx_char seed = ((((jx_char*)hdr) - (jx_char*)0) >> 2) + size;
-    jx_char *h_tw = hdr->tripwire, *f_tw = ftr->tripwire;
+    jx_char *h_tw = hdr->trip_wire, *f_tw = ftr->trip_wire;
     jx_int i;
-    for(i=0;i<JX_TRIPWIRE_SIZE;i++) {
+    for(i=0;i<JX_TRIP_WIRE_SIZE;i++) {
       *(h_tw++) = *(f_tw++) = seed;
       seed += size;
     }
   }
   return result;
 }
-static void *jx_tripwire_check(void *ptr,char *file,int line)
+static void *jx_trip_wire_check(void *ptr,char *file,int line)
 {
   jx_mem_hdr *hdr = ((jx_mem_hdr*)ptr) - 1;
   jx_mem_ftr *ftr = (jx_mem_ftr*) ((jx_char*)ptr + hdr->size);
   if(hdr->active == 0xDEADDEAD) {
-    fprintf(stderr,"jx_tripwire: %p has been freed twice (%s:%d)\n",
+    fprintf(stderr,"jx_trip_wire: %p has been freed twice (%s:%d)\n",
             ptr,file,line);
   } else if(hdr->active != 0x1EE254EC) {
-    fprintf(stderr,"jx_tripwire: %p is not an active block (%s:%d)\n",
+    fprintf(stderr,"jx_trip_wire: %p is not an active block (%s:%d)\n",
             ptr,file,line);
   } else if(hdr->size != ftr->size) {
-    fprintf(stderr,"jx_tripwire: %p sizes do not match (0x%lx != 0x%lx) (%s:%d)\n",
+    fprintf(stderr,"jx_trip_wire: %p sizes do not match (0x%lx != 0x%lx) (%s:%d)\n",
             ptr,hdr->size,ftr->size,file,line);
   } else {
     size_t size = hdr->size;
     jx_char seed = ((((jx_char*)hdr) - (jx_char*)0) >> 2) + size;
-    jx_char *h_tw = hdr->tripwire, *f_tw = ftr->tripwire;
+    jx_char *h_tw = hdr->trip_wire, *f_tw = ftr->trip_wire;
     jx_int i;
-    for(i=0;i<JX_TRIPWIRE_SIZE;i++) {
+    for(i=0;i<JX_TRIP_WIRE_SIZE;i++) {
       if( (*(h_tw++) != seed )) {
-        fprintf(stderr, "jx_tripwire: %p header overrun (byte 0x%x) (%s:%d)\n",ptr,i,file,line);
+        fprintf(stderr, "jx_trip_wire: %p header overrun (byte 0x%x) (%s:%d)\n",ptr,i,file,line);
       }
       if( (*(f_tw++) != seed )) {
-        fprintf(stderr, "jx_tripwire: %p footer overrun (byte 0x%x) (%s:%d)\n",ptr,i,file,line);
+        fprintf(stderr, "jx_trip_wire: %p footer overrun (byte 0x%x) (%s:%d)\n",ptr,i,file,line);
       }
       seed += size;
     } 
@@ -99,12 +103,12 @@ static void *jx__malloc(size_t size, char *file, int line)
   jx_mem_count_inc();
   if(JX_MEM_LOG_ALL)
     fprintf(stderr,"jx_malloc: %p (%lx) (%s:%d)\n",result,size,file,line);
-  return jx_tripwire_set(result,size);
+  return jx_trip_wire_set(result,size);
 }
 static void *jx__calloc(size_t count, size_t size, char *file, int line)
 {
   void *ptr = calloc(count, size + sizeof(jx_mem_hdr) + sizeof(jx_mem_ftr));
-  void *result = jx_tripwire_set(ptr,size);
+  void *result = jx_trip_wire_set(ptr,size);
   jx_mem_count_inc();
   if(JX_MEM_LOG_ALL)
     fprintf(stderr,"jx_calloc: %p (%lx,%lx) (%s:%d)\n",result,count,size,file,line);
@@ -112,10 +116,10 @@ static void *jx__calloc(size_t count, size_t size, char *file, int line)
 }
 static void *jx__realloc(void *ptr, size_t size, char *file, int line)
 {
-  void *true_ptr = jx_tripwire_check(ptr,file,line);
+  void *true_ptr = jx_trip_wire_check(ptr,file,line);
   void *new_ptr = realloc(true_ptr, size + sizeof(jx_mem_hdr) + sizeof(jx_mem_ftr));
   if(new_ptr) {
-    void *result = jx_tripwire_set(new_ptr, size);
+    void *result = jx_trip_wire_set(new_ptr, size);
     if(JX_MEM_LOG_ALL)
       fprintf(stderr,"jx_realloc: %p -> %p (%lx) (%s:%d)\n",ptr,result,size,file,line);
     return result;
@@ -126,7 +130,7 @@ static void *jx__realloc(void *ptr, size_t size, char *file, int line)
 }
 void jx__free(void *ptr, char *file, int line)
 {
-  void *true_ptr = jx_tripwire_check(ptr,file,line);
+  void *true_ptr = jx_trip_wire_check(ptr,file,line);
   jx_mem_count_dec();
   if(JX_MEM_LOG_ALL)
     fprintf(stderr,"jx_free: %p (%s:%d)\n",ptr,file,line);
@@ -396,6 +400,15 @@ jx_ob jx_list_new_from_int_array(jx_int *array, jx_int size)
   }
   return result;
 }
+jx_ob jx_list_new_with_int_vla(jx_int *vla)
+{
+  jx_ob result = jx_list_new();
+  if(result.meta & JX_META_BIT_LIST) {
+    result.data.list->packed_meta = JX_META_BIT_INT;
+    result.data.list->data.vla = vla;
+  }
+  return result;
+}
 
 jx_ob jx_list_new_from_float_array(jx_float *array, jx_float size)
 {
@@ -403,6 +416,15 @@ jx_ob jx_list_new_from_float_array(jx_float *array, jx_float size)
   if(result.meta & JX_META_BIT_LIST) {
     result.data.list->packed_meta = JX_META_BIT_FLOAT;
     result.data.list->data.vla = jx_vla_new_with_content(sizeof(jx_float),size,array);
+  }
+  return result;
+}
+jx_ob jx_list_new_with_float_vla(jx_float *vla)
+{
+  jx_ob result = jx_list_new();
+  if(result.meta & JX_META_BIT_LIST) {
+    result.data.list->packed_meta = JX_META_BIT_FLOAT;
+    result.data.list->data.vla = vla;
   }
   return result;
 }
@@ -441,11 +463,14 @@ static jx_status jx__list_free(jx_list *list)
   jx_free(list);
   return JX_SUCCESS;
 }
-
+JX_INLINE jx_int jx__list_size(jx_list *I)
+{
+  return jx_vla_size(&I->data.vla);
+}
 jx_int jx_list_size(jx_ob ob)
 {
   if(ob.meta & JX_META_BIT_LIST) {
-    return jx_vla_size(&ob.data.list->data.vla);
+    return jx__list_size(ob.data.list);
   } else
     return 0;
 }
@@ -594,100 +619,135 @@ JX_INLINE jx_ob jx_list_get_packed_data(jx_list *list, jx_int index)
   return jx_ob_from_null();
 }
 
-jx_status jx_list_append(jx_ob list, jx_ob ob)
+jx_status jx__list_append(jx_list *I, jx_ob ob)
 {
-  if(list.meta & JX_META_BIT_LIST) {
-    jx_list *rec = list.data.list;
-    if(rec->data.vla && rec->packed_meta && (rec->packed_meta != ob.meta)) {
-      if(!jx_ok(jx_list_unpack_data(rec)))
-        return JX_FAILURE;
-    }
-    if(rec->data.vla) {
-      jx_int size = jx_vla_size(&rec->data.vla);
-      if(jx_vla_grow_check( &rec->data.vla, size)) {
-        if(rec->packed_meta && (rec->packed_meta == ob.meta)) {
-          jx_list_set_packed_data(rec, size, ob);
-        } else if(!rec->packed_meta) {
-          rec->data.ob_vla[size] = ob;
-        }
-        return JX_SUCCESS;
-      }
-    } else { 
-      jx_int packed_size = jx_meta_get_packed_size(ob.meta);
-      if(packed_size) {
-        rec->packed_meta = ob.meta;
-        rec->data.vla = jx_vla_new(packed_size,1);
-        if(rec->data.vla) {
-          jx_list_set_packed_data(rec, 0, ob);
-          return JX_SUCCESS;
-        }
-      } else {
-        rec->data.vla = jx_vla_new(sizeof(jx_ob),1);
-        if(rec->data.vla) {
-          rec->data.ob_vla[0] = ob;
-          return JX_SUCCESS;
-        }
-      }
-    }
+  if(I->data.vla && I->packed_meta && (I->packed_meta != ob.meta)) {
+    if(!jx_ok(jx_list_unpack_data(I)))
+      return JX_FAILURE;
   }
-  return JX_FAILURE;
-}
-
-jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
-{
-  if(list.meta & JX_META_BIT_LIST) {
-    jx_list *rec = list.data.list;
-    if(rec->data.vla && rec->packed_meta && (rec->packed_meta != ob.meta)) {
-      if(!jx_ok(jx_list_unpack_data(rec)))
-        return JX_FAILURE;
-    }
-    if(rec->data.vla) {
-      if(!jx_ok(jx_vla_insert(&rec->data.vla,index,1)))
-        return JX_FAILURE;
-      else if(rec->packed_meta && (rec->packed_meta == ob.meta)) {
-        jx_list_set_packed_data(rec, index, ob);
-      } else if(!rec->packed_meta) {
-        rec->data.ob_vla[index] = ob;
+  if(I->data.vla) {
+    jx_int size = jx_vla_size(&I->data.vla);
+    if(jx_vla_grow_check( &I->data.vla, size)) {
+      if(I->packed_meta && (I->packed_meta == ob.meta)) {
+        jx_list_set_packed_data(I, size, ob);
+      } else if(!I->packed_meta) {
+        I->data.ob_vla[size] = ob;
       }
       return JX_SUCCESS;
-    } else if(index==0) { 
-      jx_int packed_size = jx_meta_get_packed_size(ob.meta);
-      if(packed_size) {
-        rec->packed_meta = ob.meta;
-        rec->data.vla = jx_vla_new(packed_size,1);
-        if(rec->data.vla) {
-          jx_list_set_packed_data(rec, 0, ob);
-          return JX_SUCCESS;
-        }
-      } else {
-        rec->data.vla = jx_vla_new(sizeof(jx_ob),1);
-        if(rec->data.vla) {
-          rec->data.ob_vla[0] = ob;
-          return JX_SUCCESS;
-        }
+    }
+  } else { 
+    jx_int packed_size = jx_meta_get_packed_size(ob.meta);
+    if(packed_size) {
+      I->packed_meta = ob.meta;
+      I->data.vla = jx_vla_new(packed_size,1);
+      if(I->data.vla) {
+        jx_list_set_packed_data(I, 0, ob);
+        return JX_SUCCESS;
+      }
+    } else {
+      I->data.vla = jx_vla_new(sizeof(jx_ob),1);
+      if(I->data.vla) {
+        I->data.ob_vla[0] = ob;
+        return JX_SUCCESS;
       }
     }
   }
   return JX_FAILURE;
 }
 
-jx_ob jx_list_borrow(jx_ob list, jx_int index)
+jx_status jx__list_insert(jx_list *I, jx_int index, jx_ob ob)
 {
-  jx_ob result = JX_OB_NULL;
-  if(list.meta & JX_META_BIT_LIST) {
-    jx_list *rec = list.data.list;
-    if( (index>=0) && (index < jx_vla_size(&rec->data.vla))) {
-      if(rec->packed_meta) {
-        result = jx_list_get_packed_data(rec, index);
-      } else {
-        result = rec->data.ob_vla[index];
+  if(I->data.vla && I->packed_meta && (I->packed_meta != ob.meta)) {
+    if(!jx_ok(jx_list_unpack_data(I)))
+      return JX_FAILURE;
+  }
+  if(I->data.vla) {
+    if(!jx_ok(jx_vla_insert(&I->data.vla,index,1)))
+      return JX_FAILURE;
+    else if(I->packed_meta && (I->packed_meta == ob.meta)) {
+      jx_list_set_packed_data(I, index, ob);
+    } else if(!I->packed_meta) {
+      I->data.ob_vla[index] = ob;
+    }
+    return JX_SUCCESS;
+  } else if(index==0) { 
+    jx_int packed_size = jx_meta_get_packed_size(ob.meta);
+    if(packed_size) {
+      I->packed_meta = ob.meta;
+      I->data.vla = jx_vla_new(packed_size,1);
+      if(I->data.vla) {
+        jx_list_set_packed_data(I, 0, ob);
+        return JX_SUCCESS;
+      }
+    } else {
+      I->data.vla = jx_vla_new(sizeof(jx_ob),1);
+      if(I->data.vla) {
+        I->data.ob_vla[0] = ob;
+        return JX_SUCCESS;
       }
     }
   }
-  return result;
+  return JX_FAILURE;
 }
 
-jx_status jx_list_eliminate(jx_ob list, jx_int index)
+jx_status jx__list_replace(jx_list *I, jx_int index, jx_ob ob)
+{
+  jx_int size = jx_vla_size(&I->data.vla);
+  if(index<size) {
+    if(I->data.vla && I->packed_meta && (I->packed_meta != ob.meta)) {
+      if(!jx_ok(jx_list_unpack_data(I)))
+        return JX_FAILURE;
+    }
+    if(I->data.vla) {
+      if(I->packed_meta && (I->packed_meta == ob.meta)) {
+        jx_list_set_packed_data(I, index, ob);
+      } else if(!I->packed_meta) {
+        jx_ob_free( I->data.ob_vla[index] );
+        I->data.ob_vla[index] = ob;
+      }
+      return JX_SUCCESS;
+    }
+  }
+  return JX_FAILURE;
+}
+
+jx_status jx__list_combine(jx_list *list1, jx_list *list2)
+{
+  if(list1 == list2) {
+    return JX_FAILURE;
+  } else {
+    if(list1->packed_meta != list2->packed_meta) {
+      if(list1->packed_meta) {
+        if(!jx_ok(jx_list_unpack_data(list1)))
+          return JX_FAILURE;
+      }
+      if(list2->packed_meta) {
+        if(!jx_ok(jx_list_unpack_data(list2)))
+          return JX_FAILURE;
+      }
+    }
+    if(jx_ok(jx_vla_extend(&list1->data.vla, &list2->data.vla))) {
+      jx_vla_free(&list2->data.vla);
+      jx__list_free(list2);
+      return JX_SUCCESS;
+    }
+  }
+  return JX_FAILURE;
+}
+
+jx_ob jx__list_borrow(jx_list *I, jx_int index)
+{
+  if( (index>=0) && (index < jx_vla_size(&I->data.vla))) {
+    if(I->packed_meta) {
+      return jx_list_get_packed_data(I, index);
+    } else {
+      return I->data.ob_vla[index];
+    }
+  }
+  return jx_ob_from_null();
+}
+
+jx_status jx_list_delete(jx_ob list, jx_int index)
 {
   if(list.meta & JX_META_BIT_LIST) {
     jx_list *rec = list.data.list;
@@ -912,9 +972,6 @@ static jx_bool jx__hash_recondition(jx_hash *I, jx_int mode, jx_bool pack)
   jx_uint32 old_mode = JX_HASH_RAW;
   jx_uint32 min_size = 0;
 
-#if 0
-  printf("recondition %x %d\n",I->info,mode);
-#endif
   if(!I->info) {
     usage = jx_vla_size(&I->key_value) >> 1;
     if(min_size < usage)
@@ -1069,7 +1126,8 @@ static jx_bool jx__hash_recondition(jx_hash *I, jx_int mode, jx_bool pack)
         jx_uint32 new_mask = jx__new_mask_from_min_size(min_size);
         {
           /* prepare new info block */
-          jx_hash_info *new_info = (jx_hash_info*)jx_vla_new( sizeof(jx_uint32),2*(new_mask + 1) + JX_HASH_INFO_SIZE);
+          jx_hash_info *new_info = (jx_hash_info*)jx_vla_new( sizeof(jx_uint32),
+                                                              2*(new_mask + 1) + JX_HASH_INFO_SIZE);
           if(new_info) {
             new_info->mode = mode;
             new_info->usage = usage;
@@ -1135,12 +1193,9 @@ static jx_bool jx__hash_recondition(jx_hash *I, jx_int mode, jx_bool pack)
             case JX_HASH_ONE_TO_NIL:
               {
                 jx_hash_info *old_info = (jx_hash_info*)I->info;
-#if 0                
-                printf("\n(%p:%x->%x:%d)",(void*)I,(int)old_info->mask,(int)new_mask,(int)pack);
-#endif
                 if(pack || (new_mask < old_info->mask)) {
                   /* we're going to pack key_value and eliminate inactive blocks */
-                  jx_ob *new_key_value = jx_vla_new( sizeof(jx_ob),  (usage<<1));
+                  jx_ob *new_key_value = jx_vla_new( sizeof(jx_ob), (usage<<1));
                   if(new_key_value) {
                     jx_ob *old_key_value = I->key_value;
                     jx_uint32 *old_hash = old_info->start;
@@ -1588,12 +1643,6 @@ static jx_bool jx__hash_recondition(jx_hash *I, jx_int mode, jx_bool pack)
     if(I->info && I->key_value) {
       jx_hash_info *info = (jx_hash_info*)I->info;
       jx_uint32 n_ent = jx_vla_size(&I->key_value);
-#if 0
-      putchar('0'+old_mode);
-      putchar('>');
-      putchar('0'+info->mode);
-      putchar(' ');
-#endif
       if(n_ent/2 != (info->usage + info->stale)) {
         printf("mismatch %d != %d+%d = %d\n",
                (int)n_ent/2, (int)info->usage, (int)info->stale,
@@ -1643,7 +1692,7 @@ jx_status jx__hash_set(jx_hash *I, jx_ob key, jx_ob value)
               I->key_value[size] = key;
               I->key_value[size+1] = value;
               result = JX_SUCCESS;
-              if(size>=6) { /* switch to linear once has four or more elements */
+              if(size>8) { /* switch to linear hash once we have more than four elements */
                 jx__hash_recondition(I, JX_HASH_LINEAR, JX_FALSE); 
               }
             }
@@ -1686,7 +1735,7 @@ jx_status jx__hash_set(jx_hash *I, jx_ob key, jx_ob value)
                 ob[0] = key;
                 ob[1] = value;
                 result = JX_SUCCESS;
-                if(info->usage > 15) {
+                if(info->usage > 8) {
                   jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE); /* switch to true hash */
                 }
               }
@@ -1963,7 +2012,8 @@ jx_bool jx__hash_has_key(jx_hash *I, jx_ob key)
               jx_uint32 sentinel = index;
               do {
                 jx_uint32 *hash_ptr = hash + (index<<1);
-                if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) { /* active slot with matching hash code */
+                if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) { 
+                  /* active slot with matching hash code */
                   jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
                   if(jx_ob_identical(key_value[i], key)) {
                     found = JX_TRUE;
@@ -2032,7 +2082,8 @@ jx_bool jx__hash_borrow(jx_ob *result, jx_hash *I, jx_ob key)
             jx_uint32 sentinel = index;
             do {
               jx_uint32 *hash_ptr = hash + (index<<1);
-              if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) { /* active slot with matching hash code */
+              if( (hash_ptr[1] & JX_HASH_ACTIVE) && (hash_ptr[0] == hash_code)) {
+                /* active slot with matching hash code */
                 jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
                 if(jx_ob_identical(key_value[i], key)) {
                   *result = key_value[i+1]; /* borrowing */
@@ -2278,6 +2329,109 @@ jx_bool jx__hash_borrow_key(jx_ob *result, jx_hash *I, jx_ob value)
   return found;
 }
 
+jx_status jx__hash_from_list(jx_hash *hash, jx_list *list)
+{
+  jx_int size = jx__list_size(list);
+  if(0x1 & size) {
+    return JX_FAILURE;
+  } else if(size) {
+    jx_int i;
+    for(i=0;i<size;i+=2) {
+      jx_ob key = jx_ob_copy(jx__list_borrow(list,i));
+      jx_ob value = jx_ob_copy(jx__list_borrow(list,i+1));
+      if(!jx_ok(jx__hash_set(hash,key,value))) {
+        jx_ob_free(key);
+        jx_ob_free(value);
+        return JX_FAILURE;
+      }
+    }
+  }
+  return JX_SUCCESS;
+}
+
+jx_status jx__list_with_hash(jx_list *list, jx_hash *hash)
+{
+  jx_int size = jx_vla_size( &hash->key_value );
+  if(size) {
+    jx_hash_info *info = (jx_hash_info*)hash->info;
+    if((!info) || (info->mode == JX_HASH_LINEAR)) { 
+      jx_vla_free(&list->data.vla);
+      list->data.vla = hash->key_value;
+      hash->key_value = JX_NULL;
+    } else {
+      switch(info->mode) {
+      case JX_HASH_ONE_TO_ANY:
+      case JX_HASH_ONE_TO_ONE:
+      case JX_HASH_ONE_TO_NIL:
+        {
+          jx_uint32 mask = info->mask;
+          jx_uint32 *table_base = info->start;
+          jx_ob *key_value = hash->key_value;
+          jx_uint32 index = 0;
+          do {
+            jx_uint32 *hash_ptr = table_base + (index<<1);
+            if(hash_ptr[1] && !(hash_ptr[1] & JX_HASH_ACTIVE) ) {
+              jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
+              key_value[i].meta = JX_META_NOT_AN_OB; /* mark inactive entries */
+            }
+            index++;
+          } while(index <= mask);
+          {
+            jx_ob *ob = key_value;
+            jx_int i, count = 0;
+            for(i=0;i<size;i+=2) {
+              if(ob[0].meta != JX_META_NOT_AN_OB) { /* purge the inactives */
+                if(count!=i) {
+                  memcpy(key_value + count, ob, sizeof(jx_ob)*2);
+                }
+                count+=2;
+              }
+              ob+=2;
+            }
+            jx_vla_resize(&hash->key_value, count);
+            if(count) {
+              jx_vla_free(&list->data.vla);
+              list->data.vla = hash->key_value;
+              hash->key_value = JX_NULL;
+            }
+            jx_vla_free(&hash->info);
+          }
+        }
+      }
+    }
+  }
+  return JX_SUCCESS;
+}
+
+jx_status jx__hash_with_list(jx_hash *hash, jx_list *list)
+{
+  jx_int size = jx__list_size(list);
+  if(0x1 & size) {
+    return JX_FAILURE;
+  } else if(size) {
+    jx_status status = JX_SUCCESS;
+    jx_int i;
+    for(i=0;i<size;i+=2) {
+      jx_ob key = jx__list_borrow(list,i);
+      jx_ob value = jx__list_borrow(list,i+1);
+      if(!jx_ok(jx__hash_set(hash,key,value))) {
+        status = JX_FAILURE;
+        break;
+      }
+    }
+    /* must empty contents of one container or the other */
+    if(jx_ok(status)) {
+      jx_vla_free(&list->data.vla); 
+    } else {
+      jx_vla_free(&hash->key_value);
+      jx_vla_free(&hash->info);
+    }
+    return status;
+  } else {
+    return JX_SUCCESS;
+  }
+}
+
 /* JSON output */
 
 static jx_ob jx__list_to_json(jx_list *list,jx_int flags)
@@ -2472,7 +2626,6 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob,jx_int flags)
   }
   return jx_ob_from_null();
 }
-
 
 /* copying */
 
