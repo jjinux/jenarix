@@ -48,21 +48,21 @@ int main(int argc, char **argv)
     jx_ob ob_tiny = jx_ob_from_str("tny");
     jx_ob ob_huge = jx_ob_from_str("this is a huge heap string.");
 
-    P1("1 == %d",jx_null_check(ob_null));
-    P1("1 == %d",jx_ob_as_bool(ob_true));
-    P1("0 == %d",jx_ob_as_bool(ob_false));
-    P1("7 == %d",jx_ob_as_int(ob_7));
-    P1("3.0 == %f",jx_ob_as_float(ob_3pt0));
-    P1("'tny' eq '%s'",jx_ob_as_str(&ob_tiny));
-    P1("'this is a huge heap string.' eq '%s'",jx_ob_as_str(&ob_huge));
+    P1("1 == %d", jx_null_check(ob_null));
+    P1("1 == %d", jx_ob_as_bool(ob_true));
+    P1("0 == %d", jx_ob_as_bool(ob_false));
+    P1("7 == %d", jx_ob_as_int(ob_7));
+    P1("3.0 == %f", jx_ob_as_float(ob_3pt0));
+    P1("'tny' eq '%s'", jx_ob_as_str(&ob_tiny));
+    P1("'this is a huge heap string.' eq '%s'", jx_ob_as_str(&ob_huge));
 
-    P1("0 == %d",jx_ob_free(ob_null));
-    P1("0 == %d",jx_ob_free(ob_true));
-    P1("0 == %d",jx_ob_free(ob_false));
-    P1("0 == %d",jx_ob_free(ob_7));
-    P1("0 == %d",jx_ob_free(ob_3pt0));
-    P1("0 == %d",jx_ob_free(ob_tiny));
-    P1("0 == %d",jx_ob_free(ob_huge));
+    P1("0 == %d", jx_ob_free(ob_null));
+    P1("0 == %d", jx_ob_free(ob_true));
+    P1("0 == %d", jx_ob_free(ob_false));
+    P1("0 == %d", jx_ob_free(ob_7));
+    P1("0 == %d", jx_ob_free(ob_3pt0));
+    P1("0 == %d", jx_ob_free(ob_tiny));
+    P1("0 == %d", jx_ob_free(ob_huge));
   }
 
   {
@@ -75,40 +75,40 @@ int main(int argc, char **argv)
     jx_ob ob_huge = jx_ob_from_str("this is a huge heap string.");
 
     jx_ob json = jx_ob_to_json(ob_null);
-    P1("'null' eq '%s'",jx_ob_as_str(&json));
+    P1("'null' eq '%s'", jx_ob_as_str(&json));
     jx_ob_free(json);
-    
+
     json = jx_ob_to_json(ob_true);
-    P1("'true' eq '%s'",jx_ob_as_str(&json));
+    P1("'true' eq '%s'", jx_ob_as_str(&json));
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_false);
-    P1("'false' eq '%s'",jx_ob_as_str(&json));
+    P1("'false' eq '%s'", jx_ob_as_str(&json));
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_7);
-    P1("'7' eq '%s'",jx_ob_as_str(&json));
+    P1("'7' eq '%s'", jx_ob_as_str(&json));
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_3pt0);
-    P2("'%f' eq '%s'",jx_ob_as_float(ob_3pt0),jx_ob_as_str(&json));
+    P2("'%f' eq '%s'", jx_ob_as_float(ob_3pt0), jx_ob_as_str(&json));
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_tiny);
-    P2("'\"%s\"' eq '%s'",jx_ob_as_str(&ob_tiny),jx_ob_as_str(&json));
+    P2("'\"%s\"' eq '%s'", jx_ob_as_str(&ob_tiny), jx_ob_as_str(&json));
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_huge);
-    P2("'\"%s\"' eq '%s'",jx_ob_as_str(&ob_huge),jx_ob_as_str(&json));
+    P2("'\"%s\"' eq '%s'", jx_ob_as_str(&ob_huge), jx_ob_as_str(&json));
     jx_ob_free(json);
 
-    P1("0 == %d",jx_ob_free(ob_null));
-    P1("0 == %d",jx_ob_free(ob_true));
-    P1("0 == %d",jx_ob_free(ob_false));
-    P1("0 == %d",jx_ob_free(ob_7));
-    P1("0 == %d",jx_ob_free(ob_3pt0));
-    P1("0 == %d",jx_ob_free(ob_tiny));
-    P1("0 == %d",jx_ob_free(ob_huge));
+    P1("0 == %d", jx_ob_free(ob_null));
+    P1("0 == %d", jx_ob_free(ob_true));
+    P1("0 == %d", jx_ob_free(ob_false));
+    P1("0 == %d", jx_ob_free(ob_7));
+    P1("0 == %d", jx_ob_free(ob_3pt0));
+    P1("0 == %d", jx_ob_free(ob_tiny));
+    P1("0 == %d", jx_ob_free(ob_huge));
   }
 
   {
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob json = jx_ob_to_json(list);
-      printf("# %s\n",jx_ob_as_str(&json));
+      printf("# %s\n", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_insert(list, 3, jx_ob_from_int(4)));
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[2,3,1,4]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[2,3,1,4]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
     P1("0 == %d", jx_ob_free(list));
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(4)));
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[1,2,3,4]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[1,2,3,4]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -196,10 +196,10 @@ int main(int argc, char **argv)
       P1("0 == %d", jx_list_append(list2, jx_ob_from_int(7)));
       P1("0 == %d", jx_list_append(list2, jx_ob_from_int(8)));
       jx_list_append(list, list2);
-      
+
       {
         jx_ob json = jx_ob_to_json(list);
-        P1("'[1,2,3,4,[5,6,7,8]]' eq '%s'",jx_ob_as_str(&json));
+        P1("'[1,2,3,4,[5,6,7,8]]' eq '%s'", jx_ob_as_str(&json));
         jx_ob_free(json);
       }
     }
@@ -210,37 +210,37 @@ int main(int argc, char **argv)
   {
     jx_ob list = jx_list_new();
 
-    P1("1 && %p", (void*)jx_list_as_int_vla(list));
+    P1("1 && %p", (void *) jx_list_as_int_vla(list));
 
-    P1("1 && %p", (void*)jx_list_as_float_vla(list));
+    P1("1 && %p", (void *) jx_list_as_float_vla(list));
 
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(1)));
-    P1("1 && %p", (void*)jx_list_as_int_vla(list));
-    P1("0 == %p", (void*)jx_list_as_float_vla(list));
+    P1("1 && %p", (void *) jx_list_as_int_vla(list));
+    P1("0 == %p", (void *) jx_list_as_float_vla(list));
 
     P1("0 == %d", jx_list_append(list, jx_ob_from_float(3.0)));
-    P1("0 == %p", (void*)jx_list_as_int_vla(list));
-    P1("0 == %p", (void*)jx_list_as_float_vla(list));
+    P1("0 == %p", (void *) jx_list_as_int_vla(list));
+    P1("0 == %p", (void *) jx_list_as_float_vla(list));
 
     P1("0 == %d", jx_list_append(list, jx_ob_from_str("yet another heap string")));
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(4)));
     {
       jx_ob json = jx_ob_to_json(list);
-      printf("# %s\n",jx_ob_as_str(&json));
+      printf("# %s\n", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
     P1("0 == %d", jx_list_delete(list, 1))
-    P1("0 == %p", (void*)jx_list_as_float_vla(list));
-    P1("0 == %p", (void*)jx_list_as_int_vla(list));
+      P1("0 == %p", (void *) jx_list_as_float_vla(list));
+    P1("0 == %p", (void *) jx_list_as_int_vla(list));
 
     P1("0 == %d", jx_list_delete(list, 1))
-    P1("0 == %p", (void*)jx_list_as_float_vla(list));
-    P1("1 && %p", (void*)jx_list_as_int_vla(list));
+      P1("0 == %p", (void *) jx_list_as_float_vla(list));
+    P1("1 && %p", (void *) jx_list_as_int_vla(list));
 
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[1,4]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[1,4]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -252,7 +252,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[10,6]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[10,6]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[0,3,0]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[0,3,0]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -275,29 +275,29 @@ int main(int argc, char **argv)
       P1("-1 == %d", jx_list_set_float_vla(list, vla));
       jx_float_vla_free(vla);
     }
-    
+
     P1("0 == %d", jx_ob_free(list));
   }
 
   {
-    jx_int array[] = {3, 2, 1};
-    jx_ob list = jx_list_new_from_int_array(array,3);
-    
+    jx_int array[] = { 3, 2, 1 };
+    jx_ob list = jx_list_new_from_int_array(array, 3);
+
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[3,2,1]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[3,2,1]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
     P1("0 == %d", jx_ob_free(list));
   }
 
   {
-    float array[] = {1.0F, 2.0F, 3.0F};
-    jx_ob list = jx_list_new_from_float_array(array,3);
-    
+    float array[] = { 1.0F, 2.0F, 3.0F };
+    jx_ob list = jx_list_new_from_float_array(array, 3);
+
     {
       jx_ob json = jx_ob_to_json(list);
-      printf("# %s\n",jx_ob_as_str(&json));
+      printf("# %s\n", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -306,14 +306,13 @@ int main(int argc, char **argv)
       P1("3 == %d", jx_list_size(list_copy));
       {
         jx_ob json = jx_ob_to_json(list_copy);
-        printf("# %s\n",jx_ob_as_str(&json));
+        printf("# %s\n", jx_ob_as_str(&json));
         jx_ob_free(json);
       }
-      P1("0 == %d", jx_ob_free(list_copy));      
+      P1("0 == %d", jx_ob_free(list_copy));
     }
     P1("0 == %d", jx_ob_free(list));
   }
-
 
   {
     jx_ob list = jx_list_new();
@@ -322,7 +321,7 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(2)));
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[1,2]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[1,2]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -332,18 +331,18 @@ int main(int argc, char **argv)
       P1("0 == %d", jx_list_append(list2, jx_ob_from_str("heap string number two")));
       jx_list_append(list, list2);
     }
-    
+
     {
       jx_ob list_copy = jx_ob_copy(list);
       P1("3 == %d", jx_list_size(list_copy));
       {
         jx_ob json = jx_ob_to_json(list_copy);
-        printf("# %s\n",jx_ob_as_str(&json));
+        printf("# %s\n", jx_ob_as_str(&json));
         jx_ob_free(json);
       }
-      P1("0 == %d", jx_ob_free(list_copy));      
+      P1("0 == %d", jx_ob_free(list_copy));
     }
-    
+
     P1("0 == %d", jx_ob_free(list));
   }
 
@@ -355,15 +354,15 @@ int main(int argc, char **argv)
 
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[1,2]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[1,2]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
-    
+
     P1("0 == %d", jx_list_replace(list, 0, jx_ob_from_str("heap string number one")));
 
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[\"heap string number one\",2]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[\"heap string number one\",2]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -371,7 +370,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob json = jx_ob_to_json(list);
-      P1("'[\"heap string number two\",2]' eq '%s'",jx_ob_as_str(&json));
+      P1("'[\"heap string number two\",2]' eq '%s'", jx_ob_as_str(&json));
       jx_ob_free(json);
     }
 
@@ -379,5 +378,3 @@ int main(int argc, char **argv)
   }
 
 }
-
-

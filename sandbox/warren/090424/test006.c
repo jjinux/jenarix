@@ -46,24 +46,24 @@ int main(int argc, char **argv)
   jx_ob key[N_KEY];
   {
     jx_int i;
-    for(i=0;i<N_KEY;i++) {
+    for(i = 0; i < N_KEY; i++) {
       jx_char buffer[50];
-      sprintf(buffer, "%07d",i); /* too large to fit in tiny string of size 6 */
+      sprintf(buffer, "%07d", i);       /* too large to fit in tiny string of size 6 */
       key[i] = jx_ob_from_str(buffer);
     }
   }
   {
     jx_int c;
-    for(c=0;c<N_CYC;c++) {
+    for(c = 0; c < N_CYC; c++) {
       jx_ob hash = jx_hash_new();
       jx_int i;
-      for(i=0;i<N_KEY;i++) {
+      for(i = 0; i < N_KEY; i++) {
         jx_hash_set(hash, jx_ob_copy(key[i]), jx_ob_from_int(i));
       }
-      for(i=0;i<N_KEY;i++) {
-        int test = jx_ob_as_int(jx_hash_borrow(hash,key[i]));
-        if(test!=i) {
-          P2("%d == %d",test,i);
+      for(i = 0; i < N_KEY; i++) {
+        int test = jx_ob_as_int(jx_hash_borrow(hash, key[i]));
+        if(test != i) {
+          P2("%d == %d", test, i);
         }
       }
       jx_ob_free(hash);
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
   }
   {
     jx_int i;
-    for(i=0;i<N_KEY;i++) {
+    for(i = 0; i < N_KEY; i++) {
       jx_ob_free(key[i]);
     }
   }

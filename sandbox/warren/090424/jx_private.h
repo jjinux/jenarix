@@ -38,10 +38,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 struct jx__list {
   jx_bits packed_meta_bits;
   union {
-    jx_ob    *ob_vla; /* heterogeneous */
+    jx_ob *ob_vla;              /* heterogeneous */
     jx_float *float_vla;
-    jx_int   *int_vla;
-    void     *vla;
+    jx_int *int_vla;
+    void *vla;
   } data;
 };
 
@@ -49,8 +49,8 @@ struct jx__list {
 
 typedef struct {
   jx_uint32 mode, usage, stale_usage;
-  jx_uint32 mask; /* 2^n - 1 */
-  jx_uint32 table[JX_ZERO_ARRAY_SIZE]; /* the actual hash table entries */
+  jx_uint32 mask;               /* 2^n - 1 */
+  jx_uint32 table[JX_ZERO_ARRAY_SIZE];  /* the actual hash table entries */
 } jx_hash_info;
 
 /* hash table modes */
@@ -88,8 +88,8 @@ typedef struct {
 */
 
 struct jx__hash {
-  jx_ob *key_value; /* variable length array of key/value objects owned by the table */
-  jx_uint32 *info; /* variable length array of the hash table information record */
+  jx_ob *key_value;             /* variable length array of key/value objects owned by the table */
+  jx_uint32 *info;              /* variable length array of the hash table information record */
 };
 
 #endif

@@ -40,35 +40,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int main(int argc, char **argv)
 {
   {
-    jx_int *vla = jx_vla_new(sizeof(jx_int),0);
-    
-    P1( "1 && %p", (void*)vla);
-    P1( "0 == %d", jx_vla_insert(&vla, 0, 1));
-    P1( "1 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_insert(&vla, 1, 1));
-    P1( "0 == %d", jx_vla_insert(&vla, 0, 1));
-    P1( "3 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_free(&vla));
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
+
+    P1("1 && %p", (void *) vla);
+    P1("0 == %d", jx_vla_insert(&vla, 0, 1));
+    P1("1 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_insert(&vla, 1, 1));
+    P1("0 == %d", jx_vla_insert(&vla, 0, 1));
+    P1("3 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_free(&vla));
   }
 
   {
-    jx_int *vla = jx_vla_new(sizeof(jx_int),10);
-    P1( "1 && %p", (void*)vla);
-    P1( "10 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_insert(&vla, 0, 10));    
-    P1( "20 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_remove(&vla, 5, 10));    
-    P1( "10 == %d", jx_vla_size(&vla));
-    P1( "-1 == %d", jx_vla_remove(&vla, 5, 10));    
-    P1( "10 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_append(&vla, 5));
-    P1( "15 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_remove(&vla, 5, 10));    
-    P1( "5 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_remove(&vla, 0, 5));    
-    P1( "0 == %d", jx_vla_size(&vla));
-    P1( "0 == %d", jx_vla_free(&vla));
-  }    
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 10);
+    P1("1 && %p", (void *) vla);
+    P1("10 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_insert(&vla, 0, 10));
+    P1("20 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_remove(&vla, 5, 10));
+    P1("10 == %d", jx_vla_size(&vla));
+    P1("-1 == %d", jx_vla_remove(&vla, 5, 10));
+    P1("10 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_append(&vla, 5));
+    P1("15 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_remove(&vla, 5, 10));
+    P1("5 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_remove(&vla, 0, 5));
+    P1("0 == %d", jx_vla_size(&vla));
+    P1("0 == %d", jx_vla_free(&vla));
+  }
 
 }
-
