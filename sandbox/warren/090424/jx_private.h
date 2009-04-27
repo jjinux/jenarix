@@ -64,13 +64,13 @@ typedef struct {
 #define JX_HASH_ONE_TO_NIL  4
 
 /* 
-   If info is null, then mode RAW is implied, meaning that client must
-   simply probe the content vla for a match without local packed
-   copies of the hash codes.
+   If info is null, then RAW more is implied, meaning that client must
+   simply probe the key_value vla for a match (without local packed
+   copies of the hash codes).
 
    LINEAR:
    
-   table simply contains object hash codes in same order as the vla.
+   table simply contains object hash codes in same order as the key_value vla.
 
    ONE_TO_MANY:
 
@@ -83,8 +83,8 @@ typedef struct {
    ONE_TO_NIL:
 
    simple set behavior -- keys but no values.  This behavior is not
-   yet optimized for storage or performance: right now it is simply behaves 
-   as ONE_TO_ANY with all null values.
+   yet optimized for storage or performance: right now it is simply
+   behaves as ONE_TO_ANY with null for all values.
 
 */
 
