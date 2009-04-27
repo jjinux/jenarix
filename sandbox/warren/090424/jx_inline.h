@@ -95,21 +95,21 @@ typedef struct {
 
 /* meta flag bits */
 
-#define JX_META_NOT_AN_OB       0x8000
+#define JX_META_NOT_AN_OB           0x8000
 
-#define JX_META_BIT_GC          0x4000
+#define JX_META_BIT_GC              0x4000
 /* set if object has garbage collected resourcese */
 
-#define JX_META_BIT_BOOL        0x2000
-#define JX_META_BIT_INT         0x1000
-#define JX_META_BIT_FLOAT       0x0800
-#define JX_META_BIT_STR         0x0400
-#define JX_META_BIT_LIST        0x0200
-#define JX_META_BIT_HASH        0x0100
+#define JX_META_BIT_BOOL            0x2000
+#define JX_META_BIT_INT             0x1000
+#define JX_META_BIT_FLOAT           0x0800
+#define JX_META_BIT_STR             0x0400
+#define JX_META_BIT_LIST            0x0200
+#define JX_META_BIT_HASH            0x0100
 
-#define JX_META_MASK_TYPE_BITS  0x3F00
+#define JX_META_MASK_TYPE_BITS      0x3F00
 
-#define JX_META_MASK_TINY_SIZE  0x00FF
+#define JX_META_MASK_TINY_STR_SIZE  0x00FF
 
 /* object initializers */
 
@@ -252,27 +252,27 @@ JX_INLINE jx_status jx_null_check(jx_ob ob)
 }
 JX_INLINE jx_status jx_bool_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_BOOL) ? JX_TRUE : JX_FALSE;
+  return (ob.meta.bits & JX_META_BIT_BOOL) && JX_TRUE;
 }
-JX_INLINE jx_status jx_int_check(jx_ob ob)
+JX_INLINE jx_status jx_int_check(jx_ob ob) 
 {
-  return (ob.meta.bits & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
+  return (ob.meta.bits & JX_META_BIT_INT) && JX_TRUE;
 }
 JX_INLINE jx_status jx_float_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_FLOAT) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_FLOAT) && JX_TRUE;
 }
 JX_INLINE jx_status jx_str_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_STR) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_STR) && JX_TRUE;
 }
 JX_INLINE jx_status jx_list_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_LIST) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_LIST) && JX_TRUE;
 }
 JX_INLINE jx_status jx_hash_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_HASH) && JX_TRUE;
 }
 JX_INLINE jx_bool jx_ok(jx_status status)
 {
@@ -282,8 +282,8 @@ JX_INLINE jx_bool jx_ok(jx_status status)
 JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
   return ((ob.meta.bits & JX_META_BIT_STR) ?
-          ((ob.meta.bits & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str)-1 : 
-           ob.meta.bits & JX_META_MASK_TINY_SIZE)
+          ((ob.meta.bits & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str)-1 : /* don't count 0 terminator */
+           ob.meta.bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
 

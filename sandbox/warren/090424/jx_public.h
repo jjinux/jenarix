@@ -58,7 +58,7 @@ typedef  float           jx_float;
 
 typedef struct jx__ob jx_ob;
 
-/* status codes constants */
+/* status codes and constants */
 
 #define JX_FAILURE  -1
 #define JX_SUCCESS   0
@@ -69,7 +69,7 @@ typedef struct jx__ob jx_ob;
 #define JX_NULL      NULL
 
 /* inline functions and structs and required by the compiler to be
- public, but should be treated by the developer as private */
+ public, but should be treated by API-users as private */
 
 #include "jx_inline.h"
 
