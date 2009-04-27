@@ -84,7 +84,8 @@ struct jx__ob {
     jx_list *list;
     jx_hash *hash;
   } data;
-  jx_meta meta;
+  jx_meta meta; /* meta must follow data so that the first 2 bytes 
+                   of meta can be used by tiny str */
 };
 
 typedef struct {
