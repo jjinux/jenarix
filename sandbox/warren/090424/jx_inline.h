@@ -120,6 +120,7 @@ typedef struct {
 void     *jx_vla_new(jx_int rec_size, jx_int size);
 void     *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 /* macros to avoid annoying type mismatch warnings with (void**) parameter */
+#define   jx_vla_copy(r)            jx__vla_copy((void**)(r))
 #define   jx_vla_size(r)            jx__vla_size((void**)(r))
 #define   jx_vla_resize(r,s)        jx__vla_resize((void**)(r),(s))
 #define   jx_vla_grow_check(r,i)    jx__vla_grow_check((void**)(r),(i))
@@ -130,7 +131,7 @@ void     *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 #define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(r1),((void**)(r2)));
 #define   jx_vla_remove(r,i,c)      jx__vla_remove((void**)(r),(i),(c))
 #define   jx_vla_free(r)            jx__vla_free((void**)(r))
-
+void *jx__vla_copy(void **ref);
 JX_INLINE jx_int jx__vla_size(void **ref)
 {
   if(*ref) {
@@ -231,29 +232,33 @@ JX_INLINE jx_float jx_ob_as_float(jx_ob ob)
 {
   return (ob.meta & JX_META_BIT_FLOAT) ? ob.data.float_ : 0.0F;
 }
-JX_INLINE jx_status jx_ob_is_null(jx_ob ob)
+JX_INLINE jx_status jx_null_check(jx_ob ob)
 {
   return !ob.meta;
 }
-JX_INLINE jx_status jx_ob_is_int(jx_ob ob)
+JX_INLINE jx_status jx_bool_check(jx_ob ob)
 {
   return (ob.meta & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
 }
-JX_INLINE jx_status jx_ob_is_float(jx_ob ob)
+JX_INLINE jx_status jx_int_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_FLOAT) ? JX_TRUE : JX_FALSE;
+  return (ob.meta & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
 }
-JX_INLINE jx_status jx_ob_is_str(jx_ob ob)
+JX_INLINE jx_status jx_float_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_STR) ? JX_TRUE : JX_FALSE;
+  return (ob.meta & JX_META_BIT_FLOAT) ? JX_TRUE : JX_FALSE;;
 }
-JX_INLINE jx_status jx_ob_is_list(jx_ob ob)
+JX_INLINE jx_status jx_str_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_LIST) ? JX_TRUE : JX_FALSE;
+  return (ob.meta & JX_META_BIT_STR) ? JX_TRUE : JX_FALSE;;
 }
-JX_INLINE jx_status jx_ob_is_hash(jx_ob ob)
+JX_INLINE jx_status jx_list_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;
+  return (ob.meta & JX_META_BIT_LIST) ? JX_TRUE : JX_FALSE;;
+}
+JX_INLINE jx_status jx_hash_check(jx_ob ob)
+{
+  return (ob.meta & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;;
 }
 JX_INLINE jx_bool jx_ok(jx_status status)
 {
@@ -266,6 +271,15 @@ JX_INLINE jx_int jx_str_len(jx_ob ob)
           ((ob.meta & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str)-1 : 
            ob.meta & JX_META_MASK_TINY_SIZE)
           : 0);
+}
+
+jx_ob jx__ob_copy(jx_ob ob);
+JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
+{
+  if(ob.meta & JX_META_BIT_GC) {
+    return jx__ob_copy(ob);
+  }
+  return ob;
 }
 
 jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right);
@@ -357,15 +371,99 @@ JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
   return JX_FALSE;
 }
 
-jx_bool jx__hash_get(jx_ob *result, jx_hash *I, jx_ob key);
+#define JX__HASH_COPY_KEYS   0x1
+#define JX__HASH_COPY_VALUES 0x2
+jx_ob jx__hash_copy_members(jx_hash *I,jx_int flags);
+JX_INLINE jx_ob jx_hash_keys(jx_ob hash)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_copy_members(hash.data.hash, JX__HASH_COPY_KEYS);
+  }
+  return jx_ob_from_null();
+}
+JX_INLINE jx_ob jx_hash_values(jx_ob hash)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_copy_members(hash.data.hash, JX__HASH_COPY_VALUES);
+  }
+  return jx_ob_from_null();
+}
+JX_INLINE jx_ob jx_hash_to_list(jx_ob hash)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    return jx__hash_copy_members(hash.data.hash,
+                                 JX__HASH_COPY_KEYS | JX__HASH_COPY_VALUES);
+  }
+  return jx_ob_from_null();
+}
+
+jx_bool jx__hash_borrow(jx_ob *result, jx_hash *I, jx_ob key);
+JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result;
+    if(jx__hash_borrow(&result, hash.data.hash, key))
+      return result;
+  }
+  return jx_ob_from_null();
+}
 JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 {
   if(hash.meta & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_get(&result, hash.data.hash, key))
+    if(jx__hash_borrow(&result, hash.data.hash, key))
+      return jx_ob_copy(result);
+  }
+  return jx_ob_from_null();
+}
+
+jx_bool jx__hash_remove(jx_ob *result, jx_hash *I, jx_ob key);
+JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result;
+    if(jx__hash_remove(&result, hash.data.hash, key))
       return result;
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_status jx_hash_eliminate(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result;
+    if(jx__hash_remove(&result, hash.data.hash, key)) {
+      jx_ob_free(result);
+      return JX_SUCCESS;
+    }
+  }
+  return JX_FAILURE;
+}
+
+jx_bool jx__hash_borrow_key(jx_ob *result, jx_hash *I, jx_ob key);
+JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result;
+    if(jx__hash_borrow_key(&result, hash.data.hash, key))
+      return result;
+  }
+  return jx_ob_from_null();
+}
+JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob key)
+{
+  if(hash.meta & JX_META_BIT_HASH) {
+    jx_ob result;
+    if(jx__hash_borrow_key(&result, hash.data.hash, key))
+      return jx_ob_copy(result);
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob     jx_ob_to_json_with_flags(jx_ob ob,jx_int flags);
+JX_INLINE jx_ob jx_ob_to_json(jx_ob ob)
+{
+  return jx_ob_to_json_with_flags(ob,0);
 }
 
 #endif

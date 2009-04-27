@@ -88,12 +88,6 @@ typedef struct {
 
 */
 
-#define JX_HASH_INFO_SIZE (sizeof(jx_hash_info)/sizeof(jx_uint32))
-
-#define JX_HASH_ACTIVE         0x00000001
-#define JX_HASH_DELETED        0x80000000
-#define JX_HASH_OFFSET_MASK  (~0x80000001)
-
 struct jx__hash {
   jx_ob *key_value; /* variable length array of key/value objects owned by the table */
   jx_uint32 *info; /* variable length array of the table itself */

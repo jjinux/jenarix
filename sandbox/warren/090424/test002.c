@@ -50,6 +50,7 @@ static void dump_hex(jx_char *message, void *ptr, jx_int size)
 
 int main(int argc, char **argv)
 {
+  {
 #if JX_TINY_STR_SIZE == 4
 #define TINY_TEST "123"
 #else
@@ -61,19 +62,65 @@ int main(int argc, char **argv)
 #endif
 #endif
 #endif
-  jx_ob tiny = jx_ob_from_str(TINY_TEST);
-  jx_ob heap = jx_ob_from_str("heap_string_for_sure");
+    jx_ob tiny = jx_ob_from_str(TINY_TEST);
+    jx_ob heap = jx_ob_from_str("heap_string_for_sure");
+    
+    P2("'%s' eq '%s'",TINY_TEST,jx_ob_as_str(&tiny));
+    P1("'heap_string_for_sure' eq '%s'",jx_ob_as_str(&heap));
+    
+    dump_hex("# tiny", &tiny, sizeof(jx_ob));
+    dump_hex("# heap", &heap, sizeof(jx_ob));
+    
+    tiny = jx_ob_from_int(1);
+    dump_hex("# one", &tiny,sizeof(jx_ob));  
+    
+    P1("0 == %d", jx_ob_free(tiny));
+    P1("0 == %d", jx_ob_free(heap));
+  }
 
-  P2("'%s' eq '%s'",TINY_TEST,jx_ob_as_str(&tiny));
-  P1("'heap_string_for_sure' eq '%s'",jx_ob_as_str(&heap));
+  {
+    P1("1 == %d", jx_null_check(jx_ob_from_null()));
+    P1("0 == %d", jx_null_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", jx_null_check(jx_ob_from_int(0)));
+    P1("0 == %d", jx_null_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", jx_null_check(jx_ob_from_str("tny")));
 
-  dump_hex("# tiny", &tiny, sizeof(jx_ob));
-  dump_hex("# heap", &heap, sizeof(jx_ob));
+    P1("0 == %d", jx_bool_check(jx_ob_from_null()));
+    P1("1 == %d", jx_bool_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", jx_bool_check(jx_ob_from_int(0)));
+    P1("0 == %d", jx_bool_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", jx_bool_check(jx_ob_from_str("tny")));
 
-  tiny = jx_ob_from_int(1);
-  dump_hex("# one", &tiny,sizeof(jx_ob));  
+    P1("0 == %d", jx_int_check(jx_ob_from_null()));
+    P1("0 == %d", jx_int_check(jx_ob_from_bool(JX_FALSE)));
+    P1("1 == %d", jx_int_check(jx_ob_from_int(0)));
+    P1("0 == %d", jx_int_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", jx_int_check(jx_ob_from_str("tny")));
 
-  P1("0 == %d", jx_ob_free(tiny));
-  P1("0 == %d", jx_ob_free(heap));
+    P1("0 == %d", jx_float_check(jx_ob_from_null()));
+    P1("0 == %d", jx_float_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", jx_float_check(jx_ob_from_int(0)));
+    P1("1 == %d", jx_float_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", jx_float_check(jx_ob_from_str("tny")));
+
+    P1("0 == %d", jx_str_check(jx_ob_from_null()));
+    P1("0 == %d", jx_str_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", jx_str_check(jx_ob_from_int(0)));
+    P1("0 == %d", jx_str_check(jx_ob_from_float(1.0)));
+    P1("1 == %d", jx_str_check(jx_ob_from_str("tny")));
+
+
+    P1("0 == %d", jx_list_check(jx_ob_from_null()));
+    P1("0 == %d", jx_list_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", jx_list_check(jx_ob_from_int(0)));
+    P1("0 == %d", jx_list_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", jx_list_check(jx_ob_from_str("tny")));
+
+    P1("0 == %d", jx_hash_check(jx_ob_from_null()));
+    P1("0 == %d", jx_hash_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", jx_hash_check(jx_ob_from_int(0)));
+    P1("0 == %d", jx_hash_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", jx_hash_check(jx_ob_from_str("tny")));
+  }
 }
 

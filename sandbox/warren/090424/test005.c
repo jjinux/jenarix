@@ -75,13 +75,28 @@ int main(int argc, char **argv)
     P1("0 == %d",jx_ob_free(ob_huge3));
   }
   {
-    /* confirm that we don't hash lists */
+    /* confirm that we don't hash lists hashes */
     jx_ob list = jx_list_new();
     P1("0x00000000 == 0x%08x",jx_ob_hash_code(list));
     P1("0 == %d",jx_ob_free(list));
   }
   {
+    /* confirm that we don't hash hashes */
     jx_ob hash = jx_hash_new();
+    P1("0x00000000 == 0x%08x",jx_ob_hash_code(hash));
+    P1("0 == %d",jx_ob_free(hash));
+  }
+
+  {
+    jx_ob hash = jx_hash_new();
+
+    P1( "0 == %d", jx_null_check(hash));
+    P1( "0 == %d", jx_bool_check(hash));
+    P1( "0 == %d", jx_int_check(hash));
+    P1( "0 == %d", jx_float_check(hash));
+    P1( "0 == %d", jx_str_check(hash));
+    P1( "0 == %d", jx_list_check(hash));    
+    P1( "1 == %d", jx_hash_check(hash));    
 
     P1("0 == %d",jx_hash_size(hash));
 
@@ -95,7 +110,7 @@ int main(int argc, char **argv)
     P1("1 == %d",jx_hash_has_key(hash, jx_ob_from_str("ky1")));
 
     {
-      jx_ob borrowed = jx_hash_get(hash, jx_ob_from_str("ky1"));
+      jx_ob borrowed = jx_hash_borrow(hash, jx_ob_from_str("ky1"));
       P1("'vl1' eq '%s'",jx_ob_as_str(&borrowed));
     }
 
@@ -110,7 +125,7 @@ int main(int argc, char **argv)
       P1("3 == %d",jx_hash_size(hash));
 
       {
-        jx_ob borrowed = jx_hash_get(hash,key2);
+        jx_ob borrowed = jx_hash_borrow(hash,key2);
         P1("'heap string as a hash value' eq '%s'",jx_ob_as_str(&borrowed));
       }
 
@@ -120,6 +135,152 @@ int main(int argc, char **argv)
 
     P1("0 == %d",jx_ob_free(hash));
   }
-                             
+  {
+    jx_ob hash = jx_hash_new();
+    jx_ob key1 = jx_ob_from_str("heap string as hash key");
+
+    P1("1 == %d",jx_null_check(jx_hash_remove(hash, jx_ob_from_null())));
+    P1("1 == %d",jx_null_check(jx_hash_remove(hash, key1)));
   
+    {
+      jx_ob key2 = jx_ob_from_str("heap string as hash key");
+      jx_ob value = jx_ob_from_str("heap string as a hash value");
+      P1("0 == %d",jx_hash_set(hash,key2,value));
+    }
+    
+    {
+      jx_ob copied = jx_hash_get(hash,key1);
+      P1("'heap string as a hash value' eq '%s'",jx_ob_as_str(&copied));
+      jx_ob_free(copied);
+    }
+
+    P1("1 == %d",jx_hash_has_key(hash,key1));
+    P1("0 == %d",jx_hash_eliminate(hash, key1));
+    P1("0 == %d",jx_hash_has_key(hash,key1));
+    
+    P1("0 == %d",jx_ob_free(key1));        
+    P1("0 == %d",jx_ob_free(hash));    
+  }
+
+  {
+    jx_ob hash = jx_hash_new();
+    jx_int i;
+    for(i=0;i<48;i++) {
+      P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(i),jx_ob_from_int(-i)));
+      {
+        jx_ob list = jx_hash_keys(hash);
+        jx_ob json = jx_ob_to_json(list);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+        jx_ob_free(list);
+      }
+    }
+
+    for(i=0;i<48;i++) {
+      P1("0 == %d",jx_hash_eliminate(hash,jx_ob_from_int(i)));
+      {
+        jx_ob list = jx_hash_keys(hash);
+        jx_ob json = jx_ob_to_json(list);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+        jx_ob_free(list);
+      }
+    }
+
+    for(i=0;i<8;i++) {
+      P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(i),jx_ob_from_int(-i)));
+    }
+
+    {
+      jx_ob list = jx_hash_keys(hash);
+      jx_ob json = jx_ob_to_json(list);
+      printf("# %s\n",jx_ob_as_str(&json));
+      jx_ob_free(json);
+      jx_ob_free(list);
+    }
+
+    {
+      jx_ob list = jx_hash_values(hash);
+      jx_ob json = jx_ob_to_json(list);
+      printf("# %s\n",jx_ob_as_str(&json));
+      jx_ob_free(json);
+      jx_ob_free(list);
+    }
+
+    {
+      jx_ob list = jx_hash_to_list(hash);
+      jx_ob json = jx_ob_to_json(list);
+      printf("# %s\n",jx_ob_as_str(&json));
+      jx_ob_free(json);
+      jx_ob_free(list);
+    }
+    P1("0 == %d",jx_ob_free(hash));  
+  }
+  {
+    jx_ob hash = jx_hash_new();
+    jx_int i;
+    for(i=0;i<18;i++) {
+      jx_hash_set(hash,jx_ob_from_int(i),jx_ob_from_int(-i));
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+    }
+    P1("0 == %d",jx_ob_free(hash));  
+  }
+
+  {
+    jx_ob hash = jx_hash_new();
+    jx_int i;
+    for(i=0;i<16;i++) {
+      P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(i),jx_ob_from_int(-i)));
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+    }
+    for(i=0;i<16;i++) { /* confirm ability to do reverse mapping */
+      P2("%d == %d",i,jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
+    }
+
+    for(i=0;i<16;i++) { /* confirm ability to set duplicate values */
+      P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(-i),jx_ob_from_int(-i)));
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+    }
+    for(i=0;i<16;i++) { /* confirm randomness of reverse mapping */
+      P2("%d == abs(%d)",i,jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
+    }
+    P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(13),jx_ob_from_int(-13)));
+    P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(-1),jx_ob_from_int(1)));
+    P1("0 == %d",jx_ob_free(hash));  
+  }
+
+  {
+    jx_ob hash = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);    
+    jx_int i;
+    for(i=0;i<12;i++) {
+      P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(i),jx_ob_from_int(-i)));
+      {
+        jx_ob json = jx_ob_to_json(hash);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+    }
+    for(i=0;i<12;i++) { /* confirm inability to set duplicate values */
+      P1("-1 == %d",jx_hash_set(hash,jx_ob_from_int(-i),jx_ob_from_int(-i)));
+    }
+    for(i=0;i<12;i++) { /* confirm ability to do reverse mapping */
+      P2("%d == %d",i,jx_ob_as_int(jx_hash_borrow_key(hash,jx_ob_from_int(-i))));
+    }
+    P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(13),jx_ob_from_int(-13)));
+    P1("0 == %d",jx_hash_set(hash,jx_ob_from_int(-1),jx_ob_from_int(1)));
+    P1("0 == %d",jx_ob_free(hash));  
+  }
+
 }

@@ -87,13 +87,13 @@ jx_char  *jx_ob_as_str(jx_ob *ob); /* returns borrowed (volatile)
 
 /* determining object type */
 
-jx_status jx_ob_is_null(jx_ob ob);
-jx_status jx_ob_is_bool(jx_ob ob);
-jx_status jx_ob_is_int(jx_ob ob);
-jx_status jx_ob_is_float(jx_ob ob);
-jx_status jx_ob_is_str(jx_ob ob);
-jx_status jx_ob_is_list(jx_ob ob);
-jx_status jx_ob_is_hash(jx_ob ob);
+jx_status jx_null_check(jx_ob ob);
+jx_status jx_bool_check(jx_ob ob);
+jx_status jx_int_check(jx_ob ob);
+jx_status jx_float_check(jx_ob ob);
+jx_status jx_str_check(jx_ob ob);
+jx_status jx_list_check(jx_ob ob);
+jx_status jx_hash_check(jx_ob ob);
 
 /* comparing objects */
 
@@ -147,21 +147,43 @@ jx_uint32 jx_ob_hash_code(jx_ob ob);
 
 jx_ob     jx_hash_new(void);
 
+#define JX_HASH_FLAG_BIDIRECTIONAL 0x1
+
+jx_ob     jx_hash_new_with_flags(int flags);
+
 jx_int    jx_hash_size(jx_ob hash);
 
 jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value); /* assumes ownership of both key & value */
 
-jx_ob     jx_hash_keys(jx_ob hash); /* returns owned list of copied hash keys */
-
 jx_bool   jx_hash_has_key(jx_ob hash, jx_ob key); /* borrows key */
 
+jx_ob     jx_hash_keys(jx_ob hash); /* returns owned list of copied keys */
+jx_ob     jx_hash_values(jx_ob hash); /* returns owned list of copied values */
+
+jx_ob     jx_hash_to_list(jx_ob hash); /* returns owned list of copied keys & values (interleaved) */
+jx_ob     jx_list_to_hash(jx_ob list); /* returns owned hash made from interleaved keys & values */
+
+jx_ob     jx_hash_convert_to_list(jx_ob hash); /* frees hash and converts content to interleaved list */
+jx_ob     jx_list_convert_to_hash(jx_ob list); /* coverts content to hash (if allowed) and frees list */
+
 jx_ob     jx_hash_borrow(jx_ob hash, jx_ob key); /* borrows key and returns borrowed value */
+jx_ob     jx_hash_get(jx_ob hash, jx_ob key); /* borrows key and returns owned value */
 jx_ob     jx_hash_remove(jx_ob hash, jx_ob key); /* borrows key and returns owned value */
 jx_status jx_hash_eliminate(jx_ob hash, jx_ob key); /* borrows key and eliminates value */
+
+jx_ob     jx_hash_borrow_key(jx_ob hash, jx_ob value); /* borrows value and returns borrowed key */
+jx_ob     jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns owned copy of key */
 
 /* json output */
 
 jx_ob     jx_ob_to_json(jx_ob ob);
+
+#define JX_JSON_FLAG_PERMISSIVE  0x40000000
+#define JX_JSON_FLAG_PRETTY      0x20000000
+#define JX_JSON_FLAG_INDENT      0x10000000
+#define JX_JSON_FLAG_INDENT_MASK 0x1000007F
+
+jx_ob     jx_ob_to_json_with_flags(jx_ob ob,jx_int flags);
 
 /* destroying owned objects */
 

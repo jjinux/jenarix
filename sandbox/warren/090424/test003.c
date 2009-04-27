@@ -41,7 +41,15 @@ int main(int argc, char **argv)
 {
   {
     jx_ob list = jx_list_new();
-    
+
+    P1( "0 == %d", jx_null_check(list));
+    P1( "0 == %d", jx_bool_check(list));
+    P1( "0 == %d", jx_int_check(list));
+    P1( "0 == %d", jx_float_check(list));
+    P1( "0 == %d", jx_str_check(list));
+    P1( "1 == %d", jx_list_check(list));    
+    P1( "0 == %d", jx_hash_check(list));    
+
     P1( "0 == %d", jx_list_size(list));
     
     P1( "0 == %d", jx_list_append(list, jx_ob_from_int(9)));

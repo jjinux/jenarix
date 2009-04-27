@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     jx_ob ob_tiny = jx_ob_from_str("tny");
     jx_ob ob_huge = jx_ob_from_str("this is a huge heap string.");
 
-    P1("1 == %d",jx_ob_is_null(ob_null));
+    P1("1 == %d",jx_null_check(ob_null));
     P1("1 == %d",jx_ob_as_bool(ob_true));
     P1("0 == %d",jx_ob_as_bool(ob_false));
     P1("7 == %d",jx_ob_as_int(ob_7));
@@ -300,7 +300,50 @@ int main(int argc, char **argv)
       printf("# %s\n",jx_ob_as_str(&json));
       jx_ob_free(json);
     }
+
+    {
+      jx_ob list_copy = jx_ob_copy(list);
+      P1("3 == %d", jx_list_size(list_copy));
+      {
+        jx_ob json = jx_ob_to_json(list_copy);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+      P1("0 == %d", jx_ob_free(list_copy));      
+    }
     P1("0 == %d", jx_ob_free(list));
   }
 
+
+  {
+    jx_ob list = jx_list_new();
+
+    P1("0 == %d", jx_list_append(list, jx_ob_from_int(1)));
+    P1("0 == %d", jx_list_append(list, jx_ob_from_int(2)));
+    {
+      jx_ob json = jx_ob_to_json(list);
+      P1("'[1,2]' eq '%s'",jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+
+    {
+      jx_ob list2 = jx_list_new();
+      P1("0 == %d", jx_list_append(list2, jx_ob_from_str("heap string number one")));
+      P1("0 == %d", jx_list_append(list2, jx_ob_from_str("heap string number two")));
+      jx_list_append(list, list2);
+    }
+    
+    {
+      jx_ob list_copy = jx_ob_copy(list);
+      P1("3 == %d", jx_list_size(list_copy));
+      {
+        jx_ob json = jx_ob_to_json(list_copy);
+        printf("# %s\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+      P1("0 == %d", jx_ob_free(list_copy));      
+    }
+    
+    P1("0 == %d", jx_ob_free(list));
+  }
 }
