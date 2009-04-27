@@ -48,11 +48,9 @@ struct jx__list {
 #define JX_ZERO_ARRAY_SIZE 1
 
 typedef struct {
-  jx_int    mode; 
+  jx_uint32 mode, usage, stale_usage;
   jx_uint32 mask; /* 2^n - 1 */
-  jx_uint32 usage;
-  jx_uint32 stale;
-  jx_uint32 start[JX_ZERO_ARRAY_SIZE];
+  jx_uint32 table[JX_ZERO_ARRAY_SIZE]; /* the actual hash table entries */
 } jx_hash_info;
 
 /* hash table modes */
@@ -74,23 +72,24 @@ typedef struct {
 
    ONE_TO_MANY:
 
-   table contains [hash_code, offset]
+   hash table entries contain [hash_code, offset] as circular hash entry table
 
-   ONE_TO_ONE:
+   ONE_TO_ONE: table is actually two adjacent hash tables
 
-   table contains forward: [hash_code, offset] and reverse: [hash_code,offset] 
+   entries in first hash table contain forward: [hash_code, offset] 
+   entries in second hash table contain reverse: [hash_code, offset] 
    
    ONE_TO_NIL:
 
    simple set behavior -- keys but no values.  This behavior is not
    yet optimized for storage or performance: right now it is simply
    behaves as ONE_TO_ANY with null for all values.
-
+   
 */
 
 struct jx__hash {
   jx_ob *key_value; /* variable length array of key/value objects owned by the table */
-  jx_uint32 *info; /* variable length array of the table itself */
+  jx_uint32 *info; /* variable length array of the hash table information record */
 };
 
 #endif
