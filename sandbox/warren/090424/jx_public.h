@@ -35,17 +35,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* owned C types (to be use exclusively throughout) */
 
-typedef  int          jx_bool;
-typedef  int          jx_int;
-typedef  float        jx_float;
-typedef  char         jx_char;
-typedef  int          jx_status;
+typedef  int             jx_bool;
+typedef  char            jx_char;
+typedef  int             jx_status;
 
-typedef  int          jx_int32;
-typedef  unsigned int jx_uint32; /* for hash codes, etc. */
-typedef  long long    jx_int64;
+typedef  unsigned short  jx_uint16; /* for small bit masks, etc. */
+typedef  int             jx_int32;
+typedef  unsigned int    jx_uint32; /* for hash codes, etc. */
+typedef  long long       jx_int64;
 
-/* our ubuitous object jenarix object type */
+#ifdef JX_64_BIT
+typedef  jx_int64        jx_int;
+typedef  double          jx_float;
+#define JX_TINY_STR_MIN_SIZE 10
+#else
+typedef  int             jx_int;
+typedef  float           jx_float;
+#define JX_TINY_STR_MIN_SIZE 6
+#endif
+
+/* our ubiquitous jenarix object type */
 
 typedef struct jx__ob jx_ob;
 

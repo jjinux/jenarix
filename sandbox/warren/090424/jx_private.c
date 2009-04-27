@@ -6,6 +6,7 @@
 #include "jx_private.h"
 
 #if 1
+/* just use system malloc, etc. */
 #define jx_malloc(s) malloc(s)
 #define jx_calloc(c,s) calloc(c,s)
 #define jx_realloc(p,s) realloc(p,s)
@@ -336,11 +337,11 @@ jx_ob jx_ob_from_str(jx_char *str)
   jx_ob result = JX_OB_NULL;
 
   if(size < JX_TINY_STR_SIZE) {
-    result.meta = JX_META_BIT_STR | size;
+    result.meta.bits = JX_META_BIT_STR | size;
     strcpy(result.data.tiny_str, str);
   } else {
     /* string not tiny -- use heap */
-    result.meta = JX_META_BIT_STR | JX_META_BIT_GC;
+    result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
     result.data.str = jx_vla_new(1,size+1);
     if(result.data.str) {
       strcpy(result.data.str, str);
@@ -355,18 +356,18 @@ static jx_ob jx_ob_with_str_vla(jx_char *vla)
   jx_ob result = JX_OB_NULL;
   if(size) size--; 
   if(size < JX_TINY_STR_SIZE) {
-    result.meta = JX_META_BIT_STR | size;
+    result.meta.bits = JX_META_BIT_STR | size;
     strcpy(result.data.tiny_str, vla);
     jx_vla_free(&vla);
   } else {
-    result.meta = JX_META_BIT_STR | JX_META_BIT_GC;
+    result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
     result.data.str = vla;
   }
   return result;
 }
 
 jx_char *jx_ob_as_str(jx_ob *ob) {
-  jx_meta meta = ob->meta;
+  jx_bits meta = ob->meta.bits;
   if(meta & JX_META_BIT_STR) {
     if(meta & JX_META_BIT_GC) {
       return ob->data.str;
@@ -394,8 +395,8 @@ jx_ob jx_list_new(void)
 jx_ob jx_list_new_from_int_array(jx_int *array, jx_int size)
 {
   jx_ob result = jx_list_new();
-  if(result.meta & JX_META_BIT_LIST) {
-    result.data.list->packed_meta = JX_META_BIT_INT;
+  if(result.meta.bits & JX_META_BIT_LIST) {
+    result.data.list->packed_meta_bits = JX_META_BIT_INT;
     result.data.list->data.vla = jx_vla_new_with_content(sizeof(jx_int),size,array);
   }
   return result;
@@ -403,8 +404,8 @@ jx_ob jx_list_new_from_int_array(jx_int *array, jx_int size)
 jx_ob jx_list_new_with_int_vla(jx_int *vla)
 {
   jx_ob result = jx_list_new();
-  if(result.meta & JX_META_BIT_LIST) {
-    result.data.list->packed_meta = JX_META_BIT_INT;
+  if(result.meta.bits & JX_META_BIT_LIST) {
+    result.data.list->packed_meta_bits = JX_META_BIT_INT;
     result.data.list->data.vla = vla;
   }
   return result;
@@ -413,8 +414,8 @@ jx_ob jx_list_new_with_int_vla(jx_int *vla)
 jx_ob jx_list_new_from_float_array(jx_float *array, jx_float size)
 {
   jx_ob result = jx_list_new();
-  if(result.meta & JX_META_BIT_LIST) {
-    result.data.list->packed_meta = JX_META_BIT_FLOAT;
+  if(result.meta.bits & JX_META_BIT_LIST) {
+    result.data.list->packed_meta_bits = JX_META_BIT_FLOAT;
     result.data.list->data.vla = jx_vla_new_with_content(sizeof(jx_float),size,array);
   }
   return result;
@@ -422,8 +423,8 @@ jx_ob jx_list_new_from_float_array(jx_float *array, jx_float size)
 jx_ob jx_list_new_with_float_vla(jx_float *vla)
 {
   jx_ob result = jx_list_new();
-  if(result.meta & JX_META_BIT_LIST) {
-    result.data.list->packed_meta = JX_META_BIT_FLOAT;
+  if(result.meta.bits & JX_META_BIT_LIST) {
+    result.data.list->packed_meta_bits = JX_META_BIT_FLOAT;
     result.data.list->data.vla = vla;
   }
   return result;
@@ -432,15 +433,15 @@ jx_ob jx_list_new_with_float_vla(jx_float *vla)
 jx_ob jx__list_copy(jx_list *list) 
 {
   jx_ob result = jx_list_new();
-  if(result.meta & JX_META_BIT_LIST) {
+  if(result.meta.bits & JX_META_BIT_LIST) {
     jx_list *I = result.data.list;
     *I = *list;
     I->data.vla = jx_vla_copy(&list->data.vla);
-    if(!I->packed_meta) { /* need to recursively copy all GC content */
+    if(!I->packed_meta_bits) { /* need to recursively copy all GC content */
       jx_int i,size = jx_vla_size(&I->data.ob_vla);
       jx_ob *ob = I->data.ob_vla;
       for(i=0;i<size;i++) {
-        if(ob->meta & JX_META_BIT_GC) {
+        if(ob->meta.bits & JX_META_BIT_GC) {
           *ob = jx_ob_copy(*ob);
         }
         ob++;
@@ -452,7 +453,7 @@ jx_ob jx__list_copy(jx_list *list)
 
 static jx_status jx__list_free(jx_list *list)
 {
-  if(!list->packed_meta) {
+  if(!list->packed_meta_bits) {
     jx_int i, size = jx_vla_size(&list->data.vla);
     jx_ob *ob = list->data.ob_vla;
     for(i=0;i<size;i++) {
@@ -469,15 +470,15 @@ JX_INLINE jx_int jx__list_size(jx_list *I)
 }
 jx_int jx_list_size(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_LIST) {
+  if(ob.meta.bits & JX_META_BIT_LIST) {
     return jx__list_size(ob.data.list);
   } else
     return 0;
 }
 
-static jx_status jx_meta_get_packed_size(jx_meta meta)
+static jx_status jx_meta_get_packed_size(jx_bits bits)
 {
-  switch(meta & JX_META_MASK_TYPE_BITS) {
+  switch(bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_INT:
     return sizeof(jx_int);
     break;
@@ -494,18 +495,18 @@ static jx_status jx_list_repack_data(jx_list *list)
   /* re-homogenize (if possible) */
   jx_int i, size = jx_vla_size(&list->data.vla);    
   if(!size) {
-    list->packed_meta = 0;
+    list->packed_meta_bits = 0;
     if(list->data.vla) {
       jx_vla_free(&list->data.vla);
     }
     return JX_TRUE;
   }
-  jx_meta meta_or = 0, meta_and = -1;
+  jx_bits meta_or = 0, meta_and = -1;
   {
     jx_ob *ob = list->data.ob_vla;
     for(i=0;i<size;i++) { 
-      meta_or |= ob->meta;
-      meta_and &= (ob++)->meta;
+      meta_or |= ob->meta.bits;
+      meta_and &= (ob++)->meta.bits;
     }
   }
   if(meta_and == meta_or) { /* all meta bits identical in all objects */
@@ -539,7 +540,7 @@ static jx_status jx_list_repack_data(jx_list *list)
         if(new_vla) {
           jx_vla_free(&list->data.vla);
           list->data.vla = new_vla;
-          list->packed_meta = meta_or;
+          list->packed_meta_bits = meta_or;
           return JX_TRUE;
         }
       }
@@ -556,7 +557,7 @@ static jx_status jx_list_unpack_data(jx_list *list)
   /* homogenous list becoming hetergeneous */
   jx_int size = jx_vla_size(&list->data.vla);
   if(!size) {
-    list->packed_meta = 0;
+    list->packed_meta_bits = 0;
     if(list->data.vla) {
       jx_vla_free(&list->data.vla);
     }
@@ -564,7 +565,7 @@ static jx_status jx_list_unpack_data(jx_list *list)
   }
   jx_ob *new_vla = jx_vla_new(sizeof(jx_ob),size);
   if(new_vla) {
-    switch(list->packed_meta & JX_META_MASK_TYPE_BITS) {
+    switch(list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_INT:
       {
         jx_int i;
@@ -588,7 +589,7 @@ static jx_status jx_list_unpack_data(jx_list *list)
     }
     jx_vla_free(&list->data.vla);
     list->data.vla = new_vla;
-    list->packed_meta = 0;
+    list->packed_meta_bits = 0;
     return JX_SUCCESS;
   } else 
     return JX_FAILURE;
@@ -596,7 +597,7 @@ static jx_status jx_list_unpack_data(jx_list *list)
 
 JX_INLINE void jx_list_set_packed_data(jx_list *list, jx_int index, jx_ob ob)
 {
-  switch(list->packed_meta & JX_META_MASK_TYPE_BITS) {
+  switch(list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_INT:
     list->data.int_vla[index] = ob.data.int_;
     break;
@@ -608,7 +609,7 @@ JX_INLINE void jx_list_set_packed_data(jx_list *list, jx_int index, jx_ob ob)
 
 JX_INLINE jx_ob jx_list_get_packed_data(jx_list *list, jx_int index)
 {
-  switch(list->packed_meta & JX_META_MASK_TYPE_BITS) {
+  switch(list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_INT:
     return jx_ob_from_int(list->data.int_vla[index]);
     break;
@@ -621,24 +622,24 @@ JX_INLINE jx_ob jx_list_get_packed_data(jx_list *list, jx_int index)
 
 jx_status jx__list_append(jx_list *I, jx_ob ob)
 {
-  if(I->data.vla && I->packed_meta && (I->packed_meta != ob.meta)) {
+  if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
     if(!jx_ok(jx_list_unpack_data(I)))
       return JX_FAILURE;
   }
   if(I->data.vla) {
     jx_int size = jx_vla_size(&I->data.vla);
     if(jx_vla_grow_check( &I->data.vla, size)) {
-      if(I->packed_meta && (I->packed_meta == ob.meta)) {
+      if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
         jx_list_set_packed_data(I, size, ob);
-      } else if(!I->packed_meta) {
+      } else if(!I->packed_meta_bits) {
         I->data.ob_vla[size] = ob;
       }
       return JX_SUCCESS;
     }
   } else { 
-    jx_int packed_size = jx_meta_get_packed_size(ob.meta);
+    jx_int packed_size = jx_meta_get_packed_size(ob.meta.bits);
     if(packed_size) {
-      I->packed_meta = ob.meta;
+      I->packed_meta_bits = ob.meta.bits;
       I->data.vla = jx_vla_new(packed_size,1);
       if(I->data.vla) {
         jx_list_set_packed_data(I, 0, ob);
@@ -657,23 +658,23 @@ jx_status jx__list_append(jx_list *I, jx_ob ob)
 
 jx_status jx__list_insert(jx_list *I, jx_int index, jx_ob ob)
 {
-  if(I->data.vla && I->packed_meta && (I->packed_meta != ob.meta)) {
+  if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
     if(!jx_ok(jx_list_unpack_data(I)))
       return JX_FAILURE;
   }
   if(I->data.vla) {
     if(!jx_ok(jx_vla_insert(&I->data.vla,index,1)))
       return JX_FAILURE;
-    else if(I->packed_meta && (I->packed_meta == ob.meta)) {
+    else if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
       jx_list_set_packed_data(I, index, ob);
-    } else if(!I->packed_meta) {
+    } else if(!I->packed_meta_bits) {
       I->data.ob_vla[index] = ob;
     }
     return JX_SUCCESS;
   } else if(index==0) { 
-    jx_int packed_size = jx_meta_get_packed_size(ob.meta);
+    jx_int packed_size = jx_meta_get_packed_size(ob.meta.bits);
     if(packed_size) {
-      I->packed_meta = ob.meta;
+      I->packed_meta_bits = ob.meta.bits;
       I->data.vla = jx_vla_new(packed_size,1);
       if(I->data.vla) {
         jx_list_set_packed_data(I, 0, ob);
@@ -694,14 +695,14 @@ jx_status jx__list_replace(jx_list *I, jx_int index, jx_ob ob)
 {
   jx_int size = jx_vla_size(&I->data.vla);
   if(index<size) {
-    if(I->data.vla && I->packed_meta && (I->packed_meta != ob.meta)) {
+    if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
       if(!jx_ok(jx_list_unpack_data(I)))
         return JX_FAILURE;
     }
     if(I->data.vla) {
-      if(I->packed_meta && (I->packed_meta == ob.meta)) {
+      if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
         jx_list_set_packed_data(I, index, ob);
-      } else if(!I->packed_meta) {
+      } else if(!I->packed_meta_bits) {
         jx_ob_free( I->data.ob_vla[index] );
         I->data.ob_vla[index] = ob;
       }
@@ -716,12 +717,12 @@ jx_status jx__list_combine(jx_list *list1, jx_list *list2)
   if(list1 == list2) {
     return JX_FAILURE;
   } else {
-    if(list1->packed_meta != list2->packed_meta) {
-      if(list1->packed_meta) {
+    if(list1->packed_meta_bits != list2->packed_meta_bits) {
+      if(list1->packed_meta_bits) {
         if(!jx_ok(jx_list_unpack_data(list1)))
           return JX_FAILURE;
       }
-      if(list2->packed_meta) {
+      if(list2->packed_meta_bits) {
         if(!jx_ok(jx_list_unpack_data(list2)))
           return JX_FAILURE;
       }
@@ -738,7 +739,7 @@ jx_status jx__list_combine(jx_list *list1, jx_list *list2)
 jx_ob jx__list_borrow(jx_list *I, jx_int index)
 {
   if( (index>=0) && (index < jx_vla_size(&I->data.vla))) {
-    if(I->packed_meta) {
+    if(I->packed_meta_bits) {
       return jx_list_get_packed_data(I, index);
     } else {
       return I->data.ob_vla[index];
@@ -749,10 +750,10 @@ jx_ob jx__list_borrow(jx_list *I, jx_int index)
 
 jx_status jx_list_delete(jx_ob list, jx_int index)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     jx_list *rec = list.data.list;
     if( (index>=0) && (index < jx_vla_size(&rec->data.vla) )) {
-      if(!rec->packed_meta) {
+      if(!rec->packed_meta_bits) {
         jx_ob_free(rec->data.ob_vla[index]);
       }
       return jx_vla_remove(&rec->data.vla, index, 1);
@@ -763,15 +764,15 @@ jx_status jx_list_delete(jx_ob list, jx_int index)
 
 jx_int *jx_list_as_int_vla(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_LIST) {
+  if(ob.meta.bits & JX_META_BIT_LIST) {
     jx_list *list = ob.data.list;
-    if(list->packed_meta & JX_META_BIT_INT) {
+    if(list->packed_meta_bits & JX_META_BIT_INT) {
       return list->data.int_vla;
     } else if(jx_list_repack_data(list)) {
-      if(list->packed_meta & JX_META_BIT_INT) {
+      if(list->packed_meta_bits & JX_META_BIT_INT) {
         return list->data.int_vla;
       } else if(!list->data.vla) { 
-        list->packed_meta = JX_META_BIT_INT;
+        list->packed_meta_bits = JX_META_BIT_INT;
         list->data.int_vla = (jx_int*)jx_vla_new(sizeof(int),0);
         return list->data.int_vla;
       }
@@ -782,9 +783,9 @@ jx_int *jx_list_as_int_vla(jx_ob ob)
 
 jx_status jx_list_set_int_vla(jx_ob ob,jx_int *vla)
 {
-  if(ob.meta & JX_META_BIT_LIST) {
+  if(ob.meta.bits & JX_META_BIT_LIST) {
     jx_list *list = ob.data.list;
-    if(list->packed_meta & JX_META_BIT_INT) {
+    if(list->packed_meta_bits & JX_META_BIT_INT) {
       list->data.int_vla = vla;
       return JX_SUCCESS;
     }
@@ -794,15 +795,15 @@ jx_status jx_list_set_int_vla(jx_ob ob,jx_int *vla)
 
 jx_float *jx_list_as_float_vla(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_LIST) {
+  if(ob.meta.bits & JX_META_BIT_LIST) {
     jx_list *list = ob.data.list;
-    if(list->packed_meta & JX_META_BIT_FLOAT) {
+    if(list->packed_meta_bits & JX_META_BIT_FLOAT) {
       return list->data.float_vla;
     } else if(jx_list_repack_data(list)) {
-      if(list->packed_meta & JX_META_BIT_FLOAT) {
+      if(list->packed_meta_bits & JX_META_BIT_FLOAT) {
         return list->data.float_vla;
       } else if(!list->data.vla) { 
-        list->packed_meta = JX_META_BIT_FLOAT;
+        list->packed_meta_bits = JX_META_BIT_FLOAT;
         list->data.float_vla = (jx_float*)jx_vla_new(sizeof(float),0);
         return list->data.float_vla;
       }
@@ -813,9 +814,9 @@ jx_float *jx_list_as_float_vla(jx_ob ob)
 
 jx_status jx_list_set_float_vla(jx_ob ob,jx_float *vla)
 {
-  if(ob.meta & JX_META_BIT_LIST) {
+  if(ob.meta.bits & JX_META_BIT_LIST) {
     jx_list *list = ob.data.list;
-    if(list->packed_meta & JX_META_BIT_FLOAT) {
+    if(list->packed_meta_bits & JX_META_BIT_FLOAT) {
       list->data.float_vla = vla;
       return JX_SUCCESS;
     }
@@ -854,7 +855,7 @@ static jx_uint32 jx__c_str_hash(jx_char *str)
 
 jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_STR) { /* right now, we only hash GC strings */
+  if(ob.meta.bits & JX_META_BIT_STR) { /* right now, we only hash GC strings */
     return jx__c_str_hash(jx_ob_as_str(&ob));
   } else {
     return 0; /* unhashable */
@@ -885,7 +886,7 @@ static jx_bool jx__hash_recondition(jx_hash *I, jx_int mode, jx_bool pack);
 jx_ob jx_hash_new_with_flags(jx_int flags)
 {
   jx_ob result = jx_hash_new();
-  if(result.meta & JX_META_BIT_HASH) {
+  if(result.meta.bits & JX_META_BIT_HASH) {
     if(flags & JX_HASH_FLAG_BIDIRECTIONAL) {
       if(! jx__hash_recondition(result.data.hash, JX_HASH_ONE_TO_ONE, JX_TRUE) ) {
         jx_ob_free(result);
@@ -899,7 +900,7 @@ jx_ob jx_hash_new_with_flags(jx_int flags)
 static jx_ob jx__hash_copy(jx_hash *hash)
 {
   jx_ob result = jx_hash_new();
-  if(result.meta & JX_META_BIT_HASH) {
+  if(result.meta.bits & JX_META_BIT_HASH) {
     jx_hash *I = result.data.hash;
     *I = *hash;
     I->info = jx_vla_copy(&hash->info);
@@ -908,7 +909,7 @@ static jx_ob jx__hash_copy(jx_hash *hash)
       jx_int i,size = jx_vla_size(&I->key_value);
       jx_ob *ob = I->key_value;
       for(i=0;i<size;i++) {
-        if(ob->meta & JX_META_BIT_GC) {
+        if(ob->meta.bits & JX_META_BIT_GC) {
           *ob = jx_ob_copy(*ob);
         }
         ob++;
@@ -2372,7 +2373,7 @@ jx_status jx__list_with_hash(jx_list *list, jx_hash *hash)
             jx_uint32 *hash_ptr = table_base + (index<<1);
             if(hash_ptr[1] && !(hash_ptr[1] & JX_HASH_ACTIVE) ) {
               jx_uint32 i = hash_ptr[1] & JX_HASH_OFFSET_MASK;
-              key_value[i].meta = JX_META_NOT_AN_OB; /* mark inactive entries */
+              key_value[i].meta.bits = JX_META_NOT_AN_OB; /* mark inactive entries */
             }
             index++;
           } while(index <= mask);
@@ -2380,7 +2381,7 @@ jx_status jx__list_with_hash(jx_list *list, jx_hash *hash)
             jx_ob *ob = key_value;
             jx_int i, count = 0;
             for(i=0;i<size;i+=2) {
-              if(ob[0].meta != JX_META_NOT_AN_OB) { /* purge the inactives */
+              if(ob[0].meta.bits != JX_META_NOT_AN_OB) { /* purge the inactives */
                 if(count!=i) {
                   memcpy(key_value + count, ob, sizeof(jx_ob)*2);
                 }
@@ -2441,8 +2442,8 @@ static jx_ob jx__list_to_json(jx_list *list,jx_int flags)
   if(vla) {
     jx_bool comma = JX_FALSE;
     vla[0] = '[';
-    if(list->packed_meta) {
-      switch(list->packed_meta & JX_META_MASK_TYPE_BITS) {
+    if(list->packed_meta_bits) {
+      switch(list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_INT:
         {
           jx_ob ob = JX_OB_INT;
@@ -2568,7 +2569,7 @@ static jx_ob jx__hash_to_json(jx_hash *I, jx_int flags)
 
 jx_ob jx_ob_to_json_with_flags(jx_ob ob,jx_int flags)
 {
-  switch(ob.meta & JX_META_MASK_TYPE_BITS) {
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case 0:
     return jx_ob_from_str("null");
     break;
@@ -2593,7 +2594,7 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob,jx_int flags)
     }
     break;
   case JX_META_BIT_STR:
-    if(ob.meta & JX_META_BIT_GC) {
+    if(ob.meta.bits & JX_META_BIT_GC) {
       jx_int size = jx_vla_size(&ob.data.str);
       jx_char *buffer = jx_malloc(size+2);
       if(buffer) {
@@ -2609,7 +2610,7 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob,jx_int flags)
       }
     } else {
       char buffer[JX_TINY_STR_SIZE+2];
-      jx_int size = ob.meta & JX_META_MASK_TINY_SIZE;
+      jx_int size = ob.meta.bits & JX_META_MASK_TINY_SIZE;
       buffer[0] = '"';
       memcpy(buffer+1, ob.data.tiny_str, size);
       buffer[size+1] = '"';
@@ -2632,7 +2633,7 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob,jx_int flags)
 jx_ob jx__ob_copy(jx_ob ob)
 {
   /* on entry, we know the object is GC'd */
-  switch(ob.meta & JX_META_MASK_TYPE_BITS) {  
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {  
   case JX_META_BIT_STR:
     ob.data.str = (jx_char*)jx_vla_copy(&ob.data.str);
     return ob;
@@ -2651,9 +2652,9 @@ jx_ob jx__ob_copy(jx_ob ob)
 
 jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
 {
-  /* on entry, we know left.meta == right.meta and that
+  /* on entry, we know left.meta.bits == right.meta.bits and that
      both objects are GC'd */
-  switch(left.meta & JX_META_MASK_TYPE_BITS) {
+  switch(left.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
     {
       jx_char *left_st = jx_ob_as_str(&left);
@@ -2675,8 +2676,8 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
 
 jx_status jx__ob_free(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_GC) {
-    switch(ob.meta & JX_META_MASK_TYPE_BITS) {
+  if(ob.meta.bits & JX_META_BIT_GC) {
+    switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_STR:
       return jx_vla_free(&ob.data.str);
       break;

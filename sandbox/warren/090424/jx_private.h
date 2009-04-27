@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 
 struct jx__list {
-  jx_meta packed_meta;
+  jx_bits packed_meta_bits;
   union {
     jx_ob    *ob_vla; /* heterogeneous */
     jx_float *float_vla;

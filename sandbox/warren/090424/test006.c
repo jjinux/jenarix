@@ -38,8 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
 #define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
 
-#define N_CYC 1000
-#define N_KEY 1000
+#define N_CYC 2000
+#define N_KEY 10000
 
 int main(int argc, char **argv)
 {
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     jx_int i;
     for(i=0;i<N_KEY;i++) {
       jx_char buffer[50];
-      sprintf(buffer, "%i",i);
+      sprintf(buffer, "%07d",i); /* too large to fit in tiny string of size 6 */
       key[i] = jx_ob_from_str(buffer);
     }
   }

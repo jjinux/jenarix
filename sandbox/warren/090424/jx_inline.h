@@ -37,22 +37,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    information and 64 bits of data, including zero-terminated tiny
    strings of up to 7 characters) */
 
-typedef  jx_int32     jx_meta;
+#define JX_TINY_STR_SIZE 6
+/* may only be 6, 10, or 18 */
 
-#define JX_TINY_STR_SIZE 8
+#if (JX_TINY_STR_SIZE < JX_TINY_STR_MIN_SIZE)
+#undef JX_TINY_STR_SIZE
+#define JX_TINY_STR_SIZE JX_TINY_STR_MIN_SIZE
+#endif
 
 /* adapt to tiny string size (must be at least as wide as a machine
  * pointer) */
 
-#if (JX_TINY_STR_SIZE == 4)
+#if (JX_TINY_STR_SIZE == 6)
 typedef jx_int32      jx_data;
 #define JX_DATA_INIT  {0}
 #else
-#if (JX_TINY_STR_SIZE == 8)
+#if (JX_TINY_STR_SIZE == 10)
 typedef jx_int64      jx_data;
 #define JX_DATA_INIT  {0}
 #else
-#if (JX_TINY_STR_SIZE == 16)
+#if (JX_TINY_STR_SIZE == 18)
 typedef jx_int64      jx_data[2];
 #define JX_DATA_INIT  { {0,0} }
 #endif
@@ -62,18 +66,25 @@ typedef jx_int64      jx_data[2];
 typedef struct jx__list jx_list;
 typedef struct jx__hash jx_hash;
 
+typedef  jx_uint16 jx_bits;
+
+typedef struct {
+  jx_bits  pad; 
+  jx_bits  bits;
+} jx_meta;
+
 struct jx__ob {
-  jx_meta meta;
   union {
     jx_data raw; /* must cover full width of union (for bit-zeroing purposes) */
     jx_bool bool_;
     jx_int int_;
     jx_float float_;
-    jx_char tiny_str[JX_TINY_STR_SIZE]; 
+    jx_char tiny_str[JX_TINY_STR_SIZE-2]; 
     jx_char *str;
     jx_list *list;
     jx_hash *hash;
   } data;
+  jx_meta meta;
 };
 
 typedef struct {
@@ -83,33 +94,33 @@ typedef struct {
 
 /* meta flag bits */
 
-#define JX_META_BIT_GC          0x00004000
+#define JX_META_NOT_AN_OB       0x8000
+
+#define JX_META_BIT_GC          0x4000
 /* set if object has garbage collected resourcese */
 
-#define JX_META_BIT_STR         0x00002000
-#define JX_META_BIT_FLOAT       0x00001000
-#define JX_META_BIT_INT         0x00000800
-#define JX_META_BIT_BOOL        0x00000400
-#define JX_META_BIT_LIST        0x00000200
-#define JX_META_BIT_HASH        0x00000100
+#define JX_META_BIT_BOOL        0x2000
+#define JX_META_BIT_INT         0x1000
+#define JX_META_BIT_FLOAT       0x0800
+#define JX_META_BIT_STR         0x0400
+#define JX_META_BIT_LIST        0x0200
+#define JX_META_BIT_HASH        0x0100
 
-#define JX_META_MASK_TYPE_BITS  0x00003F00
+#define JX_META_MASK_TYPE_BITS  0x3F00
 
-#define JX_META_NOT_AN_OB       0x80000000
-
-#define JX_META_MASK_TINY_SIZE  0x000000FF
+#define JX_META_MASK_TINY_SIZE  0x00FF
 
 /* object initializers */
 
-#define JX_OB_NULL     { 0, JX_DATA_INIT }
-#define JX_OB_INT      { JX_META_BIT_INT, JX_DATA_INIT }
-#define JX_OB_FLOAT    { JX_META_BIT_FLOAT, JX_DATA_INIT }
-#define JX_OB_BOOL     { JX_META_BIT_BOOL, JX_DATA_INIT }
-#define JX_OB_TINY_STR { JX_META_BIT_TINY_STR, JX_DATA_INIT }
+#define JX_OB_NULL     { JX_DATA_INIT, {0,0}                    }
+#define JX_OB_INT      { JX_DATA_INIT, {0,JX_META_BIT_INT}      }
+#define JX_OB_FLOAT    { JX_DATA_INIT, {0,JX_META_BIT_FLOAT}    }
+#define JX_OB_BOOL     { JX_DATA_INIT, {0,JX_META_BIT_BOOL}     }
+#define JX_OB_TINY_STR { JX_DATA_INIT, {0,JX_META_BIT_TINY_STR} }
 
-#define JX_OB_STR      { JX_META_BIT_GC | JX_META_BIT_STR,  JX_DATA_INIT }
-#define JX_OB_LIST     { JX_META_BIT_GC | JX_META_BIT_LIST, JX_DATA_INIT }
-#define JX_OB_HASH     { JX_META_BIT_GC | JX_META_BIT_HASH, JX_DATA_INIT }
+#define JX_OB_STR      { JX_DATA_INIT, {0, JX_META_BIT_GC | JX_META_BIT_STR } }
+#define JX_OB_LIST     { JX_DATA_INIT, {0, JX_META_BIT_GC | JX_META_BIT_LIST} }
+#define JX_OB_HASH     { JX_DATA_INIT, {0, JX_META_BIT_GC | JX_META_BIT_HASH} }
 
 /* inline methods */
 
@@ -188,7 +199,7 @@ jx_status jx__ob_free(jx_ob ob);
 
 JX_INLINE jx_status jx_ob_free(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_GC) { 
+  if(ob.meta.bits & JX_META_BIT_GC) { 
     /* object has resources which need to be garbage collected */
     return jx__ob_free(ob); /* call non-inline routine */
   }
@@ -224,43 +235,43 @@ JX_INLINE jx_ob jx_ob_from_float(jx_float float_)
 
 JX_INLINE jx_bool jx_ob_as_bool(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_BOOL) ? ob.data.bool_ : JX_FALSE;
+  return (ob.meta.bits & JX_META_BIT_BOOL) ? ob.data.bool_ : JX_FALSE;
 }
 JX_INLINE jx_int jx_ob_as_int(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_INT) ? ob.data.int_ : 0;
+  return (ob.meta.bits & JX_META_BIT_INT) ? ob.data.int_ : 0;
 }
 JX_INLINE jx_float jx_ob_as_float(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_FLOAT) ? ob.data.float_ : 0.0F;
+  return (ob.meta.bits & JX_META_BIT_FLOAT) ? ob.data.float_ : 0.0F;
 }
 JX_INLINE jx_status jx_null_check(jx_ob ob)
 {
-  return !ob.meta;
+  return !ob.meta.bits;
 }
 JX_INLINE jx_status jx_bool_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_BOOL) ? JX_TRUE : JX_FALSE;
+  return (ob.meta.bits & JX_META_BIT_BOOL) ? JX_TRUE : JX_FALSE;
 }
 JX_INLINE jx_status jx_int_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
+  return (ob.meta.bits & JX_META_BIT_INT) ? JX_TRUE : JX_FALSE;
 }
 JX_INLINE jx_status jx_float_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_FLOAT) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_FLOAT) ? JX_TRUE : JX_FALSE;;
 }
 JX_INLINE jx_status jx_str_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_STR) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_STR) ? JX_TRUE : JX_FALSE;;
 }
 JX_INLINE jx_status jx_list_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_LIST) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_LIST) ? JX_TRUE : JX_FALSE;;
 }
 JX_INLINE jx_status jx_hash_check(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;;
+  return (ob.meta.bits & JX_META_BIT_HASH) ? JX_TRUE : JX_FALSE;;
 }
 JX_INLINE jx_bool jx_ok(jx_status status)
 {
@@ -269,16 +280,16 @@ JX_INLINE jx_bool jx_ok(jx_status status)
 
 JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
-  return ((ob.meta & JX_META_BIT_STR) ?
-          ((ob.meta & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str)-1 : 
-           ob.meta & JX_META_MASK_TINY_SIZE)
+  return ((ob.meta.bits & JX_META_BIT_STR) ?
+          ((ob.meta.bits & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str)-1 : 
+           ob.meta.bits & JX_META_MASK_TINY_SIZE)
           : 0);
 }
 
 jx_ob jx__ob_copy(jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
-  if(ob.meta & JX_META_BIT_GC) {
+  if(ob.meta.bits & JX_META_BIT_GC) {
     return jx__ob_copy(ob);
   }
   return ob;
@@ -288,17 +299,19 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right);
 
 JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
 {
-  if(left.meta != right.meta) { 
+  if(left.meta.bits != right.meta.bits) { 
     return JX_FALSE;
-  } else if(left.meta & JX_META_BIT_GC) {
+  } else if(left.meta.bits & JX_META_BIT_GC) {
     return jx__ob_gc_identical(left,right);
   } else {
-#if (JX_TINY_STR_SIZE == 4) ||  (JX_TINY_STR_SIZE == 8)
-    return ((left.meta == right.meta) && 
-            (left.data.raw == right.data.raw));
+#if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
+    return ((left.meta.bits == right.meta.bits) && 
+            (left.meta.pad  == right.meta.pad) && 
+            (left.data.raw  == right.data.raw));
 #else
-#if (JX_TINY_STR_SIZE == 16)
-    return ((left.meta == right.meta) && 
+#if (JX_TINY_STR_SIZE == 18)
+    return ((left.meta.bits == right.meta.bits) && 
+            (left.meta.pad  == right.meta.pad) && 
             (left.data.raw[0] == right.data.raw[0]) &&
             (left.data.raw[1] == right.data.raw[1]));
 #endif
@@ -311,7 +324,7 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
 jx_status jx__list_append(jx_list *I, jx_ob ob);
 JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     return jx__list_append(list.data.list, ob);
   }
   return JX_FAILURE;
@@ -319,7 +332,7 @@ JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
 jx_status jx__list_insert(jx_list *I, jx_int index, jx_ob ob);
 JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     return jx__list_insert(list.data.list, index, ob);
   }
   return JX_FAILURE;
@@ -327,7 +340,7 @@ JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
 jx_status jx__list_replace(jx_list *I, jx_int index, jx_ob ob);
 JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     return jx__list_replace(list.data.list, index, ob);
   }
   return JX_FAILURE;
@@ -336,8 +349,8 @@ JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
 jx_status jx__list_combine(jx_list *list1,jx_list *list2);
 JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
 {
-  if((list1.meta & JX_META_BIT_LIST) && 
-     (list2.meta & JX_META_BIT_LIST)) {
+  if((list1.meta.bits & JX_META_BIT_LIST) && 
+     (list2.meta.bits & JX_META_BIT_LIST)) {
     return jx__list_combine(list1.data.list, list2.data.list);
   }
   return JX_FAILURE;
@@ -346,7 +359,7 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
 jx_ob jx__list_borrow(jx_list *I, jx_int index);
 JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     return jx__list_borrow(list.data.list, index);
   }
   return jx_ob_from_null();
@@ -356,7 +369,7 @@ JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
 jx_ob jx__hash_copy_members(jx_hash *I,jx_int flags);
 JX_INLINE jx_ob jx_list_new_from_hash(jx_ob hash)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_copy_members(hash.data.hash,
                                  JX__HASH_COPY_KEYS | 
                                  JX__HASH_COPY_VALUES);
@@ -367,9 +380,9 @@ jx_ob jx_list_new(void);
 jx_status jx__list_with_hash(jx_list *list, jx_hash *hash);
 JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result = jx_list_new();
-    if(result.meta & JX_META_BIT_LIST) {
+    if(result.meta.bits & JX_META_BIT_LIST) {
       if(jx_ok(jx__list_with_hash(result.data.list, hash.data.hash))) {
         jx_ob_free(hash);
       } else {
@@ -386,16 +399,20 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 
 JX_INLINE jx_uint32 jx__ob_hash_code(jx_meta meta, jx_data data)
 {
-#if (JX_TINY_STR_SIZE == 4)
-  register jx_uint32 a = ((jx_uint32)meta)^((jx_uint32)data);
+#if (JX_TINY_STR_SIZE == 6)
+  register jx_uint32 a = (((jx_uint32)meta.bits)^
+                          ((jx_uint32)meta.pad)^
+                          ((jx_uint32)data));
 #else
-#if (JX_TINY_STR_SIZE == 8)
-  register jx_uint32 a = (((jx_uint32)meta)^
+#if (JX_TINY_STR_SIZE == 10)
+  register jx_uint32 a = (((jx_uint32)meta.bits)^
+                          ((jx_uint32)meta.pad)^
                           ((jx_uint32)data)^
                           ((jx_uint32)(data>>32)));
 #else
-#if (JX_TINY_STR_SIZE == 16)
-  register jx_uint32 a = (((jx_uint32)meta)^
+#if (JX_TINY_STR_SIZE == 18)
+  register jx_uint32 a = (((jx_uint32)meta.bits)^
+                          ((jx_uint32)meta.pad)^
                           ((jx_uint32)data[0])^
                           ((jx_uint32)(data[0]>>32))^
                           ((jx_uint32)data[1])^
@@ -416,19 +433,19 @@ JX_INLINE jx_uint32 jx__ob_hash_code(jx_meta meta, jx_data data)
 jx_uint32 jx__ob_gc_hash_code(jx_ob);
 JX_INLINE jx_uint32 jx_ob_hash_code(jx_ob ob)
 {
-  return (ob.meta & JX_META_BIT_GC) ?
+  return (ob.meta.bits & JX_META_BIT_GC) ?
     jx__ob_gc_hash_code(ob) :
     jx__ob_hash_code(ob.meta, ob.data.raw);
-
+  
 }
 
 jx_ob jx_hash_new(void);
 jx_status jx__hash_from_list(jx_hash *hast, jx_list *list);
 JX_INLINE jx_ob jx_hash_new_from_list(jx_ob list)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     jx_ob result = jx_hash_new();
-    if(result.meta & JX_META_BIT_HASH) {
+    if(result.meta.bits & JX_META_BIT_HASH) {
       if(!jx_ok(jx__hash_from_list(result.data.hash,list.data.list))) {
         jx_ob_free(result);
         result = jx_ob_from_null();
@@ -441,9 +458,9 @@ JX_INLINE jx_ob jx_hash_new_from_list(jx_ob list)
 jx_status jx__hash_with_list(jx_hash *hash, jx_list *list);
 JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
 {
-  if(list.meta & JX_META_BIT_LIST) {
+  if(list.meta.bits & JX_META_BIT_LIST) {
     jx_ob result = jx_hash_new();
-    if(result.meta & JX_META_BIT_HASH) {
+    if(result.meta.bits & JX_META_BIT_HASH) {
       if(jx_ok(jx__hash_with_list(result.data.hash,list.data.list))) {
         jx_ob_free(list);
       } else {
@@ -459,7 +476,7 @@ JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
 jx_int jx__hash_size(jx_hash *I);
 JX_INLINE jx_int jx_hash_size(jx_ob hash)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_size(hash.data.hash);
   }
   return 0;
@@ -468,7 +485,7 @@ JX_INLINE jx_int jx_hash_size(jx_ob hash)
 jx_status jx__hash_set(jx_hash *I, jx_ob key, jx_ob value);
 JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_set(hash.data.hash, key, value);
   }
   return JX_FAILURE;
@@ -477,7 +494,7 @@ JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
 jx_bool jx__hash_has_key(jx_hash *I, jx_ob key);
 JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_has_key(hash.data.hash, key);
   }
   return JX_FALSE;
@@ -485,14 +502,14 @@ JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
 
 JX_INLINE jx_ob jx_hash_keys(jx_ob hash)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_copy_members(hash.data.hash, JX__HASH_COPY_KEYS);
   }
   return jx_ob_from_null();
 }
 JX_INLINE jx_ob jx_hash_values(jx_ob hash)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_copy_members(hash.data.hash, JX__HASH_COPY_VALUES);
   }
   return jx_ob_from_null();
@@ -501,7 +518,7 @@ JX_INLINE jx_ob jx_hash_values(jx_ob hash)
 jx_bool jx__hash_borrow(jx_ob *result, jx_hash *I, jx_ob key);
 JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_borrow(&result, hash.data.hash, key))
       return result;
@@ -510,7 +527,7 @@ JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 }
 JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_borrow(&result, hash.data.hash, key))
       return jx_ob_copy(result);
@@ -521,7 +538,7 @@ JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 jx_bool jx__hash_remove(jx_ob *result, jx_hash *I, jx_ob key);
 JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_remove(&result, hash.data.hash, key))
       return result;
@@ -531,7 +548,7 @@ JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
 
 JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_remove(&result, hash.data.hash, key)) {
       jx_ob_free(result);
@@ -544,7 +561,7 @@ JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
 jx_bool jx__hash_borrow_key(jx_ob *result, jx_hash *I, jx_ob key);
 JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_borrow_key(&result, hash.data.hash, key))
       return result;
@@ -553,7 +570,7 @@ JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob key)
 }
 JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob key)
 {
-  if(hash.meta & JX_META_BIT_HASH) {
+  if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_borrow_key(&result, hash.data.hash, key))
       return jx_ob_copy(result);

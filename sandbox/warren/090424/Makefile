@@ -1,6 +1,10 @@
 
 CFLAGS =  -O3 -Wall -ansi -pedantic -std=gnu99
-LDFLAGS =
+# -DJX_64_BIT
+# -m64
+
+LDFLAGS = 
+# -m64
 
 tests: test001 test002 test003 test004 test005 test006
 

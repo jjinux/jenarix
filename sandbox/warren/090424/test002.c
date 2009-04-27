@@ -51,14 +51,14 @@ static void dump_hex(jx_char *message, void *ptr, jx_int size)
 int main(int argc, char **argv)
 {
   {
-#if JX_TINY_STR_SIZE == 4
-#define TINY_TEST "123"
+#if JX_TINY_STR_SIZE == 6
+#define TINY_TEST "12345"
 #else
-#if JX_TINY_STR_SIZE == 8
-#define TINY_TEST "1234567"
+#if JX_TINY_STR_SIZE == 10
+#define TINY_TEST "123456789"
 #else
-#if JX_TINY_STR_SIZE == 16
-#define TINY_TEST "123456789012345"
+#if JX_TINY_STR_SIZE == 18
+#define TINY_TEST "12345678901234567"
 #endif
 #endif
 #endif
