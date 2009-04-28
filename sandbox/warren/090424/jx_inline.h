@@ -729,22 +729,22 @@ JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
   return JX_FAILURE;
 }
 
-jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob key);
-JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob key)
+jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value);
+JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_borrow_key(&result, hash.data.hash, key))
+    if(jx__hash_borrow_key(&result, hash.data.hash, value))
       return result;
   }
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob key)
+JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_borrow_key(&result, hash.data.hash, key))
+    if(jx__hash_borrow_key(&result, hash.data.hash, value))
       return jx_ob_copy(result);
   }
   return jx_ob_from_null();
