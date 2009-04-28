@@ -110,7 +110,7 @@ jx_bool jx_ob_identical(jx_ob left, jx_ob right);
 
 /* copying */
 
-jx_ob jx_ob_copy(jx_ob ob);     /* always deep and recursive */
+jx_ob jx_ob_copy(jx_ob ob);     /* always deep / recursive */
 
 /* strings */
 
@@ -122,7 +122,6 @@ jx_ob jx_list_new(void);
 jx_ob jx_list_new_from_int_array(jx_int * array, jx_int size);  /* copies array */
 jx_ob jx_list_new_from_float_array(jx_float * array, jx_float size);    /* copies array */
 jx_ob jx_list_new_from_hash(jx_ob hash);        /* returns owned list of copied keys & values (interleaved) */
-
 jx_ob jx_list_new_with_hash(jx_ob hash);        /* frees hash and converts content to interleaved list */
 
 jx_int jx_list_size(jx_ob list);
@@ -142,7 +141,7 @@ jx_status jx_list_delete(jx_ob list, jx_int index);     /* frees entry at index 
 
 jx_int *jx_int_vla_new(jx_int size);
 jx_status jx_int_vla_resize(jx_int ** ref, jx_int size);
-jx_status jx_int_vla_free(jx_int * vla);
+jx_status jx_int_vla_free(jx_int ** ref); /* will set (*ref) to NULL */
 
 jx_ob jx_list_new_with_int_vla(jx_int * vla);   /* takes ownership of vla */
 jx_int *jx_list_as_int_vla(jx_ob ob);   /* borrows vla if homogenous, else NULL */
@@ -150,7 +149,7 @@ jx_status jx_list_set_int_vla(jx_ob ob, jx_int * vla);  /* update list vla */
 
 jx_float *jx_float_vla_new(jx_float size);
 jx_status jx_float_vla_resize(jx_float ** ref, jx_int size);
-jx_status jx_float_vla_free(jx_float * vla);
+jx_status jx_float_vla_free(jx_float ** ref); /* will set (*ref) to NULL */
 
 jx_ob jx_list_new_with_float_vla(jx_float * vla);       /* takes ownership of new vla */
 jx_float *jx_list_as_float_vla(jx_ob ob);       /* borrows vla if homogenous, else NULL */

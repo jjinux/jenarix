@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define jx_realloc(p,s) realloc(p,s)
 #define jx_free(p) free(p)
 #else
-/* optional memory logger, counter, & overrun detector */
+/* activate optional memory logger, counter, & overrun detector */
 #define JX_MEM_LOG_ALL 0
 #define JX_MEM_LOG_SUMMARY 1
 #define jx_malloc(s) jx__malloc(s,__FILE__,__LINE__)
@@ -370,7 +370,7 @@ jx_status jx__vla_free(void **ref)
 {
   if(*ref) {
     jx_free(((jx_vla *) (*ref)) - 1);
-    (*ref) = NULL;
+    (*ref) = NULL; 
   }
   return JX_SUCCESS;
 }
@@ -1377,9 +1377,8 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                         break;
                       } else if((hash_entry[0] == hash_code) &&
                                 jx_ob_identical(key_value
-                                                [1 +
-                                                 (hash_entry[1] &
-                                                  JX_HASH_ENTRY_KV_OFFSET_MASK)],
+                                                [(hash_entry[1] &
+                                                  JX_HASH_ENTRY_KV_OFFSET_MASK) + 1],
                                                 ob[1])) {
                         result = JX_FALSE;
                         break;
@@ -1440,9 +1439,8 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                         break;
                       } else if((hash_entry[0] == hash_code) &&
                                 jx_ob_identical(key_value
-                                                [1 +
-                                                 (hash_entry[1] &
-                                                  JX_HASH_ENTRY_KV_OFFSET_MASK)],
+                                                [(hash_entry[1] &
+                                                  JX_HASH_ENTRY_KV_OFFSET_MASK) + 1],
                                                 ob[1])) {
                         result = JX_FALSE;
                         break;
@@ -1500,9 +1498,8 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                         {       /* reverse */
                           jx_uint32 hash_code =
                             jx_ob_hash_code(old_key_value
-                                            [1 +
-                                             (old_hash_entry[1] &
-                                              JX_HASH_ENTRY_KV_OFFSET_MASK)]);
+                                            [(old_hash_entry[1] &
+                                              JX_HASH_ENTRY_KV_OFFSET_MASK) + 1]);
                           if(!hash_code) {
                             result = JX_FALSE;
                             break;
@@ -1516,9 +1513,10 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                                 hash_entry[1] = (new_kv_offset | JX_HASH_ENTRY_ACTIVE);
                                 break;
                               } else if((hash_entry[0] == hash_code) &&
-                                        jx_ob_identical(new_key_value[1 + (hash_entry[1]
-                                                                           &&
-                                                                           JX_HASH_ENTRY_KV_OFFSET_MASK)],
+                                        jx_ob_identical(new_key_value[(hash_entry[1]
+                                                                       &&
+                                                                       JX_HASH_ENTRY_KV_OFFSET_MASK)
+                                                                      + 1],
                                                         new_key_value[new_kv_offset +
                                                                       1])) {
                                 result = JX_FALSE;
@@ -1570,9 +1568,8 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                         if(old_hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {  /* reverse for actives only */
                           jx_uint32 hash_code =
                             jx_ob_hash_code(key_value
-                                            [1 +
-                                             (old_hash_entry[1] &
-                                              JX_HASH_ENTRY_KV_OFFSET_MASK)]);
+                                            [(old_hash_entry[1] &
+                                              JX_HASH_ENTRY_KV_OFFSET_MASK) + 1]);
                           jx_uint32 index = new_mask & hash_code;
                           jx_uint32 sentinel = index;
                           do {
@@ -1689,9 +1686,8 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                         if(old_hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {  /* reverse for actives only */
                           jx_uint32 hash_code =
                             jx_ob_hash_code(key_value
-                                            [1 +
-                                             (old_hash_entry[1] &
-                                              JX_HASH_ENTRY_KV_OFFSET_MASK)]);
+                                            [(old_hash_entry[1] &
+                                              JX_HASH_ENTRY_KV_OFFSET_MASK) + 1]);
                           jx_uint32 index = new_mask & hash_code;
                           jx_uint32 sentinel = index;
                           do {
@@ -1964,9 +1960,9 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
                         dest_reverse_ptr = hash_entry;
                     } else if((hash_entry[0] == reverse_hash_code) &&
                               jx_ob_identical(key_value
-                                              [1 +
-                                               (hash_entry[1] &
-                                                JX_HASH_ENTRY_KV_OFFSET_MASK)], value)) {
+                                              [(hash_entry[1] &
+                                                JX_HASH_ENTRY_KV_OFFSET_MASK) + 1],
+                                              value)) {
                       reverse_found = JX_TRUE;
                       break;
                     }
@@ -2076,7 +2072,6 @@ jx_bool jx__hash_has_key(jx_hash * I, jx_ob key)
       } else {
         register jx_uint32 hash_code = jx_ob_hash_code(key);
         if(hash_code) {
-
           jx_hash_info *info = (jx_hash_info *) I->info;
           switch (info->mode) {
           case JX_HASH_LINEAR:

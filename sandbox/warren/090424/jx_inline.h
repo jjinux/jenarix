@@ -40,13 +40,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_TINY_STR_SIZE 6
 /* may only be 6, 10, or 18 */
 
+/* adapt to tiny string size (a least as large as a machine
+   pointer + 2 bytes) */
+
 #if (JX_TINY_STR_SIZE < JX_TINY_STR_MIN_SIZE)
 #undef JX_TINY_STR_SIZE
 #define JX_TINY_STR_SIZE JX_TINY_STR_MIN_SIZE
 #endif
-
-/* adapt to tiny string size (must be at least as wide as a machine
- * pointer) */
 
 #if (JX_TINY_STR_SIZE == 6)
 typedef jx_int32 jx_data;
@@ -88,11 +88,6 @@ struct jx__ob {
                                    of meta can be used by tiny str */
 };
 
-typedef struct {
-  jx_int size;
-  jx_int rec_size;
-} jx_vla;
-
 /* meta flag bits */
 
 #define JX_META_NOT_AN_OB           0x8000
@@ -109,7 +104,9 @@ typedef struct {
 
 #define JX_META_MASK_TYPE_BITS      0x3F00
 
-#define JX_META_MASK_TINY_STR_SIZE  0x00FF
+/* we still have 3 bits free for future use */
+
+#define JX_META_MASK_TINY_STR_SIZE  0x001F
 
 /* object initializers */
 
@@ -128,8 +125,14 @@ typedef struct {
 #define JX_INLINE __inline__ static
 
 /* variable length array (vla) functions provide untyped, auto-zeroed,
-   null-protected, size and record-length aware variable length arrays   
-   ALWAYS PASSED BY REFERENCE (since pointer location may change) */
+   null-protected, size and record-length aware variable length arrays
+   NOTE: ALWAYS PASSED BY REFERENCE (since pointer location may change
+   due to reallocation) */
+
+typedef struct {
+  jx_int size;
+  jx_int rec_size;
+} jx_vla;
 
 void *jx_vla_new(jx_int rec_size, jx_int size);
 void *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);
@@ -183,9 +186,9 @@ JX_INLINE jx_status jx_int_vla_resize(jx_int ** ref, jx_int size)
   return jx_vla_resize((void **) ref, size);
 }
 
-JX_INLINE jx_status jx_int_vla_free(jx_int * vla)
+JX_INLINE jx_status jx_int_vla_free(jx_int ** ref)
 {
-  return jx_vla_free(&vla);
+  return jx_vla_free(ref);
 }
 
 JX_INLINE jx_float *jx_float_vla_new(jx_float size)
@@ -198,9 +201,9 @@ JX_INLINE jx_status jx_float_vla_resize(jx_float ** ref, jx_int size)
   return jx_vla_resize((void **) ref, size);
 }
 
-JX_INLINE jx_status jx_float_vla_free(jx_float * vla)
+JX_INLINE jx_status jx_float_vla_free(jx_float ** ref)
 {
-  return jx_vla_free(&vla);
+  return jx_vla_free(ref);
 }
 
 jx_status jx__ob_free(jx_ob ob);
