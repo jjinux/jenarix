@@ -40,6 +40,7 @@ typedef char jx_char;
 typedef int jx_status;
 
 typedef unsigned short jx_uint16;       /* for small bit masks, etc. */
+
 typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
 typedef long long jx_int64;
@@ -109,15 +110,17 @@ jx_status jx_hash_check(jx_ob ob);
 jx_bool jx_ob_identical(jx_ob left, jx_ob right);
 jx_bool jx_ob_equal(jx_ob left, jx_ob right);   /* to be done */
 
-/* read only management (no changes allowed, cannot be freed, but
-   can be stored/conveyed through a mutable container) */
+/* read only status (no changes allowed, cannot be freed, but can be
+   stored/conveyed through mutable containers, provided that those
+   containers are gone by the time read only status is cleared) */
 
 jx_ob jx_ob_set_read_only(jx_ob ob, jx_bool read_only);
 jx_bool jx_ob_read_only(jx_ob ob);
 
 /* copying */
 
-jx_ob jx_ob_copy(jx_ob ob);     /* always deep / recursive */
+jx_ob jx_ob_copy(jx_ob ob);     /* always deep / recursive; copies of
+                                   read-only containers are mutable */
 
 /* strings */
 

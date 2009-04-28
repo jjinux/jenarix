@@ -1132,7 +1132,7 @@ jx_status jx__list_set_float_vla(jx_list * I, jx_float ** ref)
 
 /* hashing */
 
-static jx_uint32 jx__c_str_hash(jx_char * str)
+JX_INLINE jx_uint32 jx__c_str_hash(jx_char * str)
 {
   register unsigned char *p = (unsigned char *) str;
   register jx_uint32 x, len = 0;

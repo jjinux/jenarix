@@ -85,7 +85,7 @@ struct jx__ob {
     jx_hash *hash;
   } data;
   jx_meta meta;                 /* meta must follow data so that the first 2 bytes 
-                                   of meta can be used by tiny str */
+                                   of 4 byte meta struct can be used by tiny str */
 };
 
 /* meta flag bits */
@@ -103,12 +103,14 @@ struct jx__ob {
 #define JX_META_BIT_HASH            0x0100
 
 #define JX_META_BIT_READ_ONLY       0x0080
+/* since this only applies to GC object, it might make more sense to
+  push the read-only flag down into the container */
 
 #define JX_META_MASK_TYPE_BITS      0x3F00
 
-#define JX_META_MASK_HASHING        0xFF1F
-
 /* we still have 2 bits free for future use */
+
+#define JX_META_MASK_FOR_HASH        0xFF1F
 
 #define JX_META_MASK_TINY_STR_SIZE  0x001F
 
@@ -311,8 +313,11 @@ JX_INLINE jx_bool jx_ok(jx_status status)
 
 JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
-  return ((ob.meta.bits & JX_META_BIT_STR) ? ((ob.meta.bits & JX_META_BIT_GC) ? jx_vla_size(&ob.data.str) - 1 : /* don't count 0 terminator */
-                                              ob.meta.bits & JX_META_MASK_TINY_STR_SIZE)
+  jx_bits bits = ob.meta.bits;
+  return ((bits & JX_META_BIT_STR) ? ((bits &
+                                       /* don't count string terminator (char 0) */
+                                       JX_META_BIT_GC) ? jx_vla_size(&ob.data.str) - 1
+                                      : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
 
@@ -353,8 +358,8 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right);
 
 JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
 {
-  jx_bits left_bits = left.meta.bits & JX_META_MASK_HASHING;
-  jx_bits right_bits = right.meta.bits & JX_META_MASK_HASHING;
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_FOR_HASH;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_FOR_HASH;
 
   if(left_bits != right_bits) {
     return JX_FALSE;
@@ -381,8 +386,8 @@ jx_bool jx__ob_non_gc_equal(jx_ob left, jx_ob right);
 
 JX_INLINE jx_bool jx_ob_equal(jx_ob left, jx_ob right)
 {
-  jx_bits left_bits = left.meta.bits & JX_META_MASK_HASHING;
-  jx_bits right_bits = right.meta.bits & JX_META_MASK_HASHING;
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_FOR_HASH;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_FOR_HASH;
 
   if(left_bits != right_bits) {
     if((left_bits | right_bits) & JX_META_BIT_GC) {
@@ -560,16 +565,16 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 JX_INLINE jx_uint32 jx__ob_hash_code(jx_meta meta, jx_data data)
 {
 #if (JX_TINY_STR_SIZE == 6)
-  register jx_uint32 a = (((jx_uint32) (meta.bits & JX_META_MASK_HASHING)) ^
+  register jx_uint32 a = (((jx_uint32) (meta.bits & JX_META_MASK_FOR_HASH)) ^
                           ((jx_uint32) meta.tiny_str_2) ^ ((jx_uint32) data));
 #else
 #if (JX_TINY_STR_SIZE == 10)
-  register jx_uint32 a = (((jx_uint32) (meta.bits & JX_META_MASK_HASHING)) ^
+  register jx_uint32 a = (((jx_uint32) (meta.bits & JX_META_MASK_FOR_HASH)) ^
                           ((jx_uint32) meta.tiny_str_2) ^
                           ((jx_uint32) data) ^ ((jx_uint32) (data >> 32)));
 #else
 #if (JX_TINY_STR_SIZE == 18)
-  register jx_uint32 a = (((jx_uint32) (meta.bits & JX_META_MASK_HASHING)) ^
+  register jx_uint32 a = (((jx_uint32) (meta.bits & JX_META_MASK_FOR_HASH)) ^
                           ((jx_uint32) meta.tiny_str_2) ^
                           ((jx_uint32) data[0]) ^
                           ((jx_uint32) (data[0] >> 32)) ^
@@ -592,7 +597,6 @@ JX_INLINE jx_uint32 jx_ob_hash_code(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
     jx__ob_gc_hash_code(ob) : jx__ob_hash_code(ob.meta, ob.data.raw);
-
 }
 
 jx_ob jx_hash_new(void);
