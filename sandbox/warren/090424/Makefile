@@ -1,12 +1,11 @@
 
 CFLAGS =  -O3 -Wall -ansi -pedantic -std=gnu99
-# -DJX_64_BIT
+# -DJX_64_BIT -m64
+
+LDFLAGS =  
 # -m64
 
-LDFLAGS = 
-# -m64
-
-tests: test001 test002 test003 test004 test005 test006
+tests: test001 test002 test003 test004 test005 test006 test007
 
 jx_private.o: jx_private.c jx_inline.h jx_private.h jx_public.h
 
@@ -22,6 +21,8 @@ test005.o: test005.c jx_public.h jx_inline.h
 
 test006.o: test006.c jx_public.h jx_inline.h
 
+test007.o: test007.c jx_public.h jx_inline.h
+
 test001: test001.o jx_private.o
 
 test002: test002.o jx_private.o 
@@ -34,6 +35,8 @@ test005: test005.o jx_private.o
 
 test006: test006.o jx_private.o
 
+test007: test007.o jx_private.o
+
 clean: 
 	/bin/rm -f *.o
 
@@ -44,3 +47,4 @@ test:
 	test004 | perl
 	test005 | perl
 	test006 | perl
+	test007 | perl

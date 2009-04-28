@@ -74,7 +74,7 @@ int main(int argc, char **argv)
       vla[i] = i;
     }
     {
-      jx_ob list = jx_list_new_with_int_vla(vla);
+      jx_ob list = jx_list_new_with_int_vla(&vla);
       P1("4 == %d", jx_list_size(list));
       P1("3 == %d", jx_ob_as_int(jx_list_borrow(list, 3)));
       P1("0 == %d", jx_ob_free(list));
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
       vla[i] = i / 10.0F;
     }
     {
-      jx_ob list = jx_list_new_with_float_vla(vla);
+      jx_ob list = jx_list_new_with_float_vla(&vla);
       P1("4 == %d", jx_list_size(list));
       P1("0.3 == %f", jx_ob_as_float(jx_list_borrow(list, 3)));
       P1("0 == %d", jx_ob_free(list));

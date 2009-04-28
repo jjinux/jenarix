@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     P1("0xa13c598b == 0x%08x", jx_ob_hash_code(ob_1));
     P1("0x4eea7ab3 == 0x%08x", jx_ob_hash_code(ob_2));
 
-    P2("(0x387778c7 == 0x%08x) || (0x46b50a9f == 0x%08x)",
+    P2("(0x387778c7 == 0x%08x) || (0x9e069f3e == 0x%08x)",
        jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
 
     P1("0xced8ea80 == 0x%08x", jx_ob_hash_code(ob_tiny));
@@ -88,7 +88,6 @@ int main(int argc, char **argv)
     P1("0x00000000 == 0x%08x", jx_ob_hash_code(hash));
     P1("0 == %d", jx_ob_free(hash));
   }
-
   {
     jx_ob hash = jx_hash_new();
 
@@ -136,6 +135,7 @@ int main(int argc, char **argv)
 
     P1("0 == %d", jx_ob_free(hash));
   }
+
   {
     jx_ob hash = jx_hash_new();
     jx_ob key1 = jx_ob_from_str("heap string as hash key");
@@ -162,7 +162,6 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_ob_free(key1));
     P1("0 == %d", jx_ob_free(hash));
   }
-
   {
     jx_ob hash = jx_hash_new();
     jx_int i;

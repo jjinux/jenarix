@@ -261,7 +261,7 @@ int main(int argc, char **argv)
       jx_int *new_vla = jx_int_vla_new(3);
       jx_int_vla_free(&vla);
       new_vla[1] = 3;
-      jx_list_set_int_vla(list, new_vla);
+      jx_list_set_int_vla(list, &new_vla);
     }
 
     {
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 
     {
       jx_float *vla = jx_float_vla_new(2);
-      P1("-1 == %d", jx_list_set_float_vla(list, vla));
+      P1("-1 == %d", jx_list_set_float_vla(list, &vla));
       jx_float_vla_free(&vla);
     }
 
