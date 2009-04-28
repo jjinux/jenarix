@@ -109,8 +109,8 @@ jx_status jx_hash_check(jx_ob ob);
 jx_bool jx_ob_identical(jx_ob left, jx_ob right);
 jx_bool jx_ob_equal(jx_ob left, jx_ob right);   /* to be done */
 
-/* read only management (no changes allowed, cannot be freed, and any
-   attempt to own a read only object results in a recursive copy) */
+/* read only management (no changes allowed, cannot be freed, but
+   can be stored/conveyed through a mutable container) */
 
 jx_ob jx_ob_set_read_only(jx_ob ob, jx_bool read_only);
 jx_bool jx_ob_read_only(jx_ob ob);

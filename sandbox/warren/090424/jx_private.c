@@ -754,7 +754,10 @@ JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
   return jx_ob_from_null();
 }
 
-#define JX_OWN(ob) ((ob).meta.bits & JX_META_BIT_READ_ONLY) ? jx_ob_copy(ob) : ob;
+/* mental / debuggin aids */
+
+#define JX_OWN(ob) ob
+#define JX_BORROW(ob) ob
 
 jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill)
 {
@@ -1038,7 +1041,7 @@ jx_ob jx__list_borrow(jx_list * I, jx_int index)
     if(I->packed_meta_bits) {
       return jx__list_get_packed_data(I, index);
     } else {
-      return I->data.ob_vla[index];
+      return JX_BORROW( I->data.ob_vla[index] );
     }
   }
   return jx_ob_from_null();
@@ -2448,7 +2451,7 @@ jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key)
       while(i--) {
         if(jx_ob_identical(ob[0], key)) {
           found = JX_TRUE;
-          *result = ob[1];      /* borrowing */
+          *result = JX_BORROW( ob[1]; );
           break;
         }
         ob += 2;
@@ -2467,7 +2470,7 @@ jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key)
               if(*hash_entry == hash_code) {
                 if(jx_ob_identical(ob[0], key)) {
                   found = JX_TRUE;
-                  *result = ob[1];      /* borrowing */
+                  *result = JX_BORROW( ob[1]; );
                   break;
                 }
               }
@@ -2491,7 +2494,7 @@ jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key)
                 jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
                 /* active slot with matching hash code */
                 if(jx_ob_identical(kv_ob[0], key)) {
-                  *result = kv_ob[1];   /* borrowing */
+                  *result = JX_BORROW( kv_ob[1]; );
                   found = JX_TRUE;
                   break;
                 }
@@ -2675,7 +2678,7 @@ jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value)
       while(i--) {              /* brute-force table scan */
         if(jx_ob_identical(ob[1], value)) {
           found = JX_TRUE;
-          *result = ob[0];
+          *result = JX_BORROW( ob[0] );
           break;
         }
         ob += 2;
@@ -2695,7 +2698,7 @@ jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value)
               jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
               if(jx_ob_identical(key_value[kv_offset + 1], value)) {
                 found = JX_TRUE;
-                *result = key_value[kv_offset];
+                *result = JX_BORROW( key_value[kv_offset] );
                 break;
               }
             }
@@ -2717,7 +2720,7 @@ jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value)
               if((hash_entry[1] & JX_HASH_ENTRY_ACTIVE) && (hash_entry[0] == hash_code)) {
                 jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
                 if(jx_ob_identical(key_value[kv_offset + 1], value)) {
-                  *result = key_value[kv_offset];
+                  *result = JX_BORROW( key_value[kv_offset] );
                   found = JX_TRUE;
                   break;
                 }

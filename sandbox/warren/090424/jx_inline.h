@@ -457,7 +457,7 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2);
 JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
 {
   jx_bits bits1 = list1.meta.bits;
-  jx_bits bits2 = list1.meta.bits;
+  jx_bits bits2 = list2.meta.bits;
   if((bits1 & JX_META_BIT_LIST) &&
      !(bits1 & JX_META_BIT_READ_ONLY) && (bits2 & JX_META_BIT_LIST)) {
     if(bits2 & JX_META_BIT_READ_ONLY) {
