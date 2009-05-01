@@ -399,9 +399,9 @@ jx_ob jx_ob_from_str(jx_char * str)
     memcpy(result.data.io.tiny_str, str, size+1);
   } else {
     /* string not tiny -- use heap */
-    result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
     result.data.io.str = jx_vla_new(1, size + 1);
     if(result.data.io.str) {
+      result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
       memcpy(result.data.io.str, str, size+1);
     }
   }
@@ -3093,6 +3093,7 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
     }
     break;
   case JX_META_BIT_LIST:
+    /* need to compare pointers */
     break;
   case JX_META_BIT_HASH:
     break;

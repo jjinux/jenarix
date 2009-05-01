@@ -97,23 +97,6 @@ struct jx__ob {
   jx_meta meta;
 };
 
-#if 0
-struct jx__ob {
-  union {
-    jx_data raw;                /* must cover full width of union (for bit-zeroing purposes) */
-    jx_bool bool_;
-    jx_int int_;
-    jx_float float_;
-    jx_char tiny_str[JX_TINY_STR_SIZE - 2];
-    jx_char *str;
-    jx_list *list;
-    jx_hash *hash;
-  } data;
-  jx_meta meta;                 /* meta must follow data so that the first 2 bytes 
-                                   of 4 byte meta struct can be used by tiny str */
-};
-#endif
-
 /* meta flag bits */
 
 #define JX_META_NOT_AN_OB           0x8000
@@ -157,12 +140,11 @@ struct jx__ob {
 #define JX_INLINE __inline__ static
 
 /* variable length array (vla) functions provide untyped, auto-zeroed,
-   null-protected, size and record-length aware variable length arrays
-   NOTE: ALWAYS PASSED BY REFERENCE (since pointer location may change
-   due to reallocation) */
+   size and record-length aware variable length arrays NOTE: ALWAYS
+   PASSED BY REFERENCE (since pointer location may change due to
+   reallocation) */
 
 typedef struct {
-  /* jx_bool read_only; NEEDED? */
   jx_int size;
   jx_int rec_size;
 } jx_vla;
@@ -258,7 +240,7 @@ JX_INLINE jx_status jx_ob_free(jx_ob ob)
 JX_INLINE jx_ob jx_ob_from_null(void)
 {
   jx_ob result = JX_OB_NULL;
-  return result;
+  return result; /* return (jx_ob){{0,0},{0}}; */
 }
 
 JX_INLINE jx_ob jx_ob_from_bool(jx_bool bool_)
