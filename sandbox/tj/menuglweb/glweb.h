@@ -15,8 +15,16 @@ class GLWeb : public QWidget
 public:
     GLWeb(QWidget *parent = 0);
     GLWidget * glWidget;
-    QPlainTextEdit * cmdWidget;
-    QWebView * webWidget;
+    QPlainTextEdit * cmdOutput;
+    QWidget * cmdWidget;
+    QLineEdit * cmdInput;
+    QWidget * webWidget;
+    QWebView * webView;
+    QLineEdit * webURL;
+
+private slots:
+    void openUrl();
+    void doCmd();
 
 };
 
