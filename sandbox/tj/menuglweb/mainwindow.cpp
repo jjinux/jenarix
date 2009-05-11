@@ -12,7 +12,7 @@ MainWindow::MainWindow()
 
     connect(centralWidget->webView, SIGNAL(loadFinished(bool)),
         this, SLOT(updateTextEdit()));
-    setStartupText();
+    //setStartupText();
 
 }
 //! [0]

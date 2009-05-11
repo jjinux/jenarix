@@ -47,7 +47,10 @@ GLWeb::GLWeb(QWidget *parent)
     mainLayout->addWidget(mainSplitter);
 
 // initial values
-    webView->load( QUrl("http://www.pdb.org"));
+    QString url = QString("http://www.pdb.org");
+    webView->load( QUrl(url) );
+    webURL->setText(url);
+
     setWindowTitle(tr("Test using GL + WebKit"));
     cmdOutput->insertPlainText(tr("Command output goes here."));
 
