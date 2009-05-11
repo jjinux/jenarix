@@ -2,6 +2,7 @@ Sample app using qt4 to create a main window containing
 a menubar, opengl widget, command i/o widget and webkit widget.
 The app reads and display json jenarix graphics primitive on stdin on startup.
 For example: python ../sdf2json.py <../drugs.sdf  | ./glweb
+or           ./glweb < drug.json
 The webkit widget is a custom widget containing a text line
 input for a url and a webview widget to display the web page.
 The widgets are arranged using two "slider" frames to allow
@@ -41,6 +42,7 @@ glwidget.cpp:   a custom widget based onthe QGLWidget and containing methods
                 to draw and rotate a simple test object.  It accepts
                 json jenarix graphics primitives on standard in at startup.
 jxprimitives.cpp: read and process json graphics primitives.
+drug.json:      sample input file
 *.h:            assorted header files associated with .cpp files
 moc_*.cpp:      created my qmake/make; totally standard/invisible qt4 stuff. 
 ../jsoncpp/src/*.o:    json reader and writer
