@@ -57,10 +57,8 @@ static void jx__json_free(void *ptr)
 }
 
 static jx_size jx_read_stdin(jx_char *buf, jx_size buf_size)
-{      
-  if(!fgets((char*)buf, buf_size, stdin))
-    buf[0] = 0;
-  return strlen((char*)buf);
+{
+  return fread((char*)buf, 1, buf_size, stdin);
 }
 
 static jx_char *jx_fill(jx_json_scanner_state *s, jx_char *cursor)
@@ -68,48 +66,54 @@ static jx_char *jx_fill(jx_json_scanner_state *s, jx_char *cursor)
   switch(s->mode) {
   case JX_JSON_SCANNER_MODE_STDIN:
     if(!s->eof) {  
-      jx_uword cnt = s->tok - s->bot;
+      jx_uword cnt = s->tok - s->bot; /* amount of open space in buffer */
       if(cnt) {
-        if(s->lim > s->tok) {
-          memcpy(s->bot, s->tok, s->lim - s->tok);
+        if(s->lim > s->tok) { /* any remaining characters? */
+          memcpy(s->bot, s->tok, s->lim - s->tok); /* move to start of buffer */
         }
-        s->tok = s->bot;
-        s->ptr -= cnt;
+        s->tok = s->bot;  /* shift pointers accordingly */
+        s->ptr -= cnt; 
         cursor -= cnt;
         s->pos -= cnt;
         s->lim -= cnt;
       }
-      if((s->top - s->lim) < BSIZE){
+      if((s->top - s->lim) < BSIZE) { /* open space less than read quantum? */
+        /* allocate a larger buffer */
         jx_char *buf = (jx_char*) jx_calloc(1,((s->lim - s->bot) +
-                                                   BSIZE)*sizeof(jx_char));
-        memcpy(buf, s->tok, s->lim - s->tok);
-        s->tok = buf;
-        s->ptr = &buf[s->ptr - s->bot];
-        cursor = &buf[cursor - s->bot];
-        s->pos = &buf[s->pos - s->bot];
-        s->lim = &buf[s->lim - s->bot];
-        s->top = &s->lim[BSIZE];
-        if(s->bot) {
-          jx_free(s->bot);
+                                               BSIZE)*sizeof(jx_char));
+        if(buf) { /* and copy contents to new buffer */
+          memcpy(buf, s->tok, s->lim - s->tok);
+          s->tok = buf; /* adjust pointers accordingly */
+          s->ptr = &buf[s->ptr - s->bot];
+          cursor = &buf[cursor - s->bot];
+          s->pos = &buf[s->pos - s->bot];
+          s->lim = &buf[s->lim - s->bot];
+          s->top = &s->lim[BSIZE];
+          if(s->bot) { /* free old buffer (if exists) */
+            jx_free(s->bot);
+          }
+          s->bot = buf; /* use the new buffer from now on */
         }
-        s->bot = buf;
       }
-      if((cnt = jx_read_stdin(s->lim, BSIZE)) != BSIZE) {
-        {
+      if((s->top - s->lim) < BSIZE) {
+        /* unhandled error condition */
+      } else {
+        cnt = jx_read_stdin(s->lim, BSIZE);
+        if(cnt != BSIZE) {
           jx_size cc = cnt;
           while(cc<BSIZE) {
             s->lim[cc] = 0;
             cc++;
           }
+          s->eof = &s->lim[cnt]; 
+          if(cnt) { 
+            *(s->eof)++ = '\n';
+          } else {
+            *(s->eof)++ = 0;
+          }
         }
-        s->eof = &s->lim[cnt]; 
-        if(cnt) { 
-          *(s->eof)++ = '\n';
-        } else {
-          *(s->eof)++ = 0;
-        }
+        s->lim += cnt;
       }
-      s->lim += cnt;
     }
     break;
   }
@@ -136,7 +140,7 @@ static int jx_scan(jx_json_scanner_state *s)
 
     ESC   = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
 
-    (D+ E FS?) | (D* "." D+ E? FS?) | (D+ "." D* E? FS?)  { RET(JX_JSON_FCON); }
+    ([+\-]? D+ E FS?) | ([+\-]? D* "." D+ E? FS?) | ([+\-]? D+ "." D* E? FS?)  { RET(JX_JSON_FCON); }
     
     (["] (ESC|any\[\n\\"])* ["]) { RET(JX_JSON_SCON); }
     
@@ -152,7 +156,7 @@ static int jx_scan(jx_json_scanner_state *s)
     "false"      { RET(JX_JSON_FALSE); }
     "null"      { RET(JX_JSON_NULL); }
     
-    ("0" [xX] H+ IS?) | ("0" D+ IS?) | (D+ IS?) { RET(JX_JSON_ICON); }
+    ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JSON_ICON); }
     
     [ \t\v\f]+      { goto std; }
     
