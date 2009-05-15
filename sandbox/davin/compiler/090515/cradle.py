@@ -115,7 +115,7 @@ class cradle():
 
     def is_op(self, character):
         "Recognize Any Operator"
-        return character in ["|", "+", "-", "*", "/", "="]
+        return character in ["|", "+", "-", "*", "/", ">", "<", "="]
 
     def is_white(self, character):
         "Recognize White Space"
