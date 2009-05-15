@@ -1,0 +1,14 @@
+#define JX_JSON_ERROR                           1
+#define JX_JSON_EOI                             2
+#define JX_JSON_OPEN_RECT_BRACE                 3
+#define JX_JSON_CLOSE_RECT_BRACE                4
+#define JX_JSON_COMMA                           5
+#define JX_JSON_OPEN_CURLY_BRACE                6
+#define JX_JSON_CLOSE_CURLY_BRACE               7
+#define JX_JSON_COLON                           8
+#define JX_JSON_ICON                            9
+#define JX_JSON_FCON                           10
+#define JX_JSON_SCON                           11
+#define JX_JSON_TRUE                           12
+#define JX_JSON_FALSE                          13
+#define JX_JSON_NULL                           14

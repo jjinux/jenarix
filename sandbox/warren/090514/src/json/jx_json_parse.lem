@@ -1,0 +1,272 @@
+%nonassoc ERROR. 
+
+%include {
+
+#include <stdio.h>
+
+#include "jx_json_private.h"
+
+}
+
+/*** Declare (parser) token_type. ***/
+
+%token_type{jx_ob}
+
+/*** parser functions begin with "jx_json_" ***/
+
+%name jx_json_
+
+/*** token symbols begin with "JX_JSON_" ***/
+
+%token_prefix JX_JSON_
+
+/*** for now, malloc'ing non-terminals. ***/
+
+%destructor list         { jx_ob_free($$); }
+//%destructor hash         { jx_ob_free($$); }
+%destructor primitive    { jx_ob_free($$); }
+
+/*** for now, mallocing tokens **/
+
+%token_destructor { jx_ob_free($$);}
+
+/*** 4th jx_json_Parse() argument is not currently used. ***/
+
+%extra_argument{jx_json_parse_context *context}
+
+/*** Accept action is done in start symbol action. ***/
+
+%parse_accept{
+    context->status = 1;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("accept called\n");
+#endif
+} 
+
+/* failure action */
+
+%parse_failure{
+  context->status = -1;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("parse failed.\n");
+#endif
+}
+
+/*** Syntax error action ***/
+
+%syntax_error {   
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("jx_json_parse-error: syntax error.\n");
+#endif
+}
+
+/*** Declare parser token types ***/
+
+%type expression       { jx_ob }
+%type primitive        { jx_ob }
+%type list             { jx_ob }
+%type expression_list  { jx_ob }
+//%type hash             { jx_ob }
+
+/*** Start symbol ***/
+
+%start_symbol statement
+
+/*** The grammer itself ***/
+
+ /***
+
+statement ::= EOI. 
+{  
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("statement = EOI\n"); 
+#endif
+}
+ ***/
+
+statement ::= expression(B) EOI. 
+{  
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("statement = expression(B) EOI\n"); 
+#endif
+  jx_ob_free(context->result); /* free previous result (if any) */ 
+  context->result = B; /* save the result */
+}
+
+expression(A) ::= primitive(B). 
+{  
+   A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("expression(A) = primitive(B)\n");
+#endif
+}
+
+expression(A) ::= list(B). 
+{  
+   A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("expression(A) = list(B)\n");
+#endif
+}
+
+expression(A) ::= hash(B). 
+{  
+   A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("expression(A) = hash(B)\n");
+#endif
+}
+
+//expression ::= hash(B) EOI.
+//{ 
+//#ifdef JX_JSON_PARSER_DEBUG
+//  printf("expression = triplet_list(%p)\n",B); 
+//#endif
+//  /* hand parse tree over for further processing */
+//  jx_ob_append_tree(context,B);
+//}
+
+list(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
+{ 
+  A = jx_list_new();
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list(A) = []\n");
+#endif
+}
+
+list(A) ::= OPEN_RECT_BRACE list_of_expressions(B) CLOSE_RECT_BRACE.
+{ 
+  A = B; 
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list(A) = [ B ]\n");
+#endif
+}
+
+list_of_expressions(A) ::= expression(B). 
+{ 
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_expressions(A) = expression(B)\n");
+#endif
+}
+
+list_of_expressions(A) ::= list_of_expressions(B) COMMA expression(C). 
+{ 
+  jx_list_append(B,C); /* takes ownership of C */
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_expressions(A) = list_of_expressions(B) , expression(C)\n");
+#endif
+}
+
+hash(A) ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE.
+{ 
+  A = jx_hash_new();
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("hash(A) = {}\n");
+#endif
+}
+
+hash(A) ::= OPEN_CURLY_BRACE list_of_associations(B) CLOSE_CURLY_BRACE.
+{ 
+  A = B; 
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("hash(A) = { B }\n");
+#endif
+}
+
+list_of_associations(A) ::= key(B) COLON expression(C).
+{ 
+  A = jx_hash_new();
+  jx_hash_set(A,B,C); /* takes ownership of B & C */
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(A) = key(B) : value(C)\n");
+#endif
+}
+
+list_of_associations(A) ::= list_of_associations(B) COMMA key(C) COLON expression(D).
+{ 
+  A = B;
+  jx_hash_set(A,C,D);
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(A) = list_of_associations(B) , expression(C)\n");
+#endif
+}
+
+key(A) ::= ICON(B).
+{ 
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("key = ICON\n"); 
+#endif
+}
+
+key(A) ::= FCON(B).
+{ 
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("key = FCON\n"); 
+#endif
+}
+
+key(A) ::= SCON(B).
+{ 
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("key = SCON\n"); 
+#endif
+}
+
+primitive(A) ::= ICON(B). 
+{ 
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = ICON\n"); 
+#endif
+}
+
+primitive(A) ::= FCON(B). 
+{ 
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = FCON\n"); 
+#endif
+}
+
+primitive(A) ::= SCON(B). 
+{
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = SCON\n"); 
+#endif
+}
+
+primitive(A) ::= TRUE(B). 
+{
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = TRUE\n"); 
+#endif
+}
+
+primitive(A) ::= FALSE(B). 
+{
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = FALSE\n"); 
+#endif
+}
+
+primitive(A) ::= NULL(B). 
+{
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = NULL\n"); 
+#endif
+}
+
+
+
+
+
