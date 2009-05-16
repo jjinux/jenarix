@@ -113,10 +113,8 @@ struct jx__ob {
 #define JX_META_BIT_LIST            0x0200
 #define JX_META_BIT_HASH            0x0100
 
-/* reserved for an insertion-order-preserving hash table
-   (dict or hash_list? using JSON serialization order?) */
-
-#define JX_META_BIT_DICT_RESERVED   0x0080
+/* identifiers */
+#define JX_META_BIT_IDENT           0x0080
 
 /* pointers to built-ins (runtime-use-only, non-JSON-serializable) */
 #define JX_META_BIT_BUILTIN         0x0040
@@ -137,11 +135,9 @@ struct jx__ob {
 #define JX_OB_INT      { JX_DATA_INIT, {JX_META_BIT_INT      }}
 #define JX_OB_FLOAT    { JX_DATA_INIT, {JX_META_BIT_FLOAT    }}
 #define JX_OB_BOOL     { JX_DATA_INIT, {JX_META_BIT_BOOL     }}
-#define JX_OB_TINY_STR { JX_DATA_INIT, {JX_META_BIT_TINY_STR }}
 
-#define JX_OB_STR      { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_STR  }}
-#define JX_OB_LIST     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST }}
-#define JX_OB_HASH     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH }}
+#define JX_OB_LIST     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
+#define JX_OB_HASH     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
 /* inline methods */
 
@@ -313,6 +309,11 @@ JX_INLINE jx_status jx_str_check(jx_ob ob)
   return (ob.meta.bits & JX_META_BIT_STR) && JX_TRUE;
 }
 
+JX_INLINE jx_status jx_ident_check(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_IDENT) && JX_TRUE;
+}
+
 JX_INLINE jx_status jx_list_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_LIST) && JX_TRUE;
@@ -332,6 +333,16 @@ JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
   return ((bits & JX_META_BIT_STR) ? ((bits &
+                                       /* don't count string terminator (char 0) */
+                                       JX_META_BIT_GC) ? jx_vla_size(&ob.data.io.str) - 1
+                                      : bits & JX_META_MASK_TINY_STR_SIZE)
+          : 0);
+}
+
+JX_INLINE jx_int jx_ident_len(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits;
+  return ((bits & JX_META_BIT_IDENT) ? ((bits &
                                        /* don't count string terminator (char 0) */
                                        JX_META_BIT_GC) ? jx_vla_size(&ob.data.io.str) - 1
                                       : bits & JX_META_MASK_TINY_STR_SIZE)

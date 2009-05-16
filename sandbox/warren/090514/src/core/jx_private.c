@@ -293,6 +293,40 @@ jx_char *jx_ob_as_str(jx_ob * ob)
   return NULL;
 }
 
+/* identifers are effectively strings without quotes */
+
+jx_ob jx_ob_from_ident(jx_char * ident)
+{
+  jx_int size = strlen(ident);
+  jx_ob result = JX_OB_NULL;
+
+  if(size < JX_TINY_STR_SIZE) {
+    result.meta.bits = JX_META_BIT_IDENT | size;
+    memcpy(result.data.io.tiny_str, ident, size+1);
+  } else {
+    /* string not tiny -- use heap */
+    result.data.io.str = jx_vla_new(1, size + 1);
+    if(result.data.io.str) {
+      result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
+      memcpy(result.data.io.str, ident, size+1);
+    }
+  }
+  return result;
+}
+
+jx_char *jx_ob_as_ident(jx_ob * ob)
+{
+  jx_bits meta = ob->meta.bits;
+  if(meta & JX_META_BIT_IDENT) {
+    if(meta & JX_META_BIT_GC) {
+      return ob->data.io.str;
+    } else {
+      return ob->data.io.tiny_str;
+    }
+  }
+  return NULL;
+}
+
 /* lists */
 
 jx_ob jx_list_new(void)
@@ -1022,7 +1056,8 @@ JX_INLINE jx_uint32 jx__c_str_hash(jx_char * str)
 
 jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
 {
-  if(ob.meta.bits & JX_META_BIT_STR) {  /* right now, we only hash GC strings */
+  if(ob.meta.bits & (JX_META_BIT_STR|JX_META_BIT_IDENT)) {
+    /* right now, we only hash GC strings */
     return jx__c_str_hash(jx_ob_as_str(&ob));
   } else {
     return 0;                   /* unhashable */
@@ -2767,6 +2802,7 @@ jx_status jx__ob_set_read_only(jx_ob ob, jx_bool read_only)
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
+  case JX_META_BIT_IDENT:
     if(read_only)
       ob.meta.bits |= JX_META_BIT_READ_ONLY;
     else
@@ -2789,6 +2825,7 @@ jx_ob jx__ob_copy(jx_ob ob)
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
+  case JX_META_BIT_IDENT:
     ob.data.io.str = (jx_char *) jx_vla_copy(&ob.data.io.str);
     return ob;
     break;
@@ -2810,6 +2847,7 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
      both objects are GC'd */
   switch (left.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
+  case JX_META_BIT_IDENT:
     {
       jx_char *left_st = jx_ob_as_str(&left);
       jx_char *right_st = jx_ob_as_str(&right);
@@ -2838,6 +2876,7 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 
   switch (left.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
+  case JX_META_BIT_IDENT:
     {
       jx_char *left_st = jx_ob_as_str(&left);
       jx_char *right_st = jx_ob_as_str(&right);
@@ -2866,6 +2905,7 @@ jx_status jx__ob_free(jx_ob ob)
     } else {
       switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_STR:
+      case JX_META_BIT_IDENT:
         return jx_vla_free(&ob.data.io.str);
         break;
       case JX_META_BIT_LIST:

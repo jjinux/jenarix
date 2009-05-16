@@ -156,6 +156,8 @@ static int jx_scan(jx_json_scanner_state *s)
     "false"      { RET(JX_JSON_FALSE); }
     "null"      { RET(JX_JSON_NULL); }
     
+    L (L|D)*      { RET(JX_JSON_IDENT); }
+
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JSON_ICON); }
     
     [ \t\v\f]+      { goto std; }
@@ -185,7 +187,6 @@ static int jx_scan(jx_json_scanner_state *s)
     "("         { RET(JX_JSON_OPENPAR); }
     ")"         { RET(JX_JSON_CLOSEPAR); }
     "."         { RET(JX_JSON_DOT); }
-    L (L|D)*      { RET(JX_JSON_IDENT); }
     "`"         { RET(JX_JSON_BACKAPOSTROPHE); }
 
     ";"         { RET(JX_JSON_SEMICOLON); }
@@ -253,6 +254,7 @@ void jx_json_scan_input(jx_json_scanner_state *state)
     case JX_JSON_ICON:
     case JX_JSON_FCON:
     case JX_JSON_SCON:
+    case JX_JSON_IDENT:
       {
         char *buffer = stack_buffer;
         if(st_len >= SSCANF_BUFSIZE) {
@@ -290,6 +292,9 @@ void jx_json_scan_input(jx_json_scanner_state *state)
           case JX_JSON_SCON:
             buffer[st_len-1]=0;
             token = jx_ob_from_str(buffer+1);
+            break;
+          case JX_JSON_IDENT:
+            token = jx_ob_from_ident(buffer);
             break;
           }
           if(buffer != stack_buffer)

@@ -83,6 +83,7 @@ jx_ob jx_ob_from_bool(jx_bool bool_);
 jx_ob jx_ob_from_int(jx_int int_);
 jx_ob jx_ob_from_float(jx_float float_);
 jx_ob jx_ob_from_str(jx_char * str);    /* copies string into new storage */
+jx_ob jx_ob_from_ident(jx_char * ident);  /* copies identifier into new storage */
 
 /* unboxing */
 
@@ -91,6 +92,13 @@ jx_int jx_ob_as_int(jx_ob ob);
 jx_float jx_ob_as_float(jx_ob ob);
 
 jx_char *jx_ob_as_str(jx_ob * ob);      /* returns borrowed (volatile)
+                                           jx_char pointer -- note possing
+                                           object in as a pointer because we
+                                           need to return a pointer to
+                                           characters within the object
+                                           itself when using tiny_str's */
+
+jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
                                            jx_char pointer -- note possing
                                            object in as a pointer because we
                                            need to return a pointer to

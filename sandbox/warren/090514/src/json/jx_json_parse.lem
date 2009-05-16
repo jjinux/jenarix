@@ -209,6 +209,14 @@ primitive(A) ::= SCON(B).
 #endif
 }
 
+primitive(A) ::= IDENT(B). 
+{
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = IDENT\n"); 
+#endif
+}
+
 primitive(A) ::= TRUE(B). 
 {
   A = B;
@@ -232,6 +240,7 @@ primitive(A) ::= NULL(B).
   printf("primitive = NULL\n"); 
 #endif
 }
+
 
 
 

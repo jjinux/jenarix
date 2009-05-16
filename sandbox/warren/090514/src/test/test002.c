@@ -122,4 +122,22 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_hash_check(jx_ob_from_float(1.0)));
     P1("0 == %d", jx_hash_check(jx_ob_from_str("tny")));
   }
+
+  {
+    jx_ob tiny = jx_ob_from_ident(TINY_TEST);
+    jx_ob heap = jx_ob_from_ident("heap_ident_for_sure__");
+
+    P2("'%s' eq '%s'", TINY_TEST, jx_ob_as_ident(&tiny));
+    P1("'heap_ident_for_sure__' eq '%s'", jx_ob_as_ident(&heap));
+
+    dump_hex("# tiny", &tiny, sizeof(jx_ob));
+    dump_hex("# heap", &heap, sizeof(jx_ob));
+
+    tiny = jx_ob_from_int(1);
+    dump_hex("# one", &tiny, sizeof(jx_ob));
+
+    P1("0 == %d", jx_ob_free(tiny));
+    P1("0 == %d", jx_ob_free(heap));
+  }
+
 }

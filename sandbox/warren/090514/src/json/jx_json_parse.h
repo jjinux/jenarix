@@ -9,6 +9,7 @@
 #define JX_JSON_ICON                            9
 #define JX_JSON_FCON                           10
 #define JX_JSON_SCON                           11
-#define JX_JSON_TRUE                           12
-#define JX_JSON_FALSE                          13
-#define JX_JSON_NULL                           14
+#define JX_JSON_IDENT                          12
+#define JX_JSON_TRUE                           13
+#define JX_JSON_FALSE                          14
+#define JX_JSON_NULL                           15

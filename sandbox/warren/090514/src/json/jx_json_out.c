@@ -244,6 +244,13 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
       return jx_ob_from_str(buffer);
     }
     break;
+  case JX_META_BIT_IDENT: /* Jenarix JSON extension */
+    if(ob.meta.bits & JX_META_BIT_GC) {
+      return jx_ob_from_str(ob.data.io.str);
+    } else {
+      return jx_ob_from_str(ob.data.io.tiny_str);
+    }
+    break;
   case JX_META_BIT_LIST:
     return jx__list_to_json(ob.data.io.list, flags);
     break;
