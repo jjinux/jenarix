@@ -154,4 +154,45 @@ int main(int argc, char **argv)
 
   }
 
+  {
+    jx_ob hash1 = jx_hash_new();
+    jx_ob hash2 = jx_hash_new();
+    jx_ob hash3 = jx_hash_new();
+
+    P1("0 == %d", jx_ob_identical(hash1,hash2));    
+    P1("1 == %d", jx_ob_equal(hash1,hash2));    
+    P1("1 == %d", jx_ob_equal(hash2,hash3));    
+
+    jx_hash_set(hash1, jx_ob_from_int(1), jx_ob_from_int(2));
+    jx_hash_set(hash2, jx_ob_from_int(1), jx_ob_from_int(2));
+    jx_hash_set(hash3, jx_ob_from_int(3), jx_ob_from_int(4));
+
+    P1("1 == %d", jx_ob_equal(hash1,hash2));    
+    P1("0 == %d", jx_ob_equal(hash2,hash3));    
+
+    jx_hash_set(hash1, jx_ob_from_int(3), jx_ob_from_int(4));
+    jx_hash_set(hash2, jx_ob_from_int(3), jx_ob_from_int(4));
+    jx_hash_set(hash3, jx_ob_from_int(1), jx_ob_from_int(2));
+
+    P1("1 == %d", jx_ob_equal(hash1,hash2));    
+    P1("1 == %d", jx_ob_equal(hash2,hash3));    
+
+    jx_hash_set(hash1, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("hi")));
+    jx_hash_set(hash2, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("hi")));
+    jx_hash_set(hash3, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("lo")));
+
+    P1("1 == %d", jx_ob_equal(hash1,hash2));    
+    P1("0 == %d", jx_ob_equal(hash2,hash3));    
+
+    jx_hash_set(hash3, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("hi")));
+
+    P1("1 == %d", jx_ob_equal(hash1,hash2));    
+    P1("1 == %d", jx_ob_equal(hash2,hash3));    
+
+    P1("0 == %d", jx_ob_free(hash1));    
+    P1("0 == %d", jx_ob_free(hash2));    
+    P1("0 == %d", jx_ob_free(hash3));    
+
+  }
+
 }

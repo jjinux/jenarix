@@ -46,10 +46,12 @@ typedef unsigned int jx_uint32; /* for hash codes, etc. */
 typedef long long jx_int64;
 
 #ifdef JX_64_BIT
+/* uses 64-bit integers and double-precision floating point */
 typedef jx_int64 jx_int;
 typedef double jx_float;
 #define JX_TINY_STR_MIN_SIZE 10
 #else
+/* uses 32-bit integers and single-precision floating point */
 typedef int jx_int;
 typedef float jx_float;
 #define JX_TINY_STR_MIN_SIZE 6

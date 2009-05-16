@@ -273,10 +273,17 @@ void jx_json_scan_input(jx_json_scanner_state *state)
             break;
           case JX_JSON_FCON:
             {
+#ifdef JX_64_BIT
+              double fcon;
+              if( jx_os_sscanf(buffer, "%lf", &fcon) != 1) { /* use strtof instead? */
+                fcon = 0.0;
+              }
+#else
               float fcon; /* eventually need to handle float64 vs. float32 */
               if( jx_os_sscanf(buffer, "%f", &fcon) != 1) { /* use strtof instead? */
                 fcon = 0.0F;
               }
+#endif
               token = jx_ob_from_float(fcon);
             }
             break;

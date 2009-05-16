@@ -67,6 +67,16 @@ int main(int argc, char **argv)
   JS("false");
   JS("0");
   JS("1");
+  JS("-1");
+  JS("1.0");
+  JS("-1.0");
+#ifdef JX_64_BIT
+  JS("1.0000100000000001");
+  JS("-1.0000100000000001");
+#else
+  JS("1.00001");
+  JS("-1.00001");
+#endif
   JS("[]");
   JS("{}");
   JS("\"hi\"");
@@ -74,19 +84,23 @@ int main(int argc, char **argv)
   JS("[true]");
   JS("[false]");
   JS("[1]");
+  JS("[-1]");
   JS("[\"one\"]");
   JS("{1:2}");
+  JS("{-1:-2}");
   JS("{\"one\":\"two\"}");
   JS("[1,2]");
+  JS("[-1,-2]");
   JS("[1,[2]]");
   JS("[1,[2,3]]");
   JS("{1:{2:3}}");
   JS("[1,[2,3,4,5]]");
   JS("{1:{2:3,4:5}}");
   JS("[1,[2,\"three\",4,5]]");
-  /* these are all invalid and should give null */
 
+  /* below are all invalid and should give null */
   JF("");
+  JF("-");
   JF("{[]:1}");
   JF("{{}:1}");
   JF("{[1,2]:1}");

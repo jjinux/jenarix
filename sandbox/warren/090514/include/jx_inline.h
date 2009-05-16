@@ -65,6 +65,7 @@ typedef jx_int64 jx_data_word[2];
 
 typedef struct jx__list jx_list;
 typedef struct jx__hash jx_hash;
+typedef struct jx__builtin jx_builtin;
 
 typedef jx_uint16 jx_bits;
 
@@ -78,13 +79,14 @@ typedef struct { /* for fast initialization / comparison */
 } jx_data_raw;
 
 typedef union {
-    jx_bool bool_;
-    jx_int int_;
-    jx_float float_;
-    jx_char tiny_str[JX_TINY_STR_SIZE];
-    jx_char *str;
-    jx_list *list;
-    jx_hash *hash;
+  jx_bool bool_;
+  jx_int int_;
+  jx_float float_;
+  jx_char tiny_str[JX_TINY_STR_SIZE];
+  jx_char *str;
+  jx_list *list;
+  jx_hash *hash;
+  jx_builtin *builtin;
 } jx_data_io;
 
 typedef union {
@@ -96,23 +98,6 @@ struct jx__ob {
   jx_data data; 
   jx_meta meta;
 };
-
-#if 0
-struct jx__ob {
-  union {
-    jx_data raw;                /* must cover full width of union (for bit-zeroing purposes) */
-    jx_bool bool_;
-    jx_int int_;
-    jx_float float_;
-    jx_char tiny_str[JX_TINY_STR_SIZE - 2];
-    jx_char *str;
-    jx_list *list;
-    jx_hash *hash;
-  } data;
-  jx_meta meta;                 /* meta must follow data so that the first 2 bytes 
-                                   of 4 byte meta struct can be used by tiny str */
-};
-#endif
 
 /* meta flag bits */
 
@@ -128,17 +113,23 @@ struct jx__ob {
 #define JX_META_BIT_LIST            0x0200
 #define JX_META_BIT_HASH            0x0100
 
-#define JX_META_BIT_READ_ONLY       0x0080
-/* since this only applies to GC object, it might make more sense to
-  push the read-only flag down into the container */
+/* reserved for an insertion-order-preserving hash table
+   (dict or hash_list? using JSON serialization order?) */
 
-#define JX_META_MASK_TYPE_BITS      0x3F00
+#define JX_META_BIT_DICT_RESERVED   0x0080
 
-/* we still have 2 bits free for future use */
+/* pointers to built-ins (runtime-use-only, non-JSON-serializable) */
+#define JX_META_BIT_BUILTIN         0x0040
 
-#define JX_META_MASK_FOR_HASH        0xFF1F
+#define JX_META_MASK_TYPE_BITS      0x3FC0
 
 #define JX_META_MASK_TINY_STR_SIZE  0x001F
+
+#define JX_META_MASK_FOR_HASH       0xFFDF
+
+#define JX_META_BIT_READ_ONLY       0x0020
+/* since this only applies to GC objects, it might make more sense to
+  push the read-only flag down into the container */
 
 /* object initializers */
 

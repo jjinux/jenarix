@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_3pt0);
-    P2("'%f' eq '%s'", jx_ob_as_float(ob_3pt0), jx_ob_as_str(&json));
+    P1("'3.0' eq '%s'", jx_ob_as_str(&json));
     jx_ob_free(json);
 
     json = jx_ob_to_json(ob_tiny);

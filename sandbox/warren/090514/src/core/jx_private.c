@@ -436,10 +436,16 @@ jx_bool jx__list_equal(jx_list *left, jx_list *right)
   if(left_size == right_size) {
     if(!left_size)
       return JX_TRUE;
-    else if(left->packed_meta_bits != right->packed_meta_bits)
-      /* to do */
-      return JX_FALSE;
-    else if(left->packed_meta_bits) {
+    else if(left->packed_meta_bits != right->packed_meta_bits) {
+      /* rare circumstance  -- one packed, but not other */
+      int i;
+      for(i=0;i<left_size;i++) {
+        if(!jx_ob_equal(jx__list_borrow(left,i),
+                        jx__list_borrow(right,i)))
+          return JX_FALSE;
+      }
+      return JX_TRUE;
+    } else if(left->packed_meta_bits) {
       jx_int i;
       switch (left->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_INT:
@@ -1860,12 +1866,23 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
           register jx_uint32 i = (size >> 1);
           register jx_ob *ob = I->key_value;
           while(i--) {
+#if 0
+            fprintf(stderr,"%08x %04x %04x == %08x %04x %04x %d\n",
+                    (unsigned int)ob[0].data.raw.word, 
+                    (unsigned int)ob[0].data.raw.bits, 
+                    (unsigned int)ob[0].meta.bits,
+                    (unsigned int)key.data.raw.word, 
+                    (unsigned int)key.data.raw.bits, 
+                    (unsigned int)key.meta.bits,
+                    jx_ob_identical(ob[0], key)
+                    );                    
+#endif
             if(jx_ob_identical(ob[0], key)) {
               found = JX_TRUE;
-              jx_ob_free(I->key_value[0]);
-              jx_ob_free(I->key_value[1]);
-              I->key_value[0] = JX_OWN(key);    /* takes ownership */
-              I->key_value[1] = JX_OWN(value);  /* takes ownership */
+              jx_ob_free(ob[0]);
+              jx_ob_free(ob[1]);
+              ob[0] = JX_OWN(key);    /* takes ownership */
+              ob[1] = JX_OWN(value);  /* takes ownership */
               result = JX_SUCCESS;
               break;
             }
@@ -2114,6 +2131,60 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
   return result;
 }
 
+static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
+{
+  jx_int left_size = jx__hash_size(left);
+  jx_int right_size = jx__hash_size(right);
+
+  if(left_size == right_size) {
+    if(!left_size)
+      return JX_TRUE;
+    else {
+      jx_hash_info *info = (jx_hash_info *) left->info;
+      if((!info) || (info->mode == JX_HASH_LINEAR)) {
+        register jx_int i = (info ? info->usage : left_size );
+        register jx_ob *ob = left->key_value;
+        while(i--) {
+          jx_ob right_value = JX_OB_NULL;
+          if(!jx__hash_borrow(&right_value, right, ob[0]))
+            return JX_FALSE;
+          else if(!jx_ob_equal(ob[1],right_value))
+            return JX_FALSE;
+          ob += 2;
+        }
+        return JX_TRUE;
+      } else {
+        switch (info->mode) {
+        case JX_HASH_ONE_TO_ANY:
+        case JX_HASH_ONE_TO_ONE:
+        case JX_HASH_ONE_TO_NIL:
+          {
+            jx_uint32 mask = info->mask;
+            jx_uint32 *hash_table = info->table;
+            jx_ob *key_value = left->key_value;
+            jx_uint32 index = 0;
+            do {
+              jx_uint32 *hash_entry = hash_table + (index << 1);
+              if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) { 
+                jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                jx_ob right_value = JX_OB_NULL;
+                if(!jx__hash_borrow(&right_value, right, kv_ob[0]))
+                  return JX_FALSE;
+                else if(!jx_ob_equal(kv_ob[1],right_value))
+                  return JX_FALSE;
+              }
+              index++;
+            } while(index <= mask);
+            return JX_TRUE;
+          }
+          break;
+        }
+      }
+    }
+  }
+  return JX_FALSE;
+}
+
 jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
 {
   jx_ob result = jx_list_new();
@@ -2142,7 +2213,7 @@ jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
           jx_uint32 index = 0;
           do {
             jx_uint32 *hash_entry = hash_table + (index << 1);
-            if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {  /* active slot with matching hash code */
+            if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) { 
               jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
               if(flags & JX__HASH_COPY_KEYS)
                 jx_list_append(result, jx_ob_copy(kv_ob[0]));
@@ -2764,6 +2835,7 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 {
   /* on entry, we know left.meta.bits == right.meta.bits and that
      both objects are GC'd */
+
   switch (left.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
     {
@@ -2778,8 +2850,7 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
     return jx__list_equal(left.data.io.list, right.data.io.list);
     break;
   case JX_META_BIT_HASH:
-    // to do
-    // return jx__hash_equal(left.data.io.list, right.data.io.list);
+    return jx__hash_equal(left.data.io.hash, right.data.io.hash);
     break;
   }
   return JX_FALSE;

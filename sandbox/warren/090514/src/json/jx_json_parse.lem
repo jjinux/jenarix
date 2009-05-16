@@ -117,15 +117,6 @@ expression(A) ::= hash(B).
 #endif
 }
 
-//expression ::= hash(B) EOI.
-//{ 
-//#ifdef JX_JSON_PARSER_DEBUG
-//  printf("expression = triplet_list(%p)\n",B); 
-//#endif
-//  /* hand parse tree over for further processing */
-//  jx_ob_append_tree(context,B);
-//}
-
 list(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
 { 
   A = jx_list_new();
@@ -176,45 +167,21 @@ hash(A) ::= OPEN_CURLY_BRACE list_of_associations(B) CLOSE_CURLY_BRACE.
 #endif
 }
 
-list_of_associations(A) ::= key(B) COLON expression(C).
+list_of_associations(A) ::= primitive(B) COLON expression(C).
 { 
   A = jx_hash_new();
   jx_hash_set(A,B,C); /* takes ownership of B & C */
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_associations(A) = key(B) : value(C)\n");
+  printf("list_of_associations(A) = primitive(B) : expression(C)\n");
 #endif
 }
 
-list_of_associations(A) ::= list_of_associations(B) COMMA key(C) COLON expression(D).
+list_of_associations(A) ::= list_of_associations(B) COMMA primitive(C) COLON expression(D).
 { 
   A = B;
   jx_hash_set(A,C,D);
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_associations(A) = list_of_associations(B) , expression(C)\n");
-#endif
-}
-
-key(A) ::= ICON(B).
-{ 
-  A = B;
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("key = ICON\n"); 
-#endif
-}
-
-key(A) ::= FCON(B).
-{ 
-  A = B;
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("key = FCON\n"); 
-#endif
-}
-
-key(A) ::= SCON(B).
-{ 
-  A = B;
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("key = SCON\n"); 
+  printf("list_of_associations(A) = list_of_associations(B), primitive(C) : expression(D)\n");
 #endif
 }
 

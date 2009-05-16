@@ -36,3 +36,5 @@ test: tests
 	src/test/test005 | perl
 	src/test/test006 | perl
 	src/test/test007 | perl
+	src/test/test008 | perl
+	src/test/test009 | perl

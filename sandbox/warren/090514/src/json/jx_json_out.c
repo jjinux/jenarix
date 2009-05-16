@@ -170,6 +170,24 @@ static jx_ob jx__hash_to_json(jx_hash * I, jx_int flags)
   return jx_ob_from_null();
 }
 
+static void force_float(char *str) 
+{
+  char ch,*p;
+  p = str;
+  while( (ch=*(p++)) ) {
+    switch(ch) {
+    case '.':
+    case 'e':
+    case 'E':
+      return; /* float implied */
+      break;
+    }
+  }
+  p[-1] = '.';
+  p[0] = '0';
+  p[1] = 0;
+}
+
 jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
 {
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
@@ -192,7 +210,12 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
   case JX_META_BIT_FLOAT:
     {
       char buffer[50];
-      snprintf(buffer, sizeof(buffer), "%f", ob.data.io.float_);
+#ifdef JX_64_BIT
+      snprintf(buffer, sizeof(buffer), "%.17g", ob.data.io.float_);
+#else
+      snprintf(buffer, sizeof(buffer), "%.8g", ob.data.io.float_);
+#endif
+      force_float(buffer);
       return jx_ob_from_str(buffer);
     }
     break;
