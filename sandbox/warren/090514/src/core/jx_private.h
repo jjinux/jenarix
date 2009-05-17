@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 struct jx__list {
   jx_bits packed_meta_bits;
+  jx_bool read_only;
   union {
     jx_ob *ob_vla;              /* heterogeneous */
     jx_float *float_vla;
@@ -89,6 +90,7 @@ typedef struct {
 */
 
 struct jx__hash {
+  jx_bool read_only;
   jx_ob *key_value;             /* variable length array of key/value objects owned by the table */
   jx_uint32 *info;              /* variable length array of the hash table information record */
 };

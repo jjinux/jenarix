@@ -126,10 +126,8 @@ struct jx__ob {
 
 #define JX_META_MASK_FOR_HASH       0xFFDF
 
-#define JX_META_BIT_READ_ONLY       0x0020
+#define JX_META_BIT_WEAK_REF        0x0020
 
-/* since this only applies to GC objects, it might make more sense to
-   push the read-only flag down into the container structure */
 
 /* object initializers */
 
@@ -151,7 +149,7 @@ struct jx__ob {
 JX_INLINE jx_ob jx_builtin_new(jx_builtin builtin)
 {
   jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_GC | JX_META_BIT_READ_ONLY;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_GC | JX_META_BIT_WEAK_REF;
   result.data.io.builtin = builtin;
   return result;
 }
@@ -253,7 +251,7 @@ JX_INLINE jx_status jx_ob_free(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_GC) {
-    if(bits & JX_META_BIT_READ_ONLY) {
+    if(bits & JX_META_BIT_WEAK_REF) {
       return JX_FAILURE;
     } else {
       /* object has resources which need to be garbage collected */
@@ -381,20 +379,21 @@ JX_INLINE jx_ob jx_ob_set_read_only(jx_ob ob, jx_bool read_only)
   if(ob.meta.bits & JX_META_BIT_GC) {
     if(jx_ok(jx__ob_set_read_only(ob, read_only))) {
       if(read_only) {
-        ob.meta.bits |= JX_META_BIT_READ_ONLY;
+        ob.meta.bits |= JX_META_BIT_WEAK_REF;
       } else {
-        ob.meta.bits &= ~(JX_META_BIT_READ_ONLY);
+        ob.meta.bits &= ~(JX_META_BIT_WEAK_REF);
       }
     }
   }
   return ob;
 }
 
+jx_bool jx__ob_read_only(jx_ob ob);
 JX_INLINE jx_bool jx_ob_read_only(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_GC) {
-    return (bits & JX_META_BIT_READ_ONLY) && JX_TRUE;
+    return jx__ob_read_only(ob);
   }
   return JX_FALSE;
 }
@@ -403,7 +402,7 @@ jx_ob jx__ob_copy(jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits; 
-  if((bits & JX_META_BIT_GC) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_GC) {
     return jx__ob_copy(ob);
   }
   return ob;
@@ -463,7 +462,7 @@ jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill);
 JX_INLINE jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     if(jx_ok(jx__list_resize(list.data.io.list, size, fill))) {
       jx_ob_free(fill);
       return JX_SUCCESS;
@@ -488,7 +487,7 @@ jx_status jx__list_append(jx_list * I, jx_ob ob);
 JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_append(list.data.io.list, ob);
   }
   return JX_FAILURE;
@@ -498,7 +497,7 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob);
 JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_insert(list.data.io.list, index, ob);
   }
   return JX_FAILURE;
@@ -508,7 +507,7 @@ jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob);
 JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_replace(list.data.io.list, index, ob);
   }
   return JX_FAILURE;
@@ -519,12 +518,13 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
 {
   jx_bits bits1 = list1.meta.bits;
   jx_bits bits2 = list2.meta.bits;
-  if((bits1 & JX_META_BIT_LIST) &&
-     !(bits1 & JX_META_BIT_READ_ONLY) && (bits2 & JX_META_BIT_LIST)) {
-    if(bits2 & JX_META_BIT_READ_ONLY) {
+  if((bits1 & JX_META_BIT_LIST) && (bits2 & JX_META_BIT_LIST)) {
+    if(bits2 & JX_META_BIT_WEAK_REF) { /* copy list2 if weak */
       list2 = jx_ob_copy(list2);
       if(!jx_ok(jx__list_combine(list1.data.io.list, list2.data.io.list)))
         jx_ob_free(list2);
+      else
+        return JX_SUCCESS;
     } else {
       return jx__list_combine(list1.data.io.list, list2.data.io.list);
     }
@@ -553,7 +553,7 @@ jx_ob jx__list_remove(jx_list * I, jx_int index);
 JX_INLINE jx_ob jx_list_remove(jx_ob list, jx_int index)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_remove(list.data.io.list, index);
   }
   return jx_ob_from_null();
@@ -563,7 +563,7 @@ jx_status jx__list_delete(jx_list * I, jx_int index);
 JX_INLINE jx_status jx_list_delete(jx_ob list, jx_int index)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_delete(list.data.io.list, index);
   }
   return JX_FAILURE;
@@ -573,7 +573,7 @@ jx_status jx__list_set_int_vla(jx_list * list, jx_int ** ref);
 JX_INLINE jx_status jx_list_set_int_vla(jx_ob list, jx_int ** ref)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_set_int_vla(list.data.io.list, ref);
   }
   return JX_FAILURE;
@@ -583,7 +583,7 @@ jx_status jx__list_set_float_vla(jx_list * list, jx_float ** ref);
 JX_INLINE jx_status jx_list_set_float_vla(jx_ob list, jx_float ** ref)
 {
   jx_bits bits = list.meta.bits;
-  if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_LIST) {
     return jx__list_set_float_vla(list.data.io.list, ref);
   }
   return JX_FAILURE;
@@ -606,7 +606,7 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
-    if(bits & JX_META_BIT_READ_ONLY) {
+    if(bits & JX_META_BIT_WEAK_REF) {
       return jx_list_new_from_hash(hash);
     } else {
       jx_ob result = jx_list_new();
@@ -687,7 +687,7 @@ JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
 {
   jx_bits bits = list.meta.bits;
   if(bits & JX_META_BIT_LIST) {
-    if(bits & JX_META_BIT_READ_ONLY) {
+    if(bits & JX_META_BIT_WEAK_REF) {
       return jx_hash_new_from_list(list);
     } else {
       jx_ob result = jx_hash_new();
@@ -718,7 +718,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value);
 JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
 {
   jx_bits bits = hash.meta.bits;
-  if((bits & JX_META_BIT_HASH) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_HASH) {
     return jx__hash_set(hash.data.io.hash, key, value);
   }
   return JX_FAILURE;
@@ -774,7 +774,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key);
 JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
-  if((bits & JX_META_BIT_HASH) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_remove(&result, hash.data.io.hash, key))
       return result;
@@ -785,7 +785,7 @@ JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
 JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
-  if((bits & JX_META_BIT_HASH) && !(bits & JX_META_BIT_READ_ONLY)) {
+  if(bits & JX_META_BIT_HASH) {
     jx_ob result;
     if(jx__hash_remove(&result, hash.data.io.hash, key)) {
       jx_ob_free(result);

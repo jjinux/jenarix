@@ -66,7 +66,8 @@ int main(int argc, char **argv)
     P2("(0x387778c7 == 0x%08x) || (0x9e069f3e == 0x%08x)",
        jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
 
-    P1("0xced8ea80 == 0x%08x", jx_ob_hash_code(ob_tiny));
+    //    P1("0xced8ea80 == 0x%08x", jx_ob_hash_code(ob_tiny));
+    P1("0xf70711c3 == 0x%08x", jx_ob_hash_code(ob_tiny));
 
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge1));
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge2));

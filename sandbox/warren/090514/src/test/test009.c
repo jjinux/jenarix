@@ -229,6 +229,8 @@ int main(int argc, char **argv)
     jx_int len2 = strlen(jx_ob_as_str(&json2));
     jx_int sum2 = strsum(jx_ob_as_str(&json2));
 
+    printf("# %s\n# %s\n",jx_ob_as_str(&json1), jx_ob_as_str(&json2));
+    jx_ob_dump(stderr,"ob2",ob2);
     printf("# complexity = %d, JSON string length = %d\n",complexity, len1);
     P2("%d == %d",len1,len2);
     P2("%d == %d",sum1,sum2);

@@ -95,9 +95,9 @@ int main(int argc, char **argv)
     list0 = jx_ob_set_read_only(list0,JX_TRUE);
     P1("1 == %d", jx_ob_read_only(list0));    
 
-    jx_list_resize(list1,2,list0);
+    P1("0 == %d", jx_list_resize(list1,2,list0));
 
-    jx_list_combine(list1,list0);
+    P1("0 == %d", jx_list_combine(list1,list0));
 
     {
       jx_ob json = jx_ob_to_json(list1);
