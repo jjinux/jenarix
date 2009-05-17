@@ -822,6 +822,46 @@ JX_INLINE jx_ob jx_ob_to_json(jx_ob ob)
   return jx_ob_to_json_with_flags(ob, 0);
 }
 
+JX_INLINE jx_ob jx_add(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_INT:
+      return jx_ob_from_int(  left.data.io.int_ + right.data.io.int_ );
+      break;
+    case JX_META_BIT_FLOAT:
+      return jx_ob_from_float( left.data.io.float_ + right.data.io.float_ );
+      break;
+    case JX_META_BIT_BOOL:
+      return jx_ob_from_int( left.data.io.bool_ + right.data.io.bool_ );
+      break;
+    }
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_sub(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_INT:
+      return jx_ob_from_int(  left.data.io.int_ - right.data.io.int_ );
+      break;
+    case JX_META_BIT_FLOAT:
+      return jx_ob_from_float( left.data.io.float_ - right.data.io.float_ );
+      break;
+    case JX_META_BIT_BOOL:
+      return jx_ob_from_int( left.data.io.bool_ - right.data.io.bool_ );
+      break;
+    }
+  }
+  return jx_ob_from_null();
+}
+
 /* debugging */
 
 JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)

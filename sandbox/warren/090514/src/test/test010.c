@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 
     P1("0 == %d",jx_expose_builtins(namespace));
     {
-      jx_ob source = jx_ob_from_json_str("[[set,a,{1:2,3:[4,5,[add,3,3]]}],[get,a]]");
+      jx_ob source = jx_ob_from_json_str("[[set,a,{1:2,3:[4,5,[sub,9,3]]}],[get,a]]");
       {
         jx_ob json = jx_ob_to_json(source);
         printf("# %s\n",jx_ob_as_str(&json));
