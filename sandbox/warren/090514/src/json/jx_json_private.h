@@ -10,7 +10,7 @@ extern "C" {
 #endif
 #endif
 
-#define JX_JSON_PARSER_DEBUG
+#define noJX_JSON_PARSER_DEBUG
 
 /* include token identifiers */
 
