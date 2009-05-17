@@ -203,7 +203,11 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
   case JX_META_BIT_INT:
     {
       char buffer[50];
+#ifdef JX_64_BIT
+      snprintf(buffer, sizeof(buffer), "%ld", ob.data.io.int_);
+#else
       snprintf(buffer, sizeof(buffer), "%d", ob.data.io.int_);
+#endif
       return jx_ob_from_str(buffer);
     }
     break;
