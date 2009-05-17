@@ -141,10 +141,11 @@ jx_int jx_str_size(jx_ob ob);
 jx_ob jx_list_new(void);
 jx_ob jx_list_new_from_int_array(jx_int * array, jx_int size);  /* copies array */
 jx_ob jx_list_new_from_float_array(jx_float * array, jx_float size);    /* copies array */
-jx_ob jx_list_new_with_size(jx_int size, jx_ob fill); /* takes ownership of fill */
+jx_ob jx_list_new_with_size(jx_int size); /* creates a null-filled list */
+jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill); /* takes ownership of fill */
 
-jx_ob jx_list_new_from_hash(jx_ob hash);        /* returns owned list of copied keys & values (interleaved) */
-jx_ob jx_list_new_with_hash(jx_ob hash);        /* frees hash and converts content to interleaved list */
+jx_ob jx_list_new_from_hash(jx_ob hash); /* returns owned list of copied keys & values (interleaved) */
+jx_ob jx_list_new_with_hash(jx_ob hash); /* frees hash and converts content to interleaved list */
 
 jx_int jx_list_size(jx_ob list);
 jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill);  /* takes ownership of fill object */
@@ -156,8 +157,9 @@ jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob);  /* takes ownersh
 jx_status jx_list_combine(jx_ob list1, jx_ob list2);    /* takes ownership of and consume list2 */
 
 jx_ob jx_list_borrow(jx_ob list, jx_int index); /* borrows list entry */
+jx_ob jx_list_get(jx_ob list, jx_int index); /* copies list entry (returns ownership) */
 jx_ob jx_list_remove(jx_ob list, jx_int index); /* returns ownership of removed entry */
-jx_status jx_list_delete(jx_ob list, jx_int index);     /* frees entry at index */
+jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
 
 /* homogenous lists with variable length arrays (vla's)  */
 
@@ -199,7 +201,7 @@ jx_ob jx_hash_keys(jx_ob hash); /* returns owned list of copied keys */
 jx_ob jx_hash_values(jx_ob hash);       /* returns owned list of copied values */
 
 jx_ob jx_hash_borrow(jx_ob hash, jx_ob key);    /* borrows key and returns borrowed value */
-jx_ob jx_hash_get(jx_ob hash, jx_ob key);       /* borrows key and returns owned value */
+jx_ob jx_hash_get(jx_ob hash, jx_ob key);       /* borrows and returns copied (owned) value */
 jx_ob jx_hash_remove(jx_ob hash, jx_ob key);    /* borrows key and returns owned value */
 jx_status jx_hash_delete(jx_ob hash, jx_ob key);        /* borrows key and deletes matched key & value */
 
@@ -220,6 +222,16 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags);
 /* json input */
 
 jx_ob jx_ob_from_json_str(jx_char * str);
+
+/* builtins */
+
+jx_ob jx_builtin_new(jx_builtin fn);
+
+/* execution engine */
+
+jx_status jx_expose_builtins(jx_ob namespace);
+jx_ob jx_bind(jx_ob namespace, jx_ob source);
+jx_ob jx_exec(jx_ob node, jx_ob code);
 
 /* destroying owned objects */
 

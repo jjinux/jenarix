@@ -1,5 +1,16 @@
 
-all: test001 test002 test003 test004 test005 test006 test007 test008 test009 test100
+all: \
+	test001 \
+	test002 \
+	test003 \
+	test004 \
+	test005 \
+	test006 \
+	test007 \
+	test008 \
+	test009 \
+	test010 \
+	test100
 
 JX_ROOT=../..
 
@@ -16,7 +27,8 @@ test006.o: test006.c $(JX_INC_FILES)
 test007.o: test007.c $(JX_INC_FILES)
 test008.o: test008.c $(JX_INC_FILES)
 test009.o: test009.c $(JX_INC_FILES)
- 
+test010.o: test010.c $(JX_INC_FILES)
+
 test100.o: test100.c $(JX_INC_FILES)
 
 test001: test001.o $(JX_ROOT)/libjx.a
@@ -28,6 +40,7 @@ test006: test006.o $(JX_ROOT)/libjx.a
 test007: test007.o $(JX_ROOT)/libjx.a
 test008: test008.o $(JX_ROOT)/libjx.a
 test009: test009.o $(JX_ROOT)/libjx.a
+test010: test010.o $(JX_ROOT)/libjx.a
 
 test100: test100.o $(JX_ROOT)/libjx.a
 
@@ -42,5 +55,6 @@ clean:
 	test007 \
 	test008 \
 	test009 \
+	test010 \
 	test100
 

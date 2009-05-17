@@ -339,6 +339,15 @@ jx_ob jx_list_new(void)
   }
 }
 
+jx_ob jx_list_new_with_size(jx_int size)
+{
+  jx_ob result = jx_list_new();
+  if(result.meta.bits & JX_META_BIT_LIST) {
+    result.data.io.list->data.vla = jx_vla_new(sizeof(jx_ob), size); /* zero'd memory */
+  }
+  return result;
+}
+
 jx_ob jx_list_new_from_int_array(jx_int * array, jx_int size)
 {
   jx_ob result = jx_list_new();
@@ -653,7 +662,6 @@ JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
 
 #define JX_OWN(ob) ob
 #define JX_BORROW(ob) ob
-
 jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill)
 {
   if(size >= 0) {
@@ -715,7 +723,8 @@ jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill)
           return JX_SUCCESS;
         }
       }
-    } else {                    /* existing list is not empty, but data sizes are known to match */
+    } else {                    
+      /* existing list is not empty, but data sizes are known to match */
       if(!(fill.meta.bits & JX_META_BIT_GC)) {
         /* filling with a non GC object, possibly packed */
         if(!I->packed_meta_bits) {      /* not packed data */
@@ -946,7 +955,9 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
 {
   if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
     if(I->packed_meta_bits) {
-      return jx__list_get_packed_data(I, index);
+      jx_ob result = jx__list_get_packed_data(I, index);
+      jx_vla_remove(&I->data.vla, index, 1);
+      return result;
     } else {
       jx_ob result = I->data.ob_vla[index];
       if(jx_ok(jx_vla_remove(&I->data.vla, index, 1))) {
@@ -1058,7 +1069,10 @@ jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
 {
   if(ob.meta.bits & (JX_META_BIT_STR|JX_META_BIT_IDENT)) {
     /* right now, we only hash GC strings */
-    return jx__c_str_hash(jx_ob_as_str(&ob));
+    if( ob.meta.bits & JX_META_BIT_STR)
+      return jx__c_str_hash(jx_ob_as_str(&ob));
+    else
+      return jx__c_str_hash(jx_ob_as_ident(&ob));
   } else {
     return 0;                   /* unhashable */
   }
@@ -2401,7 +2415,7 @@ jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key)
   jx_bool found = JX_FALSE;
   jx_uint32 size = jx_vla_size(&I->key_value);
   if(size) {
-    if(!I->info) {              /* JX_HASH_RAW */
+    if(!I->info) {  /* JX_HASH_RAW */
       register jx_int i = (size >> 1);
       register jx_ob *ob = I->key_value;
       while(i--) {
@@ -2639,7 +2653,7 @@ jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value)
         }
         ob += 2;
       }
-    } else {                    /* not JX_HASH_RAW */
+    } else {                   
       switch (info->mode) {
       case JX_HASH_ONE_TO_ANY:
       case JX_HASH_ONE_TO_NIL:
@@ -2847,10 +2861,18 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
      both objects are GC'd */
   switch (left.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-  case JX_META_BIT_IDENT:
     {
       jx_char *left_st = jx_ob_as_str(&left);
       jx_char *right_st = jx_ob_as_str(&right);
+      if(left_st && right_st) {
+        return (!strcmp(left_st, right_st));
+      }
+    }
+    break;
+  case JX_META_BIT_IDENT:
+    {
+      jx_char *left_st = jx_ob_as_ident(&left);
+      jx_char *right_st = jx_ob_as_ident(&right);
       if(left_st && right_st) {
         return (!strcmp(left_st, right_st));
       }
@@ -2876,10 +2898,18 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 
   switch (left.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-  case JX_META_BIT_IDENT:
     {
       jx_char *left_st = jx_ob_as_str(&left);
       jx_char *right_st = jx_ob_as_str(&right);
+      if(left_st && right_st) {
+        return (!strcmp(left_st, right_st));
+      }
+    }
+    break;
+  case JX_META_BIT_IDENT:
+    {
+      jx_char *left_st = jx_ob_as_ident(&left);
+      jx_char *right_st = jx_ob_as_ident(&right);
       if(left_st && right_st) {
         return (!strcmp(left_st, right_st));
       }
@@ -2919,3 +2949,5 @@ jx_status jx__ob_free(jx_ob ob)
   }
   return JX_SUCCESS;
 }
+
+

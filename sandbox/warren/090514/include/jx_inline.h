@@ -65,7 +65,6 @@ typedef jx_int64 jx_data_word[2];
 
 typedef struct jx__list jx_list;
 typedef struct jx__hash jx_hash;
-typedef struct jx__builtin jx_builtin;
 
 typedef jx_uint16 jx_bits;
 
@@ -78,6 +77,8 @@ typedef struct { /* for fast initialization / comparison */
   jx_bits bits;
 } jx_data_raw;
 
+typedef jx_ob (*jx_builtin)(jx_ob, jx_ob); /* o{e}, [ma] */
+
 typedef union {
   jx_bool bool_;
   jx_int int_;
@@ -86,7 +87,7 @@ typedef union {
   jx_char *str;
   jx_list *list;
   jx_hash *hash;
-  jx_builtin *builtin;
+  jx_builtin builtin;
 } jx_data_io;
 
 typedef union {
@@ -113,10 +114,10 @@ struct jx__ob {
 #define JX_META_BIT_LIST            0x0200
 #define JX_META_BIT_HASH            0x0100
 
-/* identifiers */
+/* identifiers (for use in JSON-based code) */
 #define JX_META_BIT_IDENT           0x0080
 
-/* pointers to built-ins (runtime-use-only, non-JSON-serializable) */
+/* pointers to built-ins (runtime-only, non-JSON-serializable) */
 #define JX_META_BIT_BUILTIN         0x0040
 
 #define JX_META_MASK_TYPE_BITS      0x3FC0
@@ -126,8 +127,9 @@ struct jx__ob {
 #define JX_META_MASK_FOR_HASH       0xFFDF
 
 #define JX_META_BIT_READ_ONLY       0x0020
+
 /* since this only applies to GC objects, it might make more sense to
-  push the read-only flag down into the container */
+   push the read-only flag down into the container structure */
 
 /* object initializers */
 
@@ -139,9 +141,28 @@ struct jx__ob {
 #define JX_OB_LIST     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
 #define JX_OB_HASH     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
+
 /* inline methods */
 
 #define JX_INLINE __inline__ static
+
+/* builtin fn objects are a means through which jenarix can be extended */
+
+JX_INLINE jx_ob jx_builtin_new(jx_builtin builtin)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_GC | JX_META_BIT_READ_ONLY;
+  result.data.io.builtin = builtin;
+  return result;
+}
+
+JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN;
+  result.data.io.int_ = selector;
+  return result;
+}
 
 /* variable length array (vla) functions provide untyped, auto-zeroed,
    size and record-length aware variable length arrays NOTE: ALWAYS
@@ -324,6 +345,11 @@ JX_INLINE jx_status jx_hash_check(jx_ob ob)
   return (ob.meta.bits & JX_META_BIT_HASH) && JX_TRUE;
 }
 
+JX_INLINE jx_status jx_builtin_check(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_BUILTIN) && JX_TRUE;
+}
+
 JX_INLINE jx_bool jx_ok(jx_status status)
 {
   return (status >= 0);
@@ -376,7 +402,8 @@ JX_INLINE jx_bool jx_ob_read_only(jx_ob ob)
 jx_ob jx__ob_copy(jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
-  if(ob.meta.bits & JX_META_BIT_GC) {
+  jx_bits bits = ob.meta.bits; 
+  if((bits & JX_META_BIT_GC) && !(bits & JX_META_BIT_READ_ONLY)) {
     return jx__ob_copy(ob);
   }
   return ob;
@@ -446,7 +473,8 @@ JX_INLINE jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill)
 }
 
 jx_ob jx_list_new(void);
-JX_INLINE jx_ob jx_list_new_with_size(jx_int size, jx_ob fill)
+
+JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
 {
   jx_ob result = jx_list_new();
   if(!jx_ok(jx_list_resize(result, size, fill))) {
@@ -513,12 +541,20 @@ JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
   return jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx_list_get(jx_ob list, jx_int index)
+{
+  if(list.meta.bits & JX_META_BIT_LIST) {
+    return jx_ob_copy(jx__list_borrow(list.data.io.list, index));
+  }
+  return jx_ob_from_null();
+}
+
 jx_ob jx__list_remove(jx_list * I, jx_int index);
 JX_INLINE jx_ob jx_list_remove(jx_ob list, jx_int index)
 {
   jx_bits bits = list.meta.bits;
   if((bits & JX_META_BIT_LIST) && !(bits & JX_META_BIT_READ_ONLY)) {
-    return jx__list_borrow(list.data.io.list, index);
+    return jx__list_remove(list.data.io.list, index);
   }
   return jx_ob_from_null();
 }
@@ -784,6 +820,15 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags);
 JX_INLINE jx_ob jx_ob_to_json(jx_ob ob)
 {
   return jx_ob_to_json_with_flags(ob, 0);
+}
+
+/* debugging */
+
+JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
+{
+  fprintf(f,"%s: %08x%04x %04x\n",prefix, 
+          (unsigned int)ob.data.raw.word,
+          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
 }
 
 #endif

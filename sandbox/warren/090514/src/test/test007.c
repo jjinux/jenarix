@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   }
 
   {
-    jx_ob list = jx_list_new_with_size(1000000,jx_ob_from_float(3.0));
+    jx_ob list = jx_list_new_with_fill(1000000,jx_ob_from_float(3.0));
 
     P1("1000000 == %d", jx_list_size(list));
 
@@ -127,12 +127,12 @@ int main(int argc, char **argv)
   }
 
   {
-    jx_ob list1 = jx_list_new_with_size(2,jx_ob_from_int(1));
-    jx_ob list2 = jx_list_new_with_size(2,jx_ob_from_int(1));
-    jx_ob list3 = jx_list_new_with_size(2,jx_ob_from_int(2));
-    jx_ob list4 = jx_list_new_with_size(3,jx_ob_from_str("a really really long string"));
-    jx_ob list5 = jx_list_new_with_size(3,jx_ob_from_str("a really really long string"));
-    jx_ob list6 = jx_list_new_with_size(3,jx_ob_from_str("a really really really long string"));
+    jx_ob list1 = jx_list_new_with_fill(2,jx_ob_from_int(1));
+    jx_ob list2 = jx_list_new_with_fill(2,jx_ob_from_int(1));
+    jx_ob list3 = jx_list_new_with_fill(2,jx_ob_from_int(2));
+    jx_ob list4 = jx_list_new_with_fill(3,jx_ob_from_str("a really really long string"));
+    jx_ob list5 = jx_list_new_with_fill(3,jx_ob_from_str("a really really long string"));
+    jx_ob list6 = jx_list_new_with_fill(3,jx_ob_from_str("a really really really long string"));
     
     P1("0 == %d", jx_ob_identical(list1,list2));    
     P1("1 == %d", jx_ob_equal(list1,list2));    
@@ -177,14 +177,14 @@ int main(int argc, char **argv)
     P1("1 == %d", jx_ob_equal(hash1,hash2));    
     P1("1 == %d", jx_ob_equal(hash2,hash3));    
 
-    jx_hash_set(hash1, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("hi")));
-    jx_hash_set(hash2, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("hi")));
-    jx_hash_set(hash3, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("lo")));
+    jx_hash_set(hash1, jx_ob_from_int(5), jx_list_new_with_fill(1,jx_ob_from_str("hi")));
+    jx_hash_set(hash2, jx_ob_from_int(5), jx_list_new_with_fill(1,jx_ob_from_str("hi")));
+    jx_hash_set(hash3, jx_ob_from_int(5), jx_list_new_with_fill(1,jx_ob_from_str("lo")));
 
     P1("1 == %d", jx_ob_equal(hash1,hash2));    
     P1("0 == %d", jx_ob_equal(hash2,hash3));    
 
-    jx_hash_set(hash3, jx_ob_from_int(5), jx_list_new_with_size(1,jx_ob_from_str("hi")));
+    jx_hash_set(hash3, jx_ob_from_int(5), jx_list_new_with_fill(1,jx_ob_from_str("hi")));
 
     P1("1 == %d", jx_ob_equal(hash1,hash2));    
     P1("1 == %d", jx_ob_equal(hash2,hash3));    

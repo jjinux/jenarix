@@ -143,6 +143,8 @@ static int jx_scan(jx_json_scanner_state *s)
     ([+\-]? D+ E FS?) | ([+\-]? D* "." D+ E? FS?) | ([+\-]? D+ "." D* E? FS?)  { RET(JX_JSON_FCON); }
     
     (["] (ESC|any\[\n\\"])* ["]) { RET(JX_JSON_SCON); }
+
+    (['] (ESC|any\[\n\\'])* [']) { RET(JX_JSON_SCON); }
     
     "["         { RET(JX_JSON_OPEN_RECT_BRACE); }
     "]"         { RET(JX_JSON_CLOSE_RECT_BRACE); }

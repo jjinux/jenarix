@@ -1,7 +1,6 @@
 
 all:  jx_json_out.o jx_json_scan.o jx_json_parse.o
 
-
 JX_ROOT=../..
 
 include $(JX_ROOT)/Rules.make
