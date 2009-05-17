@@ -61,13 +61,13 @@
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 26
+#define YYNOCODE 27
 #define YYACTIONTYPE unsigned char
 #define jx_json_TOKENTYPE jx_ob
 typedef union {
   jx_json_TOKENTYPE yy0;
-  jx_ob yy13;
-  int yy51;
+  jx_ob yy11;
+  int yy53;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
@@ -76,10 +76,10 @@ typedef union {
 #define jx_json_ARG_PDECL ,jx_json_parse_context *context
 #define jx_json_ARG_FETCH jx_json_parse_context *context = yypParser->context
 #define jx_json_ARG_STORE yypParser->context = context
-#define YYNSTATE 31
-#define YYNRULE 19
+#define YYNSTATE 32
+#define YYNRULE 20
 #define YYERRORSYMBOL 16
-#define YYERRSYMDT yy51
+#define YYERRSYMDT yy53
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
@@ -132,41 +132,45 @@ typedef union {
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */     1,   30,    4,    5,   29,    2,   20,   21,   22,   23,
- /*    10 */    24,   25,   26,    1,   28,    3,    5,   10,   52,   20,
- /*    20 */    21,   22,   23,   24,   25,   26,    6,   13,   15,   20,
- /*    30 */    21,   22,   23,   24,   25,   26,   52,   20,   21,   22,
- /*    40 */    23,   24,   25,   26,   11,   52,   52,   16,   18,    9,
- /*    50 */     8,   51,   14,   16,   18,   27,   52,   52,   14,    7,
- /*    60 */    16,   18,   19,   52,   52,   14,   16,   18,   17,   52,
- /*    70 */    52,   14,   16,   18,   12,   52,   52,   14,
+ /*     0 */     5,    4,   30,    6,    1,   15,   20,   21,   22,   23,
+ /*    10 */    24,   25,   26,    5,    2,   12,   54,    1,   10,   20,
+ /*    20 */    21,   22,   23,   24,   25,   26,   31,   54,   54,   54,
+ /*    30 */    54,   20,   21,   22,   23,   24,   25,   26,   54,   54,
+ /*    40 */    54,   20,   21,   22,   23,   24,   25,   26,   54,   54,
+ /*    50 */    16,   18,    9,   54,   53,   14,   54,   54,   54,   16,
+ /*    60 */    18,   27,   54,   54,   14,   54,   11,    7,   16,   18,
+ /*    70 */    13,    8,   28,   14,   54,   54,   54,   16,   18,   29,
+ /*    80 */    54,   54,   14,   54,   54,   16,   18,   19,    3,   54,
+ /*    90 */    14,   17,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     3,    4,    8,    6,    4,    5,    9,   10,   11,   12,
- /*    10 */    13,   14,   15,    3,    2,    8,    6,   18,   25,    9,
- /*    20 */    10,   11,   12,   13,   14,   15,    5,    7,    7,    9,
- /*    30 */    10,   11,   12,   13,   14,   15,   25,    9,   10,   11,
- /*    40 */    12,   13,   14,   15,   18,   25,   25,   17,   18,   19,
- /*    50 */    24,   21,   22,   17,   18,   19,   25,   25,   22,   23,
- /*    60 */    17,   18,   19,   25,   25,   22,   17,   18,   19,   25,
- /*    70 */    25,   22,   17,   18,   19,   25,   25,   22,
+ /*     0 */     3,    6,    4,    5,    7,    8,    9,   10,   11,   12,
+ /*    10 */    13,   14,   15,    3,    6,    2,   26,    7,   18,    9,
+ /*    20 */    10,   11,   12,   13,   14,   15,    4,   26,   26,   26,
+ /*    30 */    26,    9,   10,   11,   12,   13,   14,   15,   26,   26,
+ /*    40 */    26,    9,   10,   11,   12,   13,   14,   15,   26,   26,
+ /*    50 */    17,   18,   19,   26,   21,   22,   26,   26,   26,   17,
+ /*    60 */    18,   19,   26,   26,   22,   26,   18,   25,   17,   18,
+ /*    70 */    19,   23,   24,   22,   26,   26,   26,   17,   18,   19,
+ /*    80 */    26,   26,   22,   26,   26,   17,   18,   19,    5,   26,
+ /*    90 */    22,    8,
 };
-#define YY_SHIFT_USE_DFLT (-7)
+#define YY_SHIFT_USE_DFLT (-6)
 #define YY_SHIFT_MAX 11
 static const signed char yy_shift_ofst[] = {
- /*     0 */    10,   -3,   10,   10,   10,   20,   28,    0,   21,   12,
- /*    10 */     7,   -6,
+ /*     0 */    10,   -3,   10,   10,   10,   22,   32,   83,   -2,   13,
+ /*    10 */    -5,    8,
 };
-#define YY_REDUCE_USE_DFLT (-2)
+#define YY_REDUCE_USE_DFLT (-1)
 #define YY_REDUCE_MAX 6
 static const signed char yy_reduce_ofst[] = {
- /*     0 */    30,   36,   55,   43,   49,   26,   -1,
+ /*     0 */    33,   42,   60,   68,   51,   48,    0,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */    50,   50,   50,   50,   50,   50,   50,   50,   50,   50,
- /*    10 */    50,   50,   38,   39,   34,   40,   33,   41,   32,   42,
- /*    20 */    43,   44,   45,   46,   47,   48,   49,   37,   31,   36,
- /*    30 */    35,
+ /*     0 */    52,   52,   52,   52,   52,   52,   52,   52,   52,   52,
+ /*    10 */    52,   52,   32,   38,   35,   41,   34,   42,   33,   44,
+ /*    20 */    45,   46,   47,   48,   49,   50,   51,   43,   39,   40,
+ /*    30 */    37,   36,
 };
 #define YY_SZ_ACTTAB (sizeof(yy_action)/sizeof(yy_action[0]))
 
@@ -252,13 +256,13 @@ void jx_json_Trace(FILE *TraceFILE, char *zTracePrompt){
 /* For tracing shifts, the names of all terminals and nonterminals
 ** are required.  The following table supplies these names */
 static const char *yyTokenName[] = { 
-  "$",             "ERROR",         "EOI",           "OPEN_RECT_BRACE",
-  "CLOSE_RECT_BRACE",  "COMMA",         "OPEN_CURLY_BRACE",  "CLOSE_CURLY_BRACE",
-  "COLON",         "ICON",          "FCON",          "SCON",        
+  "$",             "ERROR",         "EOI",           "OPEN_CURLY_BRACE",
+  "CLOSE_CURLY_BRACE",  "COMMA",         "COLON",         "OPEN_RECT_BRACE",
+  "CLOSE_RECT_BRACE",  "ICON",          "FCON",          "SCON",        
   "IDENT",         "TRUE",          "FALSE",         "NULL",        
   "error",         "list",          "primitive",     "expression",  
-  "expression_list",  "statement",     "hash",          "list_of_expressions",
-  "list_of_associations",
+  "expression_list",  "statement",     "hash",          "list_of_associations",
+  "association",   "list_of_expressions",
 };
 #endif /* NDEBUG */
 
@@ -270,21 +274,22 @@ static const char *yyRuleName[] = {
  /*   1 */ "expression ::= primitive",
  /*   2 */ "expression ::= list",
  /*   3 */ "expression ::= hash",
- /*   4 */ "list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE",
- /*   5 */ "list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE",
- /*   6 */ "list_of_expressions ::= expression",
- /*   7 */ "list_of_expressions ::= list_of_expressions COMMA expression",
- /*   8 */ "hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE",
- /*   9 */ "hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE",
- /*  10 */ "list_of_associations ::= primitive COLON expression",
- /*  11 */ "list_of_associations ::= list_of_associations COMMA primitive COLON expression",
- /*  12 */ "primitive ::= ICON",
- /*  13 */ "primitive ::= FCON",
- /*  14 */ "primitive ::= SCON",
- /*  15 */ "primitive ::= IDENT",
- /*  16 */ "primitive ::= TRUE",
- /*  17 */ "primitive ::= FALSE",
- /*  18 */ "primitive ::= NULL",
+ /*   4 */ "hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE",
+ /*   5 */ "hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE",
+ /*   6 */ "list_of_associations ::= list_of_associations COMMA primitive COLON expression",
+ /*   7 */ "list_of_associations ::= association",
+ /*   8 */ "association ::= primitive COLON expression",
+ /*   9 */ "list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE",
+ /*  10 */ "list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE",
+ /*  11 */ "list_of_expressions ::= expression",
+ /*  12 */ "list_of_expressions ::= list_of_expressions COMMA expression",
+ /*  13 */ "primitive ::= ICON",
+ /*  14 */ "primitive ::= FCON",
+ /*  15 */ "primitive ::= SCON",
+ /*  16 */ "primitive ::= IDENT",
+ /*  17 */ "primitive ::= TRUE",
+ /*  18 */ "primitive ::= FALSE",
+ /*  19 */ "primitive ::= NULL",
 };
 #endif /* NDEBUG */
 
@@ -359,13 +364,13 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
     case 15:
 #line 31 "jx_json_parse.lem"
 { jx_ob_free((yypminor->yy0));}
-#line 364 "jx_json_parse.c"
+#line 369 "jx_json_parse.c"
       break;
     case 17:
     case 18:
 #line 25 "jx_json_parse.lem"
-{ jx_ob_free((yypminor->yy13)); }
-#line 370 "jx_json_parse.c"
+{ jx_ob_free((yypminor->yy11)); }
+#line 375 "jx_json_parse.c"
       break;
     default:  break;   /* If no destructor action specified: do nothing */
   }
@@ -545,14 +550,15 @@ static struct {
   { 19, 1 },
   { 19, 1 },
   { 19, 1 },
-  { 17, 2 },
-  { 17, 3 },
-  { 23, 1 },
-  { 23, 3 },
   { 22, 2 },
   { 22, 3 },
+  { 23, 5 },
+  { 23, 1 },
   { 24, 3 },
-  { 24, 5 },
+  { 17, 2 },
+  { 17, 3 },
+  { 25, 1 },
+  { 25, 3 },
   { 18, 1 },
   { 18, 1 },
   { 18, 1 },
@@ -600,209 +606,219 @@ static void yy_reduce(
 #line 88 "jx_json_parse.lem"
 {  
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("statement = expression(yymsp[-1].minor.yy13) EOI\n"); 
+  printf("statement = expression(yymsp[-1].minor.yy11) EOI\n"); 
 #endif
   jx_ob_free(context->result); /* free previous result (if any) */ 
-  context->result = yymsp[-1].minor.yy13; /* save the result */
+  context->result = yymsp[-1].minor.yy11; /* save the result */
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 611 "jx_json_parse.c"
+#line 617 "jx_json_parse.c"
         break;
       case 1:
 #line 97 "jx_json_parse.lem"
 {  
-   yygotominor.yy13 = yymsp[0].minor.yy13;
+   yygotominor.yy11 = yymsp[0].minor.yy11;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("expression(yygotominor.yy13) = primitive(yymsp[0].minor.yy13)\n");
+  printf("expression(yygotominor.yy11) = primitive(yymsp[0].minor.yy11)\n");
 #endif
 }
-#line 621 "jx_json_parse.c"
+#line 627 "jx_json_parse.c"
         break;
       case 2:
 #line 105 "jx_json_parse.lem"
 {  
-   yygotominor.yy13 = yymsp[0].minor.yy13;
+   yygotominor.yy11 = yymsp[0].minor.yy11;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("expression(yygotominor.yy13) = list(yymsp[0].minor.yy13)\n");
+  printf("expression(yygotominor.yy11) = list(yymsp[0].minor.yy11)\n");
 #endif
 }
-#line 631 "jx_json_parse.c"
+#line 637 "jx_json_parse.c"
         break;
       case 3:
 #line 113 "jx_json_parse.lem"
 {  
-   yygotominor.yy13 = yymsp[0].minor.yy0;
+   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("expression(yygotominor.yy13) = hash(yymsp[0].minor.yy0)\n");
+  printf("expression(yygotominor.yy11) = hash(yymsp[0].minor.yy0)\n");
 #endif
 }
-#line 641 "jx_json_parse.c"
+#line 647 "jx_json_parse.c"
         break;
       case 4:
 #line 121 "jx_json_parse.lem"
-{ 
-  yygotominor.yy13 = jx_list_new();
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("list(yygotominor.yy13) = []\n");
-#endif
-  yy_destructor(3,&yymsp[-1].minor);
-  yy_destructor(4,&yymsp[0].minor);
-}
-#line 653 "jx_json_parse.c"
-        break;
-      case 5:
-#line 129 "jx_json_parse.lem"
-{ 
-  yygotominor.yy13 = yymsp[-1].minor.yy0; 
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("list(yygotominor.yy13) = [ yymsp[-1].minor.yy0 ]\n");
-#endif
-  yy_destructor(3,&yymsp[-2].minor);
-  yy_destructor(4,&yymsp[0].minor);
-}
-#line 665 "jx_json_parse.c"
-        break;
-      case 6:
-#line 137 "jx_json_parse.lem"
-{ 
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy13);
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_expressions(yygotominor.yy0) = expression(yymsp[0].minor.yy13)\n");
-#endif
-}
-#line 676 "jx_json_parse.c"
-        break;
-      case 7:
-#line 146 "jx_json_parse.lem"
-{ 
-  jx_list_append(yymsp[-2].minor.yy0,yymsp[0].minor.yy13); /* takes ownership of yymsp[0].minor.yy13 */
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_expressions(yygotominor.yy0) = list_of_expressions(yymsp[-2].minor.yy0) , expression(yymsp[0].minor.yy13)\n");
-#endif
-  yy_destructor(5,&yymsp[-1].minor);
-}
-#line 688 "jx_json_parse.c"
-        break;
-      case 8:
-#line 155 "jx_json_parse.lem"
 { 
   yygotominor.yy0 = jx_hash_new();
 #ifdef JX_JSON_PARSER_DEBUG
   printf("hash(yygotominor.yy0) = {}\n");
 #endif
-  yy_destructor(6,&yymsp[-1].minor);
-  yy_destructor(7,&yymsp[0].minor);
+  yy_destructor(3,&yymsp[-1].minor);
+  yy_destructor(4,&yymsp[0].minor);
 }
-#line 700 "jx_json_parse.c"
+#line 659 "jx_json_parse.c"
         break;
-      case 9:
-#line 163 "jx_json_parse.lem"
+      case 5:
+#line 129 "jx_json_parse.lem"
 { 
   yygotominor.yy0 = yymsp[-1].minor.yy0; 
 #ifdef JX_JSON_PARSER_DEBUG
   printf("hash(yygotominor.yy0) = { yymsp[-1].minor.yy0 }\n");
 #endif
-  yy_destructor(6,&yymsp[-2].minor);
-  yy_destructor(7,&yymsp[0].minor);
+  yy_destructor(3,&yymsp[-2].minor);
+  yy_destructor(4,&yymsp[0].minor);
 }
-#line 712 "jx_json_parse.c"
+#line 671 "jx_json_parse.c"
+        break;
+      case 6:
+#line 137 "jx_json_parse.lem"
+{ 
+  yygotominor.yy0 = yymsp[-4].minor.yy0;
+  jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy11,yymsp[0].minor.yy11);
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(yygotominor.yy0) = list_of_associations(yymsp[-4].minor.yy0), primitive(yymsp[-2].minor.yy11) : expression(yymsp[0].minor.yy11)\n");
+#endif
+  yy_destructor(5,&yymsp[-3].minor);
+  yy_destructor(6,&yymsp[-1].minor);
+}
+#line 684 "jx_json_parse.c"
+        break;
+      case 7:
+#line 146 "jx_json_parse.lem"
+{ 
+  yygotominor.yy0 = yymsp[0].minor.yy0;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(yygotominor.yy0) = association(yymsp[0].minor.yy0)\n");
+#endif
+}
+#line 694 "jx_json_parse.c"
+        break;
+      case 8:
+#line 154 "jx_json_parse.lem"
+{ 
+  yygotominor.yy0 = jx_hash_new();
+  jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy11,yymsp[0].minor.yy11); /* takes ownership of yymsp[-2].minor.yy11 & yymsp[0].minor.yy11 */
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(yygotominor.yy0) = primitive(yymsp[-2].minor.yy11) : expression(yymsp[0].minor.yy11)\n");
+#endif
+  yy_destructor(6,&yymsp[-1].minor);
+}
+#line 706 "jx_json_parse.c"
+        break;
+      case 9:
+#line 163 "jx_json_parse.lem"
+{ 
+  yygotominor.yy11 = jx_list_new();
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list(yygotominor.yy11) = []\n");
+#endif
+  yy_destructor(7,&yymsp[-1].minor);
+  yy_destructor(8,&yymsp[0].minor);
+}
+#line 718 "jx_json_parse.c"
         break;
       case 10:
 #line 171 "jx_json_parse.lem"
 { 
-  yygotominor.yy0 = jx_hash_new();
-  jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy13,yymsp[0].minor.yy13); /* takes ownership of yymsp[-2].minor.yy13 & yymsp[0].minor.yy13 */
+  yygotominor.yy11 = yymsp[-1].minor.yy0; 
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_associations(yygotominor.yy0) = primitive(yymsp[-2].minor.yy13) : expression(yymsp[0].minor.yy13)\n");
+  printf("list(yygotominor.yy11) = [ yymsp[-1].minor.yy0 ]\n");
 #endif
-  yy_destructor(8,&yymsp[-1].minor);
+  yy_destructor(7,&yymsp[-2].minor);
+  yy_destructor(8,&yymsp[0].minor);
 }
-#line 724 "jx_json_parse.c"
+#line 730 "jx_json_parse.c"
         break;
       case 11:
-#line 180 "jx_json_parse.lem"
+#line 179 "jx_json_parse.lem"
 { 
-  yygotominor.yy0 = yymsp[-4].minor.yy0;
-  jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy13,yymsp[0].minor.yy13);
+  yygotominor.yy0 = jx_list_new();
+  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy11);
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_associations(yygotominor.yy0) = list_of_associations(yymsp[-4].minor.yy0), primitive(yymsp[-2].minor.yy13) : expression(yymsp[0].minor.yy13)\n");
+  printf("list_of_expressions(yygotominor.yy0) = expression(yymsp[0].minor.yy11)\n");
 #endif
-  yy_destructor(5,&yymsp[-3].minor);
-  yy_destructor(8,&yymsp[-1].minor);
 }
-#line 737 "jx_json_parse.c"
+#line 741 "jx_json_parse.c"
         break;
       case 12:
-#line 189 "jx_json_parse.lem"
+#line 188 "jx_json_parse.lem"
 { 
-  yygotominor.yy13 = yymsp[0].minor.yy0;
+  jx_list_append(yymsp[-2].minor.yy0,yymsp[0].minor.yy11); /* takes ownership of yymsp[0].minor.yy11 */
+  yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("primitive = ICON\n"); 
+  printf("list_of_expressions(yygotominor.yy0) = list_of_expressions(yymsp[-2].minor.yy0) , expression(yymsp[0].minor.yy11)\n");
 #endif
+  yy_destructor(5,&yymsp[-1].minor);
 }
-#line 747 "jx_json_parse.c"
+#line 753 "jx_json_parse.c"
         break;
       case 13:
 #line 197 "jx_json_parse.lem"
 { 
-  yygotominor.yy13 = yymsp[0].minor.yy0;
+  yygotominor.yy11 = yymsp[0].minor.yy0;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = ICON\n"); 
+#endif
+}
+#line 763 "jx_json_parse.c"
+        break;
+      case 14:
+#line 205 "jx_json_parse.lem"
+{ 
+  yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
   printf("primitive = FCON\n"); 
 #endif
 }
-#line 757 "jx_json_parse.c"
-        break;
-      case 14:
-#line 205 "jx_json_parse.lem"
-{
-  yygotominor.yy13 = yymsp[0].minor.yy0;
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("primitive = SCON\n"); 
-#endif
-}
-#line 767 "jx_json_parse.c"
+#line 773 "jx_json_parse.c"
         break;
       case 15:
 #line 213 "jx_json_parse.lem"
 {
-  yygotominor.yy13 = yymsp[0].minor.yy0;
+  yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("primitive = IDENT\n"); 
+  printf("primitive = SCON\n"); 
 #endif
 }
-#line 777 "jx_json_parse.c"
+#line 783 "jx_json_parse.c"
         break;
       case 16:
 #line 221 "jx_json_parse.lem"
 {
-  yygotominor.yy13 = yymsp[0].minor.yy0;
+  yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("primitive = TRUE\n"); 
+  printf("primitive = IDENT\n"); 
 #endif
 }
-#line 787 "jx_json_parse.c"
+#line 793 "jx_json_parse.c"
         break;
       case 17:
 #line 229 "jx_json_parse.lem"
 {
-  yygotominor.yy13 = yymsp[0].minor.yy0;
+  yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
-  printf("primitive = FALSE\n"); 
+  printf("primitive = TRUE\n"); 
 #endif
 }
-#line 797 "jx_json_parse.c"
+#line 803 "jx_json_parse.c"
         break;
       case 18:
 #line 237 "jx_json_parse.lem"
 {
-  yygotominor.yy13 = yymsp[0].minor.yy0;
+  yygotominor.yy11 = yymsp[0].minor.yy0;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("primitive = FALSE\n"); 
+#endif
+}
+#line 813 "jx_json_parse.c"
+        break;
+      case 19:
+#line 245 "jx_json_parse.lem"
+{
+  yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JSON_PARSER_DEBUG
   printf("primitive = NULL\n"); 
 #endif
 }
-#line 807 "jx_json_parse.c"
+#line 823 "jx_json_parse.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -837,7 +853,7 @@ static void yy_parse_failed(
 #ifdef JX_JSON_PARSER_DEBUG
   printf("parse failed.\n");
 #endif
-#line 843 "jx_json_parse.c"
+#line 859 "jx_json_parse.c"
   jx_json_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -856,7 +872,7 @@ static void yy_syntax_error(
 #ifdef JX_JSON_PARSER_DEBUG
   printf("jx_json_parse-error: syntax error.\n");
 #endif
-#line 863 "jx_json_parse.c"
+#line 879 "jx_json_parse.c"
   jx_json_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -881,7 +897,7 @@ static void yy_accept(
 #ifdef JX_JSON_PARSER_DEBUG
   printf("accept called\n");
 #endif
-#line 889 "jx_json_parse.c"
+#line 905 "jx_json_parse.c"
   jx_json_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

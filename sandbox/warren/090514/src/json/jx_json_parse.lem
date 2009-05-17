@@ -117,6 +117,48 @@ expression(A) ::= hash(B).
 #endif
 }
 
+hash(A) ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE.
+{ 
+  A = jx_hash_new();
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("hash(A) = {}\n");
+#endif
+}
+
+hash(A) ::= OPEN_CURLY_BRACE list_of_associations(B) CLOSE_CURLY_BRACE.
+{ 
+  A = B; 
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("hash(A) = { B }\n");
+#endif
+}
+
+list_of_associations(A) ::= list_of_associations(B) COMMA primitive(C) COLON expression(D).
+{ 
+  A = B;
+  jx_hash_set(A,C,D);
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(A) = list_of_associations(B), primitive(C) : expression(D)\n");
+#endif
+}
+
+list_of_associations(A) ::= association(B). 
+{ 
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(A) = association(B)\n");
+#endif
+}
+
+association(A) ::= primitive(B) COLON expression(C).
+{ 
+  A = jx_hash_new();
+  jx_hash_set(A,B,C); /* takes ownership of B & C */
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(A) = primitive(B) : expression(C)\n");
+#endif
+}
+
 list(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
 { 
   A = jx_list_new();
@@ -148,40 +190,6 @@ list_of_expressions(A) ::= list_of_expressions(B) COMMA expression(C).
   A = B;
 #ifdef JX_JSON_PARSER_DEBUG
   printf("list_of_expressions(A) = list_of_expressions(B) , expression(C)\n");
-#endif
-}
-
-hash(A) ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE.
-{ 
-  A = jx_hash_new();
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("hash(A) = {}\n");
-#endif
-}
-
-hash(A) ::= OPEN_CURLY_BRACE list_of_associations(B) CLOSE_CURLY_BRACE.
-{ 
-  A = B; 
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("hash(A) = { B }\n");
-#endif
-}
-
-list_of_associations(A) ::= primitive(B) COLON expression(C).
-{ 
-  A = jx_hash_new();
-  jx_hash_set(A,B,C); /* takes ownership of B & C */
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_associations(A) = primitive(B) : expression(C)\n");
-#endif
-}
-
-list_of_associations(A) ::= list_of_associations(B) COMMA primitive(C) COLON expression(D).
-{ 
-  A = B;
-  jx_hash_set(A,C,D);
-#ifdef JX_JSON_PARSER_DEBUG
-  printf("list_of_associations(A) = list_of_associations(B), primitive(C) : expression(D)\n");
 #endif
 }
 
