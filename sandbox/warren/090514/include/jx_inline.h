@@ -281,6 +281,15 @@ JX_INLINE jx_ob jx_ob_from_int(jx_int int_)
   return result;
 }
 
+JX_INLINE jx_ob jx_ob_from_status(jx_status status)
+{
+  if(status == 0) {
+    return jx_ob_from_null();
+  } else {
+    return jx_ob_from_int(status);
+  }
+}
+
 JX_INLINE jx_ob jx_ob_from_float(jx_float float_)
 {
   jx_ob result = JX_OB_FLOAT;
@@ -404,6 +413,15 @@ JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
   jx_bits bits = ob.meta.bits; 
   if(bits & JX_META_BIT_GC) {
     return jx__ob_copy(ob);
+  }
+  return ob;
+}
+
+JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits; 
+  if(bits & JX_META_BIT_GC) {
+    ob.meta.bits = bits | JX_META_BIT_WEAK_REF;
   }
   return ob;
 }

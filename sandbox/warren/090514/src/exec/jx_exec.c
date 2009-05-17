@@ -43,11 +43,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
 
-#define JX_BUILTIN_SET 0
-#define JX_BUILTIN_GET 1
-#define JX_BUILTIN_ADD 2
-#define JX_BUILTIN_WHILE 3
-#define JX_BUILTIN_SUB 4
+#define JX_BUILTIN_SET    0
+#define JX_BUILTIN_GET    1
+#define JX_BUILTIN_ADD    2
+#define JX_BUILTIN_WHILE  3
+#define JX_BUILTIN_SUB    4
+#define JX_BUILTIN_BORROW 5
+#define JX_BUILTIN_APPEND 6
 
 jx_status jx_expose_builtins(jx_ob namespace)
 {
@@ -61,7 +63,10 @@ jx_status jx_expose_builtins(jx_ob namespace)
               jx_builtin_new_from_selector(JX_BUILTIN_WHILE));
   jx_hash_set(namespace, jx_ob_from_ident("sub"), 
               jx_builtin_new_from_selector(JX_BUILTIN_SUB));
-
+  jx_hash_set(namespace, jx_ob_from_ident("borrow"), 
+              jx_builtin_new_from_selector(JX_BUILTIN_BORROW));
+  jx_hash_set(namespace, jx_ob_from_ident("append"), 
+              jx_builtin_new_from_selector(JX_BUILTIN_APPEND));
   return JX_SUCCESS;
 }
 
@@ -149,18 +154,30 @@ static jx_ob jx_eval(jx_ob node, jx_ob expr)
           } else {
             switch(builtin.data.io.int_) {
             case JX_BUILTIN_SET:
-              result = jx_ob_from_bool( jx_ok( jx_hash_set(node, 
-                                                           jx_list_get(payload,1),
-                                                           jx_list_get(payload,2))));
+              {
+                jx_ob value = jx_list_remove(payload,2);
+                jx_ob key = jx_list_remove(payload,1);
+                result = jx_ob_from_status( jx_hash_set(node, key, value ) );
+              }
               break;
             case JX_BUILTIN_GET:
               result = jx_hash_get(node, jx_list_borrow(payload,1));
+              break;
+            case JX_BUILTIN_BORROW:
+              result = jx_ob_take_weak_ref( jx_hash_borrow(node, jx_list_borrow(payload,1)));
               break;
             case JX_BUILTIN_ADD:
               result = jx_add( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
               break;
             case JX_BUILTIN_SUB:
               result = jx_sub( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
+              break;
+            case JX_BUILTIN_APPEND:
+              {
+                jx_ob item = jx_list_remove(payload,2);
+                jx_ob list = jx_list_borrow(payload,1);
+                result = jx_ob_from_status( jx_list_append(list, item) );
+              }
               break;
             }
             jx_ob_free(payload);

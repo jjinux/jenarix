@@ -54,17 +54,17 @@ int main(int argc, char **argv)
 
   {
     jx_ob builtin = jx_builtin_new(my_fn);
-    jx_ob namespace = jx_hash_new();
+    jx_ob builtins = jx_hash_new();
 
-    P1("0 == %d",jx_hash_set(namespace, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
     {
-      jx_ob json = jx_ob_to_json(namespace);
+      jx_ob json = jx_ob_to_json(builtins);
       printf("# %s\n",jx_ob_as_str(&json));
       jx_ob_free(json);
     }
     {
       jx_ob source = jx_ob_from_json_str("[ [ my_fn ] ]");
-      jx_ob code = jx_bind(namespace, source);
+      jx_ob code = jx_bind(builtins, source);
       {
         jx_ob json = jx_ob_to_json(code);
         printf("# %s\n",jx_ob_as_str(&json));
@@ -82,19 +82,19 @@ int main(int argc, char **argv)
       }
       P1("0 == %d",jx_ob_free(code));
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
   }
 
   /* can we get / set? */
 
   {
     jx_ob node = jx_hash_new();
-    jx_ob namespace = jx_hash_new();
+    jx_ob builtins = jx_hash_new();
 
-    P1("0 == %d",jx_expose_builtins(namespace));
+    P1("0 == %d",jx_expose_builtins(builtins));
 
     {
-      jx_ob json = jx_ob_to_json(namespace);
+      jx_ob json = jx_ob_to_json(builtins);
       printf("# %s\n",jx_ob_as_str(&json));
       jx_ob_free(json);
     }
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(json));
       }
       {
-        jx_ob code = jx_bind(namespace, source);
+        jx_ob code = jx_bind(builtins, source);
         {
           jx_ob json = jx_ob_to_json(code);
           printf("# %s\n",jx_ob_as_str(&json));
@@ -125,15 +125,15 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
     P1("0 == %d",jx_ob_free(node));
   }
 
   /* can we add two ints? */
 
   {
-    jx_ob namespace = jx_hash_new();
-    P1("0 == %d",jx_expose_builtins(namespace));
+    jx_ob builtins = jx_hash_new();
+    P1("0 == %d",jx_expose_builtins(builtins));
     {
       jx_ob source = jx_ob_from_json_str("[ [ add, 1, 2 ] ]");
       {
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(json));
       }
       {
-        jx_ob code = jx_bind(namespace, source);
+        jx_ob code = jx_bind(builtins, source);
         jx_ob node = JX_OB_NULL;
         jx_ob result = jx_exec(node,code);
         P1("3 == %d",jx_ob_as_int(result));
@@ -150,14 +150,38 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
+  }
+
+  /* can we add two floats? */
+
+  {
+    jx_ob builtins = jx_hash_new();
+    P1("0 == %d",jx_expose_builtins(builtins));
+    {
+      jx_ob source = jx_ob_from_json_str("[ [ add, 2.0, 3.0 ] ]");
+      {
+        jx_ob json = jx_ob_to_json(source);
+        printf("# %s\n",jx_ob_as_str(&json));
+        P1("0 == %d",jx_ob_free(json));
+      }
+      {
+        jx_ob code = jx_bind(builtins, source);
+        jx_ob node = JX_OB_NULL;
+        jx_ob result = jx_exec(node,code);
+        P1("5.0 == %f",jx_ob_as_float(result));
+        P1("0 == %d",jx_ob_free(result));
+        P1("0 == %d",jx_ob_free(code));
+      }
+    }
+    P1("0 == %d",jx_ob_free(builtins));
   }
 
   /* can we set an evaluated result */
   {
     jx_ob node = jx_hash_new();
-    jx_ob namespace = jx_hash_new();
-    P1("0 == %d",jx_expose_builtins(namespace));
+    jx_ob builtins = jx_hash_new();
+    P1("0 == %d",jx_expose_builtins(builtins));
     {
       jx_ob source = jx_ob_from_json_str("[ [ set, 0, [ add, -1, 7 ] ], [get, 0] ]");
       {
@@ -166,22 +190,22 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(json));
       }
       {
-        jx_ob code = jx_bind(namespace, source);
+        jx_ob code = jx_bind(builtins, source);
         jx_ob result = jx_exec(node,code);
         P1("6 == %d",jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
     P1("0 == %d",jx_ob_free(node));
   }
  
   /* can we add a gotten result */
   {
     jx_ob node = jx_hash_new();
-    jx_ob namespace = jx_hash_new();
-    P1("0 == %d",jx_expose_builtins(namespace));
+    jx_ob builtins = jx_hash_new();
+    P1("0 == %d",jx_expose_builtins(builtins));
     {
       jx_ob source = jx_ob_from_json_str("[ [set, a, 5], [ add, -1, [get, a] ] ]");
       {
@@ -190,26 +214,26 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(json));
       }
       {
-        jx_ob code = jx_bind(namespace, source);
+        jx_ob code = jx_bind(builtins, source);
         jx_ob result = jx_exec(node,code);
         P1("4 == %d",jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
     P1("0 == %d",jx_ob_free(node));
   }
  
   /* can we combine all of the above? */
   {
     jx_ob node = jx_hash_new();
-    jx_ob namespace = jx_hash_new();
+    jx_ob builtins = jx_hash_new();
     jx_ob builtin = jx_builtin_new(my_fn);
 
-    P1("0 == %d",jx_hash_set(namespace, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
-    P1("0 == %d",jx_expose_builtins(namespace));
+    P1("0 == %d",jx_expose_builtins(builtins));
     {
       jx_ob source = jx_ob_from_json_str(
  "[[set,a,10],[while,[get,a],[[my_fn, [get,a]],[set,a,[add,-1,[get,a]]]]]]");
@@ -219,14 +243,14 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(json));
       }
       {
-        jx_ob code = jx_bind(namespace, source);
+        jx_ob code = jx_bind(builtins, source);
         jx_ob result = jx_exec(node,code);
         P1("0 == %d",jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
     P1("0 == %d",jx_ob_free(node));
    }
 
@@ -234,12 +258,12 @@ int main(int argc, char **argv)
 
   {
     jx_ob node = jx_hash_new();
-    jx_ob namespace = jx_hash_new();
+    jx_ob builtins = jx_hash_new();
     jx_ob builtin = jx_builtin_new(my_fn);
 
-    P1("0 == %d",jx_hash_set(namespace, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
-    P1("0 == %d",jx_expose_builtins(namespace));
+    P1("0 == %d",jx_expose_builtins(builtins));
     {
       jx_ob source = jx_ob_from_json_str("[[set,a,{1:2,3:[4,5,[sub,9,3]]}],[get,a]]");
       {
@@ -248,7 +272,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(json));
       }
       {
-        jx_ob code = jx_bind(namespace, source);
+        jx_ob code = jx_bind(builtins, source);
         {
           jx_ob json = jx_ob_to_json(code);
           printf("# %s\n",jx_ob_as_str(&json));
@@ -266,9 +290,49 @@ int main(int argc, char **argv)
         }
       }
     }
-    P1("0 == %d",jx_ob_free(namespace));
+    P1("0 == %d",jx_ob_free(builtins));
     P1("0 == %d",jx_ob_free(node));
    }
 
+  /* can we borrow and modify containers owned by the node? */
+
+  {
+    jx_ob node = jx_hash_new();
+    jx_ob builtins = jx_hash_new();
+    jx_ob builtin = jx_builtin_new(my_fn);
+
+    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
+
+    P1("0 == %d",jx_expose_builtins(builtins));
+    {
+      jx_ob source = jx_ob_from_json_str(
+"[[set,x,[]],[[append,[borrow,x],1]],[[append,[borrow,x],{2:3}]],[get,x]]");
+      {
+        jx_ob json = jx_ob_to_json(source);
+        printf("# %s\n",jx_ob_as_str(&json));
+        P1("0 == %d",jx_ob_free(json));
+      }
+      {
+        jx_ob code = jx_bind(builtins, source);
+        {
+          jx_ob json = jx_ob_to_json(code);
+          printf("# %s\n",jx_ob_as_str(&json));
+          P1("0 == %d",jx_ob_free(json));
+        }
+        {
+          jx_ob result = jx_exec(node,code);
+          {
+            jx_ob json = jx_ob_to_json(result);
+            printf("# %s\n",jx_ob_as_str(&json));
+            P1("0 == %d",jx_ob_free(json));
+          }
+          P1("0 == %d",jx_ob_free(result));
+          P1("0 == %d",jx_ob_free(code));
+        }
+      }
+    }
+    P1("0 == %d",jx_ob_free(builtins));
+    P1("0 == %d",jx_ob_free(node));
+   }
 }
 

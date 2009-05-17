@@ -90,10 +90,15 @@ int main(int argc, char **argv)
     jx_list_append(list0,jx_ob_from_int(1));
     jx_list_append(list0,jx_ob_from_int(2));
 
-
     P1("0 == %d", jx_ob_read_only(list0));    
     list0 = jx_ob_set_read_only(list0,JX_TRUE);
     P1("1 == %d", jx_ob_read_only(list0));    
+
+    P1("-1 == %d", jx_list_append(list0, jx_ob_from_int(3)));
+    P1("-1 == %d", jx_list_resize(list0, 0, jx_ob_from_null()));
+    P1("-1 == %d", jx_list_insert(list0, 0, jx_ob_from_null()));
+    P1("1 == %d", jx_null_check(jx_list_remove(list0, 0)))
+    P1("-1 == %d", jx_list_delete(list0, 0));
 
     P1("0 == %d", jx_list_resize(list1,2,list0));
 
@@ -111,6 +116,40 @@ int main(int argc, char **argv)
 
     list0 = jx_ob_set_read_only(list0,JX_FALSE);
     P1("0 == %d", jx_ob_free(list0));    
+  }
+
+
+  {
+    jx_ob hash = jx_hash_new();
+    jx_ob list = jx_list_new();
+
+    jx_list_append(list,jx_ob_from_int(1));
+    jx_list_append(list,jx_ob_from_int(2));
+
+    jx_hash_set(hash, jx_ob_from_int(3), jx_ob_from_int(4));
+    jx_hash_set(hash, jx_ob_from_int(5), list);
+
+    P1("0 == %d", jx_ob_read_only(hash));    
+    hash = jx_ob_set_read_only(hash,JX_TRUE);
+
+    P1("1 == %d", jx_ob_read_only(hash));    
+
+    {
+      jx_ob json = jx_ob_to_json(hash);
+      P1("'{3:4,5:[1,2]}' eq '%s'", jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+
+    P1("-1 == %d", jx_hash_set(hash, jx_ob_from_int(7), jx_ob_from_int(8)));
+    P1("1 == %d", jx_null_check( jx_hash_remove(hash, jx_ob_from_int(7))) );
+    P1("1 == %d", jx_null_check( jx_hash_remove(hash, jx_ob_from_int(3))) );
+    P1("-1 == %d", jx_hash_delete(hash, jx_ob_from_int(3)));
+
+    P1("-1 == %d", jx_ob_free(hash));
+
+    hash = jx_ob_set_read_only(hash,JX_FALSE);
+
+    P1("0 == %d", jx_ob_free(hash));
   }
 
   {
@@ -195,4 +234,13 @@ int main(int argc, char **argv)
 
   }
 
+  {
+    jx_ob hash1 = jx_hash_new();
+    jx_ob hash2 = jx_ob_take_weak_ref(hash1);
+    jx_ob hash3 = jx_ob_take_weak_ref(hash1);
+
+    P1("-1 == %d", jx_ob_free(hash2));    
+    P1("0 == %d", jx_ob_free(hash1));    
+    P1("-1 == %d", jx_ob_free(hash3));    
+  }
 }

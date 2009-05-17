@@ -425,7 +425,7 @@ jx_status jx__list_set_read_only(jx_list * I, jx_bool read_only)
     } else {
       for(i = 0; i < size; i++) {
         if(ob->meta.bits & JX_META_BIT_GC)
-          ob->meta.bits &= JX_META_BIT_WEAK_REF;
+          ob->meta.bits &= ~(JX_META_BIT_WEAK_REF);
         ob++;
       }
     }
@@ -2340,9 +2340,9 @@ jx_status jx__hash_set_read_only(jx_hash * I, jx_bool read_only)
       } else {
         while(i--) {
           if(kv_ob[0].meta.bits & JX_META_BIT_GC)
-            kv_ob[0].meta.bits &= JX_META_BIT_WEAK_REF;
+            kv_ob[0].meta.bits &= ~(JX_META_BIT_WEAK_REF);
           if(kv_ob[1].meta.bits & JX_META_BIT_GC)
-            kv_ob[1].meta.bits &= JX_META_BIT_WEAK_REF;
+            kv_ob[1].meta.bits &= ~(JX_META_BIT_WEAK_REF);
           kv_ob += 2;
         }
       }
@@ -2367,9 +2367,9 @@ jx_status jx__hash_set_read_only(jx_hash * I, jx_bool read_only)
                   kv_ob[1].meta.bits |= JX_META_BIT_WEAK_REF;
               } else {
                 if(kv_ob[0].meta.bits & JX_META_BIT_GC)
-                  kv_ob[0].meta.bits &= JX_META_BIT_WEAK_REF;
+                  kv_ob[0].meta.bits &= ~(JX_META_BIT_WEAK_REF);
                 if(kv_ob[1].meta.bits & JX_META_BIT_GC)
-                  kv_ob[1].meta.bits &= JX_META_BIT_WEAK_REF;
+                  kv_ob[1].meta.bits &= ~(JX_META_BIT_WEAK_REF);
               }
             }
             index++;

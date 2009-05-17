@@ -268,10 +268,18 @@ void jx_json_scan_input(jx_json_scanner_state *state)
           switch(tok_type) {
           case JX_JSON_ICON:
             {
-              int icon;/* eventually need to handle int32 vs. int64 */
+#ifdef JX_64_BIT
+              jx_int icon;
+              if( jx_os_sscanf(buffer, "%li", &icon) != 1) { /* use strtol instead? */
+                icon = 0;
+              }
+              token = jx_ob_from_int(icon);            
+#else
+              int icon;
               if( jx_os_sscanf(buffer, "%i", &icon) != 1) { /* use strtol instead? */
                 icon = 0;
               }
+#endif
               token = jx_ob_from_int(icon);            
             }
             break;

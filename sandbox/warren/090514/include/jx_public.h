@@ -45,6 +45,8 @@ typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
 typedef long long jx_int64;
 
+#define noJX_64_BIT
+
 #ifdef JX_64_BIT
 /* uses 64-bit integers and double-precision floating point */
 typedef jx_int64 jx_int;
@@ -118,6 +120,7 @@ jx_status jx_hash_check(jx_ob ob);
 /* comparing objects */
 
 jx_bool jx_ob_identical(jx_ob left, jx_ob right);
+
 jx_bool jx_ob_equal(jx_ob left, jx_ob right);   /* to be done */
 
 /* read only status (no changes allowed, cannot be freed, but can be
@@ -131,6 +134,10 @@ jx_bool jx_ob_read_only(jx_ob ob);
 
 jx_ob jx_ob_copy(jx_ob ob);     /* always deep / recursive; copies of
                                    read-only containers are mutable */
+
+/* creating a weak reference to an object */
+
+jx_ob jx_ob_take_weak_ref(jx_ob ob);  
 
 /* strings */
 
