@@ -270,7 +270,7 @@ void jx_json_scan_input(jx_json_scanner_state *state)
             {
 #ifdef JX_64_BIT
               jx_int icon;
-              if( jx_os_sscanf(buffer, "%li", &icon) != 1) { /* use strtol instead? */
+              if( jx_os_sscanf(buffer, "%lli", &icon) != 1) { /* use strtol instead? */
                 icon = 0;
               }
               token = jx_ob_from_int(icon);            
