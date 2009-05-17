@@ -45,7 +45,7 @@ typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
 typedef long long jx_int64;
 
-#define JX_64_BIT
+#define notJX_64_BIT
 
 #ifdef JX_64_BIT
 /* uses 64-bit integers and double-precision floating point */
@@ -219,13 +219,12 @@ jx_ob jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns own
 
 /* json output */
 
-jx_ob jx_ob_to_json(jx_ob ob);
-
-#define JX_JSON_FLAG_PERMISSIVE  0x40000000
+#define JX_JSON_FLAG_STRICT      0x40000000
 #define JX_JSON_FLAG_PRETTY      0x20000000
 #define JX_JSON_FLAG_INDENT      0x10000000
 #define JX_JSON_FLAG_INDENT_MASK 0x0000007F
 
+jx_ob jx_ob_to_json(jx_ob ob);
 jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags);
 
 /* json input */

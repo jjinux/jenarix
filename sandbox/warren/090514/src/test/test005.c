@@ -378,4 +378,30 @@ hash));
       }
     }
   }
+
+  {
+    jx_ob hash = jx_hash_new();
+    
+    jx_hash_set(hash,jx_ob_from_null(),jx_ob_from_int(0));
+    jx_hash_set(hash,jx_ob_from_bool(1),jx_ob_from_int(1));
+    jx_hash_set(hash,jx_ob_from_bool(0),jx_ob_from_int(2));
+    jx_hash_set(hash,jx_ob_from_int(1),jx_ob_from_int(3));
+    jx_hash_set(hash,jx_ob_from_float(2.0),jx_ob_from_int(4));
+    jx_hash_set(hash,jx_ob_from_str("str"),jx_ob_from_int(5));
+    jx_hash_set(hash,jx_ob_from_ident("ident1"),jx_ob_from_ident("ident2"));
+    jx_hash_set(hash,jx_builtin_new(NULL),jx_builtin_new_from_selector(1));
+
+
+    {
+      jx_ob json = jx_ob_to_json(hash);
+      C1("%s", jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    {
+      jx_ob json = jx_ob_to_json_with_flags(hash,JX_JSON_FLAG_STRICT);
+      C1("%s", jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+    jx_ob_free(hash);
+  }
 }

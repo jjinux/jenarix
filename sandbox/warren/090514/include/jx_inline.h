@@ -167,11 +167,14 @@ JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
    PASSED BY REFERENCE (since pointer location may change due to
    reallocation) */
 
-typedef struct {
+typedef struct jx__vla jx_vla;
+
+struct jx__vla {
   /* jx_bool read_only; NEEDED? */
-  jx_int size;
-  jx_int rec_size;
-} jx_vla;
+  jx_vla *ptr;
+  jx_int alloc;
+  jx_int rec_size, size;
+};
 
 void *jx_vla_new(jx_int rec_size, jx_int size);
 void *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);

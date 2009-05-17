@@ -49,6 +49,18 @@ int main(int argc, char **argv)
     
     P1("0 == %d", jx_list_resize(list0,5,jx_ob_from_int(0)));
     P1("0 == %d", jx_list_resize(list1,5,jx_ob_from_int(1)));
+
+    {
+      jx_ob json = jx_ob_to_json(list0);
+      P1("'[0,0,0,0,0]' eq '%s'", jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
+
+    {
+      jx_ob json = jx_ob_to_json(list1);
+      P1("'[1,1,1,1,1]' eq '%s'", jx_ob_as_str(&json));
+      jx_ob_free(json);
+    }
     
     P1("0 == %d", jx_list_combine(list0,list1));
 

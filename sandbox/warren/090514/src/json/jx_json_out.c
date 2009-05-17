@@ -123,7 +123,15 @@ static jx_ob jx__hash_to_json(jx_hash * I, jx_int flags)
           } else {
             comma = JX_TRUE;
           }
-          jx_vla_append_ob_str(&vla, key);
+          if((flags & JX_JSON_FLAG_STRICT) && 
+             !(ob[0].meta.bits &
+               (JX_META_BIT_STR|JX_META_BIT_IDENT|JX_META_BIT_BUILTIN))) {
+            jx_vla_append_ob_str(&vla, jx_ob_from_str("\""));
+            jx_vla_append_ob_str(&vla, key);                 
+            jx_vla_append_ob_str(&vla, jx_ob_from_str("\""));
+          } else {
+            jx_vla_append_ob_str(&vla, key);
+          }
           jx_vla_append_c_str(&vla, ":");
           jx_vla_append_ob_str(&vla, value);
           jx_ob_free(key);
@@ -249,14 +257,43 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
     }
     break;
   case JX_META_BIT_IDENT: /* Jenarix identifiers (extended JSON) */
-    if(ob.meta.bits & JX_META_BIT_GC) {
-      return jx_ob_from_str(ob.data.io.str);
+    if(flags & JX_JSON_FLAG_STRICT) {
+      /* encode as an ordinary string */
+      if(ob.meta.bits & JX_META_BIT_GC) {
+        jx_int size = jx_vla_size(&ob.data.io.str);
+        jx_char *buffer = jx_malloc(size + 2);
+        if(buffer) {
+          buffer[0] = '"';
+          memcpy(buffer + 1, ob.data.io.str, size);
+          buffer[size] = '"';
+          buffer[size + 1] = 0;
+          {
+            jx_ob result = jx_ob_from_str(buffer);
+            jx_free(buffer);
+            return result;
+          }
+        }
+      } else {
+        char buffer[JX_TINY_STR_SIZE + 2];
+        jx_int size = ob.meta.bits & JX_META_MASK_TINY_STR_SIZE;
+        buffer[0] = '"';
+        memcpy(buffer + 1, ob.data.io.tiny_str, size);
+        buffer[size + 1] = '"';
+        buffer[size + 2] = 0;
+        return jx_ob_from_str(buffer);
+      }
     } else {
-      return jx_ob_from_str(ob.data.io.tiny_str);
+      if(ob.meta.bits & JX_META_BIT_GC) {
+        return jx_ob_from_str(ob.data.io.str);
+      } else {
+        return jx_ob_from_str(ob.data.io.tiny_str);
+      }
     }
     break;
   case JX_META_BIT_BUILTIN: /* for debuggin only */
-    {
+    if(flags & JX_JSON_FLAG_STRICT) {
+      return jx_ob_from_str("\"builtin\"");
+    } else {
       char buffer[50];
       if(ob.meta.bits & JX_META_BIT_GC) {
         sprintf(buffer,"*builtin_%p*",(void*)ob.data.io.builtin);

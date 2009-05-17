@@ -39,6 +39,93 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char **argv)
 {
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 100);
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 100000);
+    {
+      jx_int size;
+      while( (size = jx_vla_size(&vla)) ) {
+        jx_vla_remove(&vla,size-1,1);
+      }
+    }
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 100000);
+    {
+      jx_int size;
+      while( (size = jx_vla_size(&vla)) ) {
+        jx_vla_remove(&vla,0,1);
+      }
+    }
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 100000);
+    {
+      jx_int size;
+      while( (size = jx_vla_size(&vla))>1 ) {
+        jx_vla_remove(&vla,0,2);
+        jx_vla_append(&vla,1);
+      }
+    }
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 100);
+    int i;
+    for(i=0;i<10000;i++) {
+      if(jx_vla_grow_check(&vla,i)) {
+        vla[i] = i;
+        jx_vla_remove(&vla,0,1);
+      }
+    }
+    P1("5000 == %d", (int)vla[0]);
+    P1("0 == %d", (int)vla[1]);
+    P1("5001 == %d", (int)vla[2]);
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
+    int i;
+    for(i=0;i<1000000;i++) {
+      if(jx_vla_grow_check(&vla,i)) 
+        vla[i] = i;
+    }
+    P1("999999 == %d", (int)vla[999999]);
+    P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  {
+    jx_int *vla = jx_vla_new(sizeof(jx_int), 10000000);
+    int i;
+    P1("10000000 == %d", (int)jx_vla_size(&vla));
+    for(i=0;i<10000000;i++) {
+      vla[i] = i;
+    }
+    for(i=0;i<10000;i++) {
+      jx_vla_remove(&vla, 0, 100);
+    }
+    P1("9000000 == %d", (int)jx_vla_size(&vla));
+    P1("1000000 == %d", (int)vla[0]);
+     P1("0 == %d", jx_vla_free(&vla));
+  }
+
+
   {
     jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
 
