@@ -49,7 +49,7 @@ typedef struct {
   size_t size;
 } jx_mem_ftr;
 
-jx_int jx_mem_count = 0, jx_mem_count_max = 0;
+int jx_mem_count = 0, jx_mem_count_max = 0;
 void jx_mem_dump(void)
 {
   if(JX_MEM_LOG_ALL || JX_MEM_LOG_SUMMARY || jx_mem_count)
@@ -57,7 +57,7 @@ void jx_mem_dump(void)
             jx_mem_count, jx_mem_count_max);
 }
 
-jx_int jx_mem_count_init = 1;
+int jx_mem_count_init = 1;
 static void jx_mem_count_inc(void)
 {
   if(jx_mem_count_init) {
@@ -109,7 +109,7 @@ static void *jx_trip_wire_check(void *ptr, char *file, int line)
     size_t size = hdr->size;
     jx_char seed = ((((jx_char *) hdr) - (jx_char *) 0) >> 2) + size;
     jx_char *h_tw = hdr->trip_wire, *f_tw = ftr->trip_wire;
-    jx_int i;
+    int i;
     for(i = 0; i < JX_TRIP_WIRE_SIZE; i++) {
       if((*(h_tw++) != seed)) {
         fprintf(stderr, "jx_trip_wire: %p header overrun (byte 0x%x) (%s:%d)\n", ptr, i,

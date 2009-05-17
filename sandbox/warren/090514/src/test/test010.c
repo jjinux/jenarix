@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 jx_ob my_fn(jx_ob node, jx_ob payload)
 {
-  printf("# my_fn called with value %d\n",jx_ob_as_int(jx_list_borrow(payload,1)));
+  printf("# my_fn called with value %d\n",(int)jx_ob_as_int(jx_list_borrow(payload,1)));
   jx_ob_free(payload);
   return jx_ob_from_str("this is the result of the call");
 }
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
         jx_ob code = jx_bind(builtins, source);
         jx_ob node = JX_OB_NULL;
         jx_ob result = jx_exec(node,code);
-        P1("3 == %d",jx_ob_as_int(result));
+        P1("3 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
       {
         jx_ob code = jx_bind(builtins, source);
         jx_ob result = jx_exec(node,code);
-        P1("6 == %d",jx_ob_as_int(result));
+        P1("6 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
       {
         jx_ob code = jx_bind(builtins, source);
         jx_ob result = jx_exec(node,code);
-        P1("4 == %d",jx_ob_as_int(result));
+        P1("4 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
       {
         jx_ob code = jx_bind(builtins, source);
         jx_ob result = jx_exec(node,code);
-        P1("0 == %d",jx_ob_as_int(result));
+        P1("0 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
         P1("0 == %d",jx_ob_free(code));
       }

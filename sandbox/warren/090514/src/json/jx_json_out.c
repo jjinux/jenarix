@@ -248,7 +248,7 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
       return jx_ob_from_str(buffer);
     }
     break;
-  case JX_META_BIT_IDENT: /* Jenarix JSON extension */
+  case JX_META_BIT_IDENT: /* Jenarix identifiers (extended JSON) */
     if(ob.meta.bits & JX_META_BIT_GC) {
       return jx_ob_from_str(ob.data.io.str);
     } else {
@@ -261,7 +261,7 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
       if(ob.meta.bits & JX_META_BIT_GC) {
         sprintf(buffer,"*builtin_%p*",(void*)ob.data.io.builtin);
       } else {
-        sprintf(buffer,"*builtin_%03d*",ob.data.io.int_);
+        sprintf(buffer,"*builtin_%03d*",(int)ob.data.io.int_);
       }
       return jx_ob_from_str(buffer);
     }

@@ -45,7 +45,7 @@ typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
 typedef long long jx_int64;
 
-#define notJX_64_BIT
+#define JX_64_BIT
 
 #ifdef JX_64_BIT
 /* uses 64-bit integers and double-precision floating point */
@@ -109,13 +109,15 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
 
 /* determining object type */
 
-jx_status jx_null_check(jx_ob ob);
-jx_status jx_bool_check(jx_ob ob);
-jx_status jx_int_check(jx_ob ob);
-jx_status jx_float_check(jx_ob ob);
-jx_status jx_str_check(jx_ob ob);
-jx_status jx_list_check(jx_ob ob);
-jx_status jx_hash_check(jx_ob ob);
+jx_bool jx_null_check(jx_ob ob);
+jx_bool jx_bool_check(jx_ob ob);
+jx_bool jx_int_check(jx_ob ob);
+jx_bool jx_float_check(jx_ob ob);
+jx_bool jx_str_check(jx_ob ob);
+jx_bool jx_list_check(jx_ob ob);
+jx_bool jx_hash_check(jx_ob ob);
+jx_bool jx_ident_check(jx_ob ob);
+jx_bool jx_builtin_check(jx_ob ob);
 
 /* comparing objects */
 

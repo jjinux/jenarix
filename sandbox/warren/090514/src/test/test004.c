@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     P1("1 == %d", jx_null_check(ob_null));
     P1("1 == %d", jx_ob_as_bool(ob_true));
     P1("0 == %d", jx_ob_as_bool(ob_false));
-    P1("7 == %d", jx_ob_as_int(ob_7));
+    P1("7 == %d", (int)jx_ob_as_int(ob_7));
     P1("3.0 == %f", jx_ob_as_float(ob_3pt0));
     P1("'tny' eq '%s'", jx_ob_as_str(&ob_tiny));
     P1("'this is a huge heap string.' eq '%s'", jx_ob_as_str(&ob_huge));
@@ -121,13 +121,13 @@ int main(int argc, char **argv)
     jx_ob ob_huge = jx_ob_from_str("this is a huge heap string.");
     jx_ob list = jx_list_new();
 
-    P1("0 == %d", jx_list_size(list));
+    P1("0 == %d", (int)jx_list_size(list));
     P1("0 == %d", jx_list_append(list, ob_null));
-    P1("1 == %d", jx_list_size(list));
+    P1("1 == %d", (int)jx_list_size(list));
     P1("0 == %d", jx_list_append(list, ob_true));
-    P1("2 == %d", jx_list_size(list));
+    P1("2 == %d", (int)jx_list_size(list));
     P1("0 == %d", jx_list_append(list, ob_false));
-    P1("3 == %d", jx_list_size(list));
+    P1("3 == %d", (int)jx_list_size(list));
 
     P1("0 == %d", jx_list_append(list, ob_7));
     P1("0 == %d", jx_list_append(list, ob_3pt0));
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 
     P1("0 == %d", jx_list_append(list, ob_huge));
 
-    P1("7 == %d", jx_list_size(list));
+    P1("7 == %d", (int)jx_list_size(list));
     P1("0 == %d", jx_ob_free(list));
   }
 
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_append(list, jx_ob_from_float(3.0F)));
     P1("0 == %d", jx_list_append(list, jx_ob_from_str("tny")));
     P1("0 == %d", jx_list_append(list, jx_ob_from_str("this is a huge heap string.")));
-    P1("7 == %d", jx_list_size(list));
+    P1("7 == %d", (int)jx_list_size(list));
 
     {
       jx_ob json = jx_ob_to_json(list);
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
   }
 
   {
-    float array[] = { 1.0F, 2.0F, 3.0F };
+    jx_float array[] = { 1.0F, 2.0F, 3.0F };
     jx_ob list = jx_list_new_from_float_array(array, 3);
 
     {
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob list_copy = jx_ob_copy(list);
-      P1("3 == %d", jx_list_size(list_copy));
+      P1("3 == %d", (int)jx_list_size(list_copy));
       {
         jx_ob json = jx_ob_to_json(list_copy);
         printf("# %s\n", jx_ob_as_str(&json));
@@ -334,7 +334,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob list_copy = jx_ob_copy(list);
-      P1("3 == %d", jx_list_size(list_copy));
+      P1("3 == %d", (int)jx_list_size(list_copy));
       {
         jx_ob json = jx_ob_to_json(list_copy);
         printf("# %s\n", jx_ob_as_str(&json));

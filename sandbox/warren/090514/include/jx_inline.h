@@ -198,7 +198,7 @@ JX_INLINE jx_int jx__vla_size(void **ref)
 }
 
 jx_status jx__vla_resize(void **ref, jx_int new_size);
-JX_INLINE jx_status jx__vla_grow_check(void **ref, jx_int index)
+JX_INLINE jx_bool jx__vla_grow_check(void **ref, jx_int index)
 {
   if(((jx_vla *) (*ref))[-1].size > index) {
     return JX_TRUE;
@@ -312,47 +312,47 @@ JX_INLINE jx_float jx_ob_as_float(jx_ob ob)
   return (ob.meta.bits & JX_META_BIT_FLOAT) ? ob.data.io.float_ : 0.0F;
 }
 
-JX_INLINE jx_status jx_null_check(jx_ob ob)
+JX_INLINE jx_bool jx_null_check(jx_ob ob)
 {
   return !ob.meta.bits;
 }
 
-JX_INLINE jx_status jx_bool_check(jx_ob ob)
+JX_INLINE jx_bool jx_bool_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_BOOL) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_int_check(jx_ob ob)
+JX_INLINE jx_bool jx_int_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_INT) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_float_check(jx_ob ob)
+JX_INLINE jx_bool jx_float_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_FLOAT) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_str_check(jx_ob ob)
+JX_INLINE jx_bool jx_str_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_STR) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_ident_check(jx_ob ob)
+JX_INLINE jx_bool jx_ident_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_IDENT) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_list_check(jx_ob ob)
+JX_INLINE jx_bool jx_list_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_LIST) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_hash_check(jx_ob ob)
+JX_INLINE jx_bool jx_hash_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_HASH) && JX_TRUE;
 }
 
-JX_INLINE jx_status jx_builtin_check(jx_ob ob)
+JX_INLINE jx_bool jx_builtin_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_BUILTIN) && JX_TRUE;
 }

@@ -155,11 +155,11 @@ int main(int argc, char **argv)
   {
     jx_ob list = jx_list_new_with_fill(1000000,jx_ob_from_float(3.0));
 
-    P1("1000000 == %d", jx_list_size(list));
+    P1("1000000 == %d", (int)jx_list_size(list));
 
     P1("0 == %d", jx_list_combine(list,list));
 
-    P1("2000000 == %d", jx_list_size(list));
+    P1("2000000 == %d", (int)jx_list_size(list));
 
     P1("3.0 == %f", jx_ob_as_float(jx_list_borrow(list,1234567)));
     P1("0 == %d", jx_ob_free(list));    

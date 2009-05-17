@@ -100,15 +100,15 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_check(hash));
     P1("1 == %d", jx_hash_check(hash));
 
-    P1("0 == %d", jx_hash_size(hash));
+    P1("0 == %d", (int)jx_hash_size(hash));
 
     P1("0 == %d", jx_hash_has_key(hash, jx_ob_from_int(1)));
     P1("0 == %d", jx_hash_set(hash, jx_ob_from_int(1), jx_ob_from_int(2)));
-    P1("1 == %d", jx_hash_size(hash));
+    P1("1 == %d", (int)jx_hash_size(hash));
     P1("1 == %d", jx_hash_has_key(hash, jx_ob_from_int(1)));
 
     P1("0 == %d", jx_hash_set(hash, jx_ob_from_str("ky1"), jx_ob_from_str("vl1")));
-    P1("2 == %d", jx_hash_size(hash));
+    P1("2 == %d", (int)jx_hash_size(hash));
     P1("1 == %d", jx_hash_has_key(hash, jx_ob_from_str("ky1")));
 
     {
@@ -124,7 +124,8 @@ int main(int argc, char **argv)
       P1("0 == %d", jx_hash_set(hash, key1, value1));
       P1("1 == %d", jx_hash_has_key(hash, key1));
       P1("1 == %d", jx_hash_has_key(hash, key2));
-      P1("3 == %d", jx_hash_size(hash));
+      P1("3 == %d", (int)jx_hash_size(
+hash));
 
       {
         jx_ob borrowed = jx_hash_borrow(hash, key2);
