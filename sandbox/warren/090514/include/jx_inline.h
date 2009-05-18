@@ -117,7 +117,7 @@ struct jx__ob {
 /* identifiers (for use in JSON-based code) */
 #define JX_META_BIT_IDENT           0x0080
 
-/* pointers to built-ins (runtime-only, non-JSON-serializable) */
+/* pointers to built-ins (runtime-only, not serializable) */
 #define JX_META_BIT_BUILTIN         0x0040
 
 #define JX_META_MASK_TYPE_BITS      0x3FC0
@@ -126,8 +126,8 @@ struct jx__ob {
 
 #define JX_META_MASK_FOR_HASH       0xFFDF
 
+/* this bit is set in weak references */
 #define JX_META_BIT_WEAK_REF        0x0020
-
 
 /* object initializers */
 

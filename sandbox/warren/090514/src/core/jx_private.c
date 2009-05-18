@@ -83,14 +83,15 @@ void *jx__vla_copy(void **ref)
   }
 }
 
-JX_INLINE jx_status jx__vla__resize(jx_vla **vla_ptr, jx_int new_size, jx_bool zero)
+static jx_status jx__vla__resize(jx_vla **vla_ptr, jx_int new_size, 
+                                 jx_bool zero,int force_padding)
 {
   jx_vla *vla = *vla_ptr;
   jx_int old_size = vla->size;
   if(new_size != old_size) {
     jx_int old_alloc = vla->alloc;
-    if(new_size > old_alloc) {
-      jx_int new_alloc = new_size + (new_size>>2); /* 25% margin for growth */
+    if((new_size > old_alloc) || force_padding) {
+      jx_int new_alloc = new_size + (new_size>>1); /* 50% margin for growth */
       jx_int new_bytes = (new_alloc - old_alloc) * vla->rec_size;
       jx_int padding = (((char*)vla)-((char*)vla->ptr));
       if(new_bytes <= padding) { /* we have enough space in front */
@@ -108,8 +109,18 @@ JX_INLINE jx_status jx__vla__resize(jx_vla **vla_ptr, jx_int new_size, jx_bool z
           return JX_FAILURE;
         } else {
           vla = (jx_vla*)(((char*)new_ptr) + padding);
-          vla->alloc = new_alloc;
+          if(force_padding && (!padding) && (new_alloc > (new_size+1))) { 
+            /* leave some room up front */
+            jx_int rec_size = vla->rec_size;
+            jx_int less_alloc = ((new_alloc - new_size)>>1); /* half & half */
+            jx_int padding = less_alloc * rec_size;
+            jx_vla *new_vla = (jx_vla*)(((char*)vla) + padding);
+            memmove( new_vla, vla, sizeof(jx_vla) + rec_size * new_size);
+            vla = new_vla;
+            new_alloc -= less_alloc;
+          }
           vla->ptr = new_ptr;
+          vla->alloc = new_alloc;
           vla->size = new_size;
           (*vla_ptr) = vla;
         }
@@ -161,7 +172,7 @@ jx_status jx__vla_resize(void **ref, jx_int new_size)
 {
   if(*ref) {
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
-    jx_status status = jx__vla__resize(&vla,new_size,JX_TRUE);
+    jx_status status = jx__vla__resize(&vla,new_size,JX_TRUE,JX_FALSE);
     (*ref) = (void*)(vla+1);
     return status;
   } else {
@@ -175,7 +186,7 @@ jx_status jx__vla_append(void **ref, jx_int count)
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
     if(count > 0) {
       jx_int new_size = vla->size + count;
-      jx_status status = jx__vla__resize(&vla,new_size,JX_TRUE);
+      jx_status status = jx__vla__resize(&vla,new_size,JX_TRUE,JX_FALSE);
       (*ref) = (void*)(vla+1);
       return status;
     } else if(!count)
@@ -226,9 +237,36 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
   if(*ref) {
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
     jx_int old_size = vla->size;
+    jx_bool front_half = (index < (old_size>>1));
+    if(front_half) { /* optimize insertion in front half if space available */
+      jx_int padding = (((char*)vla)-((char*)vla->ptr));
+      if(padding >= (count * vla->rec_size)) {
+        register jx_int new_alloc = vla->alloc + count;
+        register jx_int new_size = vla->size + count;
+        register jx_int rec_size = vla->rec_size;
+        register jx_vla *ptr = vla->ptr;
+        register jx_vla *new_vla = (jx_vla*)(((char*)vla) - rec_size * count );
+        vla = new_vla;
+        vla->alloc = new_alloc;
+        vla->size = new_size;
+        vla->rec_size = rec_size;
+        vla->ptr = ptr;
+        {
+          jx_char *base = (jx_char *) (vla + 1);
+          (*ref) = base;
+          if(!index) {
+            memset(base, 0, rec_size * count);
+          } else {
+            memmove(base, base + count * rec_size, index * rec_size);
+            memset(base + index * rec_size, 0, rec_size * count);
+          }
+        }
+        return JX_SUCCESS;
+      }
+    }
     if((index >= 0) && (count >= 0) && (index <= old_size)) {
       jx_int new_size = old_size + count;
-      jx_status status = jx__vla__resize(&vla, new_size, JX_FALSE);
+      jx_status status = jx__vla__resize(&vla, new_size, JX_FALSE, front_half);
       if(jx_ok(status)) {
         jx_char *base = (jx_char *) (vla + 1);
         (*ref) = base;
@@ -251,7 +289,7 @@ jx_status jx__vla_extend(void **ref1, void **ref2)
       jx_int old_vla1_size = vla1->size;
       jx_int new_size = old_vla1_size + vla2->size;
       jx_int rec_size = vla1->rec_size;
-      jx_status status = jx__vla__resize(&vla1, new_size, JX_TRUE);
+      jx_status status = jx__vla__resize(&vla1, new_size, JX_TRUE, JX_FALSE);
       if(jx_ok(status)) {
         jx_char *base1 = (jx_char *) (vla1 + 1);
         jx_char *base2 = (jx_char *) (vla2 + 1);
@@ -282,19 +320,27 @@ jx_status jx__vla_remove(void **ref, jx_int index, jx_int count)
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
     if((index >= 0) && (count > 0) &&
        (index < vla->size) && ((count + index) <= vla->size)) {
-      jx_int new_size = vla->size - count;
+      jx_int old_size = vla->size;
+      jx_int new_size = old_size - count;
       jx_char *base = (jx_char *) (*ref);
-      if(new_size && (!index)) { /* optimize removal of element(s) from start of array */
-        register jx_int new_alloc = vla->alloc - count;
-        register jx_int new_size = vla->size - count;
-        register jx_int new_rec_size = vla->rec_size;
-        register jx_vla *new_ptr = vla->ptr;
-        register jx_vla *new_vla = (jx_vla*)(((char*)vla) + vla->rec_size * count );
-        new_vla->alloc = new_alloc;
-        new_vla->size = new_size;
-        new_vla->rec_size = new_rec_size;
-        new_vla->ptr = new_ptr;
-        (*ref) = (void*)(new_vla + 1);
+      jx_bool from_front = (!index) || (index < (old_size - new_size));
+      if(new_size && from_front) { /* optimize removal of element(s) from start of array */
+        register jx_int rec_size = vla->rec_size;
+        if(index) {
+          jx_char *base = (jx_char *) (vla + 1);
+          memmove(base + count * rec_size, base, index * rec_size);
+        }
+        {
+          register jx_int new_alloc = vla->alloc - count;
+          register jx_vla *ptr = vla->ptr;
+          register jx_vla *new_vla = (jx_vla*)(((char*)vla) + rec_size * count );
+          new_vla->alloc = new_alloc;
+          new_vla->size = new_size;
+          new_vla->rec_size = rec_size;
+          new_vla->ptr = ptr;
+          (*ref) = (void*)(new_vla + 1);
+          return JX_SUCCESS;
+        }
       } else {
         memmove(base + index * vla->rec_size,
                 base + (count + index) * vla->rec_size,
