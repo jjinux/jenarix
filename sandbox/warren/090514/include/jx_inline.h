@@ -376,8 +376,7 @@ JX_INLINE jx_bool jx_ok(jx_status status)
 JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
-  return ((bits & JX_META_BIT_STR) ? ((bits &
-                                       JX_META_BIT_GC) ? 
+  return ((bits & JX_META_BIT_STR) ? ((bits & JX_META_BIT_GC) ? 
                                       jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str))
                                       : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
@@ -386,9 +385,7 @@ JX_INLINE jx_int jx_str_len(jx_ob ob)
 JX_INLINE jx_int jx_ident_len(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
-  return ((bits & JX_META_BIT_IDENT) ? ((bits &
-                                       /* don't count string terminator (char 0) */
-                                       JX_META_BIT_GC) ? 
+  return ((bits & JX_META_BIT_IDENT) ? ((bits & JX_META_BIT_GC) ? 
                                       jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str))
                                       : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
