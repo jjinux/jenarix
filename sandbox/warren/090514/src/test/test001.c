@@ -31,14 +31,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 
 #include "jx_public.h"
 
 #define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
 #define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
 
+unsigned int random_int(unsigned int range) /* [0-range) */
+{
+  return (int)(((((double)random())*range)-1)/4294967296.0);
+}
+
 int main(int argc, char **argv)
 {
+
+  /* various tests of the vla - variable length array container */
 
   {
     jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
@@ -215,6 +224,117 @@ int main(int argc, char **argv)
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
+  }
+
+  /* prove that it really works */
+
+  {
+    int i;
+    for(i=2;i<5000;i+=(i/2)) {
+      int ii;
+      for(ii=0;ii<i;ii++) {
+        jx_int size = random_int(i);
+        jx_int *vla = jx_vla_new(sizeof(jx_int),size);
+        int iii;
+
+        for(iii=0;iii<size;iii++) {
+          {
+            int x;
+            for(x=0;x<size;x++) { /* renumber array */
+              vla[x] = x;
+            }
+          }
+          {
+            int index = random_int(size);
+            int count = random_int(size-index);
+            int x;
+            /* delete a chunk of the array */
+            jx_vla_remove(&vla, index, count);
+            size -= count;
+            /* verify array integrity */
+            for(x=0;x<index;x++) {
+              if(vla[x]!=x) {
+                printf("die('fail1: %s line %d.');\n",__FILE__,__LINE__);
+              }
+            }
+            for(x=index;x<(size-count);x++) {
+              if(vla[x]!=x+count) {
+                printf("die('fail2: %s line %d.');\n",__FILE__,__LINE__);
+              }
+            }
+          }
+        }
+        jx_vla_free(&vla);
+      }
+    }
+    printf("# passed %s line %d.\n",__FILE__,__LINE__);
+  }
+
+  {
+    int i;
+    for(i=2;i<2000;i+=(i/2)) {
+      int ii;
+      for(ii=0;ii<i;ii++) {
+        jx_int size = random_int(i);
+        jx_int *vla = jx_vla_new(sizeof(jx_int),size);
+        int iii;
+
+        for(iii=0;iii<size;iii++) {
+          {
+            int x;
+            for(x=0;x<size;x++) { /* renumber array */
+              vla[x] = x;
+            }
+          }
+          {
+            int index = random_int(size);
+            int count = random_int(size-index);
+            int x;
+            /* delete a chunk of the array */
+            jx_vla_remove(&vla, index, count);
+            size -= count;
+            /* verify array integrity */
+            for(x=0;x<index;x++) {
+              if(vla[x]!=x) {
+                printf("die('fail1: %s line %d.');\n",__FILE__,__LINE__);
+              }
+            }
+            for(x=index;x<(size-count);x++) {
+              if(vla[x]!=x+count) {
+                printf("die('fail2: %s line %d.');\n",__FILE__,__LINE__);
+              }
+            }
+          }
+          {
+            int x;
+            for(x=0;x<size;x++) { /* renumber array */
+              vla[x] = x;
+            }
+          }
+          {
+            int index = random_int(size);
+            int count = random_int(size-index);
+            int x;
+            /* add a chunk to the array */
+            jx_vla_insert(&vla, index, count);
+            size += count;
+            /* verify array integrity */
+            for(x=0;x<index;x++) {
+              if(vla[x]!=x) {
+                printf("die('fail3: %s line %d.');\n",__FILE__,__LINE__);
+              }
+            }
+            for(x=index+count;x<size;x++) {
+              if(vla[x]!=x-count) {
+                printf("die('fail4: %s line %d.');\n",__FILE__,__LINE__);
+              }
+            }
+          }
+        }
+        jx_vla_free(&vla);
+      }
+    }
+    printf("# passed %s line %d.\n",__FILE__,__LINE__);
   }
 
 }
