@@ -84,7 +84,7 @@ typedef union {
   jx_int int_;
   jx_float float_;
   jx_char tiny_str[JX_TINY_STR_SIZE];
-  jx_char *str;
+  jx_char *str; /* note: ptr to jx_str header, not first char */
   jx_list *list;
   jx_hash *hash;
   jx_builtin builtin;
@@ -139,10 +139,19 @@ struct jx__ob {
 #define JX_OB_LIST     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
 #define JX_OB_HASH     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
-
 /* inline methods */
 
 #define JX_INLINE __inline__ static
+
+/* header record for gc'd objects */
+
+typedef struct {
+  jx_bool shared; /* shared access flag (read_only, immortal, etc.) */
+} jx_gc;
+
+typedef struct {
+  jx_gc gc;
+} jx_str;
 
 /* builtin fn objects are a means through which jenarix can be extended */
 
@@ -170,7 +179,6 @@ JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
 typedef struct jx__vla jx_vla;
 
 struct jx__vla {
-  /* jx_bool read_only; NEEDED? */
   jx_vla *ptr;
   jx_int alloc;
   jx_int rec_size, size;
@@ -369,8 +377,8 @@ JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
   return ((bits & JX_META_BIT_STR) ? ((bits &
-                                       /* don't count string terminator (char 0) */
-                                       JX_META_BIT_GC) ? jx_vla_size(&ob.data.io.str) - 1
+                                       JX_META_BIT_GC) ? 
+                                      jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str))
                                       : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
@@ -380,32 +388,27 @@ JX_INLINE jx_int jx_ident_len(jx_ob ob)
   jx_bits bits = ob.meta.bits;
   return ((bits & JX_META_BIT_IDENT) ? ((bits &
                                        /* don't count string terminator (char 0) */
-                                       JX_META_BIT_GC) ? jx_vla_size(&ob.data.io.str) - 1
+                                       JX_META_BIT_GC) ? 
+                                      jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str))
                                       : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
 
-jx_status jx__ob_set_read_only(jx_ob ob, jx_bool read_only);
-JX_INLINE jx_ob jx_ob_set_read_only(jx_ob ob, jx_bool read_only)
+jx_status jx__ob_set_shared(jx_ob ob, jx_bool shared);
+JX_INLINE jx_status jx_ob_set_shared(jx_ob ob, jx_bool shared)
 {
   if(ob.meta.bits & JX_META_BIT_GC) {
-    if(jx_ok(jx__ob_set_read_only(ob, read_only))) {
-      if(read_only) {
-        ob.meta.bits |= JX_META_BIT_WEAK_REF;
-      } else {
-        ob.meta.bits &= ~(JX_META_BIT_WEAK_REF);
-      }
-    }
+    return jx__ob_set_shared(ob, shared);
   }
-  return ob;
+  return JX_SUCCESS;
 }
 
-jx_bool jx__ob_read_only(jx_ob ob);
-JX_INLINE jx_bool jx_ob_read_only(jx_ob ob)
+jx_bool jx__ob_shared(jx_ob ob);
+JX_INLINE jx_bool jx_ob_shared(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_GC) {
-    return jx__ob_read_only(ob);
+    return jx__ob_shared(ob);
   }
   return JX_FALSE;
 }
@@ -540,7 +543,8 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
   jx_bits bits1 = list1.meta.bits;
   jx_bits bits2 = list2.meta.bits;
   if((bits1 & JX_META_BIT_LIST) && (bits2 & JX_META_BIT_LIST)) {
-    if(bits2 & JX_META_BIT_WEAK_REF) { /* copy list2 if weak */
+    if((bits2 & JX_META_BIT_WEAK_REF) || (jx_ob_shared(list2))) {
+      /* copy list2 if weak or shared */
       list2 = jx_ob_copy(list2);
       if(!jx_ok(jx__list_combine(list1.data.io.list, list2.data.io.list)))
         jx_ob_free(list2);

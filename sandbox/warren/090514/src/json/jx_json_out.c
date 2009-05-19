@@ -233,11 +233,11 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
     break;
   case JX_META_BIT_STR:
     if(ob.meta.bits & JX_META_BIT_GC) {
-      jx_int size = jx_vla_size(&ob.data.io.str);
+      jx_int size = jx_vla_size(&ob.data.io.str) - sizeof(jx_str);
       jx_char *buffer = jx_malloc(size + 2);
       if(buffer) {
         buffer[0] = '"';
-        memcpy(buffer + 1, ob.data.io.str, size);
+        memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
         buffer[size] = '"';
         buffer[size + 1] = 0;
         {
@@ -260,11 +260,11 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
     if(flags & JX_JSON_FLAG_STRICT) {
       /* encode as an ordinary string */
       if(ob.meta.bits & JX_META_BIT_GC) {
-        jx_int size = jx_vla_size(&ob.data.io.str);
+        jx_int size = jx_vla_size(&ob.data.io.str) - sizeof(jx_str);
         jx_char *buffer = jx_malloc(size + 2);
         if(buffer) {
           buffer[0] = '"';
-          memcpy(buffer + 1, ob.data.io.str, size);
+          memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
           buffer[size] = '"';
           buffer[size + 1] = 0;
           {
@@ -284,7 +284,7 @@ jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags)
       }
     } else {
       if(ob.meta.bits & JX_META_BIT_GC) {
-        return jx_ob_from_str(ob.data.io.str);
+        return jx_ob_from_str(ob.data.io.str + sizeof(jx_str));
       } else {
         return jx_ob_from_str(ob.data.io.tiny_str);
       }

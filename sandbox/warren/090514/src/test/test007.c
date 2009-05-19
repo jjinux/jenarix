@@ -102,9 +102,9 @@ int main(int argc, char **argv)
     jx_list_append(list0,jx_ob_from_int(1));
     jx_list_append(list0,jx_ob_from_int(2));
 
-    P1("0 == %d", jx_ob_read_only(list0));    
-    list0 = jx_ob_set_read_only(list0,JX_TRUE);
-    P1("1 == %d", jx_ob_read_only(list0));    
+    P1("0 == %d", jx_ob_shared(list0));    
+    P1("0 == %d", jx_ob_set_shared(list0,JX_TRUE));
+    P1("1 == %d", jx_ob_shared(list0));    
 
     P1("-1 == %d", jx_list_append(list0, jx_ob_from_int(3)));
     P1("-1 == %d", jx_list_resize(list0, 0, jx_ob_from_null()));
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     P1("-1 == %d", jx_list_delete(list0, 0));
 
     P1("0 == %d", jx_list_resize(list1,2,list0));
-
+       
     P1("0 == %d", jx_list_combine(list1,list0));
 
     {
@@ -125,8 +125,8 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_ob_free(list1));
 
     P1("-1 == %d", jx_ob_free(list0));    
-
-    list0 = jx_ob_set_read_only(list0,JX_FALSE);
+       
+    P1("0 == %d", jx_ob_set_shared(list0,JX_FALSE));
     P1("0 == %d", jx_ob_free(list0));    
   }
 
@@ -141,10 +141,10 @@ int main(int argc, char **argv)
     jx_hash_set(hash, jx_ob_from_int(3), jx_ob_from_int(4));
     jx_hash_set(hash, jx_ob_from_int(5), list);
 
-    P1("0 == %d", jx_ob_read_only(hash));    
-    hash = jx_ob_set_read_only(hash,JX_TRUE);
+    P1("0 == %d", jx_ob_shared(hash));    
+    P1("0 == %d", jx_ob_set_shared(hash,JX_TRUE));
 
-    P1("1 == %d", jx_ob_read_only(hash));    
+    P1("1 == %d", jx_ob_shared(hash));    
 
     {
       jx_ob json = jx_ob_to_json(hash);
@@ -159,8 +159,7 @@ int main(int argc, char **argv)
 
     P1("-1 == %d", jx_ob_free(hash));
 
-    hash = jx_ob_set_read_only(hash,JX_FALSE);
-
+    P1("0 == %d", jx_ob_set_shared(hash,JX_FALSE));
     P1("0 == %d", jx_ob_free(hash));
   }
 

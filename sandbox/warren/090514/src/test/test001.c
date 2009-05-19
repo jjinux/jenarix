@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 
   {
     int i;
-    for(i=2;i<5000;i+=(i/2)) {
+    for(i=2;i<3000;i+=(i/2)) {
       int ii;
       for(ii=0;ii<i;ii++) {
         jx_int size = random_int(i);
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 
   {
     int i;
-    for(i=2;i<2000;i+=(i/2)) {
+    for(i=2;i<1000;i+=(i/2)) {
       int ii;
       for(ii=0;ii<i;ii++) {
         jx_int size = random_int(i);
