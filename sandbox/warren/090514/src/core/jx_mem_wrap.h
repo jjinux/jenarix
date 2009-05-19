@@ -35,6 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdlib.h>
 
+#define JX_MEM_LOG_ALL 0
+#define JX_MEM_LOG_SUMMARY 1
+
 #if 0
 
 /* just use system malloc, etc. */
@@ -47,8 +50,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
 /* activate optional memory logger, counter, & overrun detector */
 
-#define JX_MEM_LOG_ALL 0
-#define JX_MEM_LOG_SUMMARY 1
 
 #define jx_malloc(s) jx__malloc(s,__FILE__,__LINE__)
 #define jx_calloc(c,s) jx__calloc(c,s,__FILE__,__LINE__)

@@ -67,6 +67,8 @@ typedef struct jx__ob jx_ob;
 
 #define JX_FAILURE  -1
 #define JX_SUCCESS   0
+#define JX_YES       1
+#define JX_NO        0
 
 #define JX_FALSE     0
 #define JX_TRUE      1
@@ -77,6 +79,17 @@ typedef struct jx__ob jx_ob;
  public, but should be treated by API-users as private */
 
 #include "jx_inline.h"
+
+/* meaningful prepositions, for systematic memory management:
+
+   ..._with_...(...) implies destructive conversion of the input object (destroyed)
+
+   ..._from_...(...) implies constructive copy / conversion of the input object (preserved)
+   ..._to_...(...) implies an constructive copy resulting in a new copy of the input object (preserved)
+
+   ..._as_...(...) implies a volatile, borrowed cast of an in-place object (preserved)
+ 
+*/
 
 /* boxing (all of these return owned objects) */
 
@@ -136,6 +149,10 @@ jx_bool jx_ob_read_only(jx_ob ob);
 
 jx_ob jx_ob_copy(jx_ob ob);     /* always deep / recursive; copies of
                                    read-only containers are mutable */
+
+/* convenient method for freeing and re-initializing */
+
+jx_ob jx_null_with_ob(jx_ob ob);
 
 /* creating a weak reference to an object */
 
@@ -237,9 +254,10 @@ jx_ob jx_builtin_new(jx_builtin fn);
 
 /* execution engine */
 
-jx_status jx_expose_builtins(jx_ob namespace);
-jx_ob jx_bind(jx_ob namespace, jx_ob source);
-jx_ob jx_exec(jx_ob node, jx_ob code);
+jx_status jx_code_expose_builtins(jx_ob namespace);
+jx_status jx_code_expose_special_forms(jx_ob namespace);
+jx_ob jx_code_bind(jx_ob namespace, jx_ob source);
+jx_ob jx_code_exec(jx_ob node, jx_ob code);
 
 /* destroying owned objects */
 

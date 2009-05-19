@@ -20,6 +20,9 @@ json:
 exec:
 	cd src/exec;$(MAKE)
 
+jx:
+	cd src/jx; $(MAKE)
+
 test100: gen libjx.a
 	cd src/test;$(MAKE) test100
 

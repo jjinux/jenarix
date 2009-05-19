@@ -1,5 +1,37 @@
 /* RE2C-based tokenizer */
 
+/* 
+Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+
+* Neither the name of the DeLano Scientific LLC nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include <stdio.h>
 #include <string.h>
 
@@ -22,6 +54,7 @@ typedef struct {
   jx_word line;
   jx_int mode; 
   jx_json_parse_context context;
+  jx_int n_tok_parsed;
 } jx_json_scanner_state;
 
 #ifndef true
@@ -133,15 +166,15 @@ static int jx_scan(jx_json_scanner_state *s)
     O   = [0-7];
     D   = [0-9];
     L   = [a-zA-Z_];
+    LP  = L (L|D)*;
     H   = [a-fA-F0-9];
     E   = [Ee] [+-]? D+;
     FS   = [fFlL];
     IS   = [uUlL]*;
-
-    ESC   = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
+    ESC  = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
 
     ([+\-]? D+ E FS?) | ([+\-]? D* "." D+ E? FS?) | ([+\-]? D+ "." D* E? FS?)  { RET(JX_JSON_FCON); }
-    
+
     (["] (ESC|any\[\n\\"])* ["]) { RET(JX_JSON_SCON); }
 
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_JSON_SCON); }
@@ -155,13 +188,15 @@ static int jx_scan(jx_json_scanner_state *s)
     ","         { RET(JX_JSON_COMMA); }
     ":"         { RET(JX_JSON_COLON); }
     "true"      { RET(JX_JSON_TRUE); }
-    "false"      { RET(JX_JSON_FALSE); }
+    "false"     { RET(JX_JSON_FALSE); }
     "null"      { RET(JX_JSON_NULL); }
     
-    L (L|D)*      { RET(JX_JSON_IDENT); }
+    LP ("." LP)* { RET(JX_JSON_IDENT); }
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JSON_ICON); }
     
+    ";"         { RET(JX_JSON_SEMICOLON); }
+
     [ \t\v\f]+      { goto std; }
     
     null_char { 
@@ -190,8 +225,6 @@ static int jx_scan(jx_json_scanner_state *s)
     ")"         { RET(JX_JSON_CLOSEPAR); }
     "."         { RET(JX_JSON_DOT); }
     "`"         { RET(JX_JSON_BACKAPOSTROPHE); }
-
-    ";"         { RET(JX_JSON_SEMICOLON); }
 
     "-"         { RET(JX_JSON_MINUS); }
     "+"         { RET(JX_JSON_PLUS); }
@@ -231,120 +264,153 @@ void jx_json_scan_input(jx_json_scanner_state *state)
 
   jx_word tok_type;
   jx_char stack_buffer[SSCANF_BUFSIZE];
-
-  while((tok_type = jx_scan(state)) != JX_JSON_EOI) {
-    jx_ob token = JX_OB_NULL;
-    jx_size st_len = state->cur - state->tok;
-    
+  
+  state->context.status = 0;
+  state->n_tok_parsed = 0;
+  while(!state->context.exhausted) {
+    tok_type = jx_scan(state);
+    {
+      jx_ob token = JX_OB_NULL;
+      jx_size st_len = state->cur - state->tok;
 #ifdef JX_JSON_PARSER_DEBUG
 
-    if(1) {
-      jx_size i;
-      jx_char *c = state->tok;
-      
-      if(st_len) {
-        printf(" ");
-        for(i=0;i<st_len;i++) {
-          printf("%c",*(c++));
-        }
-        printf("\n");
-      }
-    }
-#endif
-
-    switch(tok_type) {
-    case JX_JSON_ICON:
-    case JX_JSON_FCON:
-    case JX_JSON_SCON:
-    case JX_JSON_IDENT:
-      {
-        char *buffer = stack_buffer;
-        if(st_len >= SSCANF_BUFSIZE) {
-          buffer = jx_malloc(st_len+1);
-        }
-        if(buffer) {
-          jx_os_strncpy(buffer, state->tok, st_len);                              
-          buffer[st_len] = 0;
-          switch(tok_type) {
-          case JX_JSON_ICON:
-            {
-#ifdef JX_64_BIT
-              jx_int icon;
-              if( jx_os_sscanf(buffer, "%lli", &icon) != 1) { /* use strtol instead? */
-                icon = 0;
-              }
-              token = jx_ob_from_int(icon);            
-#else
-              int icon;
-              if( jx_os_sscanf(buffer, "%i", &icon) != 1) { /* use strtol instead? */
-                icon = 0;
-              }
-#endif
-              token = jx_ob_from_int(icon);            
-            }
-            break;
-          case JX_JSON_FCON:
-            {
-#ifdef JX_64_BIT
-              double fcon;
-              if( jx_os_sscanf(buffer, "%lf", &fcon) != 1) { /* use strtof instead? */
-                fcon = 0.0;
-              }
-#else
-              float fcon; 
-              if( jx_os_sscanf(buffer, "%f", &fcon) != 1) { /* use strtof instead? */
-                fcon = 0.0F;
-              }
-#endif
-              token = jx_ob_from_float(fcon);
-            }
-            break;
-          case JX_JSON_SCON:
-            buffer[st_len-1]=0;
-            token = jx_ob_from_str(buffer+1);
-            break;
-          case JX_JSON_IDENT:
-            token = jx_ob_from_ident(buffer);
-            break;
+      if(1) {
+        jx_size i;
+        jx_char *c = state->tok;
+        
+        if(st_len) {
+          printf(" ");
+          for(i=0;i<st_len;i++) {
+            printf("%c",*(c++));
           }
-          if(buffer != stack_buffer)
-            jx_free(buffer);
+          printf("\n");
+        }
+      }
+#endif
+
+      switch(tok_type) {
+      case JX_JSON_ICON:
+      case JX_JSON_FCON:
+      case JX_JSON_SCON:
+      case JX_JSON_IDENT:
+        {
+          char *buffer = stack_buffer;
+          if(st_len >= SSCANF_BUFSIZE) {
+            buffer = jx_malloc(st_len+1);
+          }
+          if(buffer) {
+            jx_os_strncpy(buffer, state->tok, st_len);                              
+            buffer[st_len] = 0;
+            switch(tok_type) {
+            case JX_JSON_ICON:
+              {
+#ifdef JX_64_BIT
+                jx_int icon;
+                if( jx_os_sscanf(buffer, "%lli", &icon) != 1) { /* use strtol instead? */
+                  icon = 0;
+                }
+                token = jx_ob_from_int(icon);            
+#else
+                int icon;
+                if( jx_os_sscanf(buffer, "%i", &icon) != 1) { /* use strtol instead? */
+                  icon = 0;
+                }
+#endif
+                token = jx_ob_from_int(icon);            
+              }
+              break;
+            case JX_JSON_FCON:
+              {
+#ifdef JX_64_BIT
+                double fcon;
+                if( jx_os_sscanf(buffer, "%lf", &fcon) != 1) { /* use strtof instead? */
+                  fcon = 0.0;
+                }
+#else
+                float fcon; 
+                if( jx_os_sscanf(buffer, "%f", &fcon) != 1) { /* use strtof instead? */
+                  fcon = 0.0F;
+                }
+#endif
+                token = jx_ob_from_float(fcon);
+              }
+              break;
+            case JX_JSON_SCON:
+              buffer[st_len-1]=0;
+              token = jx_ob_from_str(buffer+1);
+              break;
+            case JX_JSON_IDENT:
+              token = jx_ob_from_ident(buffer);
+              break;
+            }
+            if(buffer != stack_buffer)
+              jx_free(buffer);
+          }
+          break;
+        case JX_JSON_TRUE:
+          token = jx_ob_from_bool(true);
+          break;
+        case JX_JSON_FALSE:
+          token = jx_ob_from_bool(false);
+          break;
+        case JX_JSON_NULL:
+          token = jx_ob_from_null();
+          break;
+        case JX_JSON_OPEN_RECT_BRACE:
+        case JX_JSON_CLOSE_RECT_BRACE:
+        case JX_JSON_OPEN_CURLY_BRACE:
+        case JX_JSON_CLOSE_CURLY_BRACE:
+        case JX_JSON_COMMA:
+        case JX_JSON_EOI:
+        case JX_JSON_SEMICOLON: 
+          /* do nothing */
+          break;
+          break;
+        case JX_JSON_ERROR:
+          state->context.status = JX_FAILURE;
+          break;
+        }
+      }
+      jx_json_(jx_Parser, (int)tok_type, token, &state->context);
+
+      if(!jx_ok(state->context.status)) /* something bad happened */
+        break;
+
+      switch(tok_type) {
+      case JX_JSON_SEMICOLON:
+      case JX_JSON_EOI:
+        {/* parse a null token to enable acceptance */
+          jx_ob ob = JX_OB_NULL;
+          jx_json_(jx_Parser, 0, ob, &state->context);
         }
         break;
-      case JX_JSON_TRUE:
-        token = jx_ob_from_bool(true);
-        break;
-      case JX_JSON_FALSE:
-        token = jx_ob_from_bool(false);
-        break;
-      case JX_JSON_NULL:
-        token = jx_ob_from_null();
-        break;
-      case JX_JSON_OPEN_RECT_BRACE:
-      case JX_JSON_CLOSE_RECT_BRACE:
-      case JX_JSON_OPEN_CURLY_BRACE:
-      case JX_JSON_CLOSE_CURLY_BRACE:
-      case JX_JSON_COMMA:
-      case JX_JSON_EOI:
-        /* do nothing */
-        break;
-      case JX_JSON_ERROR:
-        state->context.status = -1;
-        break;
       }
+
+      if(state->context.status) /* accepted or complete */
+        break;
+      else
+        state->n_tok_parsed++;
     }
-    jx_json_(jx_Parser, (int)tok_type, token, &state->context);
-    if(state->context.status<0) /* error */
-      break;
   }
-
-  /* parse end of input token */
+  
   if(tok_type == JX_JSON_EOI) {
-    jx_ob ob = JX_OB_NULL;
-    jx_json_(jx_Parser, JX_JSON_EOI, ob, &state->context);
-    jx_json_(jx_Parser, 0, ob, &state->context);
+    state->context.exhausted = JX_TRUE;
   }
+  
+  /* free the parser instance */
+  jx_json_Free(jx_Parser, jx__json_free);
+}
 
+static jx_status jx_json_scanner_state_init(jx_json_scanner_state *state)
+{
+  memset(state,0,sizeof(jx_json_scanner_state));
+  return JX_SUCCESS;
+}
+
+static jx_status jx_json_scanner_state_purge(jx_json_scanner_state *state)
+{
+  /* free last object */
+  jx_ob_free(state->context.result);
   /* free the input buffer (if using stdin) */
   switch(state->mode) {
   case JX_JSON_SCANNER_MODE_STDIN:
@@ -352,39 +418,49 @@ void jx_json_scan_input(jx_json_scanner_state *state)
       jx_free(state->bot);
     break;
   }
-  /* free the parser instance */
-  jx_json_Free(jx_Parser, jx__json_free);
+  return JX_SUCCESS;
 }
-
 
 jx_ob jx_ob_from_json_str(jx_char *st)
 {
   jx_json_scanner_state state;
+  jx_json_scanner_state_init(&state);
   jx_ob result = JX_OB_NULL;
-  memset(&state,0,sizeof(state));
   state.cur = st;
   state.eof = st + strlen(st) + 1;
   state.mode = JX_JSON_SCANNER_MODE_STRING;
   jx_json_scan_input(&state);
-  if(state.context.status==1) {
-    result = state.context.result;
+  if(state.context.status == JX_YES) {
+    if(state.n_tok_parsed) /* non-blank string? */
+      result = state.context.result;
+    state.context.result = jx_ob_from_null();
   }
+  jx_json_scanner_state_purge(&state);
   return result;
 }
 
 void jx_json_echo_stdin(void)
 {
   jx_json_scanner_state state;
-  memset(&state,0,sizeof(state));
-  jx_json_scan_input(&state);
-  if(state.context.status<0) {
-    printf("syntax error.\n");
-  } else {
-    {
-      jx_ob json = jx_ob_to_json(state.context.result);
-      printf("%s\n",jx_ob_as_str(&json));
-      jx_ob_free(json);
+  jx_json_scanner_state_init(&state);
+  while(1) {    
+    jx_json_scan_input(&state);
+    switch(state.context.status) {
+    case JX_FAILURE:
+      printf("syntax error.\n");
+      break;
+    case JX_YES: /* accepted */
+      {
+        jx_ob json = jx_ob_to_json(state.context.result);
+        if(state.n_tok_parsed)
+          printf("%s;\n",jx_ob_as_str(&json));
+        jx_ob_free(json);
+      }
+      state.context.result = jx_null_with_ob( state.context.result);
+      break;
     }
-    jx_ob_free(state.context.result);
+    if(state.context.exhausted)
+      break;
   }
+  jx_json_scanner_state_purge(&state);
 }

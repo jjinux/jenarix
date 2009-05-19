@@ -1,3 +1,75 @@
+/* 
+Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+
+* Neither the name of the DeLano Scientific LLC nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/* 
+
+   NOTE: This is the Jenarix Object Notation (JXON) parser.  JXON is a
+   strict forward-compatible superset of JSON than can be encoded and
+   passaged through JSON as needed for transport purposes.
+
+   JXON supports the following extensions on top of JSON:
+
+   * commas are optional on input and are used for aesthetics and
+     clarity only
+
+   * numbers are assumed to be integers unless they have a decimal or
+     exponent in which case they are considered to be floating point
+
+   * arbitrary text identifiers are supported (beyond null, true, false):
+
+     my_ident
+     my_ident.sub
+     my_indet.sub.subsub
+
+     [a-zA-Z_] ([a-zA-Z0-9_])* ("." [a-zA-Z_] ([a-zA-Z0-9_]))*
+
+   * single-quoted as well as double-quoted strings are supported
+ 
+   * null, true, false, int, float, identifiers are allowed to
+     be hash keys
+
+   * comments are permitted (starting with #)
+
+   * semicolons delimit JXON blocks and signal the parser to either
+     accept the input or throw an error
+
+  PLANNED:
+ 
+   * multi-line strings wrapped inside triple-quotes """ and '''
+
+   * an implicit concatenation operator for strings (+ ?)
+
+*/
+
 %nonassoc ERROR. 
 
 %include {
@@ -74,20 +146,26 @@
 
 /*** The grammer itself ***/
 
- /***
-
 statement ::= EOI. 
 {  
 #ifdef JX_JSON_PARSER_DEBUG
   printf("statement = EOI\n"); 
 #endif
 }
- ***/
 
 statement ::= expression(B) EOI. 
 {  
 #ifdef JX_JSON_PARSER_DEBUG
   printf("statement = expression(B) EOI\n"); 
+#endif
+  jx_ob_free(context->result); /* free previous result (if any) */ 
+  context->result = B; /* save the result */
+}
+
+statement ::= expression(B) SEMICOLON. 
+{  
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("statement = expression(B) SEMICOLON\n"); 
 #endif
   jx_ob_free(context->result); /* free previous result (if any) */ 
   context->result = B; /* save the result */
@@ -130,6 +208,15 @@ hash(A) ::= OPEN_CURLY_BRACE list_of_associations(B) CLOSE_CURLY_BRACE.
   A = B; 
 #ifdef JX_JSON_PARSER_DEBUG
   printf("hash(A) = { B }\n");
+#endif
+}
+
+list_of_associations(A) ::= list_of_associations(B) primitive(C) COLON expression(D).
+{ 
+  A = B;
+  jx_hash_set(A,C,D);
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_associations(A) = list_of_associations(B), primitive(C) : expression(D)\n");
 #endif
 }
 
@@ -181,6 +268,15 @@ list_of_expressions(A) ::= expression(B).
   jx_list_append(A,B);
 #ifdef JX_JSON_PARSER_DEBUG
   printf("list_of_expressions(A) = expression(B)\n");
+#endif
+}
+
+list_of_expressions(A) ::= list_of_expressions(B) expression(C). 
+{ 
+  jx_list_append(B,C); /* takes ownership of C */
+  A = B;
+#ifdef JX_JSON_PARSER_DEBUG
+  printf("list_of_expressions(A) = list_of_expressions(B) , expression(C)\n");
 #endif
 }
 

@@ -51,7 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_BORROW 5
 #define JX_BUILTIN_APPEND 6
 
-jx_status jx_expose_builtins(jx_ob namespace)
+jx_status jx_code_expose_builtins(jx_ob namespace)
 {
   jx_hash_set(namespace, jx_ob_from_ident("set"), 
               jx_builtin_new_from_selector(JX_BUILTIN_SET));
@@ -70,9 +70,18 @@ jx_status jx_expose_builtins(jx_ob namespace)
   return JX_SUCCESS;
 }
 
+jx_status jx_code_expose_special_forms(jx_ob namespace)
+{
+  jx_bool ok = JX_TRUE;
+
+  ok = ok && jx_ok( jx_hash_set(namespace, jx_ob_from_ident("while"), 
+                                jx_builtin_new_from_selector(JX_BUILTIN_WHILE)));
+  return JX_SUCCESS;
+}
+
 /* consume source & return builtin-bound executable */
 
-jx_ob jx_bind(jx_ob namespace, jx_ob source)
+jx_ob jx_code_bind(jx_ob namespace, jx_ob source)
 {
   switch(JX_META_MASK_TYPE_BITS & source.meta.bits) {
   case JX_META_BIT_LIST:
@@ -96,7 +105,7 @@ jx_ob jx_bind(jx_ob namespace, jx_ob source)
       /* now process the source list */
       while(size--) {
         jx_list_replace(list, size,
-                        jx_bind( namespace, jx_list_remove(source, size)));
+                        jx_code_bind( namespace, jx_list_remove(source, size)));
       }
       jx_ob_free(source);
       return result;
@@ -110,7 +119,7 @@ jx_ob jx_bind(jx_ob namespace, jx_ob source)
       while(size--) {
         jx_ob value = jx_list_remove(list, size--);
         jx_ob key = jx_list_remove(list, size);
-        jx_hash_set(result, key, jx_bind(namespace, value));
+        jx_hash_set(result, key, jx_code_bind(namespace, value));
       }
       jx_ob_free(list);
       return result;
@@ -130,7 +139,7 @@ jx_ob jx_bind(jx_ob namespace, jx_ob source)
   }
 }
 
-static jx_ob jx_eval(jx_ob node, jx_ob expr)
+jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {
   jx_bits bits = expr.meta.bits;
   if(!(JX_META_BIT_GC & bits))
@@ -144,7 +153,7 @@ static jx_ob jx_eval(jx_ob node, jx_ob expr)
       } else {
         jx_ob builtin = jx_list_borrow(expr, 0);
         if(jx_builtin_check(builtin)) {
-          jx_ob payload = jx_eval(node, jx_list_borrow(expr,1));
+          jx_ob payload = jx_code_eval(node, jx_list_borrow(expr,1));
           if(builtin.meta.bits & JX_META_BIT_GC) {
             /* native builtin function */
             jx_builtin fn = builtin.data.io.builtin;
@@ -188,7 +197,7 @@ static jx_ob jx_eval(jx_ob node, jx_ob expr)
           result = jx_list_new_with_size(size);
           /* now process the source list */
           while(i<size) {
-            jx_list_replace(result, i, jx_eval(node, jx_list_borrow(expr, i)));
+            jx_list_replace(result, i, jx_code_eval(node, jx_list_borrow(expr, i)));
             i++;
           }
         }
@@ -202,7 +211,7 @@ static jx_ob jx_eval(jx_ob node, jx_ob expr)
         while(size--) {
           jx_ob value = jx_list_remove(list, size--);
           jx_ob key = jx_list_remove(list, size);
-          jx_hash_set(result, key, jx_eval(node,value));
+          jx_hash_set(result, key, jx_code_eval(node,value));
           jx_ob_free(value);
         }
         jx_ob_free(list);
@@ -213,7 +222,7 @@ static jx_ob jx_eval(jx_ob node, jx_ob expr)
   }
 }
 
-jx_ob jx_exec(jx_ob node, jx_ob code)
+jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
   /* executable code: [ [builtin,[...]], [builtin,[...]], ... ] */
   jx_ob result = JX_OB_NULL;
@@ -223,15 +232,16 @@ jx_ob jx_exec(jx_ob node, jx_ob code)
     jx_ob builtin = jx_list_borrow(inst, 0);
     if(jx_builtin_check(builtin) && !(builtin.meta.bits & JX_META_BIT_GC)) {
       switch(builtin.data.io.int_) {
+        /* ALL SPECIAL FORMS MUST APPEAR HERE */
       case JX_BUILTIN_WHILE:
         {
           jx_ob payload = jx_list_borrow(inst,1);
           while(1) {
-            jx_ob cond = jx_eval(node, jx_list_borrow(payload,1));
+            jx_ob cond = jx_code_eval(node, jx_list_borrow(payload,1));
             if( jx_ob_as_int(cond) ) {
               jx_ob_free(cond);
               jx_ob_free(result);
-              result = jx_exec(node, jx_list_borrow(payload,2));
+              result = jx_code_exec(node, jx_list_borrow(payload,2));
             } else {
               jx_ob_free(cond);
               break;
@@ -240,13 +250,14 @@ jx_ob jx_exec(jx_ob node, jx_ob code)
         }
         break;
       default:
+        /* OTHERWISE, THE INSTRUCTION FALLS THROUGH TO CONVENTIONAL EVALUATION */
         jx_ob_free(result);
-        result = jx_eval(node, inst);
+        result = jx_code_eval(node, inst);
         break;
       }
     } else {
       jx_ob_free(result);
-      result = jx_eval(node, inst);
+      result = jx_code_eval(node, inst);
     }
   }
   return result;

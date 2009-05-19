@@ -308,6 +308,13 @@ JX_INLINE jx_ob jx_ob_from_float(jx_float float_)
   return result;
 }
 
+JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_ob_free(ob);
+  return result;
+}
+
 JX_INLINE jx_bool jx_ob_as_bool(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_BOOL) ? ob.data.io.bool_ : JX_FALSE;
