@@ -165,6 +165,17 @@ struct jx__ob {
 
 #define JX_INLINE __inline__ static
 
+struct jx__list {
+  jx_bits packed_meta_bits;
+  jx_gc gc;
+  union {
+    jx_ob *ob_vla;     
+    jx_float *float_vla;
+    jx_int *int_vla;
+    void *vla;
+  } data;
+};
+
 struct jx__opaque_ob {
   jx_gc gc;
   jx_opaque_free_fn free_fn;
@@ -676,31 +687,25 @@ JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
 jx_status jx__list_append(jx_list * I, jx_ob ob);
 JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
 {
-  jx_bits bits = list.meta.bits;
-  if(bits & JX_META_BIT_LIST) {
-    return jx__list_append(list.data.io.list, ob);
-  }
-  return JX_FAILURE;
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_append(list.data.io.list, ob) : 
+    JX_FAILURE;
 }
 
 jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob);
 JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
 {
-  jx_bits bits = list.meta.bits;
-  if(bits & JX_META_BIT_LIST) {
-    return jx__list_insert(list.data.io.list, index, ob);
-  }
-  return JX_FAILURE;
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_insert(list.data.io.list, index, ob) : 
+    JX_FAILURE;
 }
 
 jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob);
 JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
 {
-  jx_bits bits = list.meta.bits;
-  if(bits & JX_META_BIT_LIST) {
-    return jx__list_replace(list.data.io.list, index, ob);
-  }
-  return JX_FAILURE;
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_replace(list.data.io.list, index, ob) : 
+    JX_FAILURE;
 }
 
 jx_status jx__list_combine(jx_list * list1, jx_list * list2);
@@ -723,51 +728,67 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
   return JX_FAILURE;
 }
 
-jx_ob jx__list_borrow(jx_list * I, jx_int index);
-JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
+JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
 {
-  if(list.meta.bits & JX_META_BIT_LIST) {
-    return jx__list_borrow(list.data.io.list, index);
+  switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_INT:
+    return jx_ob_from_int(list->data.int_vla[index]);
+    break;
+  case JX_META_BIT_FLOAT:
+    return jx_ob_from_float(list->data.float_vla[index]);
+    break;
   }
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx_list_get(jx_ob list, jx_int index)
+JX_INLINE jx_ob jx__list_borrow(jx_list * I, jx_int index)
 {
-  if(list.meta.bits & JX_META_BIT_LIST) {
-    return jx_ob_copy(jx__list_borrow(list.data.io.list, index));
+  if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
+    if(I->packed_meta_bits) {
+      return jx__list_get_packed_data(I, index);
+    } else {
+      return I->data.ob_vla[index];
+    }
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_borrow(list.data.io.list, index) :
+    jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_list_get(jx_ob list, jx_int index)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx_ob_copy(jx__list_borrow(list.data.io.list, index)) :
+    jx_ob_from_null();
 }
 
 jx_ob jx__list_remove(jx_list * I, jx_int index);
 JX_INLINE jx_ob jx_list_remove(jx_ob list, jx_int index)
 {
-  jx_bits bits = list.meta.bits;
-  if(bits & JX_META_BIT_LIST) {
-    return jx__list_remove(list.data.io.list, index);
-  }
-  return jx_ob_from_null();
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_remove(list.data.io.list, index) : 
+    jx_ob_from_null();
 }
 
 jx_status jx__list_delete(jx_list * I, jx_int index);
 JX_INLINE jx_status jx_list_delete(jx_ob list, jx_int index)
 {
-  jx_bits bits = list.meta.bits;
-  if(bits & JX_META_BIT_LIST) {
-    return jx__list_delete(list.data.io.list, index);
-  }
-  return JX_FAILURE;
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_delete(list.data.io.list, index) : 
+    JX_FAILURE;
 }
 
 jx_status jx__list_set_int_vla(jx_list * list, jx_int ** ref);
 JX_INLINE jx_status jx_list_set_int_vla(jx_ob list, jx_int ** ref)
 {
-  jx_bits bits = list.meta.bits;
-  if(bits & JX_META_BIT_LIST) {
-    return jx__list_set_int_vla(list.data.io.list, ref);
-  }
-  return JX_FAILURE;
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_set_int_vla(list.data.io.list, ref) : 
+    JX_FAILURE;
 }
 
 jx_status jx__list_set_float_vla(jx_list * list, jx_float ** ref);

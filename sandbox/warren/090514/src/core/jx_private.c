@@ -1065,19 +1065,6 @@ JX_INLINE void jx__list_set_packed_data(jx_list * list, jx_int index, jx_ob ob)
   }
 }
 
-JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
-{
-  switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
-  case JX_META_BIT_INT:
-    return jx_ob_from_int(list->data.int_vla[index]);
-    break;
-  case JX_META_BIT_FLOAT:
-    return jx_ob_from_float(list->data.float_vla[index]);
-    break;
-  }
-  return jx_ob_from_null();
-}
-
 /* mental / debuggin aids */
 
 #define JX_OWN(ob) ob
@@ -1372,17 +1359,6 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
   return JX_FAILURE;
 }
 
-jx_ob jx__list_borrow(jx_list * I, jx_int index)
-{
-  if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
-    if(I->packed_meta_bits) {
-      return jx__list_get_packed_data(I, index);
-    } else {
-      return JX_BORROW( I->data.ob_vla[index] );
-    }
-  }
-  return jx_ob_from_null();
-}
 
 jx_ob jx__list_remove(jx_list * I, jx_int index)
 {

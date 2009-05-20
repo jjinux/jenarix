@@ -41,16 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define jx_os_fprintf fprintf
 #define jx_os_strncpy strncpy
 
-struct jx__list {
-  jx_bits packed_meta_bits;
-  jx_gc gc;
-  union {
-    jx_ob *ob_vla;              /* heterogeneous */
-    jx_float *float_vla;
-    jx_int *int_vla;
-    void *vla;
-  } data;
-};
 
 #define JX_ZERO_ARRAY_SIZE 1
 
