@@ -45,7 +45,20 @@ typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
 typedef long long jx_int64;
 
+/* Depending on compliation settings, Jenarix objects are either 64,
+   96, or 160 bits wide (that's 48, 80, or 160 bits of data plus 16
+   bits of meta information).  Within the available space, the data
+   field can contain either 32 bit or 64 bit C primitives, and tiny
+   embedded strings of 6, 10, or 18 bytes including the sentinel */
+
+/* Jenarix configuration */
+
 #define notJX_64_BIT
+
+#define JX_TINY_STR_SIZE 10
+/* may only be 6, 10, or 18 -- JX_64_BIT forces at least 10 */
+
+/* define base types */
 
 #ifdef JX_64_BIT
 /* uses 64-bit integers and double-precision floating point */
@@ -58,6 +71,7 @@ typedef int jx_int;
 typedef float jx_float;
 #define JX_TINY_STR_MIN_SIZE 6
 #endif
+
 
 /* our ubiquitous jenarix object type */
 

@@ -33,13 +33,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* by default, Jenarix objects are 96 bits wide (32 bits of meta
-   information and 64 bits of data, including zero-terminated tiny
-   strings of up to 7 characters) */
-
-#define JX_TINY_STR_SIZE 10
-/* may only be 6, 10, or 18 */
-
 /* adapt to tiny string size (a least as large as a machine
    pointer + 2 bytes) */
 
