@@ -171,9 +171,9 @@ hash));
       P1("0 == %d", jx_hash_set(hash, jx_ob_from_int(i), jx_ob_from_int(-i)));
       {
         jx_ob list = jx_hash_keys(hash);
-        jx_ob json = jx_ob_to_json(list);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(list);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
         jx_ob_free(list);
       }
     }
@@ -182,9 +182,9 @@ hash));
       P1("0 == %d", jx_hash_delete(hash, jx_ob_from_int(i)));
       {
         jx_ob list = jx_hash_keys(hash);
-        jx_ob json = jx_ob_to_json(list);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(list);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
         jx_ob_free(list);
       }
     }
@@ -195,34 +195,34 @@ hash));
 
     {
       jx_ob list = jx_hash_keys(hash);
-      jx_ob json = jx_ob_to_json(list);
-      printf("# %s\n", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list);
+      printf("# %s\n", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
       jx_ob_free(list);
     }
 
     {
       jx_ob list = jx_hash_values(hash);
-      jx_ob json = jx_ob_to_json(list);
-      printf("# %s\n", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list);
+      printf("# %s\n", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
       jx_ob_free(list);
     }
 
     {
       jx_ob list = jx_list_new_from_hash(hash);
       {
-        jx_ob json = jx_ob_to_json(list);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(list);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
       {
         jx_ob hash2 = jx_hash_new_from_list(list);
-        jx_ob json1 = jx_ob_to_json(hash);
-        jx_ob json2 = jx_ob_to_json(hash2);
-        P2("'%s' eq '%s'", jx_ob_as_str(&json1), jx_ob_as_str(&json2));
-        P1("0 == %d", jx_ob_free(json1));
-        P1("0 == %d", jx_ob_free(json2));
+        jx_ob jxon1 = jx_ob_to_jxon(hash);
+        jx_ob jxon2 = jx_ob_to_jxon(hash2);
+        P2("'%s' eq '%s'", jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
+        P1("0 == %d", jx_ob_free(jxon1));
+        P1("0 == %d", jx_ob_free(jxon2));
         P1("0 == %d", jx_ob_free(hash2));
       }
       jx_ob_free(list);
@@ -236,9 +236,9 @@ hash));
     for(i = 0; i < 18; i++) {
       jx_hash_set(hash, jx_ob_from_int(i), jx_ob_from_int(-i));
       {
-        jx_ob json = jx_ob_to_json(hash);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
     }
     P1("0 == %d", jx_ob_free(hash));
@@ -250,9 +250,9 @@ hash));
     for(i = 0; i < 16; i++) {
       P1("0 == %d", jx_hash_set(hash, jx_ob_from_int(i), jx_ob_from_int(-i)));
       {
-        jx_ob json = jx_ob_to_json(hash);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
     }
     for(i = 0; i < 16; i++) {   /* confirm ability to do reverse mapping */
@@ -263,9 +263,9 @@ hash));
     for(i = 0; i < 16; i++) {   /* confirm ability to set duplicate values */
       P1("0 == %d", jx_hash_set(hash, jx_ob_from_int(-i), jx_ob_from_int(-i)));
       {
-        jx_ob json = jx_ob_to_json(hash);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
     }
     for(i = 0; i < 16; i++) {   /* confirm randomness of reverse mapping */
@@ -283,9 +283,9 @@ hash));
     for(i = 0; i < 12; i++) {
       P1("0 == %d", jx_hash_set(hash, jx_ob_from_int(i), jx_ob_from_int(-i)));
       {
-        jx_ob json = jx_ob_to_json(hash);
-        printf("# %s\n", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
     }
     for(i = 0; i < 12; i++) {   /* confirm inability to set duplicate values */
@@ -303,23 +303,23 @@ hash));
     jx_int array[] = { 1, -1, 3, -3 };
     jx_ob list = jx_list_new_from_int_array(array, 4);
     {
-      jx_ob json = jx_ob_to_json(list);
-      P1("'[1,-1,3,-3]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list);
+      P1("'[1,-1,3,-3]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
     {
       jx_ob hash = jx_hash_new_with_list(list);
       {
-        jx_ob json = jx_ob_to_json(hash);
-        P1("'{1:-1,3:-3}' eq '%s'", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        P1("'{1:-1,3:-3}' eq '%s'", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
       {
         jx_ob list2 = jx_list_new_with_hash(hash);
         {
-          jx_ob json = jx_ob_to_json(list2);
-          P1("'[1,-1,3,-3]' eq '%s'", jx_ob_as_str(&json));
-          jx_ob_free(json);
+          jx_ob jxon = jx_ob_to_jxon(list2);
+          P1("'[1,-1,3,-3]' eq '%s'", jx_ob_as_str(&jxon));
+          jx_ob_free(jxon);
         }
         P1("0 == %d", jx_ob_free(list2));
       }
@@ -329,23 +329,23 @@ hash));
     jx_int array[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     jx_ob list = jx_list_new_from_int_array(array, 10);
     {
-      jx_ob json = jx_ob_to_json(list);
-      P1("'[1,2,3,4,5,6,7,8,9,10]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list);
+      P1("'[1,2,3,4,5,6,7,8,9,10]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
     {
       jx_ob hash = jx_hash_new_with_list(list);
       {
-        jx_ob json = jx_ob_to_json(hash);
-        P1("'{1:2,3:4,5:6,7:8,9:10}' eq '%s'", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        P1("'{1:2,3:4,5:6,7:8,9:10}' eq '%s'", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
       {
         jx_ob list2 = jx_list_new_with_hash(hash);
         {
-          jx_ob json = jx_ob_to_json(list2);
-          P1("'[1,2,3,4,5,6,7,8,9,10]' eq '%s'", jx_ob_as_str(&json));
-          jx_ob_free(json);
+          jx_ob jxon = jx_ob_to_jxon(list2);
+          P1("'[1,2,3,4,5,6,7,8,9,10]' eq '%s'", jx_ob_as_str(&jxon));
+          jx_ob_free(jxon);
         }
         P1("0 == %d", jx_ob_free(list2));
       }
@@ -355,24 +355,24 @@ hash));
     jx_int array[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 };
     jx_ob list = jx_list_new_from_int_array(array, 18);
     {
-      jx_ob json = jx_ob_to_json(list);
-      P1("'[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list);
+      P1("'[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
     {
       jx_ob hash = jx_hash_new_with_list(list);
       {
-        jx_ob json = jx_ob_to_json(hash);
-        C1("%s", jx_ob_as_str(&json));
-        jx_ob_free(json);
+        jx_ob jxon = jx_ob_to_jxon(hash);
+        C1("%s", jx_ob_as_str(&jxon));
+        jx_ob_free(jxon);
       }
       {
         jx_ob list2 = jx_list_new_with_hash(hash);
         {
-          jx_ob json = jx_ob_to_json(list2);
+          jx_ob jxon = jx_ob_to_jxon(list2);
           P1("'[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]' eq '%s'",
-             jx_ob_as_str(&json));
-          jx_ob_free(json);
+             jx_ob_as_str(&jxon));
+          jx_ob_free(jxon);
         }
         P1("0 == %d", jx_ob_free(list2));
       }
@@ -393,14 +393,14 @@ hash));
 
 
     {
-      jx_ob json = jx_ob_to_json(hash);
-      C1("%s", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(hash);
+      C1("%s", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
     {
-      jx_ob json = jx_ob_to_json_with_flags(hash,JX_JSON_FLAG_STRICT);
-      C1("%s", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon_with_flags(hash,JX_JXON_FLAG_LOSSY_JSON);
+      C1("%s", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
     jx_ob_free(hash);
   }

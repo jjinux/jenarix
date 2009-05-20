@@ -845,10 +845,10 @@ JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
   return jx_ob_from_null();
 }
 
-jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags);
-JX_INLINE jx_ob jx_ob_to_json(jx_ob ob)
+jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags);
+JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
 {
-  return jx_ob_to_json_with_flags(ob, 0);
+  return jx_ob_to_jxon_with_flags(ob, 0);
 }
 
 JX_INLINE jx_ob jx_add(jx_ob left, jx_ob right)

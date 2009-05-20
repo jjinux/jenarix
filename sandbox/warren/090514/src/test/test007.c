@@ -51,23 +51,23 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_resize(list1,5,jx_ob_from_int(1)));
 
     {
-      jx_ob json = jx_ob_to_json(list0);
-      P1("'[0,0,0,0,0]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list0);
+      P1("'[0,0,0,0,0]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
 
     {
-      jx_ob json = jx_ob_to_json(list1);
-      P1("'[1,1,1,1,1]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list1);
+      P1("'[1,1,1,1,1]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
     
     P1("0 == %d", jx_list_combine(list0,list1));
 
     {
-      jx_ob json = jx_ob_to_json(list0);
-      P1("'[0,0,0,0,0,1,1,1,1,1]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list0);
+      P1("'[0,0,0,0,0,1,1,1,1,1]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
 
     P1("0 == %d", jx_ob_free(list0));
@@ -86,10 +86,10 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_combine(list0,list1));
 
     {
-      jx_ob json = jx_ob_to_json(list0);
+      jx_ob jxon = jx_ob_to_jxon(list0);
       P1("'[\"01234567890\",\"01234567890\",\"abcdefghijk\",\"abcdefghijk\"]' eq '%s'",
-         jx_ob_as_str(&json));
-      jx_ob_free(json);
+         jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
 
     P1("0 == %d", jx_ob_free(list0));
@@ -117,9 +117,9 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_combine(list1,list0));
 
     {
-      jx_ob json = jx_ob_to_json(list1);
-      P1("'[[1,2],[1,2],1,2]' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(list1);
+      P1("'[[1,2],[1,2],1,2]' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
 
     P1("0 == %d", jx_ob_free(list1));
@@ -147,9 +147,9 @@ int main(int argc, char **argv)
     P1("1 == %d", jx_ob_shared(hash));    
 
     {
-      jx_ob json = jx_ob_to_json(hash);
-      P1("'{3:4,5:[1,2]}' eq '%s'", jx_ob_as_str(&json));
-      jx_ob_free(json);
+      jx_ob jxon = jx_ob_to_jxon(hash);
+      P1("'{3:4,5:[1,2]}' eq '%s'", jx_ob_as_str(&jxon));
+      jx_ob_free(jxon);
     }
 
     P1("-1 == %d", jx_hash_set(hash, jx_ob_from_int(7), jx_ob_from_int(8)));

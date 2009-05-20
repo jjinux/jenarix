@@ -234,29 +234,33 @@ jx_status jx_hash_delete(jx_ob hash, jx_ob key);        /* borrows key and delet
 jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value);      /* borrows value and returns borrowed key */
 jx_ob jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns owned copy of key */
 
-/* json output */
+/* jxon output */
 
-#define JX_JSON_FLAG_STRICT      0x40000000
-#define JX_JSON_FLAG_PRETTY      0x20000000
-#define JX_JSON_FLAG_INDENT      0x10000000
-#define JX_JSON_FLAG_INDENT_MASK 0x0000007F
+#define JX_JXON_FLAG_LOSSY_JSON  0x40000000
+#define JX_JXON_FLAG_ENCODE_JSON 0x40000000
+#define JX_JXON_FLAG_PRETTY      0x20000000
+#define JX_JXON_FLAG_INDENT      0x10000000
+#define JX_JXON_FLAG_INDENT_MASK 0x0000007F
 
-jx_ob jx_ob_to_json(jx_ob ob);
-jx_ob jx_ob_to_json_with_flags(jx_ob ob, jx_int flags);
+jx_ob jx_ob_to_jxon(jx_ob ob);
+jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags);
 
 /* json input */
 
-jx_ob jx_ob_from_json_str(jx_char * str);
+jx_ob jx_ob_from_jxon_str(jx_char * str);
 
 /* builtins */
 
 jx_ob jx_builtin_new(jx_builtin fn);
 
-/* execution engine */
+/* code execution engine */
 
 jx_status jx_code_expose_builtins(jx_ob namespace);
 jx_status jx_code_expose_special_forms(jx_ob namespace);
+
 jx_ob jx_code_bind(jx_ob namespace, jx_ob source);
+
+jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);
 
 /* destroying owned objects */

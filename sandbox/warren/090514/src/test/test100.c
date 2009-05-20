@@ -35,9 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 
-void jx_json_echo_stdin(void);
+void jx_jxon_echo_stdin(void);
 
 int main(int argc, char **argv)
 {
-  jx_json_echo_stdin();
+  jx_jxon_echo_stdin();
 }

@@ -5,23 +5,24 @@ include Rules.make
 
 all: tests
 
-libjx.a: core json exec
-	ar -cr libjx.a src/core/*.o src/json/*.o src/exec/*.o
+libjx.a: core jxon code
+	ar -cr libjx.a src/core/*.o src/jxon/*.o src/code/*.o
 
 core:
 	cd src/core;$(MAKE)
 
 gen:
-	cd src/json;$(MAKE) gen;
+	cd src/jxon;$(MAKE) gen;
 
-json: 
-	cd src/json;$(MAKE)
+jxon: 
+	cd src/jxon;$(MAKE)
 
-exec:
-	cd src/exec;$(MAKE)
+code:
+	cd src/code;$(MAKE)
 
-jx:
-	cd src/jx; $(MAKE)
+main: libjx.a
+	cd src/main; $(MAKE)
+	mv src/main/jx .
 
 test100: gen libjx.a
 	cd src/test;$(MAKE) test100

@@ -43,10 +43,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JS(st) \
 { \
   { \
-    jx_ob ob = jx_ob_from_json_str(st); \
-    jx_ob json = jx_ob_to_json(ob); \
-    P2("'%s' == '%s'", st,jx_ob_as_str(&json)); \
-    P1("0 == %d", jx_ob_free(json)); \
+    jx_ob ob = jx_ob_from_jxon_str(st); \
+    jx_ob jxon = jx_ob_to_jxon(ob); \
+    P2("'%s' == '%s'", st,jx_ob_as_str(&jxon)); \
+    P1("0 == %d", jx_ob_free(jxon)); \
     P1("0 == %d", jx_ob_free(ob)); \
   } \
 }
@@ -54,10 +54,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JF(st) \
 { \
   { \
-    jx_ob ob = jx_ob_from_json_str(st); \
-    jx_ob json = jx_ob_to_json(ob); \
-    P1("'null' == '%s'", jx_ob_as_str(&json)); \
-    P1("0 == %d", jx_ob_free(json)); \
+    jx_ob ob = jx_ob_from_jxon_str(st); \
+    jx_ob jxon = jx_ob_to_jxon(ob); \
+    P1("'null' == '%s'", jx_ob_as_str(&jxon)); \
+    P1("0 == %d", jx_ob_free(jxon)); \
     P1("0 == %d", jx_ob_free(ob)); \
   } \
 }
@@ -220,18 +220,18 @@ int main(int argc, char **argv)
   int complexity = 0;
   while(1) {
     jx_ob ob1 = random_tree( complexity );
-    jx_ob json1 = jx_ob_to_json(ob1); 
-    int len1 = strlen(jx_ob_as_str(&json1));
-    int sum1 = strsum(jx_ob_as_str(&json1));
+    jx_ob jxon1 = jx_ob_to_jxon(ob1); 
+    int len1 = strlen(jx_ob_as_str(&jxon1));
+    int sum1 = strsum(jx_ob_as_str(&jxon1));
 
-    jx_ob ob2 = jx_ob_from_json_str(jx_ob_as_str(&json1));
-    jx_ob json2 = jx_ob_to_json(ob2); 
-    int len2 = strlen(jx_ob_as_str(&json2));
-    int sum2 = strsum(jx_ob_as_str(&json2));
+    jx_ob ob2 = jx_ob_from_jxon_str(jx_ob_as_str(&jxon1));
+    jx_ob jxon2 = jx_ob_to_jxon(ob2); 
+    int len2 = strlen(jx_ob_as_str(&jxon2));
+    int sum2 = strsum(jx_ob_as_str(&jxon2));
 
-    //    printf("# %s\n# %s\n",jx_ob_as_str(&json1), jx_ob_as_str(&json2));
+    //    printf("# %s\n# %s\n",jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
     //    jx_ob_dump(stderr,"ob2",ob2);
-    printf("# complexity = %d, JSON string length = %d\n",complexity, len1);
+    printf("# complexity = %d, JXON string length = %d\n",complexity, len1);
     P2("%d == %d",len1,len2);
     P2("%d == %d",sum1,sum2);
     P1("1 == %d",jx_ob_equal(ob1,ob2));
@@ -244,17 +244,17 @@ int main(int argc, char **argv)
 
 #if 0
     if(complexity>STOP_AFTER) {
-      FILE *f = fopen("input.json","wb");
-      fprintf(f,"%s\n",jx_ob_as_str(&json1));
+      FILE *f = fopen("input.jxon","wb");
+      fprintf(f,"%s\n",jx_ob_as_str(&jxon1));
       fclose(f);
-      f = fopen("output.json","wb");
-      fprintf(f,"%s\n",jx_ob_as_str(&json2));
+      f = fopen("output.jxon","wb");
+      fprintf(f,"%s\n",jx_ob_as_str(&jxon2));
       fclose(f);
     }
 #endif
 
-    jx_ob_free(json1);
-    jx_ob_free(json2);
+    jx_ob_free(jxon1);
+    jx_ob_free(jxon2);
     jx_ob_free(ob1);
     jx_ob_free(ob2);
 

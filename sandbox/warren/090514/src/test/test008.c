@@ -41,10 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JS(st) \
 { \
   { \
-    jx_ob ob = jx_ob_from_json_str(st); \
-    jx_ob json = jx_ob_to_json(ob); \
-    P2("'%s' == '%s'", st,jx_ob_as_str(&json)); \
-    P1("0 == %d", jx_ob_free(json)); \
+    jx_ob ob = jx_ob_from_jxon_str(st); \
+    jx_ob jxon = jx_ob_to_jxon(ob); \
+    P2("'%s' == '%s'", st,jx_ob_as_str(&jxon)); \
+    P1("0 == %d", jx_ob_free(jxon)); \
     P1("0 == %d", jx_ob_free(ob)); \
   } \
 }
@@ -52,10 +52,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JF(st) \
 { \
   { \
-    jx_ob ob = jx_ob_from_json_str(st); \
-    jx_ob json = jx_ob_to_json(ob); \
-    P1("'null' == '%s'", jx_ob_as_str(&json)); \
-    P1("0 == %d", jx_ob_free(json)); \
+    jx_ob ob = jx_ob_from_jxon_str(st); \
+    jx_ob jxon = jx_ob_to_jxon(ob); \
+    P1("'null' == '%s'", jx_ob_as_str(&jxon)); \
+    P1("0 == %d", jx_ob_free(jxon)); \
     P1("0 == %d", jx_ob_free(ob)); \
   } \
 }
