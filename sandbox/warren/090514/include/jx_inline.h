@@ -311,11 +311,8 @@ JX_INLINE jx_status jx_float_vla_free(jx_float ** ref)
 jx_ob jx__ob_copy(jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
-  jx_bits bits = ob.meta.bits; 
-  if(bits & JX_META_BIT_GC) {
-    return jx__ob_copy(ob);
-  }
-  return ob;
+  return (ob.meta.bits & JX_META_BIT_GC) ?
+    jx__ob_copy(ob) : ob;
 }
 
 jx_status jx__ob_free(jx_ob ob);
@@ -452,20 +449,15 @@ JX_INLINE jx_ob jx_ob_to_float(jx_ob ob)
 jx_ob jx__ob_to_str(jx_ob ob);
 JX_INLINE jx_ob jx_ob_to_str(jx_ob ob)
 {
-  register jx_bits bits = ob.meta.bits;
-  if(bits & JX_META_BIT_STR)
-    return jx_ob_copy(ob);
-  else
-    return jx__ob_to_str(ob);
+  return (ob.meta.bits & JX_META_BIT_STR) ?
+    jx_ob_copy(ob) : jx__ob_to_str(ob);
 }
 
 jx_ob jx__ob_to_ident(jx_ob ob);
 JX_INLINE jx_ob jx_ob_to_ident(jx_ob ob)
 {
-  if(ob.meta.bits & JX_META_BIT_IDENT)
-    return jx_ob_copy(ob);
-  else
-    return jx__ob_to_ident(ob);
+  return (ob.meta.bits & JX_META_BIT_IDENT) ?
+    jx_ob_copy(ob) : jx__ob_to_ident(ob);
 }
 
 JX_INLINE jx_bool jx_null_check(jx_ob ob)
@@ -564,20 +556,22 @@ JX_INLINE jx_bool jx_ok(jx_status status)
 JX_INLINE jx_int jx_str_len(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
-  return ((bits & JX_META_BIT_STR) ? ((bits & JX_META_BIT_GC) ? 
-                                      (ob.data.io.str ? 
-                                       jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str)) : 0)
-                                      : bits & JX_META_MASK_TINY_STR_SIZE)
+  return ((bits & JX_META_BIT_STR) ? 
+          ((bits & JX_META_BIT_GC) ? 
+           (ob.data.io.str ? 
+            jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str)) : 0)
+           : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
 
 JX_INLINE jx_int jx_ident_len(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
-  return ((bits & JX_META_BIT_IDENT) ? ((bits & JX_META_BIT_GC) ? 
-                                      (ob.data.io.str ? jx_vla_size(&ob.data.io.str) 
-                                       - (1 + sizeof(jx_str)) : 0)
-                                      : bits & JX_META_MASK_TINY_STR_SIZE)
+  return ((bits & JX_META_BIT_IDENT) ? 
+          ((bits & JX_META_BIT_GC) ? 
+           (ob.data.io.str ? jx_vla_size(&ob.data.io.str) 
+            - (1 + sizeof(jx_str)) : 0)
+           : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
 
@@ -956,45 +950,36 @@ JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
 jx_int jx__hash_size(jx_hash * I);
 JX_INLINE jx_int jx_hash_size(jx_ob hash)
 {
-  if(hash.meta.bits & JX_META_BIT_HASH) {
-    return jx__hash_size(hash.data.io.hash);
-  }
-  return 0;
+  return (hash.meta.bits & JX_META_BIT_HASH) ?
+    jx__hash_size(hash.data.io.hash) : 0;
 }
 
 jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value);
 JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
 {
-  jx_bits bits = hash.meta.bits;
-  if(bits & JX_META_BIT_HASH) {
-    return jx__hash_set(hash.data.io.hash, key, value);
-  }
-  return JX_FAILURE;
+  return (hash.meta.bits & JX_META_BIT_HASH) ?
+    jx__hash_set(hash.data.io.hash, key, value) : JX_FAILURE;
 }
 
 jx_bool jx__hash_has_key(jx_hash * I, jx_ob key);
 JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
 {
-  if(hash.meta.bits & JX_META_BIT_HASH) {
-    return jx__hash_has_key(hash.data.io.hash, key);
-  }
-  return JX_FALSE;
+  return (hash.meta.bits & JX_META_BIT_HASH) ?
+    jx__hash_has_key(hash.data.io.hash, key) : JX_FALSE;
 }
 
 JX_INLINE jx_ob jx_hash_keys(jx_ob hash)
 {
-  if(hash.meta.bits & JX_META_BIT_HASH) {
-    return jx__hash_copy_members(hash.data.io.hash, JX__HASH_COPY_KEYS);
-  }
-  return jx_ob_from_null();
+  return (hash.meta.bits & JX_META_BIT_HASH) ?
+    jx__hash_copy_members(hash.data.io.hash, JX__HASH_COPY_KEYS) : 
+    jx_ob_from_null();
 }
 
 JX_INLINE jx_ob jx_hash_values(jx_ob hash)
 {
-  if(hash.meta.bits & JX_META_BIT_HASH) {
-    return jx__hash_copy_members(hash.data.io.hash, JX__HASH_COPY_VALUES);
-  }
-  return jx_ob_from_null();
+  return (hash.meta.bits & JX_META_BIT_HASH) ?
+    jx__hash_copy_members(hash.data.io.hash, JX__HASH_COPY_VALUES) : 
+    jx_ob_from_null();
 }
 
 jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key);
@@ -1190,17 +1175,15 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
 jx_ob jx__code_eval(jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {
-  if(expr.meta.bits & JX_META_BIT_GC)
-    return jx__code_eval(node,expr);
-  return expr;
+  return (expr.meta.bits & JX_META_BIT_GC) ?
+    jx__code_eval(node,expr) : expr;
 }
 
 jx_ob jx__code_exec(jx_ob node, jx_ob code);
 JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
-  if(code.meta.bits & JX_META_BIT_LIST)
-    return jx__code_exec(node,code);
-  return jx_ob_copy(code);
+  return (code.meta.bits & JX_META_BIT_LIST) ?
+    jx__code_exec(node,code) : jx_ob_copy(code);
 }
 
 /* debugging */
