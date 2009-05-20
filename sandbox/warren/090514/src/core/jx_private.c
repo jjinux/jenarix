@@ -51,7 +51,7 @@ JX_INLINE void jx__gc_init(jx_gc *gc)
 
 /* jx_vla routines */
 
-void *jx_vla_new(jx_int rec_size, jx_int size)
+void *jx__vla_new(jx_int rec_size, jx_int size)
 {
   jx_vla *vla = (jx_vla *) jx_calloc(1, sizeof(jx_vla) + rec_size * size);
   if(vla) {
@@ -64,7 +64,7 @@ void *jx_vla_new(jx_int rec_size, jx_int size)
     return NULL;
 }
 
-void *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content)
+void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content)
 {
   jx_vla *vla = jx_malloc(sizeof(jx_vla) + rec_size * size);
   if(vla) {

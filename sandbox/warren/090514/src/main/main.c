@@ -89,8 +89,11 @@ int main(int argc, char **argv)
         jx_ob code = jx_code_bind_with_source(namespace, source);
         source = jx_ob_from_null();
 
-        if(console) jx_jxon_dump(stdout, "code  ", code);
-        
+        if(console) {
+          jx_jxon_dump(stdout, "code  ", code);
+        } else {
+          jx_jxon_dump(stdout, "# exec", code);
+        }
         {
           jx_ob result = jx_code_exec(node,code);
           

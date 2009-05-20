@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob str = jx_ob_from_str("1");
-      P1("1 == %d", jx_ob_as_int( jx_ob_to_int(str)));
+      P1("1 == %d", (int)jx_ob_as_int( jx_ob_to_int(str)));
       jx_ob_free(str);
     }
 

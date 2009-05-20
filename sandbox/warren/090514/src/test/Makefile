@@ -10,7 +10,7 @@ all: \
 	test008 \
 	test009 \
 	test010 \
-	test100
+	jx_echo
 
 JX_ROOT=../..
 
@@ -42,7 +42,7 @@ test008: test008.o $(JX_ROOT)/libjx.a
 test009: test009.o $(JX_ROOT)/libjx.a
 test010: test010.o $(JX_ROOT)/libjx.a
 
-test100: test100.o $(JX_ROOT)/libjx.a
+jx_echo: jx_echo.o $(JX_ROOT)/libjx.a
 
 clean:
 	/bin/rm -f \
@@ -56,5 +56,5 @@ clean:
 	test008 \
 	test009 \
 	test010 \
-	test100
+	jx_echo
 

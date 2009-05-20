@@ -157,6 +157,9 @@ jx_ob jx_code_eval(jx_ob node, jx_ob expr)
           case JX_BUILTIN_ADD: result = jx_safe_add(node, payload); break;
           case JX_BUILTIN_SUB: result = jx_safe_sub(node, payload); break;
           case JX_BUILTIN_APPEND: result = jx_safe_append(node, payload); break;
+          case JX_BUILTIN_SIZE: result = jx_safe_size(node, payload); break;
+          case JX_BUILTIN_HASH_SET: result = jx_safe_hash_set(node, payload); break;
+          case JX_BUILTIN_HASH_GET: result = jx_safe_hash_get(node, payload); break;
           }
           jx_ob_free(payload);
         }
@@ -225,7 +228,7 @@ jx_ob jx_code_exec(jx_ob node, jx_ob code)
             jx_ob payload = jx_list_borrow(inst,1);
             while(1) {
               jx_ob cond = jx_code_eval(node, jx_list_borrow(payload,1));
-              if( jx_ob_as_int(cond) ) {
+              if( jx_ob_as_bool(cond) ) {
                 jx_ob_free(cond);
                 jx_ob_free(result);
                 result = jx_code_exec(node, jx_list_borrow(payload,2));

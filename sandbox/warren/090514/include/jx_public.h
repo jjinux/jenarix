@@ -148,6 +148,9 @@ jx_bool jx_ob_identical(jx_ob left, jx_ob right);
 
 jx_bool jx_ob_equal(jx_ob left, jx_ob right);   /* to be done */
 
+/* sizing objects */
+
+jx_ob jx_ob_size(jx_ob ob);
 /* common operations */
 
 jx_ob jx_add(jx_ob left, jx_ob right);

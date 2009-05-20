@@ -237,6 +237,10 @@ static int jx_scan(jx_jxon_scanner_state *s)
     "."         { RET(JX_JXON_DOT); }
     "`"         { RET(JX_JXON_BACKAPOSTROPHE); }
 
+    "<"         { RET(JX_JXON_LESS_THAN); }
+    "<="        { RET(JX_JXON_LESS_THAN_OR_EQ); }
+    ">"         { RET(JX_JXON_GREATER_THAN); }
+    ">="        { RET(JX_JXON_GREATER_THAN_OR_EQ); }
     "-"         { RET(JX_JXON_MINUS); }
     "+"         { RET(JX_JXON_PLUS); }
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_JXON_SCON); }
@@ -273,7 +277,7 @@ void jx_jxon_scan_input(jx_jxon_scanner_state *state)
 
   void *jx_Parser = jx_jxon_Alloc( (void *(*)(size_t))jx__jxon_alloc);
 
-  jx_word tok_type;
+  jx_word tok_type = 0;
   jx_char stack_buffer[SSCANF_BUFSIZE];
   
   state->context.status = 0;

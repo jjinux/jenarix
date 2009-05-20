@@ -297,16 +297,16 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
     } else { /* for debugging and troublshooting only */
       char buffer[50];
       if(bits & JX_META_BIT_BUILTIN_VLA) {
-        sprintf(buffer,"*builtin_vla_%p*",(void*)ob.data.io.vla);
+        sprintf(buffer,"*vla_%p*",(void*)ob.data.io.vla);
       } else if(bits & JX_META_BIT_BUILTIN_SELECTOR) {
-        sprintf(buffer,"*builtin_selector_%03d*",(int)ob.data.io.int_);
+        sprintf(buffer,"*op_%03d*",(int)ob.data.io.int_);
       } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
-        sprintf(buffer,"*builtin_opaque_ob_%p*",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"*opaque_ob_%p*",(void*)ob.data.io.vla); /* deliberate misread */
         return jx_ob_from_str(buffer);
       } else if(bits & JX_META_BIT_BUILTIN_NATIVE_FN) {
-        sprintf(buffer,"*builtin_native_fn_%p*",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"*native_fn_%p*",(void*)ob.data.io.vla); /* deliberate misread */
       } else if(bits & JX_META_BIT_BUILTIN_JENARIX_FN) {
-        sprintf(buffer,"*builtin_jenarix_fn_%p*",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"*jenarix_fn_%p*",(void*)ob.data.io.vla); /* deliberate misread */
       }
       return jx_ob_from_str(buffer);
     }

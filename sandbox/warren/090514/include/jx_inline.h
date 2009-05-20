@@ -222,20 +222,23 @@ struct jx__vla {
   jx_int rec_size, size;
 };
 
-void *jx_vla_new(jx_int rec_size, jx_int size);
-void *jx_vla_new_with_content(jx_int rec_size, jx_int size, void *content);
-/* macros to avoid annoying type mismatch warnings with (void**) parameter */
-#define   jx_vla_copy(r)            jx__vla_copy((void**)(r))
-#define   jx_vla_size(r)            jx__vla_size((void**)(r))
-#define   jx_vla_resize(r,s)        jx__vla_resize((void**)(r),(s))
-#define   jx_vla_grow_check(r,i)    jx__vla_grow_check((void**)(r),(i))
-#define   jx_vla_append(r,c)        jx__vla_append((void**)(r),(c))
-#define   jx_vla_append_c_str(r,s)  jx__vla_append_c_str((void**)(r),(s))
-#define   jx_vla_append_ob_str(r,o) jx__vla_append_ob_str((void**)(r),(o))
-#define   jx_vla_insert(r,i,c)      jx__vla_insert((void**)(r),(i),(c))
-#define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(r1),((void**)(r2)))
-#define   jx_vla_remove(r,i,c)      jx__vla_remove((void**)(r),(i),(c))
-#define   jx_vla_free(r)            jx__vla_free((void**)(r))
+void *jx__vla_new(jx_int rec_size, jx_int size);
+
+void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content);
+/* macros to avoid annoying type mismatch and aliasing warnings with (void**) parameter */
+#define   jx_vla_new(r,s)           jx__vla_new(r,s)
+#define   jx_vla_new_with_content(r,s,c) jx__vla_new_with_content(r,s,c)
+#define   jx_vla_copy(r)            (void*)jx__vla_copy((void**)(void*)(r))
+#define   jx_vla_size(r)            jx__vla_size((void**)(void*)(r))
+#define   jx_vla_resize(r,s)        jx__vla_resize((void**)(void*)(r),(s))
+#define   jx_vla_grow_check(r,i)    jx__vla_grow_check((void**)(void*)(r),(i))
+#define   jx_vla_append(r,c)        jx__vla_append((void**)(void*)(r),(c))
+#define   jx_vla_append_c_str(r,s)  jx__vla_append_c_str((void**)(void*)(r),(s))
+#define   jx_vla_append_ob_str(r,o) jx__vla_append_ob_str((void**)(void*)(r),(o))
+#define   jx_vla_insert(r,i,c)      jx__vla_insert((void**)(void*)(r),(i),(c))
+#define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(void*)(r1),((void**)(void*)(r2)))
+#define   jx_vla_remove(r,i,c)      jx__vla_remove((void**)(void*)(r),(i),(c))
+#define   jx_vla_free(r)            jx__vla_free((void**)(void*)(r))
 void *jx__vla_copy(void **ref);
 JX_INLINE jx_int jx__vla_size(void **ref)
 {
@@ -1105,6 +1108,27 @@ JX_INLINE jx_ob jx_str_join_with_list_sep(jx_ob list, jx_ob sep)
   return jx_ob_from_null();
 }
 
+jx_int jx_list_size(jx_ob);
+JX_INLINE jx_ob jx_ob_size(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_LIST:
+    return jx_ob_from_int( jx_list_size(ob));
+    break;
+  case JX_META_BIT_HASH:
+    return jx_ob_from_int( jx_hash_size(ob));
+    break;
+  case JX_META_BIT_STR:
+    return jx_ob_from_int( jx_str_len(ob));
+    break;
+  case JX_META_BIT_IDENT:
+    return jx_ob_from_int( jx_ident_len(ob));
+    break;
+  default:
+    return jx_ob_from_int(1);
+    break;
+  }
+}
 
 /* debugging */
 

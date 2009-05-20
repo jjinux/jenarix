@@ -1,0 +1,56 @@
+# primitives and dictionarys are passed through unmodified
+null;
+true;
+false;
+0;
+-1;
+1;
+0.0;
+1.0;
+-1.0;
+"hi world";
+identify;
+{};
+{1:2};
+{1:2,3:4};
+{1:[2,3]};
+# top-level lists are iterated -- only the last element is returned
+[];
+[[]];
+[1];
+[1,2];
+[1,2,3];
+# lists with identifiers which resolve to code are executed
+[set x 1];
+[get x];
+[set x 2];
+[get x];
+[add 1 2];
+# type promotion is in
+[add 1 2];
+[add 1 2.0];
+[add true true];
+[sub true true];
+[sub true false];
+# we have looping constructs
+
+[set a 10];
+
+[set b []];
+
+[set c {}];
+
+[size [get b]];
+
+[ while [get a] 
+  [ [append [borrow b] [get a]]
+    [hash_set [borrow c] [get a] 1]
+    [set a [sub [get a] 1]] ]
+];
+
+[get b];
+
+[get c];
+
+[size [get b]];
+[size [get c]];
