@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   /* can we call our native function? */
 
   {
-    jx_ob builtin = jx_builtin_new(my_fn);
+    jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
     jx_ob builtins = jx_hash_new();
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     }
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ my_fn ] ]");
-      jx_ob code = jx_code_bind(builtins, source);
+      jx_ob code = jx_code_bind_with_source(builtins, source);
       {
         jx_ob jxon = jx_ob_to_jxon(code);
         printf("# %s\n",jx_ob_as_str(&jxon));
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
           printf("# %s\n",jx_ob_as_str(&jxon));
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob node = JX_OB_NULL;
         jx_ob result = jx_code_exec(node,code);
         P1("3 == %d",(int)jx_ob_as_int(result));
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob node = JX_OB_NULL;
         jx_ob result = jx_code_exec(node,code);
         P1("5.0 == %f",jx_ob_as_float(result));
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob result = jx_code_exec(node,code);
         P1("6 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob result = jx_code_exec(node,code);
         P1("4 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    jx_ob builtin = jx_builtin_new(my_fn);
+    jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob result = jx_code_exec(node,code);
         P1("0 == %d",(int)jx_ob_as_int(result));
         P1("0 == %d",jx_ob_free(result));
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    jx_ob builtin = jx_builtin_new(my_fn);
+    jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
           printf("# %s\n",jx_ob_as_str(&jxon));
@@ -306,7 +306,7 @@ int main(int argc, char **argv)
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    jx_ob builtin = jx_builtin_new(my_fn);
+    jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
-        jx_ob code = jx_code_bind(builtins, source);
+        jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
           printf("# %s\n",jx_ob_as_str(&jxon));

@@ -389,7 +389,8 @@ hash));
     jx_hash_set(hash,jx_ob_from_float(2.0),jx_ob_from_int(4));
     jx_hash_set(hash,jx_ob_from_str("str"),jx_ob_from_int(5));
     jx_hash_set(hash,jx_ob_from_ident("ident1"),jx_ob_from_ident("ident2"));
-    jx_hash_set(hash,jx_builtin_new(NULL),jx_builtin_new_from_selector(1));
+    jx_hash_set(hash,jx_builtin_new_from_native_fn(NULL),
+                jx_builtin_new_from_selector(1));
 
 
     {

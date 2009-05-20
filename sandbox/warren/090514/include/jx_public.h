@@ -85,7 +85,8 @@ typedef struct jx__ob jx_ob;
    ..._with_...(...) implies destructive conversion of the input object (destroyed)
 
    ..._from_...(...) implies constructive copy / conversion of the input object (preserved)
-   ..._to_...(...) implies an constructive copy resulting in a new copy of the input object (preserved)
+
+   ..._to_...(...) implies an constructive cast resulting in a new copy of the input object (preserved)
 
    ..._as_...(...) implies a volatile, borrowed cast of an in-place object (preserved)
  
@@ -251,14 +252,23 @@ jx_ob jx_ob_from_jxon_str(jx_char * str);
 
 /* builtins */
 
-jx_ob jx_builtin_new(jx_builtin fn);
+jx_ob jx_builtin_new_from_vla(void **ref);
+jx_ob jx_builtin_new_from_selector(jx_int selector);
+jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn);
+jx_ob jx_builtin_new_from_opaque_ob(jx_opaque_ob *opaque);
+
+/* parser */
+
+jx_ob jx_jxon_scanner_new_with_file(FILE *file);
+jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob);
+
 
 /* code execution engine */
 
 jx_status jx_code_expose_builtins(jx_ob namespace);
 jx_status jx_code_expose_special_forms(jx_ob namespace);
 
-jx_ob jx_code_bind(jx_ob namespace, jx_ob source);
+jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source);
 
 jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);

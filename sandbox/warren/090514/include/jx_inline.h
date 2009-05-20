@@ -65,8 +65,15 @@ typedef jx_int64 jx_data_word[2];
 
 typedef struct jx__list jx_list;
 typedef struct jx__hash jx_hash;
+typedef struct jx__opaque_ob jx_opaque_ob;
 
 typedef jx_uint16 jx_bits;
+
+/* header record for gc'd objects */
+
+typedef struct {
+  jx_bool shared; /* shared access flag (read_only, immortal, etc.) */
+} jx_gc;
 
 typedef struct { /* get rid of this later on */
   jx_bits bits;
@@ -77,17 +84,23 @@ typedef struct { /* for fast initialization / comparison */
   jx_bits bits;
 } jx_data_raw;
 
-typedef jx_ob (*jx_builtin)(jx_ob, jx_ob); /* o{e}, [ma] */
+/* opaque objects -- runtime objects inside jenarix containers */
+
+typedef jx_status (*jx_opaque_free_fn)(jx_opaque_ob*); 
+
+typedef jx_ob (*jx_native_fn)(jx_ob, jx_ob); /* o{e}, [ma] */
 
 typedef union {
   jx_bool bool_;
   jx_int int_;
   jx_float float_;
   jx_char tiny_str[JX_TINY_STR_SIZE];
-  jx_char *str; /* note: ptr to jx_str header, not first char */
+  jx_char *str; /* note: vla ptr to jx_str header, not first char */
   jx_list *list;
-  jx_hash *hash;
-  jx_builtin builtin;
+  jx_hash *hash; 
+  void *vla; /* builtin */
+  jx_native_fn native_fn; /* builtin */
+  jx_opaque_ob *opaque_ob; /* builtin */
 } jx_data_io;
 
 typedef union {
@@ -102,32 +115,41 @@ struct jx__ob {
 
 /* meta flag bits */
 
-#define JX_META_NOT_AN_OB           0x8000
+#define JX_META_NOT_AN_OB              0x8000
 
-#define JX_META_BIT_GC              0x4000
+#define JX_META_BIT_GC                 0x4000
 /* set if object has garbage collected resourcese */
 
-#define JX_META_BIT_BOOL            0x2000
-#define JX_META_BIT_INT             0x1000
-#define JX_META_BIT_FLOAT           0x0800
-#define JX_META_BIT_STR             0x0400
-#define JX_META_BIT_LIST            0x0200
-#define JX_META_BIT_HASH            0x0100
+#define JX_META_BIT_BOOL               0x2000
+#define JX_META_BIT_INT                0x1000
+#define JX_META_BIT_FLOAT              0x0800
+#define JX_META_BIT_STR                0x0400
+#define JX_META_BIT_LIST               0x0200
+#define JX_META_BIT_HASH               0x0100
 
 /* identifiers (for use in JSON-based code) */
-#define JX_META_BIT_IDENT           0x0080
+#define JX_META_BIT_IDENT              0x0080
 
-/* pointers to built-ins (runtime-only, not serializable) */
-#define JX_META_BIT_BUILTIN         0x0040
+/* pointers to built-in entities (runtime-only, not serializable) */
 
-#define JX_META_MASK_TYPE_BITS      0x3FC0
+#define JX_META_BIT_BUILTIN            0x0040
 
-#define JX_META_MASK_TINY_STR_SIZE  0x001F
+#define JX_META_MASK_TINY_STR_SIZE     0x001F
 
-#define JX_META_MASK_FOR_HASH       0xFFDF
+#define JX_META_MASK_TYPE_BITS         0x3FC0
+
+#define JX_META_MASK_FOR_HASH          0xFFDF
 
 /* this bit is set in weak references */
-#define JX_META_BIT_WEAK_REF        0x0020
+#define JX_META_BIT_WEAK_REF           0x0020
+
+/* tiny_str size bits are used by builtins */
+
+#define JX_META_BIT_BUILTIN_VLA        0x0001
+#define JX_META_BIT_BUILTIN_SELECTOR   0x0002
+#define JX_META_BIT_BUILTIN_OPAQUE_OB  0x0004
+#define JX_META_BIT_BUILTIN_NATIVE_FN  0x0008
+#define JX_META_BIT_BUILTIN_JENARIX_FN 0x0010
 
 /* object initializers */
 
@@ -143,11 +165,11 @@ struct jx__ob {
 
 #define JX_INLINE __inline__ static
 
-/* header record for gc'd objects */
-
-typedef struct {
-  jx_bool shared; /* shared access flag (read_only, immortal, etc.) */
-} jx_gc;
+struct jx__opaque_ob {
+  jx_gc gc;
+  jx_opaque_free_fn free_fn;
+  jx_ob magic;
+};
 
 typedef struct {
   jx_gc gc;
@@ -155,19 +177,35 @@ typedef struct {
 
 /* builtin fn objects are a means through which jenarix can be extended */
 
-JX_INLINE jx_ob jx_builtin_new(jx_builtin builtin)
-{
-  jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_GC | JX_META_BIT_WEAK_REF;
-  result.data.io.builtin = builtin;
-  return result;
-}
-
 JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
 {
   jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR;
   result.data.io.int_ = selector;
+  return result;
+}
+
+JX_INLINE jx_ob jx_builtin_new_with_vla(void **ref)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_VLA | JX_META_BIT_GC;
+  result.data.io.vla = (*ref);
+  return result;
+}
+
+JX_INLINE jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN | JX_META_BIT_WEAK_REF;
+  result.data.io.native_fn = fn;
+  return result;
+}
+
+JX_INLINE jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque_ob)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB | JX_META_BIT_GC;
+  result.data.io.opaque_ob = opaque_ob;
   return result;
 }
 
@@ -373,6 +411,40 @@ JX_INLINE jx_bool jx_hash_check(jx_ob ob)
 JX_INLINE jx_bool jx_builtin_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_BUILTIN) && JX_TRUE;
+}
+
+JX_INLINE jx_bool jx_builtin_vla_check(jx_ob ob)
+{
+  return jx_builtin_check(ob) && ob.meta.bits & JX_META_BIT_BUILTIN_VLA;
+}
+
+JX_INLINE jx_bool jx_builtin_selector_check(jx_ob ob)
+{
+  return jx_builtin_check(ob) && ob.meta.bits & JX_META_BIT_BUILTIN_SELECTOR;
+}
+
+JX_INLINE jx_bool jx_builtin_opaque_ob_check(jx_ob ob)
+{
+  return jx_builtin_check(ob) && ob.meta.bits & JX_META_BIT_BUILTIN_OPAQUE_OB;
+}
+
+JX_INLINE jx_bool jx_builtin_native_fn_check(jx_ob ob)
+{
+  return jx_builtin_check(ob) && ob.meta.bits & JX_META_BIT_BUILTIN_NATIVE_FN;
+}
+
+JX_INLINE jx_bool jx_builtin_jenarix_fn_check(jx_ob ob)
+{
+  return jx_builtin_check(ob) && ob.meta.bits & JX_META_BIT_BUILTIN_JENARIX_FN;
+}
+
+/* convenience function */
+
+JX_INLINE jx_status jx_ob_replace(jx_ob *ob_ptr,jx_ob ob)
+{
+  jx_status result = jx_ob_free(*ob_ptr);
+  *ob_ptr = ob;
+  return result;
 }
 
 JX_INLINE jx_bool jx_ok(jx_status status)
@@ -898,6 +970,15 @@ JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
   fprintf(f,"%s: %08x%04x %04x\n",prefix, 
           (unsigned int)ob.data.raw.word,
           (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
+}
+
+jx_char *jx_ob_as_str(jx_ob * ob);
+JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
+{
+  jx_ob jxon = jx_ob_to_jxon(ob);
+  jx_ob_as_str(&jxon);
+  fprintf(f,"%s: %s\n",prefix, jx_ob_as_str(&jxon));
+  jx_ob_free(jxon);
 }
 
 #endif

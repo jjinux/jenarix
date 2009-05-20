@@ -416,6 +416,8 @@ jx_ob jx_ob_with_str_vla(jx_char ** ref)
   return result;
 }
 
+static jx_char jx_ob_as_str_error[] = "jx_ob_as_str-Error: object not a string.";
+
 jx_char *jx_ob_as_str(jx_ob * ob)
 {
   jx_bits meta = ob->meta.bits;
@@ -426,7 +428,7 @@ jx_char *jx_ob_as_str(jx_ob * ob)
       return ob->data.io.tiny_str;
     }
   }
-  return NULL;
+  return jx_ob_as_str_error;
 }
 
 jx_status jx__str_set_shared(jx_char *str, jx_bool shared)
@@ -479,6 +481,8 @@ jx_ob jx_ob_from_ident(jx_char * ident)
   return result;
 }
 
+static jx_char jx_ob_as_ident_error[] = "jx_ob_as_ident-Error: object not an identifier.";
+
 jx_char *jx_ob_as_ident(jx_ob * ob)
 {
   jx_bits meta = ob->meta.bits;
@@ -489,7 +493,7 @@ jx_char *jx_ob_as_ident(jx_ob * ob)
       return ob->data.io.tiny_str;
     }
   }
-  return NULL;
+  return jx_ob_as_ident_error;
 }
 jx_ob jx__ident_gc_copy(jx_char *str)
 {
@@ -3126,11 +3130,12 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 
 jx_status jx__ob_free(jx_ob ob)
 {
-  if(ob.meta.bits & JX_META_BIT_GC) {
-    if(ob.meta.bits & JX_META_BIT_WEAK_REF) {
+  jx_bits bits = ob.meta.bits;
+  if(bits & JX_META_BIT_GC) {
+    if(bits & JX_META_BIT_WEAK_REF) {
       return JX_SUCCESS;
     } else {
-      switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+      switch (bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_STR:
       case JX_META_BIT_IDENT:
         return jx__str_free(ob.data.io.str);
@@ -3140,6 +3145,23 @@ jx_status jx__ob_free(jx_ob ob)
         break;
       case JX_META_BIT_HASH:
         return jx__hash_free(ob.data.io.hash);
+        break;
+      case JX_META_BIT_BUILTIN:
+        if(bits & JX_META_BIT_BUILTIN_VLA) {
+          jx_vla_free(&ob.data.io.vla);
+        } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
+          jx_opaque_ob *opaque = ob.data.io.opaque_ob;
+          if(opaque) {
+            jx_opaque_free_fn fn = opaque->free_fn;
+            if(fn) {
+              return fn(opaque);
+            } else {
+              return JX_SUCCESS;
+            }
+          }
+        } else if(bits & JX_META_BIT_BUILTIN_JENARIX_FN) {
+          /* to come */
+        }
         break;
       }
     }
