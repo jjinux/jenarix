@@ -166,10 +166,12 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
           jx_int size = jx__list_size(expr_list);
           jx_int i = 0;
           result = jx_list_new_with_size(size);
-          /* now process the source list */
-          while(i<size) {
-            jx_list_replace(result, i, jx_code_eval(node, jx__list_borrow(expr_list, i)));
-            i++;
+          {
+            jx_list *result_list = result.data.io.list;
+            while(i<size) {
+              jx_ob_replace(result_list->data.ob_vla + i, jx_code_eval(node, jx__list_borrow(expr_list, i)));
+              i++;
+            }
           }
         }
         return result;
