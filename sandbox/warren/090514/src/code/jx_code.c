@@ -128,12 +128,9 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
   }
 }
 
-jx_ob jx_code_eval(jx_ob node, jx_ob expr)
+jx_ob jx__code_eval(jx_ob node, jx_ob expr)
 {
-  jx_bits bits = expr.meta.bits;
-  if(!(JX_META_BIT_GC & bits))
-    return expr;
-  switch(bits & JX_META_MASK_TYPE_BITS) {
+ switch(expr.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_LIST:
     if(expr.data.io.list->packed_meta_bits) { /* packed data cannot contain code */
       return jx_ob_copy(expr);
@@ -198,7 +195,7 @@ jx_ob jx_code_eval(jx_ob node, jx_ob expr)
   }
 }
 
-jx_ob jx_code_exec(jx_ob node, jx_ob code)
+jx_ob jx__code_exec(jx_ob node, jx_ob code)
 {
   /* executable code: either 
      [builtin_fn, [...]] or [ [builtin_fn,[...]], [builtin_fn,[...]], ... ] */

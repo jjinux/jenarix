@@ -1130,6 +1130,22 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
   }
 }
 
+jx_ob jx__code_eval(jx_ob node, jx_ob expr);
+JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
+{
+  if(expr.meta.bits & JX_META_BIT_GC)
+    return jx__code_eval(node,expr);
+  return expr;
+}
+
+jx_ob jx__code_exec(jx_ob node, jx_ob code);
+JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
+{
+  if(code.meta.bits & JX_META_BIT_LIST)
+    return jx__code_exec(node,code);
+  return jx_ob_copy(code);
+}
+
 /* debugging */
 
 JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
