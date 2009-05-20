@@ -36,6 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_mem_wrap.h"
 
+#define jx_os_read read
+#define jx_os_sscanf sscanf
+#define jx_os_fprintf fprintf
+#define jx_os_strncpy strncpy
+
 struct jx__list {
   jx_bits packed_meta_bits;
   jx_gc gc;

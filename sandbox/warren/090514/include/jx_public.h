@@ -82,14 +82,14 @@ typedef struct jx__ob jx_ob;
 
 /* meaningful prepositions, for systematic memory management:
 
-   ..._with_...(...) implies destructive conversion of the input object (destroyed)
+   ..._ob_with_...(...) implies destructive conversion of input object (destroyed)
 
-   ..._from_...(...) implies constructive copy / conversion of the input object (preserved)
+   ..._ob_from_...(...) implies constructive copy / conversion of input object (preserved)
 
-   ..._to_...(...) implies an constructive cast resulting in a new copy of the input object (preserved)
+   ..._ob_to_...(...) implies an constructive cast resulting in a new copy of the input object (preserved)
 
-   ..._as_...(...) implies a volatile, borrowed cast of an in-place object (preserved)
- 
+   ..._ob_as_...(...) implies a failsafe (volatile) cast of in-place borrowed object data (preserved)
+   
 */
 
 /* boxing (all of these return owned objects) */
@@ -99,9 +99,10 @@ jx_ob jx_ob_from_bool(jx_bool bool_);
 jx_ob jx_ob_from_int(jx_int int_);
 jx_ob jx_ob_from_float(jx_float float_);
 jx_ob jx_ob_from_str(jx_char * str);    /* copies string into new storage */
+jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len); /* copies string into new storage */
 jx_ob jx_ob_from_ident(jx_char * ident);  /* copies identifier into new storage */
 
-/* unboxing */
+/* unboxing / volatile casts for inline use */
 
 jx_bool jx_ob_as_bool(jx_ob ob);
 jx_int jx_ob_as_int(jx_ob ob);
@@ -121,6 +122,14 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
                                            characters within the object
                                            itself when using tiny_str's */
 
+/* constructive casts which preserve the source object and return a new object */
+
+jx_ob jx_ob_to_bool(jx_ob ob);
+jx_ob jx_ob_to_int(jx_ob ob);
+jx_ob jx_ob_to_float(jx_ob ob);
+jx_ob jx_ob_to_str(jx_ob ob);
+jx_ob jx_ob_to_ident(jx_ob ob);
+
 /* determining object type */
 
 jx_bool jx_null_check(jx_ob ob);
@@ -138,6 +147,12 @@ jx_bool jx_builtin_check(jx_ob ob);
 jx_bool jx_ob_identical(jx_ob left, jx_ob right);
 
 jx_bool jx_ob_equal(jx_ob left, jx_ob right);   /* to be done */
+
+/* common operations */
+
+jx_ob jx_add(jx_ob left, jx_ob right);
+jx_ob jx_sub(jx_ob left, jx_ob right);
+
 
 /* read only status (no changes allowed, cannot be freed, but can be
    stored/conveyed through mutable containers, provided that those
@@ -162,6 +177,10 @@ jx_ob jx_ob_take_weak_ref(jx_ob ob);
 /* strings */
 
 jx_int jx_str_size(jx_ob ob);
+jx_ob jx_str_concat(jx_ob left, jx_ob right);
+jx_ob jx_str_concat_with_both(jx_ob left, jx_ob right);
+
+jx_ob jx_str_join_with_list(jx_ob list);
 
 /* lists */
 
@@ -205,6 +224,8 @@ jx_status jx_float_vla_free(jx_float ** ref);   /* will set (*ref) to NULL */
 jx_ob jx_list_new_with_float_vla(jx_float ** ref);      /* takes ownership of new vla */
 jx_float *jx_list_as_float_vla(jx_ob ob);       /* borrows vla if homogenous, else NULL */
 jx_status jx_list_set_float_vla(jx_ob ob, jx_float ** ref);     /* update list vla */
+
+jx_ob jx_ob_with_str_vla(jx_char ** ref);
 
 /* hashes and hashing */
 
@@ -261,11 +282,11 @@ jx_ob jx_builtin_new_from_opaque_ob(jx_opaque_ob *opaque);
 
 jx_ob jx_jxon_scanner_new_with_file(FILE *file);
 jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob);
-
+jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob);
 
 /* code execution engine */
 
-jx_status jx_code_expose_builtins(jx_ob namespace);
+jx_status jx_code_expose_secure_builtins(jx_ob namespace);
 jx_status jx_code_expose_special_forms(jx_ob namespace);
 
 jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source);

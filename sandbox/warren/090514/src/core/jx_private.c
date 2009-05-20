@@ -369,22 +369,158 @@ jx_status jx__vla_free(void **ref)
   return JX_SUCCESS;
 }
 
+/* unboxing volatile cast subroutines */
+
+jx_bool jx__ob_as_bool(jx_ob ob)
+{
+  return jx_ob_as_bool(jx__ob_to_bool(ob));
+}
+
+jx_int jx__ob_as_int(jx_ob ob)
+{
+  return jx_ob_as_int(jx__ob_to_int(ob));
+}
+
+jx_float jx__ob_as_float(jx_ob ob)
+{
+  return jx_ob_as_float(jx__ob_to_float(ob));
+}
+
+/* constructive cast subroutines */
+
+jx_ob jx__ob_to_bool(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+    return jx_ob_from_bool(jx_str_len(ob) && JX_TRUE);
+    break;
+  case JX_META_BIT_IDENT:
+    {
+      jx_char *ident = jx_ob_as_ident(&ob);
+      jx_char ch = ident[0];
+      return jx_ob_from_bool((ch=='T')||(ch=='t'));
+    }
+    break;
+  default:
+    return jx_ob_from_bool( jx_ob_as_bool(ob));
+    break;
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__ob_to_int(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+    { 
+      jx_char *buffer = jx_ob_as_str(&ob);
+#ifdef JX_64_BIT
+      jx_int icon;
+      if( jx_os_sscanf(buffer, "%lli", &icon) != 1) { 
+        icon = 0;
+      }
+#else
+      int icon;
+      if( jx_os_sscanf(buffer, "%i", &icon) != 1) { 
+        icon = 0;
+      }
+#endif
+      return jx_ob_from_int(icon);
+    }
+    break;
+  case JX_META_BIT_IDENT:
+    return jx_ob_from_int(0);
+    break;
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__ob_to_float(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+    { 
+      jx_char *buffer = jx_ob_as_str(&ob);
+#ifdef JX_64_BIT
+      double fcon;
+      if( jx_os_sscanf(buffer, "%lf", &fcon) != 1) { /* use strtof instead? */
+        fcon = 0.0;
+      }
+#else
+      float fcon; 
+      if( jx_os_sscanf(buffer, "%f", &fcon) != 1) { /* use strtof instead? */
+        fcon = 0.0F;
+      }
+#endif
+      return jx_ob_from_float(fcon);
+    }
+    break;
+  case JX_META_BIT_IDENT:
+    return jx_ob_from_float(0.0);
+    break;
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__ob_to_str(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case 0:
+    return jx_ob_from_str("null");
+  case JX_META_BIT_BOOL:
+    return jx_ob_from_str( ob.data.io.bool_ ?
+                           "true" : "false" );
+    break;
+  default:
+    return jx_ob_to_jxon(ob); /* default encoding */
+  }
+}
+
+jx_ob jx__ob_to_ident(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+    return jx_ob_from_ident(jx_ob_as_str(&ob));
+    break;
+  }
+  return jx_ob_from_null();
+}
+
 /* strings */
 
 jx_ob jx_ob_from_str(jx_char * str)
 {
-  jx_int size = strlen(str);
+  jx_int len = strlen(str);
   jx_ob result = JX_OB_NULL;
 
-  if(size < JX_TINY_STR_SIZE) {
-    result.meta.bits = JX_META_BIT_STR | size;
-    memcpy(result.data.io.tiny_str, str, size+1);
+  if(len < JX_TINY_STR_SIZE) {
+    result.meta.bits = JX_META_BIT_STR | len;
+    memcpy(result.data.io.tiny_str, str, len + 1);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = jx_vla_new(1, size + 1 + sizeof(jx_str));
+    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
-      memcpy(result.data.io.str + sizeof(jx_str), str, size+1);
+      memcpy(result.data.io.str + sizeof(jx_str), str, len + 1);
+    }
+  }
+  return result;
+}
+
+jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
+{
+  jx_ob result = JX_OB_NULL;
+
+  if(len < JX_TINY_STR_SIZE) {
+    result.meta.bits = JX_META_BIT_STR | len;
+    memcpy(result.data.io.tiny_str, str, len + 1);
+  } else {
+    /* string not tiny -- use heap */
+    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
+    if(result.data.io.str) {
+      result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
+      memcpy(result.data.io.str + sizeof(jx_str), str, len);
+      result.data.io.str[sizeof(jx_str)+len] = 0;
     }
   }
   return result;
@@ -431,6 +567,37 @@ jx_char *jx_ob_as_str(jx_ob * ob)
   return jx_ob_as_str_error;
 }
 
+
+jx_ob jx__str__concat(jx_char *left, jx_char *right)
+{
+  jx_int left_size = jx_vla_size(left) - sizeof(jx_str);
+  jx_int right_size = jx_vla_size(right) - sizeof(jx_str);
+  jx_int total_size = left_size + right_size - 1;
+  jx_char *vla = jx_vla_new(1,total_size + sizeof(jx_str));
+  if(vla) {
+    memcpy(vla + sizeof(jx_str), left + sizeof(jx_str), left_size - 1);
+    memcpy(vla + sizeof(jx_str) + left_size - 1,
+           right + sizeof(jx_str) , right_size);
+    return jx_ob_with_str_vla(&vla);
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__str_concat(jx_ob left, jx_ob right) 
+{ /* on entry, we know the types aren't matched */
+  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  if( merge_bits & JX_META_BIT_STR) { /* we have at least one string */
+    jx_ob left_str = jx_ob_to_str(left_str);
+    jx_ob right_str = jx_ob_to_str(right_str);
+    jx_ob result = jx_str_concat(left_str, right_str);
+    jx_ob_free(left_str);
+    jx_ob_free(right_str);
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
+
 jx_status jx__str_set_shared(jx_char *str, jx_bool shared)
 {
   jx_str *I = (jx_str*)str;
@@ -460,22 +627,48 @@ jx_bool jx__str_free(jx_char *str)
   }
 }
 
+jx_ob jx__add(jx_ob left, jx_ob right)
+{
+  /* on entry, we know the types aren't matched */
+  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  if(merge_bits & JX_META_BIT_STR) {
+    return jx__str_concat(left, right);
+  } else if( merge_bits & JX_META_BIT_FLOAT) {
+    return jx_ob_from_float( jx_ob_as_float(left) + jx_ob_as_float(right) );
+  } else if( merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
+    return jx_ob_from_int( jx_ob_as_int(left) + jx_ob_as_int(right));
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__sub(jx_ob left, jx_ob right)
+{
+  /* on entry, we know the types aren't matched */
+  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  if( merge_bits & JX_META_BIT_FLOAT) {
+    return jx_ob_from_float( jx_ob_as_float(left) - jx_ob_as_float(right) );
+  } else if( merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
+    return jx_ob_from_int( jx_ob_as_int(left) - jx_ob_as_int(right));
+  }
+  return jx_ob_from_null();
+}
+
 /* identifers are effectively strings without quotes */
 
 jx_ob jx_ob_from_ident(jx_char * ident)
 {
-  jx_int size = strlen(ident);
+  jx_int len = strlen(ident);
   jx_ob result = JX_OB_NULL;
 
-  if(size < JX_TINY_STR_SIZE) {
-    result.meta.bits = JX_META_BIT_IDENT | size;
-    memcpy(result.data.io.tiny_str, ident, size+1);
+  if(len < JX_TINY_STR_SIZE) {
+    result.meta.bits = JX_META_BIT_IDENT | len;
+    memcpy(result.data.io.tiny_str, ident, len + 1);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = jx_vla_new(1, size + 1 + sizeof(jx_str));
+    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
-      memcpy(result.data.io.str + sizeof(jx_str), ident, size+1);
+      memcpy(result.data.io.str + sizeof(jx_str), ident, len + 1);
     }
   }
   return result;
@@ -647,6 +840,42 @@ jx_int jx_list_size(jx_ob ob)
     return jx__list_size(ob.data.io.list);
   } else
     return 0;
+}
+
+jx_ob jx__str_join_with_list(jx_list * list, jx_char *sep)
+{
+  jx_int sep_len = sep ? strlen(sep) : 0;
+  jx_int size = jx__list_size(list);
+  jx_int total =  size ? sep_len * (size - 1) : 0;
+  if(list->packed_meta_bits) {
+    /* TO HANDLE */
+    return jx_ob_from_null();
+  } else {
+    jx_int i = size;
+    jx_ob *ob = list->data.ob_vla;
+    while(i--) {
+      total += jx_str_len(*(ob++));
+    }
+    {
+      jx_char *vla = jx_vla_new(1,total+1);
+      if(vla) {
+        jx_char *next = vla;
+        ob = list->data.ob_vla;
+        for(i=0;i<size;i++) {
+          jx_int len = jx_str_len(*ob);
+          if(i&&sep) {
+            memcpy(next, sep, sep_len);
+            next+=sep_len;
+          }
+          memcpy(next, jx_ob_as_str(ob++), len);
+          next+=len;
+        }
+        next[0] = 0;                            
+        return jx_ob_with_str_vla(&vla);
+      }
+    }
+  }
+  return jx_ob_from_null();
 }
 
 static jx_status jx_meta_get_packed_size(jx_bits bits)

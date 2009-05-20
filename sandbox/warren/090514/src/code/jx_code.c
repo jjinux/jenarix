@@ -42,42 +42,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
+#include "jx_safe.h"
 
-#define JX_BUILTIN_SET    0
-#define JX_BUILTIN_GET    1
-#define JX_BUILTIN_ADD    2
-#define JX_BUILTIN_WHILE  3
-#define JX_BUILTIN_SUB    4
-#define JX_BUILTIN_BORROW 5
-#define JX_BUILTIN_APPEND 6
-
-jx_status jx_code_expose_builtins(jx_ob namespace)
-{
-  jx_bool ok = JX_TRUE;
-
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("set"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_SET)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("get"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_GET)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("add"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_ADD)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("while"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_WHILE)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("sub"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_SUB)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("borrow"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_BORROW)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("append"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_APPEND)));
-  return ok ? JX_SUCCESS : JX_FAILURE;
-}
+#define JX_BUILTIN_WHILE  512
 
 jx_status jx_code_expose_special_forms(jx_ob namespace)
 {
@@ -86,6 +53,16 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = ok && 
     jx_ok( jx_hash_set(namespace, jx_ob_from_ident("while"), 
                        jx_builtin_new_from_selector(JX_BUILTIN_WHILE)));
+
+  return ok ? JX_SUCCESS : JX_FAILURE;
+}
+
+jx_status jx_code_expose_secure_builtins(jx_ob namespace)
+{
+  jx_bool ok = JX_TRUE;
+
+  ok = ok && jx_ok( jx_safe_expose_all_builtins(namespace) );
+  ok = ok && jx_ok( jx_code_expose_special_forms(namespace) );
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
@@ -127,9 +104,10 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_ob result = jx_hash_new();
       jx_ob list = jx_list_new_with_hash(source); /* destroys source */
       jx_int size = jx_list_size(list);
-      while(size--) {
-        jx_ob value = jx_list_remove(list, size--);
-        jx_ob key = jx_list_remove(list, size);
+      while(size) {
+        jx_ob key = jx_list_remove(list, 0);
+        jx_ob value = jx_list_remove(list, 0);
+        size = size - 2;
         jx_hash_set(result, key, jx_code_bind_with_source(namespace, value));
       }
       jx_ob_free(list);
@@ -173,32 +151,12 @@ jx_ob jx_code_eval(jx_ob node, jx_ob expr)
           }
         } else if(bits & JX_META_BIT_BUILTIN_SELECTOR) {
           switch(builtin.data.io.int_) {
-          case JX_BUILTIN_SET:
-            {
-              jx_ob value = jx_list_remove(payload,2);
-              jx_ob key = jx_list_remove(payload,1);
-              result = jx_ob_from_status( jx_hash_set(node, key, value ) );
-            }
-            break;
-          case JX_BUILTIN_GET:
-            result = jx_hash_get(node, jx_list_borrow(payload,1));
-            break;
-          case JX_BUILTIN_BORROW:
-            result = jx_ob_take_weak_ref( jx_hash_borrow(node, jx_list_borrow(payload,1)));
-            break;
-          case JX_BUILTIN_ADD:
-            result = jx_add( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
-            break;
-          case JX_BUILTIN_SUB:
-            result = jx_sub( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
-            break;
-          case JX_BUILTIN_APPEND:
-            {
-              jx_ob item = jx_list_remove(payload,2);
-              jx_ob list = jx_list_borrow(payload,1);
-              result = jx_ob_from_status( jx_list_append(list, item) );
-            }
-            break;
+          case JX_BUILTIN_SET: result = jx_safe_set(node, payload); break;
+          case JX_BUILTIN_GET: result = jx_safe_get(node, payload); break;
+          case JX_BUILTIN_BORROW: result = jx_safe_borrow(node, payload); break;
+          case JX_BUILTIN_ADD: result = jx_safe_add(node, payload); break;
+          case JX_BUILTIN_SUB: result = jx_safe_sub(node, payload); break;
+          case JX_BUILTIN_APPEND: result = jx_safe_append(node, payload); break;
           }
           jx_ob_free(payload);
         }
@@ -220,9 +178,10 @@ jx_ob jx_code_eval(jx_ob node, jx_ob expr)
       jx_ob result = jx_hash_new();
       jx_ob list = jx_list_new_from_hash(expr);
       jx_int size = jx_list_size(list);
-      while(size--) {
-        jx_ob value = jx_list_remove(list, size--);
-        jx_ob key = jx_list_remove(list, size);
+      while(size) {
+        jx_ob key = jx_list_remove(list, 0);
+        jx_ob value = jx_list_remove(list, 0);
+        size = size - 2;
         jx_hash_set(result, key, jx_code_eval(node,value));
         jx_ob_free(value);
       }
@@ -238,43 +197,58 @@ jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 
 jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
-  /* executable code: [ [builtin,[...]], [builtin,[...]], ... ] */
-  jx_ob result = JX_OB_NULL;
-  jx_int pc, size = jx_list_size(code);
-  for(pc=0;pc<size;pc++) {
-    jx_ob inst = jx_list_borrow(code,pc);
-    jx_ob builtin = jx_list_borrow(inst, 0);
-    if(jx_builtin_check(builtin) && (builtin.meta.bits & JX_META_BIT_BUILTIN_SELECTOR)) {
-      switch(builtin.data.io.int_) {
-        /* ALL SPECIAL FORMS MUST APPEAR HERE */
-      case JX_BUILTIN_WHILE:
-        {
-          jx_ob payload = jx_list_borrow(inst,1);
-          while(1) {
-            jx_ob cond = jx_code_eval(node, jx_list_borrow(payload,1));
-            if( jx_ob_as_int(cond) ) {
-              jx_ob_free(cond);
-              jx_ob_free(result);
-              result = jx_code_exec(node, jx_list_borrow(payload,2));
-            } else {
-              jx_ob_free(cond);
-              break;
+  /* executable code: either 
+     [builtin_fn, [...]] or [ [builtin_fn,[...]], [builtin_fn,[...]], ... ] */
+
+  if(!jx_list_check(code))
+    return jx_ob_copy(code);
+  else {
+    jx_ob result = JX_OB_NULL;
+    jx_int pc, size = jx_list_size(code);
+    for(pc=0;pc<size;pc++) {
+      jx_ob inst = jx_list_borrow(code,pc);
+      jx_ob builtin;
+      if(jx_list_check(inst)) { /* list of instructions */
+        builtin = jx_list_borrow(inst, 0);
+      } else {  /* list with a single instruction */
+        builtin = jx_list_borrow(code, 0);
+        if(jx_builtin_check(builtin)) {
+          inst = code;
+          pc = size;
+        }
+      }
+      if(jx_builtin_fn_check(builtin) && (builtin.meta.bits & JX_META_BIT_BUILTIN_SELECTOR)) {
+        switch(builtin.data.io.int_) {
+          /* ALL SPECIAL FORMS MUST APPEAR HERE */
+        case JX_BUILTIN_WHILE:
+          {
+            jx_ob payload = jx_list_borrow(inst,1);
+            while(1) {
+              jx_ob cond = jx_code_eval(node, jx_list_borrow(payload,1));
+              if( jx_ob_as_int(cond) ) {
+                jx_ob_free(cond);
+                jx_ob_free(result);
+                result = jx_code_exec(node, jx_list_borrow(payload,2));
+              } else {
+                jx_ob_free(cond);
+                break;
+              }
             }
           }
+          break;
+        default:
+          /* OTHERWISE, THE INSTRUCTION FALLS THROUGH TO CONVENTIONAL EVALUATION */
+          jx_ob_free(result);
+          result = jx_code_eval(node, inst);
+          break;
         }
-        break;
-      default:
-        /* OTHERWISE, THE INSTRUCTION FALLS THROUGH TO CONVENTIONAL EVALUATION */
+      } else {
         jx_ob_free(result);
         result = jx_code_eval(node, inst);
-        break;
       }
-    } else {
-      jx_ob_free(result);
-      result = jx_code_eval(node, inst);
     }
+    return result;
   }
-  return result;
 }
 
 

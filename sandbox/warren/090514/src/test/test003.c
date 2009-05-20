@@ -113,5 +113,22 @@ int main(int argc, char **argv)
 
     P1("0 == %d", jx_ob_free(list1));
   }
-
+  {
+    jx_ob list = jx_list_new();
+    jx_list_append(list, jx_ob_from_str("This"));
+    jx_list_append(list, jx_ob_from_str("is"));
+    jx_list_append(list, jx_ob_from_str("my"));
+    jx_list_append(list, jx_ob_from_str("sentence."));
+    {
+      jx_ob str = jx_str_join_with_list_sep(jx_ob_copy(list),jx_ob_from_str(" "));
+      P1("'This is my sentence.' eq '%s'", jx_ob_as_str(&str));
+      jx_ob_free(str);
+    }
+    {
+      jx_ob str = jx_str_join_with_list(list);
+      P1("'Thisismysentence.' eq '%s'", jx_ob_as_str(&str));
+      jx_ob_free(str);
+    }
+      
+  }
 }

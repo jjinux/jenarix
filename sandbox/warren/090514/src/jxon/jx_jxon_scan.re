@@ -34,25 +34,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "jx_jxon_private.h"
-
-#define jx_os_read read
-#define jx_os_sscanf sscanf
-#define jx_os_fprintf fprintf
-#define jx_os_strncpy strncpy
 
 typedef jx_uint32 jx_size;
 typedef jx_uint32 jx_uword;
 typedef jx_int32  jx_word;
 
-#define JX_JXON_SCANNER_MODE_FILE  0
-#define JX_JXON_SCANNER_MODE_STRING 1
+#define JX_JXON_SCANNER_MODE_FILE    0 
+#define JX_JXON_SCANNER_MODE_STRING  1
+#define JX_JXON_SCANNER_MODE_CONSOLE 2
 
 typedef struct {
   jx_char *bot, *tok, *ptr, *cur, *pos, *lim, *top, *eof;
   jx_word line;
-  jx_int mode; 
+  jx_int mode;
   FILE *file;
   jx_jxon_parse_context context;
   jx_int n_tok_parsed;
@@ -91,15 +88,27 @@ static void jx__jxon_free(void *ptr)
     jx_free(ptr);
 }
 
-static jx_size jx_read_file(FILE *file, jx_char *buf, jx_size buf_size)
+static jx_size jx_read_file(FILE *file, jx_char *buf, jx_size buf_size, jx_int mode)
 {
-  return fread((char*)buf, 1, buf_size, stdin);
+  switch(mode) {
+  case JX_JXON_SCANNER_MODE_FILE:
+    return fread((char*)buf, 1, buf_size, stdin);
+    break;
+  case JX_JXON_SCANNER_MODE_CONSOLE:
+    if(fgets((char*)buf, buf_size, stdin)) {
+      return strlen(buf);
+    } else 
+      return 0;
+    break;
+  }
+  return 0;
 }
 
 static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
 {
   switch(s->mode) {
   case JX_JXON_SCANNER_MODE_FILE:
+  case JX_JXON_SCANNER_MODE_CONSOLE:
     if(!s->eof) {  
       jx_uword cnt = s->tok - s->bot; /* amount of open space in buffer */
       if(cnt) {
@@ -133,7 +142,7 @@ static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
       if((s->top - s->lim) < BSIZE) {
         /* unhandled error condition */
       } else {
-        cnt = jx_read_file(s->file, s->lim, BSIZE);
+        cnt = jx_read_file(s->file, s->lim, BSIZE, s->mode);
         if(cnt != BSIZE) {
           jx_size cc = cnt;
           while(cc<BSIZE) {
@@ -416,6 +425,7 @@ static jx_status jx_jxon_scanner_state_purge(jx_jxon_scanner_state *state)
   /* free the input buffer (if using stdin) */
   switch(state->mode) {
   case JX_JXON_SCANNER_MODE_FILE:
+  case JX_JXON_SCANNER_MODE_CONSOLE:
     if(state->bot) 
       jx_free(state->bot);
     break;
@@ -495,12 +505,45 @@ jx_ob jx_jxon_scanner_new_with_file(FILE *file)
       scanner->opaque.magic = jx_ob_from_str(JX_JXON_SCANNER_MAGIC);
       scanner->opaque.free_fn = (jx_opaque_free_fn)jx_jxon_scanner_free;
       scanner->state.file = file;
-      scanner->state.mode = JX_JXON_SCANNER_MODE_FILE;
+      if (isatty((int)fileno(file))) {      
+        scanner->state.mode = JX_JXON_SCANNER_MODE_CONSOLE;
+      } else {
+        scanner->state.mode = JX_JXON_SCANNER_MODE_FILE;
+      }
       result = jx_builtin_new_with_opaque_ob(&scanner->opaque);
     } else 
       jx_free(scanner);
   }
   return result;
+}
+
+jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob)
+{
+  if(jx_builtin_opaque_ob_check(scanner_ob)) {
+    jx_jxon_scanner *scanner = (jx_jxon_scanner*)scanner_ob.data.io.opaque_ob;
+    if(jx_ob_equal(scanner->opaque.magic,
+                   jx_ob_from_str(JX_JXON_SCANNER_MAGIC))) {
+      jx_jxon_scanner_state *state = &scanner->state;
+      jx_ob list = jx_list_new();
+      if(state->bot != state->lim) {
+        if(state->tok > state->bot) {
+          jx_list_append(list, jx_ob_from_str_with_len(state->bot, state->tok - state->bot));
+          if(state->cur > state->tok) {
+            jx_list_append(list, jx_ob_from_str(">>>"));
+            jx_list_append(list, jx_ob_from_str_with_len(state->tok, state->cur - state->tok));
+            jx_list_append(list, jx_ob_from_str("<<<"));
+          }
+          if(state->lim > state->cur) {
+            jx_list_append(list, jx_ob_from_str_with_len(state->cur, state->lim - state->cur));
+          }
+        }
+      } else {
+        jx_list_append(list, jx_ob_from_str(" >>>at end of input<<< "));
+      }
+      return jx_str_join_with_list(list);
+    }
+  }
+  return jx_ob_from_null();
 }
 
 jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
@@ -521,7 +564,7 @@ jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
         case JX_YES: /* accepted */
           jx_ob_replace(result, state->context.result);
           state->context.result = jx_ob_from_null();
-          status = state->n_tok_parsed ? JX_SUCCESS : JX_FAILURE;
+          status = state->n_tok_parsed ? JX_YES : JX_NO;
           break;
         }
         if(state->context.exhausted)

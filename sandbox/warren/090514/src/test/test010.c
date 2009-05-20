@@ -91,8 +91,8 @@ int main(int argc, char **argv)
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
 
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
 
     {
       jx_ob jxon = jx_ob_to_jxon(builtins);
@@ -134,8 +134,8 @@ int main(int argc, char **argv)
 
   {
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ add, 1, 2 ] ]");
       {
@@ -159,8 +159,8 @@ int main(int argc, char **argv)
 
   {
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ add, 2.0, 3.0 ] ]");
       {
@@ -184,8 +184,8 @@ int main(int argc, char **argv)
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ set, 0, [ add, -1, 7 ] ], [get, 0] ]");
       {
@@ -209,8 +209,8 @@ int main(int argc, char **argv)
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str("[ [set, a, 5], [ add, -1, [get, a] ] ]");
       {
@@ -238,8 +238,8 @@ int main(int argc, char **argv)
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str(
  "[[set,a,10],[while,[get,a],[[my_fn, [get,a]],[set,a,[add,-1,[get,a]]]]]]");
@@ -269,8 +269,8 @@ int main(int argc, char **argv)
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str("[[set,a,{1:2,3:[4,5,[sub,9,3]]}],[get,a]]");
       {
@@ -310,8 +310,8 @@ int main(int argc, char **argv)
 
     P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
 
-    P1("0 == %d",jx_code_expose_builtins(builtins));
-    P1("0 == %d",jx_code_expose_special_forms(builtins));
+    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+
     {
       jx_ob source = jx_ob_from_jxon_str(
 "[[set,x,[]],[[append,[borrow,x],1]],[[append,[borrow,x],{2:3}]],[get,x]]");

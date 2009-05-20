@@ -10,5 +10,6 @@ LDFLAGS =
 JX_INC_FILES = $(JX_ROOT)/include/jx_inline.h \
 	$(JX_ROOT)/include/jx_public.h \
 	$(JX_ROOT)/src/core/jx_private.h \
+	$(JX_ROOT)/src/safe/jx_safe.h \
 	$(JX_ROOT)/src/core/jx_mem_wrap.h 
 
