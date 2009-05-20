@@ -653,6 +653,19 @@ JX_INLINE jx_bool jx_ob_equal(jx_ob left, jx_ob right)
 
 /* lists */
 
+JX_INLINE jx_int jx__list_size(jx_list * I)
+{
+  return jx_vla_size(&I->data.vla);
+}
+
+JX_INLINE jx_int jx_list_size(jx_ob ob)
+{
+  if(ob.meta.bits & JX_META_BIT_LIST) {
+    return jx__list_size(ob.data.io.list);
+  } else
+    return 0;
+}
+
 jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill);
 JX_INLINE jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill)
 {

@@ -829,18 +829,6 @@ static jx_status jx__list_free(jx_list * list)
   return JX_SUCCESS;
 }
 
-JX_INLINE jx_int jx__list_size(jx_list * I)
-{
-  return jx_vla_size(&I->data.vla);
-}
-
-jx_int jx_list_size(jx_ob ob)
-{
-  if(ob.meta.bits & JX_META_BIT_LIST) {
-    return jx__list_size(ob.data.io.list);
-  } else
-    return 0;
-}
 
 jx_ob jx__str_join_with_list(jx_list * list, jx_char *sep)
 {
