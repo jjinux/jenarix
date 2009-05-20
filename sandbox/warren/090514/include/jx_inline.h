@@ -500,31 +500,40 @@ JX_INLINE jx_bool jx_builtin_check(jx_ob ob)
 
 JX_INLINE jx_bool jx_builtin_vla_check(jx_ob ob)
 {
-  return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_VLA);
+  register jx_bits bits = ob.meta.bits;
+  return (bits & JX_META_BIT_BUILTIN) && 
+    (bits & JX_META_BIT_BUILTIN_VLA);
 }
 
 JX_INLINE jx_bool jx_builtin_selector_check(jx_ob ob)
 {
-  return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_SELECTOR);
+  register jx_bits bits = ob.meta.bits;
+  return (bits & JX_META_BIT_BUILTIN) && 
+    (bits & JX_META_BIT_BUILTIN_SELECTOR);
 }
 
 JX_INLINE jx_bool jx_builtin_opaque_ob_check(jx_ob ob)
 {
-  return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_OPAQUE_OB);
+  register jx_bits bits = ob.meta.bits;
+  return (bits & JX_META_BIT_BUILTIN) && 
+    (bits & JX_META_BIT_BUILTIN_OPAQUE_OB);
 }
 
 JX_INLINE jx_bool jx_builtin_native_fn_check(jx_ob ob)
 {
-  return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_NATIVE_FN);
+  register jx_bits bits = ob.meta.bits;
+  return (bits & JX_META_BIT_BUILTIN) && 
+    (bits & JX_META_BIT_BUILTIN_NATIVE_FN);
 }
 
 JX_INLINE jx_bool jx_builtin_fn_check(jx_ob ob)
 {
-  return jx_builtin_check(ob) && (ob.meta.bits & 
-                                  (JX_META_BIT_BUILTIN_SELECTOR |      
-                                   JX_META_BIT_BUILTIN_NATIVE_FN |      
-                                   JX_META_BIT_BUILTIN_JENARIX_FN));
-
+  register jx_bits bits = ob.meta.bits;
+  return (bits & JX_META_BIT_BUILTIN) && 
+    (bits & 
+     (JX_META_BIT_BUILTIN_SELECTOR |      
+      JX_META_BIT_BUILTIN_NATIVE_FN |      
+      JX_META_BIT_BUILTIN_JENARIX_FN));
 }
 
 JX_INLINE jx_bool jx_builtin_jenarix_fn_check(jx_ob ob)

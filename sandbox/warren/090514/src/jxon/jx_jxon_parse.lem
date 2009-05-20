@@ -33,10 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* 
 
    NOTE: This is the Jenarix Object Notation (JXON) parser.  JXON is a
-   strict forward-compatible superset of JXON than can be encoded and
-   passaged through JXON as needed for transport purposes.
+   strict forward-compatible superset of JSON than can be encoded and
+   passaged through JSON as needed for transport purposes.
 
-   JXON supports the following extensions on top of JXON:
+   JXON supports the following extensions on top of JSON:
 
    * commas are optional on input and are used for aesthetics and
      clarity only
@@ -64,10 +64,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
   PLANNED:
  
+   * JSON ecoding of JXON enhancement through use of prefixes:
+
+     "jxD_0" "jxF_0.12" "jxS_anystring" "jxI_hello.warren"
+
    * multi-line strings wrapped inside triple-quotes """ and '''
 
-   * an implicit concatenation operator for strings (+ ?)
+   * operators (automatically translated into identifiers): 
+        + - * / ! && || ^ etc.
 
+   * an explicit concatenation operator for string literals ("a" . "b"?)
+   
 */
 
 %nonassoc ERROR. 
@@ -95,7 +102,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*** for now, malloc'ing non-terminals. ***/
 
 %destructor list         { jx_ob_free($$); }
-//%destructor hash         { jx_ob_free($$); }
+%destructor hash         { jx_ob_free($$); }
 %destructor primitive    { jx_ob_free($$); }
 
 /*** for now, mallocing tokens **/
@@ -134,11 +141,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** Declare parser token types ***/
 
-%type expression       { jx_ob }
-%type primitive        { jx_ob }
-%type list             { jx_ob }
-%type expression_list  { jx_ob }
-//%type hash             { jx_ob }
+%type expression             { jx_ob }
+%type primitive              { jx_ob }
+%type list                   { jx_ob }
+%type list_of_expressions    { jx_ob }
+%type hash                   { jx_ob }
+%type association            { jx_ob }
+%type list_of_associations   { jx_ob }
 
 /*** Start symbol ***/
 

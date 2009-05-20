@@ -28,10 +28,10 @@ State 0:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  10
                      statement accept
-                          hash shift  30
 
 State 1:
           expression ::= * primitive
@@ -65,9 +65,9 @@ State 1:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  21
-                          hash shift  30
            list_of_expressions shift  2
 
 State 2:
@@ -101,9 +101,9 @@ State 2:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  36
-                          hash shift  30
 
 State 3:
           expression ::= * primitive
@@ -132,9 +132,9 @@ State 3:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  33
-                          hash shift  30
 
 State 4:
           expression ::= * primitive
@@ -163,9 +163,9 @@ State 4:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  25
-                          hash shift  30
 
 State 5:
           expression ::= * primitive
@@ -194,9 +194,9 @@ State 5:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  37
-                          hash shift  30
 
 State 6:
           expression ::= * primitive
@@ -225,9 +225,9 @@ State 6:
                          FALSE shift  19
                           NULL shift  20
                           list shift  29
+                          hash shift  30
                      primitive shift  28
                     expression shift  22
-                          hash shift  30
 
 State 7:
           hash ::= OPEN_CURLY_BRACE * CLOSE_CURLY_BRACE
@@ -253,8 +253,8 @@ State 7:
                          FALSE shift  19
                           NULL shift  20
                      primitive shift  12
-          list_of_associations shift  8
                    association shift  23
+          list_of_associations shift  8
 
 State 8:
           hash ::= OPEN_CURLY_BRACE list_of_associations * CLOSE_CURLY_BRACE
@@ -461,11 +461,10 @@ Symbols:
    16: NULL
    17: error:
    18: list: OPEN_RECT_BRACE
-   19: primitive: ICON FCON SCON IDENT TRUE FALSE NULL
-   20: expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
-   21: expression_list:
-   22: statement: EOI OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
-   23: hash: OPEN_CURLY_BRACE
+   19: hash: OPEN_CURLY_BRACE
+   20: primitive: ICON FCON SCON IDENT TRUE FALSE NULL
+   21: expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
+   22: list_of_expressions: OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
+   23: association: ICON FCON SCON IDENT TRUE FALSE NULL
    24: list_of_associations: ICON FCON SCON IDENT TRUE FALSE NULL
-   25: association: ICON FCON SCON IDENT TRUE FALSE NULL
-   26: list_of_expressions: OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
+   25: statement: EOI OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL

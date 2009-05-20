@@ -33,7 +33,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* owned C types (to be use exclusively throughout) */
+/* owned C types (to be used exclusively throughout) */
 
 typedef int jx_bool;
 typedef char jx_char;
@@ -155,6 +155,7 @@ jx_bool jx_list_check(jx_ob ob);
 jx_bool jx_hash_check(jx_ob ob);
 jx_bool jx_ident_check(jx_ob ob);
 jx_bool jx_builtin_check(jx_ob ob);
+jx_bool jx_builtin_fn_check(jx_ob o);
 
 /* comparing objects */
 

@@ -43,7 +43,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
 
-
 JX_INLINE void jx__gc_init(jx_gc *gc)
 {
   memset(gc,0,sizeof(jx_gc));
@@ -567,7 +566,6 @@ jx_char *jx_ob_as_str(jx_ob * ob)
   return jx_ob_as_str_error;
 }
 
-
 jx_ob jx__str__concat(jx_char *left, jx_char *right)
 {
   jx_int left_size = jx_vla_size(left) - sizeof(jx_str);
@@ -596,7 +594,6 @@ jx_ob jx__str_concat(jx_ob left, jx_ob right)
   }
   return jx_ob_from_null();
 }
-
 
 jx_status jx__str_set_shared(jx_char *str, jx_bool shared)
 {
@@ -698,7 +695,6 @@ jx_ob jx__ident_gc_copy(jx_char *str)
   }
   return result;
 }
-
 
 /* lists */
 
@@ -828,7 +824,6 @@ static jx_status jx__list_free(jx_list * list)
   jx_free(list);
   return JX_SUCCESS;
 }
-
 
 jx_ob jx__str_join_with_list(jx_list * list, jx_char *sep)
 {
@@ -1040,7 +1035,6 @@ jx_status jx__list_unpack_data(jx_list * list)
   } else
     return JX_FAILURE;
 }
-
 
 /* mental / debuggin aids */
 
@@ -1259,7 +1253,6 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
   }
   return JX_FAILURE;
 }
-
 
 jx_status jx__list_combine(jx_list * list1, jx_list * list2)
 {

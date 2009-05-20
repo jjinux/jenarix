@@ -271,7 +271,7 @@ comment:
    (3) parsing from a character stream 
 */
 
-void jx_jxon_scan_input(jx_jxon_scanner_state *state)
+static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
 {
   /* allocate parser */
 
