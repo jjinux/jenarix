@@ -700,7 +700,45 @@ JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
     JX_FAILURE;
 }
 
-jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob);
+JX_INLINE void jx__list_set_packed_data(jx_list * list, jx_int index, jx_ob ob)
+{
+  switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_INT:
+    list->data.int_vla[index] = ob.data.io.int_;
+    break;
+  case JX_META_BIT_FLOAT:
+    list->data.float_vla[index] = ob.data.io.float_;
+    break;
+  }
+}
+
+jx_status jx__list_unpack_data(jx_list * list);
+JX_INLINE jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
+{
+  if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
+    if(!I->packed_meta_bits) {
+      jx_ob_free(I->data.ob_vla[index]);
+      I->data.ob_vla[index] = ob;
+      return JX_SUCCESS;
+    } else {
+      if(I->data.vla && (I->packed_meta_bits != ob.meta.bits)) {
+        if(!jx_ok(jx__list_unpack_data(I)))
+          return JX_FAILURE;
+      }
+      if(I->data.vla) {
+        if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
+          jx__list_set_packed_data(I, index, ob);
+        } else if(!I->packed_meta_bits) {
+          jx_ob_free(I->data.ob_vla[index]);
+          I->data.ob_vla[index] = ob;
+        }
+        return JX_SUCCESS;
+      }
+    }
+  }
+  return JX_FAILURE;
+}
+
 JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?

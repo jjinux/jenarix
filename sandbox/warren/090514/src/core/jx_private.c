@@ -1010,7 +1010,7 @@ static jx_status jx__list_repack_data(jx_list * list)
   return JX_FALSE;
 }
 
-static jx_status jx__list_unpack_data(jx_list * list)
+jx_status jx__list_unpack_data(jx_list * list)
 {
   /* homogenous list becoming hetergeneous */
   jx_int size = jx_vla_size(&list->data.vla);
@@ -1053,17 +1053,6 @@ static jx_status jx__list_unpack_data(jx_list * list)
     return JX_FAILURE;
 }
 
-JX_INLINE void jx__list_set_packed_data(jx_list * list, jx_int index, jx_ob ob)
-{
-  switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
-  case JX_META_BIT_INT:
-    list->data.int_vla[index] = ob.data.io.int_;
-    break;
-  case JX_META_BIT_FLOAT:
-    list->data.float_vla[index] = ob.data.io.float_;
-    break;
-  }
-}
 
 /* mental / debuggin aids */
 
@@ -1283,30 +1272,6 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
   return JX_FAILURE;
 }
 
-jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
-{
-  if(I->gc.shared)
-    return JX_FAILURE;
-  {
-    jx_int size = jx_vla_size(&I->data.vla);
-    if(index < size) {
-      if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
-        if(!jx_ok(jx__list_unpack_data(I)))
-          return JX_FAILURE;
-      }
-      if(I->data.vla) {
-        if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
-          jx__list_set_packed_data(I, index, ob);
-        } else if(!I->packed_meta_bits) {
-          jx_ob_free(I->data.ob_vla[index]);
-          I->data.ob_vla[index] = JX_OWN(ob);
-        }
-        return JX_SUCCESS;
-      }
-    }
-  }
-  return JX_FAILURE;
-}
 
 jx_status jx__list_combine(jx_list * list1, jx_list * list2)
 {
