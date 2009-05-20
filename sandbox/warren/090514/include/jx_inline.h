@@ -717,8 +717,7 @@ JX_INLINE jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
 {
   if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
     if(!I->packed_meta_bits) {
-      jx_ob_free(I->data.ob_vla[index]);
-      I->data.ob_vla[index] = ob;
+      jx_ob_replace(I->data.ob_vla + index, ob);
       return JX_SUCCESS;
     } else {
       if(I->data.vla && (I->packed_meta_bits != ob.meta.bits)) {
@@ -729,8 +728,7 @@ JX_INLINE jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
         if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
           jx__list_set_packed_data(I, index, ob);
         } else if(!I->packed_meta_bits) {
-          jx_ob_free(I->data.ob_vla[index]);
-          I->data.ob_vla[index] = ob;
+          jx_ob_replace(I->data.ob_vla + index, ob);
         }
         return JX_SUCCESS;
       }
