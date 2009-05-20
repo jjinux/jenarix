@@ -1,0 +1,471 @@
+State 0:
+          statement ::= * EOI
+          statement ::= * expression EOI
+          statement ::= * expression SEMICOLON
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                           EOI shift  24
+              OPEN_CURLY_BRACE shift  7
+               OPEN_RECT_BRACE shift  1
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  10
+                     statement accept
+                          hash shift  30
+
+State 1:
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= OPEN_RECT_BRACE * CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list ::= OPEN_RECT_BRACE * list_of_expressions CLOSE_RECT_BRACE
+          list_of_expressions ::= * expression
+          list_of_expressions ::= * list_of_expressions expression
+          list_of_expressions ::= * list_of_expressions COMMA expression
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+              OPEN_CURLY_BRACE shift  7
+               OPEN_RECT_BRACE shift  1
+              CLOSE_RECT_BRACE shift  34
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  21
+                          hash shift  30
+           list_of_expressions shift  2
+
+State 2:
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list ::= OPEN_RECT_BRACE list_of_expressions * CLOSE_RECT_BRACE
+          list_of_expressions ::= list_of_expressions * expression
+          list_of_expressions ::= list_of_expressions * COMMA expression
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+              OPEN_CURLY_BRACE shift  7
+                         COMMA shift  5
+               OPEN_RECT_BRACE shift  1
+              CLOSE_RECT_BRACE shift  35
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  36
+                          hash shift  30
+
+State 3:
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+              OPEN_CURLY_BRACE shift  7
+               OPEN_RECT_BRACE shift  1
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  33
+                          hash shift  30
+
+State 4:
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          association ::= primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+              OPEN_CURLY_BRACE shift  7
+               OPEN_RECT_BRACE shift  1
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  25
+                          hash shift  30
+
+State 5:
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list_of_expressions ::= list_of_expressions COMMA * expression
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+              OPEN_CURLY_BRACE shift  7
+               OPEN_RECT_BRACE shift  1
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  37
+                          hash shift  30
+
+State 6:
+          expression ::= * primitive
+          expression ::= * list
+          expression ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations COMMA primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+              OPEN_CURLY_BRACE shift  7
+               OPEN_RECT_BRACE shift  1
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                          list shift  29
+                     primitive shift  28
+                    expression shift  22
+                          hash shift  30
+
+State 7:
+          hash ::= OPEN_CURLY_BRACE * CLOSE_CURLY_BRACE
+          hash ::= OPEN_CURLY_BRACE * list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= * list_of_associations primitive COLON expression
+          list_of_associations ::= * list_of_associations COMMA primitive COLON expression
+          list_of_associations ::= * association
+          association ::= * primitive COLON expression
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+             CLOSE_CURLY_BRACE shift  31
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                     primitive shift  12
+          list_of_associations shift  8
+                   association shift  23
+
+State 8:
+          hash ::= OPEN_CURLY_BRACE list_of_associations * CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations * primitive COLON expression
+          list_of_associations ::= list_of_associations * COMMA primitive COLON expression
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+             CLOSE_CURLY_BRACE shift  32
+                         COMMA shift  9
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                     primitive shift  13
+
+State 9:
+          list_of_associations ::= list_of_associations COMMA * primitive COLON expression
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                          ICON shift  14
+                          FCON shift  15
+                          SCON shift  16
+                         IDENT shift  17
+                          TRUE shift  18
+                         FALSE shift  19
+                          NULL shift  20
+                     primitive shift  11
+
+State 10:
+          statement ::= expression * EOI
+          statement ::= expression * SEMICOLON
+
+                           EOI shift  26
+                     SEMICOLON shift  27
+
+State 11:
+          list_of_associations ::= list_of_associations COMMA primitive * COLON expression
+
+                         COLON shift  6
+
+State 12:
+          association ::= primitive * COLON expression
+
+                         COLON shift  4
+
+State 13:
+          list_of_associations ::= list_of_associations primitive * COLON expression
+
+                         COLON shift  3
+
+State 14:
+     (17) primitive ::= ICON *
+
+                     {default} reduce 17
+
+State 15:
+     (18) primitive ::= FCON *
+
+                     {default} reduce 18
+
+State 16:
+     (19) primitive ::= SCON *
+
+                     {default} reduce 19
+
+State 17:
+     (20) primitive ::= IDENT *
+
+                     {default} reduce 20
+
+State 18:
+     (21) primitive ::= TRUE *
+
+                     {default} reduce 21
+
+State 19:
+     (22) primitive ::= FALSE *
+
+                     {default} reduce 22
+
+State 20:
+     (23) primitive ::= NULL *
+
+                     {default} reduce 23
+
+State 21:
+     (14) list_of_expressions ::= expression *
+
+                     {default} reduce 14
+
+State 22:
+      (9) list_of_associations ::= list_of_associations COMMA primitive COLON expression *
+
+                     {default} reduce 9
+
+State 23:
+     (10) list_of_associations ::= association *
+
+                     {default} reduce 10
+
+State 24:
+      (0) statement ::= EOI *
+
+                     {default} reduce 0
+
+State 25:
+     (11) association ::= primitive COLON expression *
+
+                     {default} reduce 11
+
+State 26:
+      (1) statement ::= expression EOI *
+
+                     {default} reduce 1
+
+State 27:
+      (2) statement ::= expression SEMICOLON *
+
+                     {default} reduce 2
+
+State 28:
+      (3) expression ::= primitive *
+
+                     {default} reduce 3
+
+State 29:
+      (4) expression ::= list *
+
+                     {default} reduce 4
+
+State 30:
+      (5) expression ::= hash *
+
+                     {default} reduce 5
+
+State 31:
+      (6) hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
+
+                     {default} reduce 6
+
+State 32:
+      (7) hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE *
+
+                     {default} reduce 7
+
+State 33:
+      (8) list_of_associations ::= list_of_associations primitive COLON expression *
+
+                     {default} reduce 8
+
+State 34:
+     (12) list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
+
+                     {default} reduce 12
+
+State 35:
+     (13) list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE *
+
+                     {default} reduce 13
+
+State 36:
+     (15) list_of_expressions ::= list_of_expressions expression *
+
+                     {default} reduce 15
+
+State 37:
+     (16) list_of_expressions ::= list_of_expressions COMMA expression *
+
+                     {default} reduce 16
+
+----------------------------------------------------
+Symbols:
+    0: $:
+    1: ERROR
+    2: EOI
+    3: SEMICOLON
+    4: OPEN_CURLY_BRACE
+    5: CLOSE_CURLY_BRACE
+    6: COLON
+    7: COMMA
+    8: OPEN_RECT_BRACE
+    9: CLOSE_RECT_BRACE
+   10: ICON
+   11: FCON
+   12: SCON
+   13: IDENT
+   14: TRUE
+   15: FALSE
+   16: NULL
+   17: error:
+   18: list: OPEN_RECT_BRACE
+   19: primitive: ICON FCON SCON IDENT TRUE FALSE NULL
+   20: expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
+   21: expression_list:
+   22: statement: EOI OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL
+   23: hash: OPEN_CURLY_BRACE
+   24: list_of_associations: ICON FCON SCON IDENT TRUE FALSE NULL
+   25: association: ICON FCON SCON IDENT TRUE FALSE NULL
+   26: list_of_expressions: OPEN_CURLY_BRACE OPEN_RECT_BRACE ICON FCON SCON IDENT TRUE FALSE NULL

@@ -1,0 +1,16 @@
+#define JX_JXON_ERROR                           1
+#define JX_JXON_EOI                             2
+#define JX_JXON_SEMICOLON                       3
+#define JX_JXON_OPEN_CURLY_BRACE                4
+#define JX_JXON_CLOSE_CURLY_BRACE               5
+#define JX_JXON_COLON                           6
+#define JX_JXON_COMMA                           7
+#define JX_JXON_OPEN_RECT_BRACE                 8
+#define JX_JXON_CLOSE_RECT_BRACE                9
+#define JX_JXON_ICON                           10
+#define JX_JXON_FCON                           11
+#define JX_JXON_SCON                           12
+#define JX_JXON_IDENT                          13
+#define JX_JXON_TRUE                           14
+#define JX_JXON_FALSE                          15
+#define JX_JXON_NULL                           16
