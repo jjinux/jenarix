@@ -305,7 +305,7 @@ jx_ob jx_builtin_new_with_vla(void **ref);
 jx_ob jx_builtin_new_from_selector(jx_int selector);
 jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn);
 jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque);
-jx_ob jx_builtin_new_with_function(jx_ob fn);
+jx_ob jx_builtin_new_with_function(jx_ob node, jx_ob fn);
 
 /* parser */
 

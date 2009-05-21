@@ -51,6 +51,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_QUOTE   5
 #define JX_BUILTIN_DEF     6
 #define JX_BUILTIN_RESOLVE 7
+#define JX_BUILTIN_LAMBDA  8
+#define JX_BUILTIN_APPLY   9
 
 #define JX_BUILTIN_SPECIAL_FORMS_LIMIT 16
 
@@ -73,6 +75,8 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "quote", JX_BUILTIN_QUOTE);
   ok = jx_declare(ok, namespace, "def", JX_BUILTIN_DEF);
   ok = jx_declare(ok, namespace, "resolve", JX_BUILTIN_RESOLVE);
+  ok = jx_declare(ok, namespace, "lambda", JX_BUILTIN_LAMBDA);
+  ok = jx_declare(ok, namespace, "apply", JX_BUILTIN_APPLY);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
@@ -233,13 +237,40 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                   }
                 }
                 break;
-              case JX_BUILTIN_DEF:
+              case JX_BUILTIN_DEF: /* [def name node code] */
                 {
                   jx_list *payload_list = payload.data.io.list;
                   jx_ob ident = jx_code_eval(node, jx__list_borrow(payload_list, 1));
-                  jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 2));
-                  jx_ob function = jx_builtin_new_with_function(code);
+                  jx_ob inv_node = jx_code_eval(node, jx__list_borrow(payload_list, 2));
+                  jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 3));
+                  jx_ob function = jx_builtin_new_with_function(inv_node, code);
                   jx_ob_replace(&result, jx_ob_from_status( jx_hash_set(node,ident,function)));
+                }
+                break;
+              case JX_BUILTIN_LAMBDA: /* [lambda node code] */
+                {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob inv_node = jx_code_eval(node, jx__list_borrow(payload_list, 1));
+                  jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 2));
+                  jx_ob function = jx_builtin_new_with_function(inv_node,code);
+                  jx_ob_replace(&result, function);
+                }
+                break;
+              case JX_BUILTIN_APPLY: /* [lambda node code] */
+                {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob fn = jx_code_eval(node, jx__list_borrow(payload_list, 1));
+                  if(jx_builtin_any_fn_check(fn)) {
+                    jx_ob e_payload = jx_code_eval(node, jx__list_borrow(payload_list, 2));
+                    jx_ob frame = jx_list_new_with_size(2);            
+                    jx_list_replace(frame, 0, fn);
+                    jx_list_replace(frame, 1, e_payload);
+                    jx_ob_replace(&result, jx_code_eval(node,frame));
+                    jx_ob_free(frame);
+                  } else { /* trying to apply a non-function */
+                    jx_ob_replace(&result, jx_ob_from_null());
+                    jx_ob_free(fn);
+                  }
                 }
                 break;
               case JX_BUILTIN_RESOLVE:

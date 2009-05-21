@@ -1,5 +1,5 @@
 
-[def test [[output "Passed in value follows"] [list_get [borrow _] 1]]];
+[def test null [[output "Passed in value follows"] [list_get [borrow _] 1]]];
 
 [get test];
 
@@ -23,3 +23,19 @@
 [get a];
 
 [size [borrow a]];
+
+[lambda [add [list_get [borrow _] 1] 2] ];
+
+[set a 3];
+
+[def test1 {x:2} [get x]];
+
+[test1];
+
+[lambda none 1];
+
+[apply [lambda null 8]];
+
+[apply [lambda null [[set a 9] [get a]]]];
+
+[get a];

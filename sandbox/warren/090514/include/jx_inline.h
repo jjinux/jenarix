@@ -182,6 +182,7 @@ struct jx__opaque_ob {
 
 struct jx__function {
   jx_gc gc;
+  jx_ob node; 
   jx_ob code;
 };
 
@@ -1444,8 +1445,30 @@ JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 
 JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
 {
-  jx_hash_set(node,jx_ob_from_ident("_"),payload);
-  return jx_code_exec(node,fn->code);
+  jx_ob payload_ident = jx_ob_from_ident("_");
+  if(jx_null_check(fn->node)) {
+    /* inner functions run within the host node namespace */
+    jx_ob saved_payload = jx_hash_remove(node, payload_ident);
+    if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
+      jx_ob result = jx_code_exec(node,fn->code);
+      if(!jx_ok(jx_hash_set(node,payload_ident,saved_payload)))
+        jx_ob_free(saved_payload);
+      return result;
+    } else {
+      jx_ob_free(payload);
+      jx_hash_set(node, payload_ident, saved_payload);
+      return jx_ob_from_null();
+    }
+  } else {
+    /* standard functions run inside their own node namespace (and
+       thus can potentially be concurrent) */
+    jx_ob inv_node = jx_ob_copy(fn->node);
+    jx_ob result = JX_OB_NULL;
+    if(jx_ok( jx_hash_set(inv_node,jx_ob_from_ident("_"),payload))) {
+      result = jx_code_exec(inv_node,fn->code);
+    }
+    jx_ob_free(inv_node);
+    return result;
+  }
 }
-
 #endif
