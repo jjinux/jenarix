@@ -40,37 +40,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_safe.h"
 
+static jx_bool jx_declare(jx_bool ok, jx_ob namespace, jx_char *ident, jx_int selector)
+{
+  if(ok)
+    ok = jx_ok( jx_hash_set(namespace, jx_ob_from_ident(ident), 
+                            jx_builtin_new_from_selector(selector)));
+  return ok;
+}
+
 jx_status jx_safe_expose_all_builtins(jx_ob namespace)
 {
   jx_bool ok = JX_TRUE;
 
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("set"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_SET)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("get"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_GET)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("add"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_ADD)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("sub"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_SUB)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("borrow"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_BORROW)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("append"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_APPEND)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("size"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_SIZE)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("hash_set"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_HASH_SET)));
-  ok = ok && 
-    jx_ok( jx_hash_set(namespace, jx_ob_from_ident("hash_get"), 
-                       jx_builtin_new_from_selector(JX_BUILTIN_HASH_GET)));
+  ok = jx_declare(ok,namespace,"set", JX_BUILTIN_SET);
+  ok = jx_declare(ok,namespace,"get", JX_BUILTIN_GET);
+  ok = jx_declare(ok,namespace,"borrow", JX_BUILTIN_BORROW);
+  ok = jx_declare(ok,namespace,"take", JX_BUILTIN_TAKE);
+  ok = jx_declare(ok,namespace,"del", JX_BUILTIN_DEL);
+
+  ok = jx_declare(ok,namespace,"eq", JX_BUILTIN_EQ);
+  ok = jx_declare(ok,namespace,"gt", JX_BUILTIN_GT);
+  ok = jx_declare(ok,namespace,"lt", JX_BUILTIN_LT);
+  ok = jx_declare(ok,namespace,"ge", JX_BUILTIN_GE);
+  ok = jx_declare(ok,namespace,"le", JX_BUILTIN_LE);
+  ok = jx_declare(ok,namespace,"identical", JX_BUILTIN_IDENTICAL);
+
+  ok = jx_declare(ok,namespace,"output", JX_BUILTIN_OUTPUT);
+  ok = jx_declare(ok,namespace,"error", JX_BUILTIN_ERROR);
+
+  ok = jx_declare(ok,namespace,"add", JX_BUILTIN_ADD);
+  ok = jx_declare(ok,namespace,"sub", JX_BUILTIN_SUB);
+  ok = jx_declare(ok,namespace,"mul", JX_BUILTIN_MUL);
+  ok = jx_declare(ok,namespace,"div", JX_BUILTIN_DIV);
+  ok = jx_declare(ok,namespace,"mod", JX_BUILTIN_MOD);
+
+  ok = jx_declare(ok,namespace,"and", JX_BUILTIN_AND);
+  ok = jx_declare(ok,namespace,"or",  JX_BUILTIN_OR);
+
+  ok = jx_declare(ok,namespace,"neg", JX_BUILTIN_NEG);
+  ok = jx_declare(ok,namespace,"not", JX_BUILTIN_NOT);
+
+  ok = jx_declare(ok,namespace,"append", JX_BUILTIN_APPEND);
+  ok = jx_declare(ok,namespace,"size", JX_BUILTIN_SIZE);
+  ok = jx_declare(ok,namespace,"hash_set", JX_BUILTIN_HASH_SET);
+  ok = jx_declare(ok,namespace,"hash_get", JX_BUILTIN_HASH_GET);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

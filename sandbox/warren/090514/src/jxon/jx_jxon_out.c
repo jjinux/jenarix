@@ -299,7 +299,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
       if(bits & JX_META_BIT_BUILTIN_VLA) {
         sprintf(buffer,"*vla_%p*",(void*)ob.data.io.vla);
       } else if(bits & JX_META_BIT_BUILTIN_SELECTOR) {
-        sprintf(buffer,"*op_%03d*",(int)ob.data.io.int_);
+        sprintf(buffer,"*%02d*",(int)ob.data.io.int_);
       } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
         sprintf(buffer,"*opaque_ob_%p*",(void*)ob.data.io.vla); /* deliberate misread */
         return jx_ob_from_str(buffer);

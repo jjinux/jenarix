@@ -14,26 +14,29 @@ identify;
 {1:2};
 {1:2,3:4};
 {1:[2,3]};
+
 # top-level lists are iterated -- only the last element is returned
 [];
 [[]];
 [1];
 [1,2];
 [1,2,3];
+
 # lists with identifiers which resolve to code are executed
 [set x 1];
 [get x];
 [set x 2];
 [get x];
 [add 1 2];
+
 # type promotion is in
 [add 1 2];
 [add 1 2.0];
 [add true true];
 [sub true true];
 [sub true false];
-# we have looping constructs
 
+# we have looping constructs
 [set a 10];
 
 [set b []];
@@ -54,3 +57,34 @@ identify;
 
 [size [get b]];
 [size [get c]];
+
+#
+
+[set b []];
+
+[for [set a 1] [lt [get a] 10] [set a [add [get a] 1]] [append [borrow b] [get a]]];
+
+[get b];
+
+[for [set a 10] [get a] [set a [sub [get a] 1]] [append [borrow b] [get a]]];
+
+[get b];
+
+#
+
+
+[set a 1];
+
+[do [set a [add 1 [get a]]] [lt [get a] 10] ];
+
+[get a];
+
+
+[set a 1];
+
+[[[[[do [set a [add 1 [get a]]] [lt [get a] 10] ]]]]];
+
+[get a];
+
+
+

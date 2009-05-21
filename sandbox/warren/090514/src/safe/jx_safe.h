@@ -39,16 +39,61 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    involve only internal actions within the interpreter and container
    space (no access to filesystem, network, memory, etc.) */
 
-#define JX_BUILTIN_NOP      0
-#define JX_BUILTIN_SET      1
-#define JX_BUILTIN_GET      2
-#define JX_BUILTIN_ADD      3
-#define JX_BUILTIN_SUB      4
-#define JX_BUILTIN_BORROW   5
-#define JX_BUILTIN_APPEND   6
-#define JX_BUILTIN_SIZE     7
-#define JX_BUILTIN_HASH_SET 8
-#define JX_BUILTIN_HASH_GET 9
+#define JX_BUILTIN_NOP       22
+
+/* symbols */
+
+#define JX_BUILTIN_SET       23
+#define JX_BUILTIN_GET       24
+#define JX_BUILTIN_BORROW    25
+#define JX_BUILTIN_TAKE      26
+#define JX_BUILTIN_DEL       27
+
+#define JX_BUILTIN_IDENTICAL 28
+#define JX_BUILTIN_EQ        29
+#define JX_BUILTIN_LT        30
+#define JX_BUILTIN_GT        31
+#define JX_BUILTIN_LE        32
+#define JX_BUILTIN_GE        33
+#define JX_BUILTIN_NE        34
+#define JX_BUILTIN_AND       35      
+#define JX_BUILTIN_OR        36
+#define JX_BUILTIN_BIT_AND   37
+#define JX_BUILTIN_BIT_OR    38
+#define JX_BUILTIN_BIT_XOR   39
+#define JX_BUILTIN_BIT_SHL   40
+#define JX_BUILTIN_BIT_SHR   41
+
+#define JX_BUILTIN_ADD       42
+#define JX_BUILTIN_SUB       43
+#define JX_BUILTIN_MUL       44
+#define JX_BUILTIN_DIV       45
+#define JX_BUILTIN_MOD       46
+
+#define JX_BUILTIN_BIT_NOT   47
+#define JX_BUILTIN_NOT       48
+#define JX_BUILTIN_NEG       49
+
+#define JX_BUILTIN_APPEND    50
+#define JX_BUILTIN_SIZE      51
+#define JX_BUILTIN_HASH_SET  52
+#define JX_BUILTIN_HASH_GET  53
+
+#define JX_BUILTIN_OUTPUT    54
+#define JX_BUILTIN_ERROR     55
+
+#define JX_BIN_OP(SUFFIX) \
+JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
+{ \
+  return jx_ob_ ## SUFFIX ( jx_list_borrow(payload,1), jx_list_borrow(payload,2) ); \
+}
+
+#define JX_UNI_OP(SUFFIX) \
+JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
+{ \
+  return jx_ob_ ## SUFFIX ( jx_list_borrow(payload,1) );    \
+}
+
 
 jx_status jx_safe_expose_all_builtins(jx_ob namespace);
 
@@ -69,15 +114,95 @@ JX_INLINE jx_ob jx_safe_borrow(jx_ob node, jx_ob payload)
   return jx_ob_take_weak_ref( jx_hash_borrow(node, jx_list_borrow(payload,1)));
 }
 
-JX_INLINE jx_ob jx_safe_add(jx_ob node, jx_ob payload)
+JX_INLINE jx_ob jx_safe_take(jx_ob node, jx_ob payload)
 {
-  return jx_add( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
+  return jx_hash_remove(node, jx_list_borrow(payload,1));
 }
 
-JX_INLINE jx_ob jx_safe_sub(jx_ob node, jx_ob payload)
+JX_INLINE jx_ob jx_safe_del(jx_ob node, jx_ob payload)
 {
-  return jx_sub( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
+  return jx_ob_from_status(jx_hash_delete(node, jx_list_borrow(payload,1)));
 }
+
+
+JX_INLINE jx_ob jx_safe_identical(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_identical(jx_list_borrow(payload,1),
+                                         jx_list_borrow(payload,2)));
+}
+
+JX_INLINE jx_ob jx_safe_eq(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_equal(jx_list_borrow(payload,1),
+                                     jx_list_borrow(payload,2)));
+}
+
+JX_INLINE jx_ob jx_safe_ne(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(!jx_ob_equal(jx_list_borrow(payload,1),
+                                      jx_list_borrow(payload,2)));
+}
+
+JX_INLINE jx_ob jx_safe_lt(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_lt(jx_list_borrow(payload,1),
+                                  jx_list_borrow(payload,2)));
+}
+
+JX_INLINE jx_ob jx_safe_gt(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_gt(jx_list_borrow(payload,1),
+                                  jx_list_borrow(payload,2)));
+}
+
+JX_INLINE jx_ob jx_safe_le(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_le(jx_list_borrow(payload,1),
+                                  jx_list_borrow(payload,2)));
+}
+
+JX_INLINE jx_ob jx_safe_ge(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_ge(jx_list_borrow(payload,1),
+                                  jx_list_borrow(payload,2)));
+}
+
+
+JX_INLINE jx_ob jx_safe_output(jx_ob node, jx_ob payload)
+{
+  /* should check for 'output' in the node namespace and use that
+     instead if defined */
+  jx_ob jxon = jx_ob_to_jxon(jx_list_borrow(payload,1));
+  fprintf(stdout,"%s;\n",jx_ob_as_str(&jxon));
+  jx_ob_free(jxon);
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_safe_error(jx_ob node, jx_ob payload)
+{
+  /* should check for 'error' in the node namespace and use that
+     instead if defined */
+  jx_ob jxon = jx_ob_to_jxon(jx_list_borrow(payload,1));
+  fprintf(stderr,"%s;\n",jx_ob_as_str(&jxon));
+  jx_ob_free(jxon);
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_safe_add(jx_ob node, jx_ob payload)
+{
+  return jx_ob_add( jx_list_borrow(payload,1), jx_list_borrow(payload,2) );
+}
+
+JX_BIN_OP(add)
+JX_BIN_OP(sub)
+JX_BIN_OP(mul)
+JX_BIN_OP(div)
+JX_BIN_OP(mod)
+JX_BIN_OP(and)
+JX_BIN_OP(or)
+
+JX_UNI_OP(neg)
+JX_UNI_OP(not)
 
 JX_INLINE jx_ob jx_safe_append(jx_ob node, jx_ob payload)
 {
@@ -103,5 +228,6 @@ JX_INLINE jx_ob jx_safe_hash_get(jx_ob node, jx_ob payload)
   return jx_hash_get(jx_list_borrow(payload,1),
                      jx_list_borrow(payload,2));
 }
+
 
 #endif

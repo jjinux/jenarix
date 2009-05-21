@@ -33,6 +33,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <math.h>
+
 /* adapt to tiny string size (a least as large as a machine
    pointer + 2 bytes) */
 
@@ -88,7 +90,8 @@ typedef union {
   jx_int int_;
   jx_float float_;
   jx_char tiny_str[JX_TINY_STR_SIZE];
-  jx_char *str; /* note: vla ptr to jx_str header, not first char */
+  jx_char *str; /* NEVER ACCESS DIRECTLY!
+                   note: vla ptr to jx_str header, not first char */
   jx_list *list;
   jx_hash *hash; 
   void *vla; /* builtin */
@@ -178,6 +181,53 @@ struct jx__opaque_ob {
 typedef struct {
   jx_gc gc;
 } jx_str;
+
+/* prototypes */
+
+
+jx_char *jx_ob_as_str(jx_ob * ob);
+jx_ob jx__str__concat(jx_char *left,jx_int left_len, jx_char *right, jx_int right_len);
+jx_ob jx__ob_add(jx_ob left, jx_ob right);
+jx_status jx__ob_free(jx_ob ob);
+
+JX_INLINE jx_status jx_ob_free(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits;
+  if(bits & JX_META_BIT_GC) {
+    if(bits & JX_META_BIT_WEAK_REF) {
+      return JX_FAILURE;
+    } else {
+      /* object has resources which need to be garbage collected */
+      return jx__ob_free(ob);   /* call non-inline routine */
+    }
+  }
+  return JX_SUCCESS;
+}
+
+jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags);
+
+JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
+{
+  return jx_ob_to_jxon_with_flags(ob, 0);
+}
+
+/* debugging */
+
+JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
+{
+  fprintf(f,"%s: %08x%04x %04x\n",prefix, 
+          (unsigned int)ob.data.raw.word,
+          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
+}
+
+
+JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
+{
+  jx_ob jxon = jx_ob_to_jxon(ob);
+  jx_ob_as_str(&jxon);
+  fprintf(f,"%s: %s\n",prefix, jx_ob_as_str(&jxon));
+  jx_ob_free(jxon);
+}
 
 /* builtin fn objects are a means through which jenarix can be extended */
 
@@ -306,22 +356,6 @@ JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
     jx__ob_copy(ob) : ob;
-}
-
-jx_status jx__ob_free(jx_ob ob);
-
-JX_INLINE jx_status jx_ob_free(jx_ob ob)
-{
-  jx_bits bits = ob.meta.bits;
-  if(bits & JX_META_BIT_GC) {
-    if(bits & JX_META_BIT_WEAK_REF) {
-      return JX_FAILURE;
-    } else {
-      /* object has resources which need to be garbage collected */
-      return jx__ob_free(ob);   /* call non-inline routine */
-    }
-  }
-  return JX_SUCCESS;
 }
 
 JX_INLINE jx_ob jx_ob_from_null(void)
@@ -1064,15 +1098,8 @@ JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
   return jx_ob_from_null();
 }
 
-jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags);
-JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
-{
-  return jx_ob_to_jxon_with_flags(ob, 0);
-}
 
-jx_ob jx__str__concat(jx_char *left, jx_char *right);
-jx_ob jx__add(jx_ob left, jx_ob right);
-JX_INLINE jx_ob jx_add(jx_ob left, jx_ob right)
+JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
 {
   jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
@@ -1088,44 +1115,148 @@ JX_INLINE jx_ob jx_add(jx_ob left, jx_ob right)
       return jx_ob_from_float( left.data.io.float_ + right.data.io.float_ );
       break;
     case JX_META_BIT_STR:
-      return jx__str__concat( left.data.io.str, right.data.io.str );
+      return jx__str__concat(jx_ob_as_str(&left), jx_str_len(left),
+                             jx_ob_as_str(&right), jx_str_len(right));
       break;
     }
   } 
-  return jx__add(left,right);
+  return jx__ob_add(left,right);
 }
 
-jx_ob jx__sub(jx_ob left, jx_ob right);
-JX_INLINE jx_ob jx_sub(jx_ob left, jx_ob right)
-{
-  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
-  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
-  if(left_bits == right_bits) {
-    switch(left_bits) {
-    case JX_META_BIT_INT:
-      return jx_ob_from_int(  left.data.io.int_ - right.data.io.int_ );
-      break;
-    case JX_META_BIT_FLOAT:
-      return jx_ob_from_float( left.data.io.float_ - right.data.io.float_ );
-      break;
-    case JX_META_BIT_BOOL:
-      return jx_ob_from_int( left.data.io.bool_ - right.data.io.bool_ );
-      break;
+#define JX_MATH_OP(SUFFIX,OPER) \
+jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right); \
+JX_INLINE jx_ob jx_ob_ ## SUFFIX(jx_ob left, jx_ob right) \
+{ \
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS; \
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS; \
+  if(left_bits == right_bits) { \
+    switch(left_bits) { \
+    case JX_META_BIT_INT: \
+      return jx_ob_from_int(  left.data.io.int_ OPER right.data.io.int_ ); \
+      break; \
+    case JX_META_BIT_FLOAT: \
+      return jx_ob_from_float( left.data.io.float_ OPER right.data.io.float_ ); \
+      break; \
+    case JX_META_BIT_BOOL: \
+      return jx_ob_from_int( left.data.io.bool_ OPER right.data.io.bool_ ); \
+      break; \
+    }\
+  }\
+  return jx__ob_ ## SUFFIX(left,right);\
+}
+
+JX_MATH_OP(sub,-)
+JX_MATH_OP(mul,*)
+JX_MATH_OP(div,/)
+#undef JX_MATH_OP
+
+#define JX_LOG_OP(SUFFIX,OPER) \
+jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right); \
+JX_INLINE jx_ob jx_ob_ ## SUFFIX(jx_ob left, jx_ob right) \
+{ \
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS; \
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS; \
+  if(left_bits == right_bits) { \
+    switch(left_bits) { \
+    case JX_META_BIT_INT: \
+      return jx_ob_from_bool(  left.data.io.int_ OPER right.data.io.int_ ); \
+      break; \
+    case JX_META_BIT_FLOAT: \
+      return jx_ob_from_bool( left.data.io.float_ OPER right.data.io.float_ ); \
+      break; \
+    case JX_META_BIT_BOOL: \
+      return jx_ob_from_bool( left.data.io.bool_ OPER right.data.io.bool_ ); \
+      break; \
+    }\
+  }\
+  return jx__ob_ ## SUFFIX(left,right);\
+}
+
+JX_LOG_OP(and,&&)
+JX_LOG_OP(or,||)
+
+#undef JX_LOG_OP
+
+jx_ob jx__ob_mod(jx_ob left, jx_ob right); 
+JX_INLINE jx_ob jx_ob_mod(jx_ob left, jx_ob right) 
+{ 
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS; 
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS; 
+  if(left_bits == right_bits) { 
+    switch(left_bits) { 
+    case JX_META_BIT_INT: 
+      return jx_ob_from_int(  left.data.io.int_ % right.data.io.int_ ); 
+      break; 
+    case JX_META_BIT_FLOAT: 
+      return jx_ob_from_float( fmod( left.data.io.float_, right.data.io.float_ ));
+      break; 
+    case JX_META_BIT_BOOL: 
+      return jx_ob_from_int( left.data.io.bool_ % right.data.io.bool_ ); 
+      break; 
     }
   }
-  return jx__sub(left,right);
+  return jx__ob_mod(left,right);\
 }
 
-jx_ob jx__str__concat(jx_char *left, jx_char *right);
+JX_INLINE jx_ob jx_ob_neg(jx_ob ob)
+{ 
+  switch(ob.meta.bits) {  
+  case JX_META_BIT_INT:                                                 
+    return jx_ob_from_int( -ob.data.io.int_ ); 
+    break;                                                              
+  case JX_META_BIT_FLOAT: 
+    return jx_ob_from_float( -ob.data.io.float_ );
+    break; 
+  case JX_META_BIT_BOOL:  
+    return jx_ob_from_int( -ob.data.io.bool_ );
+    break; 
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_ob_not(jx_ob ob)
+{ 
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {  
+  case JX_META_BIT_STR:
+    return jx_ob_from_bool( !jx_str_len(ob) );
+    break;
+  case JX_META_BIT_INT:                                                 
+    return jx_ob_from_bool( !ob.data.io.int_ ); 
+    break;                                                              
+  case JX_META_BIT_FLOAT: 
+    return jx_ob_from_bool( !ob.data.io.float_ );
+    break; 
+  case JX_META_BIT_BOOL:  
+    return jx_ob_from_bool( !ob.data.io.bool_ );
+    break; 
+  }
+  return jx_ob_from_null();
+}
+
+
 jx_ob jx__str_concat(jx_ob left, jx_ob right);
 JX_INLINE jx_ob jx_str_concat(jx_ob left, jx_ob right)
 {
   jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
   if((left_bits == right_bits) && (left_bits & JX_META_BIT_STR)) {
-    return jx__str__concat(left.data.io.str, right.data.io.str);
+    return jx__str__concat(jx_ob_as_str(&left), jx_str_len(left),
+                           jx_ob_as_str(&right), jx_str_len(right));
   } else {
     return jx__str_concat(left,right);
+  }
+}
+
+jx_int jx__str__compare(jx_char *left, jx_char *right);
+jx_int jx__str_compare(jx_ob left, jx_ob right);
+JX_INLINE jx_int jx_str_compare(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if((left_bits == right_bits) && (left_bits & JX_META_BIT_STR)) {
+    return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right));
+  } else {
+    return jx__str_compare(left,right);
   }
 }
 
@@ -1148,7 +1279,6 @@ JX_INLINE jx_ob jx_str_join_with_list(jx_ob list)
   return jx_ob_from_null();
 }
 
-jx_char *jx_ob_as_str(jx_ob * ob);
 JX_INLINE jx_ob jx_str_join_with_list_sep(jx_ob list, jx_ob sep)
 {
   if(list.meta.bits & JX_META_BIT_LIST) {
@@ -1164,6 +1294,106 @@ JX_INLINE jx_ob jx_str_join_with_list_sep(jx_ob list, jx_ob sep)
   }
   return jx_ob_from_null();
 }
+
+/* comparison operators */
+
+jx_bool jx__ob_lt(jx_ob left, jx_ob right);
+JX_INLINE jx_bool jx_ob_lt(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_BOOL:
+      return left.data.io.bool_ < right.data.io.bool_;
+      break;
+    case JX_META_BIT_INT:
+      return left.data.io.int_ < right.data.io.int_;
+      break;
+    case JX_META_BIT_FLOAT:
+      return left.data.io.float_ < right.data.io.float_;
+      break;
+    case JX_META_BIT_STR:
+      return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right)) < 0;
+      break;
+    }
+  } 
+return JX_FALSE;
+}
+
+jx_bool jx__ob_gt(jx_ob left, jx_ob right);
+JX_INLINE jx_bool jx_ob_gt(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_BOOL:
+      return left.data.io.bool_ > right.data.io.bool_;
+      break;
+    case JX_META_BIT_INT:
+      return left.data.io.int_ > right.data.io.int_;
+      break;
+    case JX_META_BIT_FLOAT:
+      return left.data.io.float_ > right.data.io.float_;
+      break;
+    case JX_META_BIT_STR:
+      return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right)) > 0;
+      break;
+    }
+  } 
+  return jx__ob_gt(left,right);
+}
+
+jx_bool jx__ob_le(jx_ob left, jx_ob right);
+JX_INLINE jx_bool jx_ob_le(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_BOOL:
+      return left.data.io.bool_ <= right.data.io.bool_;
+      break;
+    case JX_META_BIT_INT:
+      return left.data.io.int_ <= right.data.io.int_;
+      break;
+    case JX_META_BIT_FLOAT:
+      return left.data.io.float_ <= right.data.io.float_;
+      break;
+    case JX_META_BIT_STR:
+      return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right)) <= 0;
+      break;
+    }
+  } 
+return JX_FALSE;
+}
+
+jx_bool jx__ob_ge(jx_ob left, jx_ob right);
+JX_INLINE jx_bool jx_ob_ge(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_BOOL:
+      return left.data.io.bool_ >= right.data.io.bool_;
+      break;
+    case JX_META_BIT_INT:
+      return left.data.io.int_ >= right.data.io.int_;
+      break;
+    case JX_META_BIT_FLOAT:
+      return left.data.io.float_ >= right.data.io.float_;
+      break;
+    case JX_META_BIT_STR:
+      return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right)) >= 0;
+      break;
+    }
+  } 
+  return jx__ob_ge(left,right);
+}
+
+/* size measurement */
 
 jx_int jx_list_size(jx_ob);
 JX_INLINE jx_ob jx_ob_size(jx_ob ob)
@@ -1199,23 +1429,6 @@ JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
   return (code.meta.bits & JX_META_BIT_LIST) ?
     jx__code_exec(node,code) : jx_ob_copy(code);
-}
-
-/* debugging */
-
-JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
-{
-  fprintf(f,"%s: %08x%04x %04x\n",prefix, 
-          (unsigned int)ob.data.raw.word,
-          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
-}
-
-JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
-{
-  jx_ob jxon = jx_ob_to_jxon(ob);
-  jx_ob_as_str(&jxon);
-  fprintf(f,"%s: %s\n",prefix, jx_ob_as_str(&jxon));
-  jx_ob_free(jxon);
 }
 
 #endif

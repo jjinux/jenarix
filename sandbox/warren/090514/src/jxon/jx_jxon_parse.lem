@@ -31,7 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /* 
-
    NOTE: This is the Jenarix Object Notation (JXON) parser.  JXON is a
    strict forward-compatible superset of JSON than can be encoded and
    passaged through JSON as needed for transport purposes.
@@ -74,7 +73,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         + - * / ! && || ^ etc.
 
    * an explicit concatenation operator for string literals ("a" . "b"?)
-   
 */
 
 %nonassoc ERROR. 

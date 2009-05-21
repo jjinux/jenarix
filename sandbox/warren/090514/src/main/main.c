@@ -84,21 +84,17 @@ int main(int argc, char **argv)
     jx_ob source = JX_OB_NULL;
     jx_status status;
     while( (status = jx_jxon_scanner_next_ob(&source, scanner)) >= JX_YES)  {
-      if(console) jx_jxon_dump(stdout, "source", source);
+      if(console) jx_jxon_dump(stdout, "# source", source);
       {
         jx_ob code = jx_code_bind_with_source(namespace, source);
         source = jx_ob_from_null();
 
-        if(console) {
-          jx_jxon_dump(stdout, "code  ", code);
-        } else {
-          jx_jxon_dump(stdout, "# exec", code);
-        }
+        jx_jxon_dump(stdout, "# exec", code);
         {
           jx_ob result = jx_code_exec(node,code);
           
           if(console) 
-            jx_jxon_dump(stdout, "result", result);
+            jx_jxon_dump(stdout, "# result", result);
           else {
             jx_ob jxon = jx_ob_to_jxon(result);
             printf("%s;\n",jx_ob_as_str(&jxon));

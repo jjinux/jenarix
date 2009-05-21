@@ -161,16 +161,25 @@ jx_bool jx_builtin_fn_check(jx_ob o);
 
 jx_bool jx_ob_identical(jx_ob left, jx_ob right);
 
-jx_bool jx_ob_equal(jx_ob left, jx_ob right);   /* to be done */
+jx_bool jx_ob_equal(jx_ob left, jx_ob right);  
 
 /* sizing objects */
 
 jx_ob jx_ob_size(jx_ob ob);
+
 /* common operations */
 
-jx_ob jx_add(jx_ob left, jx_ob right);
-jx_ob jx_sub(jx_ob left, jx_ob right);
+jx_ob jx_ob_add(jx_ob left, jx_ob right);
+jx_ob jx_ob_sub(jx_ob left, jx_ob right);
+jx_ob jx_ob_mul(jx_ob left, jx_ob right);
+jx_ob jx_ob_div(jx_ob left, jx_ob right);
+jx_ob jx_ob_mod(jx_ob left, jx_ob right);
+jx_ob jx_ob_neg(jx_ob ob);
 
+jx_bool jx_ob_lt(jx_ob left, jx_ob right);
+jx_bool jx_ob_gt(jx_ob left, jx_ob right);
+jx_bool jx_ob_le(jx_ob left, jx_ob right);
+jx_bool jx_ob_ge(jx_ob left, jx_ob right);
 
 /* read only status (no changes allowed, cannot be freed, but can be
    stored/conveyed through mutable containers, provided that those
@@ -195,6 +204,7 @@ jx_ob jx_ob_take_weak_ref(jx_ob ob);
 /* strings */
 
 jx_int jx_str_size(jx_ob ob);
+jx_int jx_str_compare(jx_ob left, jx_ob right);
 jx_ob jx_str_concat(jx_ob left, jx_ob right);
 jx_ob jx_str_concat_with_both(jx_ob left, jx_ob right);
 
