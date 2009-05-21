@@ -481,6 +481,20 @@ jx_ob jx__ob_to_ident(jx_ob ob)
   return jx_ob_from_null();
 }
 
+jx_ob jx_builtin_new_with_function(jx_ob code)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
+  if(fn) {
+    fn->code = code;
+    result.data.io.function = fn;
+    result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_FUNCTION | JX_META_BIT_GC;
+  } else {
+    jx_ob_free(code);
+  }
+  return result;
+}
+
 /* strings */
 
 jx_ob jx_ob_from_str(jx_char * str)
@@ -3287,6 +3301,21 @@ jx_status jx__ob_set_shared(jx_ob ob, jx_bool shared)
   return JX_SUCCESS;
 }
 
+jx_ob jx__builtin_copy(jx_ob ob)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_bits bits = ob.meta.bits;
+  if(bits & JX_META_BIT_BUILTIN_VLA) {
+    result = ob;
+    result.data.io.vla = jx_vla_copy(&ob.data.io.vla);
+  } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
+  } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
+    jx_function *fn = ob.data.io.function;
+    return jx_builtin_new_with_function(jx_ob_copy(fn->code));
+  }
+  return result;
+}
+
 /* copying */
 
 jx_ob jx__ob_copy(jx_ob ob)
@@ -3305,6 +3334,9 @@ jx_ob jx__ob_copy(jx_ob ob)
   case JX_META_BIT_HASH:
     return jx__hash_copy(ob.data.io.hash);
     break;
+  case JX_META_BIT_BUILTIN:
+    return jx__builtin_copy(ob);
+   break;
   }
   return jx_ob_from_null();
 }
@@ -3425,8 +3457,10 @@ jx_status jx__ob_free(jx_ob ob)
               return JX_SUCCESS;
             }
           }
-        } else if(bits & JX_META_BIT_BUILTIN_JENARIX_FN) {
-          /* to come */
+        } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
+          jx_function *fn = ob.data.io.function;
+          jx_ob_free(fn->code);
+          jx_free(fn);
         }
         break;
       }

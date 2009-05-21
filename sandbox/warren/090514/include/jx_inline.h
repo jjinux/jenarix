@@ -61,6 +61,7 @@ typedef jx_int64 jx_data_word[2];
 typedef struct jx__list jx_list;
 typedef struct jx__hash jx_hash;
 typedef struct jx__opaque_ob jx_opaque_ob;
+typedef struct jx__function jx_function;
 
 typedef jx_uint16 jx_bits;
 
@@ -95,6 +96,7 @@ typedef union {
   jx_list *list;
   jx_hash *hash; 
   void *vla; /* builtin */
+  jx_function  *function; /* builtin */
   jx_native_fn native_fn; /* builtin */
   jx_opaque_ob *opaque_ob; /* builtin */
 } jx_data_io;
@@ -145,7 +147,7 @@ struct jx__ob {
 #define JX_META_BIT_BUILTIN_SELECTOR   0x0002
 #define JX_META_BIT_BUILTIN_OPAQUE_OB  0x0004
 #define JX_META_BIT_BUILTIN_NATIVE_FN  0x0008
-#define JX_META_BIT_BUILTIN_JENARIX_FN 0x0010
+#define JX_META_BIT_BUILTIN_FUNCTION   0x0010
 
 /* object initializers */
 
@@ -178,6 +180,11 @@ struct jx__opaque_ob {
   jx_ob magic;
 };
 
+struct jx__function {
+  jx_gc gc;
+  jx_ob code;
+};
+
 typedef struct {
   jx_gc gc;
 } jx_str;
@@ -186,6 +193,9 @@ typedef struct {
 
 
 jx_char *jx_ob_as_str(jx_ob * ob);
+jx_ob jx_ob_from_str(jx_char * str);
+jx_ob jx_ob_from_ident(jx_char * ident);
+
 jx_ob jx__str__concat(jx_char *left,jx_int left_len, jx_char *right, jx_int right_len);
 jx_ob jx__ob_add(jx_ob left, jx_ob right);
 jx_status jx__ob_free(jx_ob ob);
@@ -560,19 +570,19 @@ JX_INLINE jx_bool jx_builtin_native_fn_check(jx_ob ob)
     (bits & JX_META_BIT_BUILTIN_NATIVE_FN);
 }
 
-JX_INLINE jx_bool jx_builtin_fn_check(jx_ob ob)
+JX_INLINE jx_bool jx_builtin_any_fn_check(jx_ob ob)
 {
   register jx_bits bits = ob.meta.bits;
   return (bits & JX_META_BIT_BUILTIN) && 
     (bits & 
      (JX_META_BIT_BUILTIN_SELECTOR |      
       JX_META_BIT_BUILTIN_NATIVE_FN |      
-      JX_META_BIT_BUILTIN_JENARIX_FN));
+      JX_META_BIT_BUILTIN_FUNCTION));
 }
 
-JX_INLINE jx_bool jx_builtin_jenarix_fn_check(jx_ob ob)
+JX_INLINE jx_bool jx_builtin_function_check(jx_ob ob)
 {
-  return jx_builtin_check(ob) && ob.meta.bits & JX_META_BIT_BUILTIN_JENARIX_FN;
+  return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_FUNCTION);
 }
 
 /* convenience function */
@@ -1417,6 +1427,7 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
   }
 }
 
+
 jx_ob jx__code_eval(jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {
@@ -1429,6 +1440,12 @@ JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
   return (code.meta.bits & JX_META_BIT_LIST) ?
     jx__code_exec(node,code) : jx_ob_copy(code);
+}
+
+JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
+{
+  jx_hash_set(node,jx_ob_from_ident("_"),payload);
+  return jx_code_exec(node,fn->code);
 }
 
 #endif

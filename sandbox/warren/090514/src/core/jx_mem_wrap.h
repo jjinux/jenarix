@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_MEM_LOG_ALL 0
 #define JX_MEM_LOG_SUMMARY 1
 
-#if 1
+#if 0
 
 /* just use system malloc, etc. */
 #define jx_malloc(s) malloc(s)

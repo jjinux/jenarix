@@ -301,10 +301,11 @@ jx_ob jx_ob_from_jxon_str(jx_char * str);
 
 /* builtins */
 
-jx_ob jx_builtin_new_from_vla(void **ref);
+jx_ob jx_builtin_new_with_vla(void **ref);
 jx_ob jx_builtin_new_from_selector(jx_int selector);
 jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn);
-jx_ob jx_builtin_new_from_opaque_ob(jx_opaque_ob *opaque);
+jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque);
+jx_ob jx_builtin_new_with_function(jx_ob fn);
 
 /* parser */
 

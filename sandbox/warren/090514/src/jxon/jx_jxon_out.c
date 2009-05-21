@@ -305,8 +305,8 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
         return jx_ob_from_str(buffer);
       } else if(bits & JX_META_BIT_BUILTIN_NATIVE_FN) {
         sprintf(buffer,"*native_fn_%p*",(void*)ob.data.io.vla); /* deliberate misread */
-      } else if(bits & JX_META_BIT_BUILTIN_JENARIX_FN) {
-        sprintf(buffer,"*jenarix_fn_%p*",(void*)ob.data.io.vla); /* deliberate misread */
+      } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
+        sprintf(buffer,"*function_%p*",(void*)ob.data.io.vla); /* deliberate misread */
       }
       return jx_ob_from_str(buffer);
     }
