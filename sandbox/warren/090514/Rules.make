@@ -1,10 +1,8 @@
 
-CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99 
-# -O3 
-# -m64 -DJX_64_BIT
+CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99  -O3 -m64 
+# -DJX_64_BIT
 
-LDFLAGS = 
-# -m64
+LDFLAGS = -m64
 
 # include file list for manual Makefile dependencies
 

@@ -30,10 +30,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* 
-   NOTE: This is the Jenarix Object Notation (JXON) parser.  JXON is a
-   strict forward-compatible superset of JSON than can be encoded and
-   passaged through JSON as needed for transport purposes.
+/* NOTE: This is the Jenarix Executable Object Notation (JXON) parser.
+
+   JXON is a strict forward-compatible superset of JSON than can be
+   encoded and passaged through JSON as needed for transport purposes.
 
    JXON supports the following extensions on top of JSON:
 
@@ -44,17 +44,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
      exponent in which case they are considered to be floating point
 
    * arbitrary text identifiers are supported (beyond null, true, false):
+     they are a new kind of primitive which behaves much like a string
 
      my_ident
      my_ident.sub
      my_indet.sub.subsub
 
+     REGEXP used to parse identifiers: 
+
      [a-zA-Z_] ([a-zA-Z0-9_])* ("." [a-zA-Z_] ([a-zA-Z0-9_]))*
 
    * single-quoted as well as double-quoted strings are supported
  
-   * null, true, false, int, float, identifiers are allowed to
-     be hash keys
+   * null, true, false, int, float, and identifiers are allowed to be
+     hash keys (in addition to ordinary strings)
 
    * comments are permitted (starting with #)
 
