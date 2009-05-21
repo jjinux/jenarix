@@ -109,7 +109,7 @@ static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
   switch(s->mode) {
   case JX_JXON_SCANNER_MODE_FILE:
   case JX_JXON_SCANNER_MODE_CONSOLE:
-    if(!s->eof) {  
+    if(!s->eof) { /* only fill if eof is not set (known) */
       jx_uword cnt = s->tok - s->bot; /* amount of open space in buffer */
       if(cnt) {
         if(s->lim > s->tok) { /* any remaining characters? */
@@ -150,10 +150,10 @@ static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
             cc++;
           }
           s->eof = &s->lim[cnt]; 
-          if(cnt) { 
-            *(s->eof)++ = '\n';
-          } else {
-            *(s->eof)++ = 0;
+          if(cnt) { /* short read ...there may be more to come */
+            s->eof++; 
+          } else { /* nothing read, so set the null sentinel */
+            *(s->eof) = 0;
           }
         }
         s->lim += cnt;
@@ -210,16 +210,17 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     [ \t\v\f]+      { goto std; }
     
-    null_char { 
-      if(cursor == s->eof) RET(JX_JXON_EOI);
-    }
-
     "#"         { goto comment; }
 
     "\n" {
       s->pos = cursor; s->line++;
       s->eof = NULL;
       goto std;
+    }
+
+    null_char { 
+      if(cursor == s->eof) RET(JX_JXON_EOI);
+      RET(JX_JXON_EOI); 
     }
     
     any {
@@ -230,6 +231,22 @@ static int jx_scan(jx_jxon_scanner_state *s)
     }
 
   */
+
+comment:
+  /*!re2c
+    "\n" 
+    { 
+      s->pos = cursor; s->line++;
+      s->eof = NULL;
+      goto std; 
+    }
+
+    any 
+    { goto comment; }
+*/
+  
+}
+
 
   /* not used:
     "("         { RET(JX_JXON_OPENPAR); }
@@ -247,22 +264,6 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     "="         { RET(JX_JXON_EQUALS); }
    */
-
-comment:
-  /*!re2c
-    "\n" 
-    { 
-      s->pos = cursor; s->line++;
-      s->eof = NULL;
-      goto std; 
-    }
-
-    any 
-    { goto comment; }
-*/
-  
-}
-
 #define SSCANF_BUFSIZE 32
 
 /* anticipated use cases:
@@ -382,7 +383,7 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
           break;
           break;
         case JX_JXON_ERROR:
-          state->context.status = JX_FAILURE;
+          state->context.status = JX_STATUS_SYNTAX_ERROR;
           break;
         }
       }
@@ -459,10 +460,11 @@ void jx_jxon_echo_stdin(void)
 {
   jx_jxon_scanner_state state;
   jx_jxon_scanner_state_init(&state);
-  while(1) {    
+  jx_bool done = JX_FALSE;
+  while(!done) {    
     jx_jxon_scan_input(&state);
     switch(state.context.status) {
-    case JX_FAILURE:
+    case JX_STATUS_SYNTAX_ERROR:
       printf("syntax error.\n");
       break;
     case JX_YES: /* accepted */
@@ -472,11 +474,14 @@ void jx_jxon_echo_stdin(void)
           printf("%s;\n",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);
       }
-      state.context.result = jx_null_with_ob( state.context.result);
+      state.context.result = jx_null_with_ob(state.context.result);
+      break;
+    case JX_FAILURE:
+      done = JX_TRUE;
       break;
     }
     if(state.context.exhausted)
-      break;
+      done = JX_TRUE;
   }
   jx_jxon_scanner_state_purge(&state);
 }
@@ -562,17 +567,20 @@ jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
       while(!state->context.status) {    
         jx_jxon_scan_input(state);
         switch(state->context.status) {
-        case JX_FAILURE:
-          status = JX_FAILURE;
-          break;
-        case JX_YES: /* accepted */
+        case JX_YES: /* accept called */
           jx_ob_replace(result, state->context.result);
           state->context.result = jx_ob_from_null();
-          status = state->n_tok_parsed ? JX_YES : JX_NO;
+          status = state->n_tok_parsed ? JX_YES : JX_NO; /* but were any tokens parsed */
+          break;
+        default:
+          status = state->context.status;
           break;
         }
-        if(state->context.exhausted)
+        if(state->context.exhausted) {
+          if(!status) 
+            status = JX_STATUS_EXHAUSTED;
           break;
+        }
       }
     }
   }

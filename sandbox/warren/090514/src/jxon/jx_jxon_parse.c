@@ -4,7 +4,7 @@
 /* First off, code is include which follows the "include" declaration
 ** in the input file. */
 #include <stdio.h>
-#line 82 "jx_jxon_parse.lem"
+#line 83 "jx_jxon_parse.lem"
 
 
 #include <stdio.h>
@@ -373,14 +373,14 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
     case 14:
     case 15:
     case 16:
-#line 110 "jx_jxon_parse.lem"
+#line 111 "jx_jxon_parse.lem"
 { jx_ob_free((yypminor->yy0));}
 #line 380 "jx_jxon_parse.c"
       break;
     case 18:
     case 19:
     case 20:
-#line 104 "jx_jxon_parse.lem"
+#line 105 "jx_jxon_parse.lem"
 { jx_ob_free((yypminor->yy11)); }
 #line 387 "jx_jxon_parse.c"
       break;
@@ -619,7 +619,7 @@ static void yy_reduce(
   **     break;
   */
       case 0:
-#line 159 "jx_jxon_parse.lem"
+#line 160 "jx_jxon_parse.lem"
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = EOI\n"); 
@@ -629,7 +629,7 @@ static void yy_reduce(
 #line 631 "jx_jxon_parse.c"
         break;
       case 1:
-#line 166 "jx_jxon_parse.lem"
+#line 167 "jx_jxon_parse.lem"
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(yymsp[-1].minor.yy11) EOI\n"); 
@@ -641,7 +641,7 @@ static void yy_reduce(
 #line 643 "jx_jxon_parse.c"
         break;
       case 2:
-#line 175 "jx_jxon_parse.lem"
+#line 176 "jx_jxon_parse.lem"
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(yymsp[-1].minor.yy11) SEMICOLON\n"); 
@@ -653,7 +653,7 @@ static void yy_reduce(
 #line 655 "jx_jxon_parse.c"
         break;
       case 3:
-#line 184 "jx_jxon_parse.lem"
+#line 185 "jx_jxon_parse.lem"
 {  
    yygotominor.yy11 = yymsp[0].minor.yy11;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -663,7 +663,7 @@ static void yy_reduce(
 #line 665 "jx_jxon_parse.c"
         break;
       case 4:
-#line 192 "jx_jxon_parse.lem"
+#line 193 "jx_jxon_parse.lem"
 {  
    yygotominor.yy11 = yymsp[0].minor.yy11;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -673,7 +673,7 @@ static void yy_reduce(
 #line 675 "jx_jxon_parse.c"
         break;
       case 5:
-#line 200 "jx_jxon_parse.lem"
+#line 201 "jx_jxon_parse.lem"
 {  
    yygotominor.yy11 = yymsp[0].minor.yy11;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -683,7 +683,7 @@ static void yy_reduce(
 #line 685 "jx_jxon_parse.c"
         break;
       case 6:
-#line 208 "jx_jxon_parse.lem"
+#line 209 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = jx_hash_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -695,7 +695,7 @@ static void yy_reduce(
 #line 697 "jx_jxon_parse.c"
         break;
       case 7:
-#line 216 "jx_jxon_parse.lem"
+#line 217 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[-1].minor.yy11; 
 #ifdef JX_JXON_PARSER_DEBUG
@@ -707,7 +707,7 @@ static void yy_reduce(
 #line 709 "jx_jxon_parse.c"
         break;
       case 8:
-#line 224 "jx_jxon_parse.lem"
+#line 225 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[-3].minor.yy11;
   jx_hash_set(yygotominor.yy11,yymsp[-2].minor.yy11,yymsp[0].minor.yy11);
@@ -719,7 +719,7 @@ static void yy_reduce(
 #line 721 "jx_jxon_parse.c"
         break;
       case 9:
-#line 233 "jx_jxon_parse.lem"
+#line 234 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[-4].minor.yy11;
   jx_hash_set(yygotominor.yy11,yymsp[-2].minor.yy11,yymsp[0].minor.yy11);
@@ -732,7 +732,7 @@ static void yy_reduce(
 #line 734 "jx_jxon_parse.c"
         break;
       case 10:
-#line 242 "jx_jxon_parse.lem"
+#line 243 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[0].minor.yy11;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -742,7 +742,7 @@ static void yy_reduce(
 #line 744 "jx_jxon_parse.c"
         break;
       case 11:
-#line 250 "jx_jxon_parse.lem"
+#line 251 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = jx_hash_new();
   jx_hash_set(yygotominor.yy11,yymsp[-2].minor.yy11,yymsp[0].minor.yy11); /* takes ownership of yymsp[-2].minor.yy11 & yymsp[0].minor.yy11 */
@@ -754,7 +754,7 @@ static void yy_reduce(
 #line 756 "jx_jxon_parse.c"
         break;
       case 12:
-#line 259 "jx_jxon_parse.lem"
+#line 260 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -766,7 +766,7 @@ static void yy_reduce(
 #line 768 "jx_jxon_parse.c"
         break;
       case 13:
-#line 267 "jx_jxon_parse.lem"
+#line 268 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[-1].minor.yy11; 
 #ifdef JX_JXON_PARSER_DEBUG
@@ -778,7 +778,7 @@ static void yy_reduce(
 #line 780 "jx_jxon_parse.c"
         break;
       case 14:
-#line 275 "jx_jxon_parse.lem"
+#line 276 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = jx_list_new();
   jx_list_append(yygotominor.yy11,yymsp[0].minor.yy11);
@@ -789,7 +789,7 @@ static void yy_reduce(
 #line 791 "jx_jxon_parse.c"
         break;
       case 15:
-#line 284 "jx_jxon_parse.lem"
+#line 285 "jx_jxon_parse.lem"
 { 
   jx_list_append(yymsp[-1].minor.yy11,yymsp[0].minor.yy11); /* takes ownership of yymsp[0].minor.yy11 */
   yygotominor.yy11 = yymsp[-1].minor.yy11;
@@ -800,7 +800,7 @@ static void yy_reduce(
 #line 802 "jx_jxon_parse.c"
         break;
       case 16:
-#line 293 "jx_jxon_parse.lem"
+#line 294 "jx_jxon_parse.lem"
 { 
   jx_list_append(yymsp[-2].minor.yy11,yymsp[0].minor.yy11); /* takes ownership of yymsp[0].minor.yy11 */
   yygotominor.yy11 = yymsp[-2].minor.yy11;
@@ -812,7 +812,7 @@ static void yy_reduce(
 #line 814 "jx_jxon_parse.c"
         break;
       case 17:
-#line 302 "jx_jxon_parse.lem"
+#line 303 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -822,7 +822,7 @@ static void yy_reduce(
 #line 824 "jx_jxon_parse.c"
         break;
       case 18:
-#line 310 "jx_jxon_parse.lem"
+#line 311 "jx_jxon_parse.lem"
 { 
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -832,7 +832,7 @@ static void yy_reduce(
 #line 834 "jx_jxon_parse.c"
         break;
       case 19:
-#line 318 "jx_jxon_parse.lem"
+#line 319 "jx_jxon_parse.lem"
 {
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -842,7 +842,7 @@ static void yy_reduce(
 #line 844 "jx_jxon_parse.c"
         break;
       case 20:
-#line 326 "jx_jxon_parse.lem"
+#line 327 "jx_jxon_parse.lem"
 {
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -852,7 +852,7 @@ static void yy_reduce(
 #line 854 "jx_jxon_parse.c"
         break;
       case 21:
-#line 334 "jx_jxon_parse.lem"
+#line 335 "jx_jxon_parse.lem"
 {
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -862,7 +862,7 @@ static void yy_reduce(
 #line 864 "jx_jxon_parse.c"
         break;
       case 22:
-#line 342 "jx_jxon_parse.lem"
+#line 343 "jx_jxon_parse.lem"
 {
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -872,7 +872,7 @@ static void yy_reduce(
 #line 874 "jx_jxon_parse.c"
         break;
       case 23:
-#line 350 "jx_jxon_parse.lem"
+#line 351 "jx_jxon_parse.lem"
 {
   yygotominor.yy11 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -908,9 +908,9 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 127 "jx_jxon_parse.lem"
+#line 128 "jx_jxon_parse.lem"
 
-  context->status = -1;
+  context->status = JX_STATUS_SYNTAX_ERROR;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("parse failed.\n");
 #endif
@@ -928,7 +928,7 @@ static void yy_syntax_error(
 ){
   jx_jxon_ARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 136 "jx_jxon_parse.lem"
+#line 137 "jx_jxon_parse.lem"
    
 #ifdef JX_JXON_PARSER_DEBUG
   printf("jx_jxon_parse-error: syntax error.\n");
@@ -952,7 +952,7 @@ static void yy_accept(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser accepts */
-#line 118 "jx_jxon_parse.lem"
+#line 119 "jx_jxon_parse.lem"
 
     context->status = 1;
 #ifdef JX_JXON_PARSER_DEBUG

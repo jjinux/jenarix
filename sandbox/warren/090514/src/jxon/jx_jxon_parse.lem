@@ -126,7 +126,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* failure action */
 
 %parse_failure{
-  context->status = -1;
+  context->status = JX_STATUS_SYNTAX_ERROR;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("parse failed.\n");
 #endif

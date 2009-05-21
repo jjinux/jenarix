@@ -83,33 +83,44 @@ int main(int argc, char **argv)
   {
     jx_ob source = JX_OB_NULL;
     jx_status status;
-    while( (status = jx_jxon_scanner_next_ob(&source, scanner)) >= JX_YES)  {
-      if(console) jx_jxon_dump(stdout, "# source", source);
-      {
-        jx_ob code = jx_code_bind_with_source(namespace, source);
-        source = jx_ob_from_null();
-
-        jx_jxon_dump(stdout, "# exec", code);
+    jx_bool done = JX_FALSE;
+    while( !done ) {
+      status = jx_jxon_scanner_next_ob(&source, scanner);
+      switch(status) {
+      case JX_YES:
+        if(console) jx_jxon_dump(stdout, "# source", source);
         {
-          jx_ob result = jx_code_exec(node,code);
+          jx_ob code = jx_code_bind_with_source(namespace, source);
+          source = jx_ob_from_null();
           
-          if(console) 
-            jx_jxon_dump(stdout, "# result", result);
-          else {
-            jx_ob jxon = jx_ob_to_jxon(result);
-            printf("%s;\n",jx_ob_as_str(&jxon));
-            jx_ob_free(jxon);
+          jx_jxon_dump(stdout, "# exec", code);
+          {
+            jx_ob result = jx_code_exec(node,code);
+            
+            if(console) 
+              jx_jxon_dump(stdout, "# result", result);
+            else {
+              jx_ob jxon = jx_ob_to_jxon(result);
+              printf("%s;\n",jx_ob_as_str(&jxon));
+              jx_ob_free(jxon);
+            }
+            jx_ob_free(result);
           }
-          jx_ob_free(result);
+          jx_ob_free(code);
         }
-        jx_ob_free(code);
+        break;
+      case JX_STATUS_SYNTAX_ERROR: /* catch this error */
+        {
+          jx_ob message = jx_jxon_scanner_get_error_message(scanner);
+          printf("Error: invalid syntax\n");
+          if(jx_str_check(message)) 
+            printf("%s\n",jx_ob_as_str(&message));
+        }
+        break;
+      default: /* about on all other errors */
+        done = JX_TRUE;
+        break;
       }
-    }
-    if(status == JX_FAILURE) {
-      jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-      printf("Error: invalid syntax\n");
-      if(jx_str_check(message)) 
-        printf("%s\n",jx_ob_as_str(&message));
     }
   }
   jx_ob_free(node);

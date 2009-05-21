@@ -77,17 +77,21 @@ typedef float jx_float;
 
 typedef struct jx__ob jx_ob;
 
-/* status codes and constants */
+/* constants */
 
-#define JX_FAILURE  -1
-#define JX_SUCCESS   0
-#define JX_YES       1
-#define JX_NO        0
+#define JX_NULL                 NULL
+#define JX_YES                     1
+#define JX_NO                      0
+#define JX_TRUE                    1
+#define JX_FALSE                   0
 
-#define JX_FALSE     0
-#define JX_TRUE      1
+/* status codes */
 
-#define JX_NULL      NULL
+#define JX_SUCCESS                 0
+#define JX_FAILURE                -1
+#define JX_STATUS_SYNTAX_ERROR    -2 
+#define JX_STATUS_EXHAUSTED       -3
+
 
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by API-users as private */
