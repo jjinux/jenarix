@@ -481,12 +481,13 @@ jx_ob jx__ob_to_ident(jx_ob ob)
   return jx_ob_from_null();
 }
 
-jx_ob jx_builtin_new_with_function(jx_ob node, jx_ob code)
+jx_ob jx_builtin_new_with_function(jx_ob name, jx_ob node, jx_ob code)
 {
   jx_ob result = JX_OB_NULL;
   jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
   if(fn) {
     fn->node = node;
+    fn->name = name;
     fn->code = code;
     result.data.io.function = fn;
     result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_FUNCTION | JX_META_BIT_GC;
@@ -897,6 +898,20 @@ jx_ob jx__list_copy(jx_list * I)
     }
   }
   return result;
+}
+
+static void jx__list_make_strong(jx_list * I)
+{
+  if(!I->packed_meta_bits) {     
+    jx_int i, size = jx_vla_size(&I->data.ob_vla);
+    jx_ob *ob = I->data.ob_vla;
+    for(i = 0; i < size; i++) {
+      if(ob->meta.bits & JX_META_BIT_GC) {
+        *ob = jx_ob_strong_with_ob(*ob);
+      }
+      ob++;
+    }
+  }
 }
 
 jx_status jx__list_set_shared(jx_list * I, jx_bool shared)
@@ -1610,6 +1625,18 @@ static jx_ob jx__hash_copy(jx_hash * hash)
     }
   }
   return result;
+}
+
+static void jx__hash_make_strong(jx_hash * I)
+{ 
+  jx_int i, size = jx_vla_size(&I->key_value);
+  jx_ob *ob = I->key_value;
+  for(i = 0; i < size; i++) {
+    if(ob->meta.bits & JX_META_BIT_GC) {
+      *ob = jx_ob_strong_with_ob(*ob);
+    }
+    ob++;
+  }
 }
 
 static jx_status jx__hash_free(jx_hash * I)
@@ -2683,7 +2710,7 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
         register jx_ob *ob = left->key_value;
         while(i--) {
           jx_ob right_value = JX_OB_NULL;
-          if(!jx__hash_borrow(&right_value, right, ob[0]))
+          if(!jx__hash_peek(&right_value, right, ob[0]))
             return JX_FALSE;
           else if(!jx_ob_equal(ob[1], right_value))
             return JX_FALSE;
@@ -2705,7 +2732,7 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
               if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
                 jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
                 jx_ob right_value = JX_OB_NULL;
-                if(!jx__hash_borrow(&right_value, right, kv_ob[0]))
+                if(!jx__hash_peek(&right_value, right, kv_ob[0]))
                   return JX_FALSE;
                 else if(!jx_ob_equal(kv_ob[1], right_value))
                   return JX_FALSE;
@@ -2878,7 +2905,7 @@ jx_bool jx__hash_has_key(jx_hash * I, jx_ob key)
   return found;
 }
 
-jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key)
+jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
 {
   jx_bool found = JX_FALSE;
   jx_uint32 size = jx_vla_size(&I->key_value);
@@ -3109,7 +3136,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
   return found;
 }
 
-jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value)
+jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value)
 {
   jx_bool found = JX_FALSE;
   jx_uint32 size = jx_vla_size(&I->key_value);
@@ -3312,7 +3339,9 @@ jx_ob jx__builtin_copy(jx_ob ob)
   } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
   } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
     jx_function *fn = ob.data.io.function;
-    return jx_builtin_new_with_function(jx_ob_copy(fn->node), jx_ob_copy(fn->code));
+    return jx_builtin_new_with_function(jx_ob_copy(fn->name), 
+                                        jx_ob_copy(fn->node), 
+                                        jx_ob_copy(fn->code));
   }
   return result;
 }
@@ -3340,6 +3369,41 @@ jx_ob jx__ob_copy(jx_ob ob)
    break;
   }
   return jx_ob_from_null();
+}
+
+jx_ob jx__ob_strong_with_ob(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits;
+  if(bits & JX_META_BIT_WEAK_REF) {
+    /* on entry, we know the object is GC'd */
+    switch (bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_STR:
+      return jx__str_gc_copy(ob.data.io.str);
+      break;
+    case JX_META_BIT_IDENT:
+      return jx__ident_gc_copy(ob.data.io.str);
+      break;
+    case JX_META_BIT_LIST:
+      return jx__list_copy(ob.data.io.list);
+      break;
+    case JX_META_BIT_HASH:
+      return jx__hash_copy(ob.data.io.hash);
+      break;
+    case JX_META_BIT_BUILTIN:
+      return jx__builtin_copy(ob);
+      break;
+    }
+  } else {
+    switch (bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_LIST:
+      jx__list_make_strong(ob.data.io.list);
+      break;
+    case JX_META_BIT_HASH:
+      jx__hash_make_strong(ob.data.io.hash);
+      break;
+    }
+  }
+  return ob;
 }
 
 /* comparison */

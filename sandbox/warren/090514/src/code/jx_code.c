@@ -93,7 +93,7 @@ jx_status jx_code_expose_secure_builtins(jx_ob namespace)
 
 /* consume source & return builtin-bound executable */
 
-jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
+static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
 {
   switch (JX_META_MASK_TYPE_BITS & source.meta.bits) {
   case JX_META_BIT_LIST:
@@ -119,7 +119,7 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
       /* now process the source list */
       while(size--) {
         jx_list_replace(list, size,
-                        jx_code_bind_with_source(namespace,
+                        jx__code_bind_with_source(namespace,
                                                  jx_list_remove(source, size)));
       }
       jx_ob_free(source);
@@ -135,7 +135,7 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
         jx_ob key = jx_list_remove(list, 0);
         jx_ob value = jx_list_remove(list, 0);
         size = size - 2;
-        jx_hash_set(result, key, jx_code_bind_with_source(namespace, value));
+        jx_hash_set(result, key, jx__code_bind_with_source(namespace, value));
       }
       jx_ob_free(list);
       return result;
@@ -153,6 +153,23 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
     return jx_ob_from_null();
     break;
   }
+}
+
+jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
+{
+  if(jx_ident_check(source)) { /* if code consists solely of a top-level identifier */
+    jx_ob builtin = jx_hash_borrow(namespace, source);
+    jx_ob result = jx_list_new_with_size(2);
+    if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
+      jx_list_replace(result, 0, builtin);
+      jx_list_replace(result, 1, source);
+    } else { /* unknown identifier (fall back upon late binding) */
+      jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_RESOLVE));
+      jx_list_replace(result, 1, source);
+    }
+    return result;
+  } else 
+    return jx__code_bind_with_source(namespace, source);
 }
 
 jx_ob jx__code_eval(jx_ob node, jx_ob expr) 
@@ -243,7 +260,7 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                   jx_ob ident = jx_code_eval(node, jx__list_borrow(payload_list, 1));
                   jx_ob inv_node = jx_code_eval(node, jx__list_borrow(payload_list, 2));
                   jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 3));
-                  jx_ob function = jx_builtin_new_with_function(inv_node, code);
+                  jx_ob function = jx_builtin_new_with_function(ident, inv_node, code);
                   jx_ob_replace(&result, jx_ob_from_status( jx_hash_set(node,ident,function)));
                 }
                 break;
@@ -252,7 +269,8 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                   jx_list *payload_list = payload.data.io.list;
                   jx_ob inv_node = jx_code_eval(node, jx__list_borrow(payload_list, 1));
                   jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 2));
-                  jx_ob function = jx_builtin_new_with_function(inv_node,code);
+                  jx_ob function = jx_builtin_new_with_function(jx_ob_from_null(),
+                                                                inv_node,code);
                   jx_ob_replace(&result, function);
                 }
                 break;
@@ -276,15 +294,23 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_RESOLVE:
                 {
                   jx_ob e_payload = jx_code_eval(node, jx__list_borrow(expr_list, 1));
-                  jx_list *e_payload_list = e_payload.data.io.list;
-                  jx_ob ident = jx__list_borrow(e_payload_list, 0);
-                  jx_ob fn = jx_hash_borrow(node,ident);
-                  if(jx_builtin_any_fn_check(fn)) {
-                    jx_ob frame = jx_list_new_with_size(2);                    
-                    jx_list_replace(frame, 0, jx_ob_take_weak_ref(fn));
-                    jx_list_replace(frame, 1, e_payload);
-                    jx_ob_replace(&result, jx_code_eval(node,frame));
-                    jx_ob_free(frame);
+                  if(jx_list_check(e_payload)) {
+                    jx_list *e_payload_list = e_payload.data.io.list;
+                    jx_ob ident = jx__list_borrow(e_payload_list, 0);
+                    jx_ob fn;
+                    if(jx_hash_peek(&fn, node, ident)) {
+                      if(jx_builtin_any_fn_check(fn)) {
+                        jx_ob frame = jx_list_new_with_size(2);                    
+                        jx_list_replace(frame, 0, jx_ob_take_weak_ref(fn));
+                        jx_list_replace(frame, 1, e_payload);
+                        jx_ob_replace(&result, jx_code_eval(node,frame));
+                        jx_ob_free(frame);
+                      } else {
+                        jx_ob_replace(&result, e_payload);
+                      }
+                    } else {
+                      jx_ob_replace(&result, e_payload);
+                    }
                   } else {
                     jx_ob_replace(&result, e_payload);
                   }

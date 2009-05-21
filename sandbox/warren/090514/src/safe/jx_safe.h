@@ -105,8 +105,8 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace);
 
 JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
 {
-  jx_ob value = jx_list_remove(payload,2);
-  jx_ob key = jx_list_remove(payload,1);
+  jx_ob key = jx_ob_strong_with_ob(jx_list_remove(payload,1));
+  jx_ob value = jx_ob_strong_with_ob(jx_list_remove(payload,1)); /* tricky */
   return jx_ob_from_status( jx_hash_set(node, key, value ) );
 }
 
@@ -218,9 +218,10 @@ JX_INLINE jx_ob jx_safe_size(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_hash_set(jx_ob node, jx_ob payload)
 {
+  jx_ob key = jx_ob_strong_with_ob(jx_list_borrow(payload,2));
+  jx_ob value = jx_ob_strong_with_ob(jx_list_borrow(payload,3)); 
   return jx_ob_from_status(jx_hash_set(jx_list_borrow(payload,1),
-                                       jx_list_borrow(payload,2),
-                                       jx_list_borrow(payload,3)));
+                                       key, value));
 }
 
 JX_INLINE jx_ob jx_safe_hash_get(jx_ob node, jx_ob payload)
@@ -238,32 +239,36 @@ JX_INLINE jx_ob jx_safe_list_get(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_append(jx_ob node, jx_ob payload)
 {
+  jx_ob value = jx_ob_strong_with_ob(jx_list_borrow(payload,2)); 
   return jx_ob_from_status( jx_list_append(jx_list_borrow(payload,1),
-                                           jx_list_remove(payload,2)));
+                                           value));
 }
 
 JX_INLINE jx_ob jx_safe_insert(jx_ob node, jx_ob payload)
 {
+  jx_ob value = jx_ob_strong_with_ob(jx_list_borrow(payload,3)); 
   return jx_ob_from_status
     ( jx_list_insert(jx_list_borrow(payload,1),
                      jx_ob_as_int(jx_list_borrow(payload,2)),
-                     jx_list_remove(payload,3)));
+                     value));
 }
 
 JX_INLINE jx_ob jx_safe_replace(jx_ob node, jx_ob payload)
 {
+  jx_ob value = jx_ob_strong_with_ob(jx_list_borrow(payload,3)); 
   return jx_ob_from_status
     ( jx_list_replace(jx_list_borrow(payload,1),
                       jx_ob_as_int(jx_list_borrow(payload,2)),
-                      jx_list_remove(payload,3)));
+                      value));
 }
 
 JX_INLINE jx_ob jx_safe_resize(jx_ob node, jx_ob payload)
 {
+  jx_ob fill = jx_ob_strong_with_ob(jx_list_borrow(payload,3)); 
   return jx_ob_from_status
     ( jx_list_resize(jx_list_borrow(payload,1),
                      jx_ob_as_int(jx_list_borrow(payload,2)),
-                     jx_list_remove(payload,3)));
+                     fill));
 }
 
 

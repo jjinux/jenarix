@@ -194,8 +194,10 @@ jx_bool jx_ob_read_only(jx_ob ob);
 
 /* copying */
 
-jx_ob jx_ob_copy(jx_ob ob);     /* always deep / recursive; copies of
-                                   read-only containers are mutable */
+jx_ob jx_ob_copy(jx_ob ob); /* always deep / recursive; copies of
+                               shared (read only) containers are not shared */
+
+jx_ob jx_ob_strong_with_ob(jx_ob ob); /* eliminates weak references with deep copies */
 
 /* convenient method for freeing and re-initializing */
 
@@ -280,6 +282,8 @@ jx_bool jx_hash_has_key(jx_ob hash, jx_ob key); /* borrows key */
 jx_ob jx_hash_keys(jx_ob hash); /* returns owned list of copied keys */
 jx_ob jx_hash_values(jx_ob hash);       /* returns owned list of copied values */
 
+jx_bool jx_hash_peek(jx_ob *result, jx_ob hash, jx_ob key); /* borrows value if present */
+
 jx_ob jx_hash_borrow(jx_ob hash, jx_ob key);    /* borrows key and returns borrowed value */
 jx_ob jx_hash_get(jx_ob hash, jx_ob key);       /* borrows and returns copied (owned) value */
 jx_ob jx_hash_remove(jx_ob hash, jx_ob key);    /* borrows key and returns owned value */
@@ -309,14 +313,14 @@ jx_ob jx_builtin_new_with_vla(void **ref);
 jx_ob jx_builtin_new_from_selector(jx_int selector);
 jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn);
 jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque);
-jx_ob jx_builtin_new_with_function(jx_ob node, jx_ob fn);
+jx_ob jx_builtin_new_with_function(jx_ob name, jx_ob node, jx_ob fn);
 
 /* parser */
 
 jx_ob jx_jxon_scanner_new_with_file(FILE *file);
-jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob);
-jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob);
-jx_status jx_jxon_scanner_purge(jx_ob *result, jx_ob scanner_ob);
+jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner);
+jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner);
+jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
 
 /* code execution engine */
 

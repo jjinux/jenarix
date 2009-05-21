@@ -182,6 +182,7 @@ struct jx__opaque_ob {
 
 struct jx__function {
   jx_gc gc;
+  jx_ob name;
   jx_ob node; 
   jx_ob code;
 };
@@ -367,6 +368,13 @@ JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
     jx__ob_copy(ob) : ob;
+}
+
+jx_ob jx__ob_strong_with_ob(jx_ob ob);
+JX_INLINE jx_ob jx_ob_strong_with_ob(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_GC) ?
+    jx__ob_strong_with_ob(ob) : ob;
 }
 
 JX_INLINE jx_ob jx_ob_from_null(void)
@@ -738,6 +746,16 @@ JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
   return result;
 }
 
+JX_INLINE jx_ob jx_list_new_with_first(jx_ob fill)
+{
+  jx_ob result = jx_list_new();
+  if(!jx_ok(jx_list_resize(result, 1, fill))) {
+    jx_ob_free(result);
+    result = jx_ob_from_null();
+  }
+  return result;
+}
+
 jx_status jx__list_append(jx_list * I, jx_ob ob);
 JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
 {
@@ -1042,22 +1060,30 @@ JX_INLINE jx_ob jx_hash_values(jx_ob hash)
     jx_ob_from_null();
 }
 
-jx_bool jx__hash_borrow(jx_ob * result, jx_hash * I, jx_ob key);
+jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key);
+JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
+{
+  if(hash.meta.bits & JX_META_BIT_HASH) {
+    return jx__hash_peek(result, hash.data.io.hash, key);
+  }
+}
+
 JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_borrow(&result, hash.data.io.hash, key))
+    if(jx__hash_peek(&result, hash.data.io.hash, key))
       return result;
   }
   return jx_ob_from_null();
 }
 
+
 JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_borrow(&result, hash.data.io.hash, key))
+    if(jx__hash_peek(&result, hash.data.io.hash, key))
       return jx_ob_copy(result);
   }
   return jx_ob_from_null();
@@ -1088,12 +1114,12 @@ JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
   return JX_FAILURE;
 }
 
-jx_bool jx__hash_borrow_key(jx_ob * result, jx_hash * I, jx_ob value);
+jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value);
 JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_borrow_key(&result, hash.data.io.hash, value))
+    if(jx__hash_peek_key(&result, hash.data.io.hash, value))
       return result;
   }
   return jx_ob_from_null();
@@ -1103,7 +1129,7 @@ JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     jx_ob result;
-    if(jx__hash_borrow_key(&result, hash.data.io.hash, value))
+    if(jx__hash_peek_key(&result, hash.data.io.hash, value))
       return jx_ob_copy(result);
   }
   return jx_ob_from_null();
