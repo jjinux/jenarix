@@ -115,6 +115,10 @@ int main(int argc, char **argv)
           printf("Error: invalid syntax\n");
           if(jx_str_check(message)) 
             printf("%s\n",jx_ob_as_str(&message));
+          if(!console)
+            done = JX_TRUE;
+          else
+            jx_jxon_scanner_purge_input(scanner);
         }
         break;
       default: /* about on all other errors */

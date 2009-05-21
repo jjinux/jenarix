@@ -316,6 +316,7 @@ jx_ob jx_builtin_new_with_function(jx_ob node, jx_ob fn);
 jx_ob jx_jxon_scanner_new_with_file(FILE *file);
 jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob);
 jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob);
+jx_status jx_jxon_scanner_purge(jx_ob *result, jx_ob scanner_ob);
 
 /* code execution engine */
 

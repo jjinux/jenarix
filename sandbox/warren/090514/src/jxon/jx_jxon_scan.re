@@ -49,10 +49,11 @@ typedef jx_int32  jx_word;
 typedef struct {
   jx_char *bot, *tok, *ptr, *cur, *pos, *lim, *top, *eof;
   jx_word line;
+  jx_int n_tok_parsed;
+
   jx_int mode;
   FILE *file;
   jx_jxon_parse_context context;
-  jx_int n_tok_parsed;
 } jx_jxon_scanner_state;
 
 #ifndef true
@@ -423,6 +424,23 @@ static jx_status jx_jxon_scanner_state_init(jx_jxon_scanner_state *state)
   return JX_SUCCESS;
 }
 
+static jx_status jx_jxon_scanner_state_reset(jx_jxon_scanner_state *state)
+{
+  if(state->bot) 
+    jx_free(state->bot);
+  state->bot = NULL;
+  state->tok = NULL;
+  state->ptr = NULL;
+  state->cur = NULL;
+  state->pos = NULL;
+  state->lim = NULL;
+  state->top = NULL;
+  state->eof = NULL;
+  state->line = 0;
+  state->n_tok_parsed = 0;
+  return JX_SUCCESS;
+}
+
 static jx_status jx_jxon_scanner_state_purge(jx_jxon_scanner_state *state)
 {
   /* free last object */
@@ -537,14 +555,14 @@ jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob)
       if(state->bot != state->lim) {
         if(state->tok > state->bot) {
           jx_list_append(list, jx_ob_from_str_with_len(state->bot, state->tok - state->bot));
-          if(state->cur > state->tok) {
-            jx_list_append(list, jx_ob_from_str(">>>"));
-            jx_list_append(list, jx_ob_from_str_with_len(state->tok, state->cur - state->tok));
-            jx_list_append(list, jx_ob_from_str("<<<"));
-          }
-          if(state->lim > state->cur) {
-            jx_list_append(list, jx_ob_from_str_with_len(state->cur, state->lim - state->cur));
-          }
+        }
+        if(state->cur > state->tok) {
+          jx_list_append(list, jx_ob_from_str(">>>"));
+          jx_list_append(list, jx_ob_from_str_with_len(state->tok, state->cur - state->tok));
+          jx_list_append(list, jx_ob_from_str("<<<"));
+        }
+        if(state->lim > state->cur) {
+          jx_list_append(list, jx_ob_from_str_with_len(state->cur, state->lim - state->cur));
         }
       } else {
         jx_list_append(list, jx_ob_from_str(" >>>at end of input<<< "));
@@ -582,6 +600,21 @@ jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
           break;
         }
       }
+    }
+  }
+  return status;
+}
+
+jx_status jx_jxon_scanner_purge_input(jx_ob *result, jx_ob scanner_ob)
+{
+  jx_status status = JX_FAILURE;
+  if(jx_builtin_opaque_ob_check(scanner_ob)) {
+    jx_jxon_scanner *scanner = (jx_jxon_scanner*)scanner_ob.data.io.opaque_ob;
+    if(jx_ob_equal(scanner->opaque.magic,
+                   jx_ob_from_str(JX_JXON_SCANNER_MAGIC))) {
+      jx_jxon_scanner_state *state = &scanner->state;
+      jx_jxon_scanner_state_reset(state);
+      status = JX_SUCCESS;
     }
   }
   return status;
