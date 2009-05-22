@@ -210,6 +210,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_int unresolved = -1;
       if(jx_ident_check(ident)) {
         jx_ob builtin = jx_hash_borrow(namespace, ident);
+        unresolved = 0;
         if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
           if(builtin.data.io.int_ == JX_BUILTIN_NOP) {
             jx_ob_free(result);               

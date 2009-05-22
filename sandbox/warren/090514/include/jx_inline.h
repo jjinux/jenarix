@@ -1628,14 +1628,14 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
     jx_list *args_list = args.data.io.list;
     jx_ob sub_list = jx__list_borrow(args_list,0);
     jx_ob kwd_hash = JX_OB_NULL;
-    if(jx_list_check(sub_list)) { /* [[arg1,arg2...],{arg1:def1,arg2:def2]} */
+    if(jx_list_check(sub_list)) { /* have both positional and keyword defaults */
       jx_ob kwds = jx__list_borrow(args_list,1);
       if(jx_hash_check(kwds)) {
         inv_node = jx__hash_copy(kwds.data.io.hash);
       } else {
         inv_node = jx_hash_new();
       }
-      {
+      if(jx_list_check(payload)) {
         jx_list *args_list2 = sub_list.data.io.list;
         jx_list *payload_list = payload.data.io.list;
         jx_int i,size = jx_list_size(sub_list);
@@ -1649,20 +1649,20 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
           kwd_hash = jx__list_borrow(payload_list,size);
         }
       }
-      jx_jxon_dump(stdout,"args",sub_list);
-      jx_jxon_dump(stdout,"payload",payload);
     } else { /* only positional arguments */
-      jx_list *args_list = args.data.io.list;
-      jx_list *payload_list = payload.data.io.list;
-      jx_int i,size = jx_list_size(args);
-      jx_int size2 = jx_list_size(payload);
       inv_node = jx_hash_new();
-      for(i=0;i<size;i++) {
-        jx_hash_set(inv_node,jx__list_borrow(args_list,i),
-                    jx__list_swap(payload_list,i, ob_null));
-      }
-      if(size2>size) { /* keyword args also provided in payload? */
-        kwd_hash = jx__list_borrow(payload_list,size);
+      if(jx_list_check(payload)) {
+        jx_list *args_list = args.data.io.list;
+        jx_list *payload_list = payload.data.io.list;
+        jx_int i,size = jx_list_size(args);
+        jx_int size2 = jx_list_size(payload);
+        for(i=0;i<size;i++) {
+          jx_hash_set(inv_node,jx__list_borrow(args_list,i),
+                      jx__list_swap(payload_list,i, ob_null));
+        }
+        if(size2>size) { /* keyword args also provided in payload? */
+          kwd_hash = jx__list_borrow(payload_list,size);
+        }
       }
     }
     /* process keyword argument hash (THIS STRATEGY WILL CHANGE) */
@@ -1678,8 +1678,6 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
       }
       jx_ob_free(kwd_list);
     }
-
-    jx_jxon_dump(stdout,"inv_node",inv_node);
     if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
       result = jx_code_eval(inv_node,fn->code);
     } else { /* real function -> use exec */
@@ -1689,8 +1687,16 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
     jx_ob_free(inv_node);
     return result;
   } else {
-    /* primitive as argument list? what does that mean? */
-    return jx_ob_from_null();
+    jx_ob inv_node = jx_hash_new();
+    jx_ob result;
+    jx_hash_set(inv_node, args, payload);
+    if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
+      result = jx_code_eval(inv_node,fn->code);
+    } else { /* real function -> use exec */
+      result = jx_code_exec(inv_node,fn->code);
+    }
+    jx_ob_free(inv_node);
+    return result;
   }
 }
 #endif
