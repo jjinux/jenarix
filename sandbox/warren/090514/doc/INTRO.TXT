@@ -1,0 +1,93 @@
+# This is an introduction to the Jenarix intermediate language JXON
+
+# NOTE: the following examples are intended to be run through ./jxeval
+# interactively.  Please try them for yourself!
+
+# Also note that jxv currently requires that each JXON phrase be
+# terminated with a semicolon; this requirement may vanish in the
+# future.
+
+# JXON is a cross between LISP and JSON semantics.
+#
+# With respect to JSON, JXON adds two new primitive types (identifiers
+# and builtins), adds support for single-quoted strings, allows all
+# primitive types to serve as hash keys, treats commas as optional,
+# and supports #-delimited single-line comments.
+#
+# With respect to LISP, JXON phrases are LISP-like symbolic-
+# expressions (S-expressions) which the Jenarix runtime is capable of
+# creating, transforming, binding, and executing.
+
+# JXON primitives include:
+
+# - the basics: nonexistence, truth, and falsehood.
+
+null;
+true;
+false;
+
+# - integers
+
+1;
+2;
+-1;
+
+# - floats
+
+1.0;
+-0.25;
+
+# - strings
+
+"double quoted string";
+'single quoted string';
+
+# - identifiers
+
+a_simple_identifier;
+
+a.compound.identifier;
+
+# - and builtins (which represent bound entities that cannot be
+#   directly input, and are instead created and used at runtime)
+
+*add*;
+
+*fn:my_custom_fn*;
+
+*native_fn:0x123456*;
+
+# JXON containers include:
+
+# - lists (but with optional commas)
+
+[1,2,3];
+
+[a b c];
+
+[true,2.0,'a'];
+
+[1 0 0
+ 0 1 0
+ 0 0 1];
+
+[my_fn arg1,arg2];
+
+[[][][]];
+
+# - and hashes (also with optional commas)
+
+{'a':'b'};
+
+{true:false false:true};
+
+{
+ a:b
+ b:c
+ c:a
+};
+
+# JXON containers can be arbitrarily nested to your heart's desire
+
+[{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}]]]];
+

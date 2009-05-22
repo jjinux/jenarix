@@ -26,7 +26,7 @@ safe:
 main: libjx.a
 	cd src/main; $(MAKE)
 	mv src/main/main_jxx jxx
-	mv src/main/main_jxv jxv
+	mv src/main/main_jxeval jxeval
 
 test100: gen libjx.a
 	cd src/test;$(MAKE) test100
