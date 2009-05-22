@@ -220,8 +220,20 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             case JX_BUILTIN_GET:
             case JX_BUILTIN_SET:
             case JX_BUILTIN_BORROW:
+            case JX_BUILTIN_TAKE:
             case JX_BUILTIN_DEL:
             case JX_BUILTIN_DEF:
+            case JX_BUILTIN_INCR:
+            case JX_BUILTIN_DECR:
+            case JX_BUILTIN_APPEND:
+            case JX_BUILTIN_EXTEND:
+            case JX_BUILTIN_INSERT:
+            case JX_BUILTIN_RESIZE:
+            case JX_BUILTIN_POP:
+            case JX_BUILTIN_SHIFT:
+            case JX_BUILTIN_UNSHIFT:
+            case JX_BUILTIN_SLICE:
+            case JX_BUILTIN_CUTOUT:
               unresolved = 1;
               break;
             }
@@ -621,10 +633,30 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_RESIZE:
                 result = jx_safe_resize(node, payload);
                 break;
+              case JX_BUILTIN_POP:
+                result = jx_safe_pop(node, payload);
+                break;
+              case JX_BUILTIN_SHIFT:
+                result = jx_safe_shift(node, payload);
+                break;
+              case JX_BUILTIN_UNSHIFT:
+                result = jx_safe_unshift(node, payload);
+                break;
+              case JX_BUILTIN_SLICE:
+                result = jx_safe_slice(node, payload);
+                break;
+              case JX_BUILTIN_CUTOUT:
+                result = jx_safe_cutout(node, payload);
+                break;
               case JX_BUILTIN_IMPL:
                 result = jx_safe_impl(node, payload);
                 break;
-
+              case JX_BUILTIN_DECR:
+                result = jx_safe_decr(node, payload);
+                break;
+              case JX_BUILTIN_INCR:
+                result = jx_safe_incr(node, payload);
+                break;
               }
               jx_ob_free(payload);
             }

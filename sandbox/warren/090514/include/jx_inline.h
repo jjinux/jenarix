@@ -294,6 +294,7 @@ void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 /* macros to avoid annoying type mismatch and aliasing warnings with (void**) parameter */
 #define   jx_vla_new(r,s)           jx__vla_new(r,s)
 #define   jx_vla_new_with_content(r,s,c) jx__vla_new_with_content(r,s,c)
+#define   jx_vla_new_from_subset(r,i,c) jx__vla_new_from_subset((void**)(void*)r,i,c)
 #define   jx_vla_copy(r)            (void*)jx__vla_copy((void**)(void*)(r))
 #define   jx_vla_size(r)            jx__vla_size((void**)(void*)(r))
 #define   jx_vla_resize(r,s)        jx__vla_resize((void**)(void*)(r),(s))
@@ -954,6 +955,31 @@ JX_INLINE jx_ob jx_list_remove(jx_ob list, jx_int index)
   return (list.meta.bits & JX_META_BIT_LIST) ?
     jx__list_remove(list.data.io.list, index) : 
     jx_ob_from_null();
+}
+
+jx_ob jx__list_new_from_slice(jx_list * I, jx_int start,jx_int stop);
+JX_INLINE jx_ob jx_list_new_from_slice(jx_ob list, jx_int start,jx_int stop)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_new_from_slice(list.data.io.list, start, stop) : 
+    jx_ob_from_null();
+}
+
+jx_ob jx__list_new_with_cutout(jx_list * I, jx_int start,jx_int stop);
+JX_INLINE jx_ob jx_list_new_with_cutout(jx_ob list, jx_int start,jx_int stop)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_new_with_cutout(list.data.io.list, start, stop) : 
+    jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_list_pop(jx_ob list)
+{
+  jx_int size = jx_list_size(list);
+  if(size) 
+    return jx__list_remove(list.data.io.list, size-1);
+  else
+    return jx_ob_from_null();
 }
 
 jx_status jx__list_delete(jx_list * I, jx_int index);

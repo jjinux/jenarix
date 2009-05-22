@@ -105,7 +105,7 @@ a.compound.identifier;
 
 # or merely the symbol itself
 
-x
+x;
 
 # result: 100
 
@@ -175,13 +175,21 @@ x;
 
 [set y [2,5,8,10]];
 
-[while y [output [remove [borrow y] 0]]];
-
+[while y [output [take [borrow y] 0]]];
 # output:
 2;
 5;
 8;
 10;
+# result: null
+
+[for [set x 1] [le x 5] [set x [add x 1]] [output x]];
+# output:
+1;
+2;
+3;
+4;
+5;
 # result: null
 
 
@@ -258,10 +266,25 @@ x;
 # take (hash) (key)
 
 # del (identifier)
-# take (list) (index)
-# take (hash) (key)
+# del (list) (index)
+# del (hash) (key)
 
 # borrow (identifier)
+
+# decr (identifier)
+# incr (identifier)
+
+# append (list-identifier) (expr)
+# append (list) (expr)
+
+# extend (list-identifier) (list)
+# extend (list) (list)
+
+# insert (list-identifier) (index) (value)
+# insert (list) (index) (value)
+
+# resize (list-identifier) (size) (fill)
+# resize (list) (size) (fill)
 
 # identical (expr) (expr)
 # eq (expr) (expr)
@@ -287,12 +310,6 @@ x;
 
 # size (expr)
 
-# append (list) (expr)
-# extend (list) (list)
-# insert (list) (index) (value)
-# replace (list) (index) (value)
-
-# resize (list) (size) (fill)
 
 
 

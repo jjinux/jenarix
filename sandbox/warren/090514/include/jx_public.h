@@ -251,7 +251,11 @@ jx_status jx_list_combine(jx_ob list1, jx_ob list2);    /* takes ownership of an
 
 jx_ob jx_list_borrow(jx_ob list, jx_int index); /* borrows list entry */
 jx_ob jx_list_get(jx_ob list, jx_int index); /* copies list entry (returns ownership) */
+jx_ob jx_list_pop(jx_ob list); /* returns ownership of removed entry */
+
 jx_ob jx_list_remove(jx_ob list, jx_int index); /* returns ownership of removed entry */
+jx_ob jx_list_new_from_slice(jx_ob list, jx_int start, jx_int stop); /* returns ownership of sliced entry */
+jx_ob jx_list_new_with_cutout(jx_ob list, jx_int start, jx_int stop); /* returns ownership of cutout entry */
 jx_ob jx_list_swap_with_null(jx_ob list, jx_int index); /* return ownership of swapped-out object */
 jx_ob jx_list_swap(jx_ob list, jx_int index, jx_ob ob); /* return ownership of swapped-out object */
 

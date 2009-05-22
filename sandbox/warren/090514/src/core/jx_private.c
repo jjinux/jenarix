@@ -88,6 +88,20 @@ void *jx__vla_copy(void **ref)
   }
 }
 
+void *jx__vla_new_from_subset(void **ref, jx_int index, jx_int count)
+{
+  if(*ref) {
+    jx_vla *vla = ((jx_vla *) (*ref)) - 1;
+    if((index >= 0) && (count > 0) &&
+       (index < vla->size) && ((count + index) <= vla->size)) {
+      jx_char *ptr = (jx_char*)(*ref);
+      return jx_vla_new_with_content(vla->rec_size, count,
+                                     ptr + vla->rec_size * index);
+    }
+  }
+  return NULL;
+}
+
 static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
                                  jx_bool zero, int force_padding)
 {
@@ -315,6 +329,7 @@ jx_status jx__vla_extend(void **ref1, void **ref2)
   }
   return JX_FAILURE;
 }
+
 
 jx_status jx__vla_remove(void **ref, jx_int index, jx_int count)
 {
@@ -834,7 +849,8 @@ jx_ob jx_list_new_from_int_array(jx_int * array, jx_int size)
   jx_ob result = jx_list_new();
   if(result.meta.bits & JX_META_BIT_LIST) {
     result.data.io.list->packed_meta_bits = JX_META_BIT_INT;
-    result.data.io.list->data.vla = jx_vla_new_with_content(sizeof(jx_int), size, array);
+    result.data.io.list->data.vla = 
+      jx_vla_new_with_content(sizeof(jx_int), size, array);
   }
   return result;
 }
@@ -1461,6 +1477,66 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
       } else
         return jx_ob_from_null();
     }
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__list_new_from_slice(jx_list * I, jx_int start, jx_int stop)
+{
+  jx_int size = jx_vla_size(&I->data.vla);
+  if(start<0) start = size + start + 1;
+  if(stop<0) stop = size + stop + 1;
+  if(start<0) 
+    start = 0;
+  else if(start>size)
+    start = size;
+  if(stop<0)
+    stop = 0;
+  if(stop>size)
+    stop = size;
+  {
+    jx_int new_size = stop-start;
+    jx_ob result = jx_list_new();
+    jx_list *new_I = result.data.io.list;
+    *(new_I) = *I;
+    jx__gc_init(&new_I->gc);
+    new_I->data.vla = jx_vla_new_from_subset(&I->data.vla,start,new_size);
+    if(!I->packed_meta_bits) {
+      jx_ob *ob = new_I->data.vla;
+      while(new_size--) {
+        if(ob->meta.bits & JX_META_BIT_GC) {
+          *ob = jx_ob_copy(*ob);
+        }
+        ob++;
+      }
+    }
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx__list_new_with_cutout(jx_list * I, jx_int start, jx_int stop)
+{
+  jx_int size = jx_vla_size(&I->data.vla);
+  if(start<0) start = size + start + 1;
+  if(stop<0) stop = size + stop + 1;
+  if(start<0) 
+    start = 0;
+  else if(start>size)
+    start = size;
+  if(stop<0)
+    stop = 0;
+  if(stop>size)
+    stop = size;
+  {
+    jx_int new_size = stop-start;
+    jx_ob result = jx_list_new();
+    jx_list *new_I = result.data.io.list;
+    *(new_I) = *I;
+    jx__gc_init(&new_I->gc);
+    new_I->data.vla = jx_vla_new_from_subset(&I->data.vla,start,new_size);
+    jx_vla_remove(&I->data.vla,start,new_size);
+    return result;
   }
   return jx_ob_from_null();
 }
