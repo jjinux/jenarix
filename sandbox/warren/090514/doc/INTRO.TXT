@@ -89,5 +89,5 @@ a.compound.identifier;
 
 # JXON containers can be arbitrarily nested to your heart's desire
 
-[{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}]]]];
+[{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}] ]  ]];
 
