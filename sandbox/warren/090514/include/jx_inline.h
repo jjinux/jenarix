@@ -440,7 +440,7 @@ JX_INLINE jx_bool jx_ob_as_bool(jx_ob ob)
   return (bits & JX_META_BIT_BOOL) ? ob.data.io.bool_ : 
     ((bits & JX_META_BIT_INT) ? (ob.data.io.int_ ? JX_TRUE : JX_FALSE) :
      ((bits & JX_META_BIT_FLOAT) ? (ob.data.io.float_ ? JX_TRUE : JX_FALSE) : 
-      ((bits & JX_META_BIT_STR) ? jx__ob_as_bool(ob) :
+      ((bits & (JX_META_BIT_STR|JX_META_BIT_LIST|JX_META_BIT_HASH)) ? jx__ob_as_bool(ob) :
        JX_FALSE)));
 }
 
@@ -1348,6 +1348,12 @@ JX_INLINE jx_ob jx_ob_not(jx_ob ob)
     break; 
   case JX_META_BIT_BOOL:  
     return jx_ob_from_bool( !ob.data.io.bool_ );
+    break; 
+  case JX_META_BIT_LIST:  
+    return jx_ob_from_bool( !jx_list_size(ob));
+    break; 
+  case JX_META_BIT_HASH:  
+    return jx_ob_from_bool( !jx_hash_size(ob));
     break; 
   }
   return jx_ob_from_null();

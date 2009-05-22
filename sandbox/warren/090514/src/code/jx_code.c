@@ -55,6 +55,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_APPLY   8
 #define JX_BUILTIN_INVOKE  9
 #define JX_BUILTIN_SECURE  10
+#define JX_BUILTIN_RESOLVE 11
+#define JX_BUILTIN_MAP     12
 
 #define JX_BUILTIN_SPECIAL_FORMS_LIMIT 16
 
@@ -79,8 +81,10 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "def", JX_BUILTIN_DEF);
   ok = jx_declare(ok, namespace, "lambda", JX_BUILTIN_LAMBDA);
   ok = jx_declare(ok, namespace, "apply", JX_BUILTIN_APPLY);
+  ok = jx_declare(ok, namespace, "map", JX_BUILTIN_MAP);
   ok = jx_declare(ok, namespace, "invoke", JX_BUILTIN_INVOKE);
   ok = jx_declare(ok, namespace, "secure", JX_BUILTIN_SECURE);
+  ok = jx_declare(ok, namespace, "resolve", JX_BUILTIN_RESOLVE);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
@@ -147,11 +151,14 @@ static jx_ob jx__code_secure_with_source(jx_ob source,jx_int level)
         }
         jx_list_replace(list, size,jx__code_secure_with_source(entry1,level+1));
       }
+#if 0
+      /* not necessary anymore */
       if(must_secure) {
         result = jx_list_new_with_size(2);
         jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_SECURE));
         jx_list_replace(result, 1, list);
       }
+#endif
       jx_ob_free(source);
       return result;
     }
@@ -200,6 +207,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_ob result = jx_list_new_with_size(size);
       jx_ob list = result;
       jx_ob ident = jx_list_borrow(source, 0);
+      jx_int unresolved = 0;
       if(jx_ident_check(ident)) {
         jx_ob builtin = jx_hash_borrow(namespace, ident);
         if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
@@ -208,6 +216,15 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             jx_ob_replace(&source, jx_list_remove(source,1));
             return jx__code_bind_with_source(namespace,source);
           } else {
+            switch(builtin.data.io.int_) {
+            case JX_BUILTIN_GET:
+            case JX_BUILTIN_SET:
+            case JX_BUILTIN_BORROW:
+            case JX_BUILTIN_DEL:
+            case JX_BUILTIN_DEF:
+              unresolved = 1;
+              break;
+            }
             result = jx_list_new_with_size(2);
             jx_list_replace(result, 0, builtin);
             jx_list_replace(result, 1, list); /* NOTE: list aliases result */
@@ -222,11 +239,18 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
         jx_ob_replace(&source, jx_list_remove(source,1));
         return jx__code_bind_with_source(namespace,source);
       }
-      /* now process the source list */
+      /* now process the source list, introducing symbol resolution where needed */
       while(size--) {
-        jx_list_replace(list, size,
-                        jx__code_bind_with_source(namespace,
-                                                  jx_list_remove(source, size)));
+        jx_ob entry = jx__code_bind_with_source(namespace,jx_list_remove(source, size));
+        if(jx_ident_check(entry)) {
+          if(size>unresolved) {
+            jx_ob new_entry = jx_list_new_with_size(2);
+            jx_list_replace(new_entry, 0, jx_builtin_new_from_selector(JX_BUILTIN_RESOLVE));
+            jx_list_replace(new_entry, 1, entry); 
+            entry = new_entry;
+          }
+        }
+        jx_list_replace(list, size, entry);
       }
       jx_ob_free(source);
       return result;
@@ -270,7 +294,7 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_list_replace(result, 0, builtin);
       jx_list_replace(result, 1, source);
     } else {                    /* unknown identifier (fall back upon late binding) */
-      jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_INVOKE));
+      jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_RESOLVE));
       jx_list_replace(result, 1, source);
     }
     return jx__code_secure_with_source(result,0);
@@ -288,7 +312,7 @@ JX_INLINE jx_ob jx_code_eval_allow_weak(jx_ob node, jx_ob expr)
 JX_INLINE jx_ob jx_code_exec_allow_weak(jx_ob node, jx_ob expr)
 {
   return (expr.meta.bits & JX_META_BIT_GC) ?
-    jx__code_eval(node,expr) : expr;
+    jx__code_exec(node,expr) : expr;
 }
 
 jx_ob jx__code_eval(jx_ob node, jx_ob expr)
@@ -423,7 +447,28 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                 } else
                     jx_ob_replace_with_null(&result);
                 break;
-              case JX_BUILTIN_INVOKE:
+              case JX_BUILTIN_MAP: /* [map fn list] */
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob builtin = jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1));
+                  if(jx_function_check(builtin)) {
+                    jx_function *fn = builtin.data.io.function;
+                    jx_ob inp_list = jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 2));
+                    jx_int i,size = jx_list_size(inp_list);
+                    jx_ob out_list = jx_list_new_with_size(size);
+                    for(i=0;i<size;i++) {
+                      jx_list_replace(out_list, i, jx_function_call(fn, node, jx_list_get(inp_list, i)));
+                    }
+                    jx_ob_free(inp_list);
+                    jx_ob_replace(&result, out_list);
+                  } else { /* trying to apply a non-function */
+                    jx_ob_replace_with_null(&result);
+                  }
+                  jx_ob_free(builtin);
+                } else
+                    jx_ob_replace_with_null(&result);
+                break;
+               case JX_BUILTIN_INVOKE:
                 {
                   jx_ob e_payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
                   if(jx_list_check(e_payload)) {
@@ -438,13 +483,29 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                         jx_ob_replace(&result, jx_code_eval_allow_weak(node, frame));
                         jx_ob_free(frame);
                       } else {
-                        jx_ob_replace(&result, jx_ob_copy(fn));
-                        jx_ob_free(e_payload);
+                        jx_list_replace(e_payload, 0, jx_ob_copy(fn));
+                        jx_ob_replace(&result, e_payload);
                       }
                     } else {
                       jx_ob_replace(&result, e_payload);
                     }
                   } else if(jx_ident_check(e_payload)) {
+                    jx_ob value;
+                    if(jx_hash_peek(&value, node, e_payload)) {
+                      jx_ob_replace(&result, jx_ob_copy(value));
+                      jx_ob_free(e_payload);
+                    } else {
+                      jx_ob_replace(&result, e_payload);
+                    }
+                  } else {
+                    jx_ob_replace(&result, e_payload);
+                  }
+                }
+                break;
+              case JX_BUILTIN_RESOLVE:
+                {
+                  jx_ob e_payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
+                  if(jx_ident_check(e_payload)) {
                     jx_ob value;
                     if(jx_hash_peek(&value, node, e_payload)) {
                       jx_ob_replace(&result, jx_ob_copy(value));
@@ -489,13 +550,6 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_SIZE:
                 result = jx_safe_size(node, payload);
                 break;
-              case JX_BUILTIN_HASH_SET:
-                result = jx_safe_hash_set(node, payload);
-                break;
-              case JX_BUILTIN_HASH_GET:
-                result = jx_safe_hash_get(node, payload);
-                break;
-
               case JX_BUILTIN_IDENTICAL:
                 result = jx_safe_identical(node, payload);
                 break;
@@ -555,9 +609,6 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                 result = jx_safe_error(node, payload);
                 break;
 
-              case JX_BUILTIN_LIST_GET:
-                result = jx_safe_list_get(node, payload);
-                break;
               case JX_BUILTIN_APPEND:
                 result = jx_safe_append(node, payload);
                 break;
@@ -569,15 +620,6 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                 break;
               case JX_BUILTIN_RESIZE:
                 result = jx_safe_resize(node, payload);
-                break;
-              case JX_BUILTIN_REPLACE:
-                result = jx_safe_replace(node, payload);
-                break;
-              case JX_BUILTIN_LIST_REMOVE:
-                result = jx_safe_list_remove(node, payload);
-                break;
-              case JX_BUILTIN_LIST_DELETE:
-                result = jx_safe_list_delete(node, payload);
                 break;
               case JX_BUILTIN_IMPL:
                 result = jx_safe_impl(node, payload);
@@ -650,7 +692,6 @@ jx_ob jx__code_exec(jx_ob node, jx_ob code)
   jx_list *code_list = code.data.io.list;
   jx_ob inst = jx__list_borrow(code_list, 0);
   if(jx_builtin_any_fn_check(inst)) {   /* list with a single builtin instruction */
-    printf("here\n");
     jx_ob_replace(&result, jx_code_eval_allow_weak(node, code));
   } else {
     for(pc = 0; pc < size; pc++) {

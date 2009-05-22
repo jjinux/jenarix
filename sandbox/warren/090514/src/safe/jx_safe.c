@@ -81,16 +81,10 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   ok = jx_declare(ok,namespace,"not", JX_BUILTIN_NOT);
 
   ok = jx_declare(ok,namespace,"size", JX_BUILTIN_SIZE);
-  ok = jx_declare(ok,namespace,"hash_set", JX_BUILTIN_HASH_SET);
-  ok = jx_declare(ok,namespace,"hash_get", JX_BUILTIN_HASH_GET);
 
-  ok = jx_declare(ok,namespace,"list_get", JX_BUILTIN_LIST_GET);
   ok = jx_declare(ok,namespace,"append", JX_BUILTIN_APPEND);
   ok = jx_declare(ok,namespace,"extend", JX_BUILTIN_EXTEND);
   ok = jx_declare(ok,namespace,"insert", JX_BUILTIN_INSERT);
-  ok = jx_declare(ok,namespace,"replace", JX_BUILTIN_REPLACE);
-  ok = jx_declare(ok,namespace,"list_remove", JX_BUILTIN_LIST_REMOVE);
-  ok = jx_declare(ok,namespace,"list_delete", JX_BUILTIN_LIST_DELETE);
   ok = jx_declare(ok,namespace,"resize", JX_BUILTIN_RESIZE);
 
   ok = jx_declare(ok,namespace,"impl", JX_BUILTIN_IMPL);

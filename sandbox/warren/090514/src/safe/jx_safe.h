@@ -79,14 +79,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_ERROR       51
 
 #define JX_BUILTIN_SIZE        52
-#define JX_BUILTIN_HASH_SET    53
-#define JX_BUILTIN_HASH_GET    54
-#define JX_BUILTIN_LIST_GET    55
 #define JX_BUILTIN_APPEND      56
-#define JX_BUILTIN_REPLACE     57
 #define JX_BUILTIN_INSERT      58
-#define JX_BUILTIN_LIST_REMOVE 59
-#define JX_BUILTIN_LIST_DELETE 60
 #define JX_BUILTIN_RESIZE      61
 
 #define JX_BUILTIN_EXTEND      62
@@ -125,21 +119,18 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
       jx_ob container = jx_list_borrow(payload,1);
       switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_LIST:
-        {
-          return jx_ob_from_status
-            ( jx_list_replace
-              (container, 
-               jx_ob_as_int( jx_list_borrow(payload,2)),
-               jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
-        }
-        case JX_META_BIT_HASH:
-        {
-          return jx_ob_from_status
-            ( jx_hash_set
-              (container, 
-               jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)), 
-               jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
-        }
+        return jx_ob_from_status
+          ( jx_list_replace
+            (container, 
+             jx_ob_as_int( jx_list_borrow(payload,2)),
+             jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
+        break;
+      case JX_META_BIT_HASH:
+        return jx_ob_from_status
+          ( jx_hash_set
+            (container, 
+             jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)), 
+             jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
         break;
       default:
         return jx_ob_from_null();
@@ -191,11 +182,67 @@ JX_INLINE jx_ob jx_safe_borrow(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_take(jx_ob node, jx_ob payload)
 {
-  return jx_hash_remove(node, jx_list_borrow(payload,1));
+  jx_int size = jx_list_size(payload);
+  switch(size) {
+  case 2:
+    return jx_hash_remove(node, jx_list_borrow(payload,1));
+    break;
+  case 3:
+    {
+      jx_ob container = jx_list_borrow(payload,1);
+      switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
+      case JX_META_BIT_LIST:
+        return jx_list_remove(container,
+                           jx_ob_as_int(jx_list_borrow(payload,2)));
+        break;
+      case JX_META_BIT_HASH:
+        return jx_hash_remove(container,
+                           jx_list_borrow(payload,2));
+        break;
+      default:
+        return jx_ob_from_null();
+        break;
+      }
+    }
+    break;
+  default:
+    return jx_ob_from_null();
+    break;
+  }
 }
 
 JX_INLINE jx_ob jx_safe_del(jx_ob node, jx_ob payload)
 {
+  jx_int size = jx_list_size(payload);
+  switch(size) {
+  case 2:
+    return jx_ob_from_status( jx_hash_delete(node, jx_list_borrow(payload,1)));
+    break;
+  case 3:
+    {
+      jx_ob container = jx_list_borrow(payload,1);
+      switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
+      case JX_META_BIT_LIST:
+        return jx_ob_from_status
+          (jx_list_delete(container,
+                          jx_ob_as_int(jx_list_borrow(payload,2))));
+        break;
+      case JX_META_BIT_HASH:
+        return jx_ob_from_status
+          (jx_hash_delete(container,
+                          jx_list_borrow(payload,2)));
+        break;
+      default:
+        return jx_ob_from_null();
+        break;
+      }
+    }
+    break;
+  default:
+    return jx_ob_from_null();
+    break;
+  }
+
   return jx_ob_from_status(jx_hash_delete(node, jx_list_borrow(payload,1)));
 }
 
@@ -328,14 +375,6 @@ JX_INLINE jx_ob jx_safe_insert(jx_ob node, jx_ob payload)
                      jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
 }
 
-JX_INLINE jx_ob jx_safe_replace(jx_ob node, jx_ob payload)
-{
-  return jx_ob_from_status
-    ( jx_list_replace(jx_list_borrow(payload,1),
-                      jx_ob_as_int(jx_list_borrow(payload,2)),
-                      jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
-}
-
 JX_INLINE jx_ob jx_safe_resize(jx_ob node, jx_ob payload)
 {
   return jx_ob_from_status
@@ -344,13 +383,6 @@ JX_INLINE jx_ob jx_safe_resize(jx_ob node, jx_ob payload)
                      jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3))));
 }
 
-
-JX_INLINE jx_ob jx_safe_list_remove(jx_ob node, jx_ob payload)
-{
-  return jx_list_remove(jx_list_borrow(payload,1),
-                        jx_ob_as_int(jx_list_borrow(payload,2)));
-
-}
 JX_INLINE jx_ob jx_safe_list_delete(jx_ob node, jx_ob payload)
 {
   return jx_ob_from_status
@@ -360,8 +392,13 @@ JX_INLINE jx_ob jx_safe_list_delete(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_impl(jx_ob node, jx_ob payload)
 {
-  jx_ob fn = jx_hash_borrow(node, jx_list_borrow(payload,1));
-  return jx_function_to_impl(fn);
+  jx_ob arg = jx_list_borrow(payload,1);
+  if(jx_function_check(arg)) {
+    return jx_function_to_impl(arg);
+  } else {
+    jx_ob fn = jx_hash_borrow(node, arg);
+    return jx_function_to_impl(fn);
+  }
 }
 
 #endif

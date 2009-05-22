@@ -390,6 +390,12 @@ jx_ob jx__ob_to_bool(jx_ob ob)
   case JX_META_BIT_STR:
     return jx_ob_from_bool(jx_str_len(ob) && JX_TRUE);
     break;
+  case JX_META_BIT_LIST:
+    return jx_ob_from_bool(jx_list_size(ob) && JX_TRUE);
+    break;
+  case JX_META_BIT_HASH:
+    return jx_ob_from_bool(jx_hash_size(ob) && JX_TRUE);
+    break;
   case JX_META_BIT_IDENT:
     {
       jx_char *ident = jx_ob_as_ident(&ob);
@@ -735,6 +741,8 @@ jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
     return jx_ob_from_bool( jx_ob_as_float(left) OPER jx_ob_as_float(right) ); \
   } else if( merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) { \
     return jx_ob_from_bool( jx_ob_as_int(left) OPER jx_ob_as_int(right)); \
+  } else if( merge_bits & (JX_META_BIT_HASH | JX_META_BIT_LIST)) { \
+    return jx_ob_from_bool( jx_ob_as_bool(left) OPER jx_ob_as_bool(right)); \
   } \
   return jx_ob_from_null(); \
 }

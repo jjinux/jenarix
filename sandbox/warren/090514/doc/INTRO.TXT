@@ -55,7 +55,7 @@ a.compound.identifier;
 
 *fn:my_custom_fn*;
 
-*native_fn:0x123456*;
+*native_fn:0x123456*;  
 
 # JXON containers include:
 
@@ -87,7 +87,213 @@ a.compound.identifier;
  c:a
 };
 
-# JXON containers can be arbitrarily nested to your heart's desire
+# JXON containers can be nested to arbitrary levels of complexity,
+# just like with JSON
 
 [{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}] ]  ]];
+
+# So what about programming?  Well, first note that all executing code
+# has an associated namespace.  You can set values using set:
+
+[set x 100];
+
+# and recall them using get:
+
+[get x];  
+
+# result: 100
+
+# or merely the symbol itself
+
+x
+
+# result: 100
+
+# You can of course store containers as well:
+
+[set y [0,0,0]];
+
+y;
+
+# result: [0,0,0]
+
+# And modify them
+
+[append [borrow y] 1];
+
+y;
+
+# result: [0,0,0,1]
+
+[extend [borrow y] [get y]];
+
+y;
+
+# result: [0,0,0,1,0,0,0,1]
+
+# Jenarix function invocations arise from a single magic pattern:
+#
+# The presence of an identifier in the first position of a list 
+# which resolves to a callable function.
+
+# Assuming that f is callable, the the meaning of the following phrase
+# is:  function f is invoked with a payload of [f,2]
+
+[f,2];
+
+# Note that this special behavior *only* applies to identifiers located
+# in the first position of a list.  Identifiers in all other positions
+# are simply resolved like normal.
+
+# Control flow
+
+[set x 0];
+
+[if true [set x 1]];
+
+x;
+
+# result: 1
+
+[if false [set x 1] [set x 0]];
+
+x;
+
+# result: 0
+
+# Loops
+
+[set x 10];
+
+[do 
+  [
+    [output x]
+    [set x [sub x 1]]
+  ]
+  [gt x 5]
+];
+
+[set y [2,5,8,10]];
+
+[while y [output [remove [borrow y] 0]]];
+
+# output:
+2;
+5;
+8;
+10;
+# result: null
+
+
+# Lambda and Apply
+
+[apply [lambda null _] 1.50];
+
+# result: 1.5
+
+[apply [lambda {a:4} [_,a]] 3];
+
+# result: [3,4]
+
+# Functions. 
+
+[def fn1 null 9];
+
+[fn1];
+
+# result: 9
+
+[impl fn1];
+
+# result: [fn1,null,9]
+
+# Note that invoked functions are currently given the entire
+# invocation list as the payload, including the unresolved function
+# identifier.  We don't yet have a system for describing parameters
+# and matching up arguments (though we may not need one at this low
+# level)
+
+[def fn2 {a:2} _ ];  
+
+[fn2 arg1 'arg2' {arg3:0}];  
+
+# result: [fn2,arg1,"arg2",{arg3:0}]
+
+[def fn3 null [add 4 [take _ 1]] ];
+
+[fn3 5];
+
+# result: 9
+
+# Usable built-in capabilities at present:
+
+# if (conditional) (then-body) (else-body)
+
+# while (conditional)
+
+# do (body) (conditional)
+
+# for (init) (step) (conditional) (body)
+
+# def (name) (namespace) (code)
+
+# lambda (namespace) (code)
+
+# apply (function) (payload)
+
+# map (function) (list)
+
+# impl (function)
+
+# set (identifier) (value)
+# set (hash) (key) (value)
+# set (list) (index) (value)
+
+# get (identifier) 
+# get (list) (index)
+# get (hash) (key)
+
+# take (identifier)
+# take (list) (index)
+# take (hash) (key)
+
+# del (identifier)
+# take (list) (index)
+# take (hash) (key)
+
+# borrow (identifier)
+
+# identical (expr) (expr)
+# eq (expr) (expr)
+# gt (expr) (expr)
+# lt (expr) (expr)
+# ge (expr) (expr)
+# le (expr) (expr)
+
+# output (expr)
+# error (expr)
+
+# add (expr) (expr)
+# sub (expr) (expr)
+# mul (expr) (expr)
+# div (expr) (expr)
+# mod (expr) (expr)
+
+# and (expr) (expr)
+# or  (expr) (expr)
+
+# neg (expr)
+# not (expr)
+
+# size (expr)
+
+# append (list) (expr)
+# extend (list) (list)
+# insert (list) (index) (value)
+# replace (list) (index) (value)
+
+# resize (list) (size) (fill)
+
+
+
 
