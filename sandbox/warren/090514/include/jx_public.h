@@ -313,7 +313,6 @@ jx_ob jx_builtin_new_with_vla(void **ref);
 jx_ob jx_builtin_new_from_selector(jx_int selector);
 jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn);
 jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque);
-jx_ob jx_builtin_new_with_function(jx_ob name, jx_ob node, jx_ob fn);
 
 /* parser */
 
@@ -321,6 +320,12 @@ jx_ob jx_jxon_scanner_new_with_file(FILE *file);
 jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner);
 jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
+
+/* functions */
+
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob node, jx_ob fn);
+jx_ob jx_function_to_impl(jx_ob ob);
+jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload);
 
 /* code execution engine */
 

@@ -39,8 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    involve only internal actions within the interpreter and container
    space (no access to filesystem, network, memory, etc.) */
 
-#define JX_BUILTIN_NOP       16
-
 /* symbols */
 
 #define JX_BUILTIN_SET         17
@@ -87,6 +85,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_LIST_REMOVE 59
 #define JX_BUILTIN_LIST_DELETE 60
 #define JX_BUILTIN_RESIZE      61
+
+#define JX_BUILTIN_IMPL        62
 
 #define JX_BIN_OP(SUFFIX) \
 JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
@@ -283,6 +283,12 @@ JX_INLINE jx_ob jx_safe_list_delete(jx_ob node, jx_ob payload)
   return jx_ob_from_status
     ( jx_list_delete(jx_list_borrow(payload,1),
                      jx_ob_as_int(jx_list_borrow(payload,2))));
+}
+
+JX_INLINE jx_ob jx_safe_impl(jx_ob node, jx_ob payload)
+{
+  jx_ob fn = jx_hash_borrow(node, jx_list_borrow(payload,1));
+  return jx_function_to_impl(fn);
 }
 
 

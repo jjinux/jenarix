@@ -297,7 +297,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
     } else { /* for debugging and troublshooting only */
       char buffer[50];
       if(bits & JX_META_BIT_BUILTIN_VLA) {
-        sprintf(buffer,"*vla_%p*",(void*)ob.data.io.vla);
+        sprintf(buffer,"*vla:%p*",(void*)ob.data.io.vla);
       } else if(bits & JX_META_BIT_BUILTIN_SELECTOR) {
         jx_ob builtins = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
         buffer[0] = 0;
@@ -309,7 +309,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
           jx_ob_free(name);
         }
         if(!buffer[0]) {
-          sprintf(buffer,"*%d*",ob.data.io.int_);
+          sprintf(buffer,"*op_%d*",ob.data.io.int_);
         }
         jx_ob_free(builtins);
       } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {

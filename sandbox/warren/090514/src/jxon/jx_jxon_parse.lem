@@ -102,9 +102,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** for now, malloc'ing non-terminals. ***/
 
-%destructor list         { jx_ob_free($$); }
-%destructor hash         { jx_ob_free($$); }
-%destructor primitive    { jx_ob_free($$); }
+%destructor expression           { jx_ob_free($$); }
+%destructor primitive            { jx_ob_free($$); }
+%destructor list                 { jx_ob_free($$); }
+%destructor list_of_expressions  { jx_ob_free($$); }
+%destructor hash                 { jx_ob_free($$); }
+%destructor association          { jx_ob_free($$); }
+%destructor list_of_associations { jx_ob_free($$); }
 
 /*** for now, mallocing tokens **/
 
@@ -134,7 +138,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** Syntax error action ***/
 
-%syntax_error {   
+%syntax_error {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("jx_jxon_parse-error: syntax error.\n");
 #endif
@@ -296,6 +300,14 @@ list_of_expressions(A) ::= list_of_expressions(B) COMMA expression(C).
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("list_of_expressions(A) = list_of_expressions(B) , expression(C)\n");
+#endif
+}
+
+primitive(A) ::= BUILTIN(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = BUILTIN\n"); 
 #endif
 }
 

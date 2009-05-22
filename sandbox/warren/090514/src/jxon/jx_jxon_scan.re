@@ -178,7 +178,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
     O   = [0-7];
     D   = [0-9];
     L   = [a-zA-Z_];
-    LP  = L (L|D)*;
+    LD  = L (L|D)*;
     H   = [a-fA-F0-9];
     E   = [Ee] [+-]? D+;
     FS   = [fFlL];
@@ -190,6 +190,8 @@ static int jx_scan(jx_jxon_scanner_state *s)
     (["] (ESC|any\[\n\\"])* ["]) { RET(JX_JXON_SCON); }
 
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_JXON_SCON); }
+
+    "*" (L|D|":")+ "*" { RET(JX_JXON_BUILTIN); }
     
     "["         { RET(JX_JXON_OPEN_RECT_BRACE); }
     "]"         { RET(JX_JXON_CLOSE_RECT_BRACE); }
@@ -203,14 +205,15 @@ static int jx_scan(jx_jxon_scanner_state *s)
     "false"     { RET(JX_JXON_FALSE); }
     "null"      { RET(JX_JXON_NULL); }
     
-    LP ("." LP)* { RET(JX_JXON_IDENT); }
+    LD ("." LD)* { RET(JX_JXON_IDENT); }
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JXON_ICON); }
     
     ";"         { RET(JX_JXON_SEMICOLON); }
 
+
     [ \t\v\f]+      { goto std; }
-    
+
     "#"         { goto comment; }
 
     "\n" {
@@ -372,6 +375,9 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
           break;
         case JX_JXON_NULL:
           token = jx_ob_from_null();
+          break;
+        case JX_JXON_BUILTIN:
+          token = jx_builtin_new_from_selector(0);
           break;
         case JX_JXON_OPEN_RECT_BRACE:
         case JX_JXON_CLOSE_RECT_BRACE:

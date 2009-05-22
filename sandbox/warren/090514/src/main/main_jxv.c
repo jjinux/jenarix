@@ -119,6 +119,7 @@ int main(int argc, char **argv)
             done = JX_TRUE;
           else
             jx_jxon_scanner_purge_input(scanner);
+          jx_ob_free(message);
         }
         break;
       default: /* about on all other errors */
@@ -126,6 +127,7 @@ int main(int argc, char **argv)
         break;
       }
     }
+    jx_ob_free(source);
   }
   jx_ob_free(node);
   jx_ob_free(scanner);

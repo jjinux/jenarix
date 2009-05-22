@@ -589,7 +589,7 @@ JX_INLINE jx_bool jx_builtin_any_fn_check(jx_ob ob)
       JX_META_BIT_BUILTIN_FUNCTION));
 }
 
-JX_INLINE jx_bool jx_builtin_function_check(jx_ob ob)
+JX_INLINE jx_bool jx_function_check(jx_ob ob)
 {
   return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_FUNCTION);
 }
@@ -1066,6 +1066,7 @@ JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
   if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_peek(result, hash.data.io.hash, key);
   }
+  return JX_FALSE;
 }
 
 JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
@@ -1472,7 +1473,17 @@ JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
 {
   jx_ob payload_ident = jx_ob_from_ident("_");
-  if(jx_null_check(fn->node)) {
+  if(jx_hash_check(fn->node)) {
+    /* standard functions run inside their own node namespace (and
+       thus can potentially be concurrent) */
+    jx_ob inv_node = jx_ob_copy(fn->node);
+    jx_ob result = JX_OB_NULL;
+    if(jx_ok( jx_hash_set(inv_node,jx_ob_from_ident("_"),payload))) {
+      result = jx_code_exec(inv_node,fn->code);
+    }
+    jx_ob_free(inv_node);
+    return result;
+  } else {
     /* inner functions run within the host node namespace */
     jx_ob saved_payload = jx_hash_remove(node, payload_ident);
     if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
@@ -1485,16 +1496,6 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
       jx_hash_set(node, payload_ident, saved_payload);
       return jx_ob_from_null();
     }
-  } else {
-    /* standard functions run inside their own node namespace (and
-       thus can potentially be concurrent) */
-    jx_ob inv_node = jx_ob_copy(fn->node);
-    jx_ob result = JX_OB_NULL;
-    if(jx_ok( jx_hash_set(inv_node,jx_ob_from_ident("_"),payload))) {
-      result = jx_code_exec(inv_node,fn->code);
-    }
-    jx_ob_free(inv_node);
-    return result;
   }
 }
 #endif

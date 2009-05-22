@@ -92,6 +92,8 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   ok = jx_declare(ok,namespace,"list_delete", JX_BUILTIN_LIST_DELETE);
   ok = jx_declare(ok,namespace,"resize", JX_BUILTIN_RESIZE);
 
+  ok = jx_declare(ok,namespace,"impl", JX_BUILTIN_IMPL);
+
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 

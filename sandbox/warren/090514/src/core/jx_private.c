@@ -481,22 +481,6 @@ jx_ob jx__ob_to_ident(jx_ob ob)
   return jx_ob_from_null();
 }
 
-jx_ob jx_builtin_new_with_function(jx_ob name, jx_ob node, jx_ob code)
-{
-  jx_ob result = JX_OB_NULL;
-  jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
-  if(fn) {
-    fn->node = node;
-    fn->name = name;
-    fn->code = code;
-    result.data.io.function = fn;
-    result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_FUNCTION | JX_META_BIT_GC;
-  } else {
-    jx_ob_free(code);
-  }
-  return result;
-}
-
 /* strings */
 
 jx_ob jx_ob_from_str(jx_char * str)
@@ -3339,9 +3323,9 @@ jx_ob jx__builtin_copy(jx_ob ob)
   } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
   } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
     jx_function *fn = ob.data.io.function;
-    return jx_builtin_new_with_function(jx_ob_copy(fn->name), 
-                                        jx_ob_copy(fn->node), 
-                                        jx_ob_copy(fn->code));
+    return jx_function_new_with_def(jx_ob_copy(fn->name), 
+                                    jx_ob_copy(fn->node), 
+                                    jx_ob_copy(fn->code));
   }
   return result;
 }
@@ -3489,6 +3473,37 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
   return JX_FALSE;
 }
 
+/* functions */
+
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob node, jx_ob code)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
+  if(fn) {
+    fn->node = node;
+    fn->name = name;
+    fn->code = code;
+    result.data.io.function = fn;
+    result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_FUNCTION | JX_META_BIT_GC;
+  } else {
+    jx_ob_free(code);
+  }
+  return result;
+}
+
+jx_ob jx_function_to_impl(jx_ob ob)
+{
+  if(jx_function_check(ob)) {
+    jx_function *fn = ob.data.io.function;  
+    jx_ob result = jx_list_new_with_size(3);
+    jx_list_replace(result, 0, jx_ob_copy(fn->name));
+    jx_list_replace(result, 1, jx_ob_copy(fn->node));
+    jx_list_replace(result, 2, jx_ob_copy(fn->code));
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
 /* freeing */
 
 jx_status jx__ob_free(jx_ob ob)
@@ -3524,6 +3539,7 @@ jx_status jx__ob_free(jx_ob ob)
           }
         } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
           jx_function *fn = ob.data.io.function;
+          jx_ob_free(fn->name);
           jx_ob_free(fn->node);
           jx_ob_free(fn->code);
           jx_free(fn);
