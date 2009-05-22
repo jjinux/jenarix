@@ -1,0 +1,54 @@
+
+
+# here's where we convince ourselves that weak (borrowed) references
+# [used through as L-values] cannot leak or escape from where they're used.
+
+# first, create a heap object
+
+[set x ["-  -  -  -  -  -  -  -"]];
+
+# now see what happens when we try to get a borrowed reference
+
+[borrow x];
+
+[[borrow x]];
+
+[[borrow x],[borrow x]];
+
+[[borrow x] [[borrow x]]];
+
+[[borrow x] [[borrow x]] [[[borrow x]]]];
+
+[borrow [borrow x]];
+
+[jenarix_fn [borrow x]];
+
+[jenarix_fn [borrow x] [[borrow x]]];
+
+# notice how the symbolic expressions from each of the above are using *get* not *borrow*
+
+# but when we find a legal use, we get the real thing:
+
+[append [borrow x] 1];
+
+# but only if we use the weak reference in the permitted position
+
+[append [borrow x] [borrow x]];
+
+[get x];
+
+[append [borrow x] [get x]];
+
+[get x];
+
+# okay, now attempt to crash jenarix
+
+[set y [borrow x]];
+
+[get y];
+
+[del x];
+
+[get y];
+
+# see, you can't do it!
