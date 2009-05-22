@@ -1591,8 +1591,12 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
        thus can potentially be concurrent) */
     jx_ob inv_node = jx_ob_copy(fn->node);
     jx_ob result = JX_OB_NULL;
-    if(jx_ok( jx_hash_set(inv_node,jx_ob_from_ident("_"),payload))) {
-      result = jx_code_exec(inv_node,fn->code);
+    if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
+      if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
+        result = jx_code_eval(inv_node,fn->code);
+      } else { /* real function -> use exec */
+        result = jx_code_exec(inv_node,fn->code);
+      }
     }
     jx_ob_free(inv_node);
     return result;
@@ -1600,7 +1604,12 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
     /* inner functions run within the host node namespace */
     jx_ob saved_payload = jx_hash_remove(node, payload_ident);
     if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
-      jx_ob result = jx_code_exec(node,fn->code);
+      jx_ob result;
+      if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
+        result = jx_code_eval(node,fn->code);
+      } else { /* real function -> use exec */
+        result = jx_code_exec(node,fn->code);
+      }
       if(!jx_ok(jx_hash_set(node,payload_ident,saved_payload)))
         jx_ob_free(saved_payload);
       return result;

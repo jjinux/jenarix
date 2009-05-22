@@ -441,7 +441,7 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                 } else
                     jx_ob_replace_with_null(&result);
                 break;
-              case JX_BUILTIN_APPLY: /* [lambda node code] */
+              case JX_BUILTIN_APPLY: /* [apply fn payload] */
                 if(jx_list_check(payload)) {
                   jx_list *payload_list = payload.data.io.list;
                   jx_ob fn = jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1));
