@@ -343,7 +343,7 @@ jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
 
 /* functions */
 
-jx_ob jx_function_new_with_def(jx_ob name, jx_ob node, jx_ob fn);
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob fn);
 jx_ob jx_function_to_impl(jx_ob ob);
 jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload);
 

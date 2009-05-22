@@ -207,7 +207,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_ob result = jx_list_new_with_size(size);
       jx_ob list = result;
       jx_ob ident = jx_list_borrow(source, 0);
-      jx_int unresolved = 0;
+      jx_int unresolved = -1;
       if(jx_ident_check(ident)) {
         jx_ob builtin = jx_hash_borrow(namespace, ident);
         if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
@@ -222,7 +222,6 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             case JX_BUILTIN_BORROW:
             case JX_BUILTIN_TAKE:
             case JX_BUILTIN_DEL:
-            case JX_BUILTIN_DEF:
             case JX_BUILTIN_INCR:
             case JX_BUILTIN_DECR:
             case JX_BUILTIN_APPEND:
@@ -235,6 +234,9 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             case JX_BUILTIN_SLICE:
             case JX_BUILTIN_CUTOUT:
               unresolved = 1;
+              break;
+            case JX_BUILTIN_DEF:
+              unresolved = 2;
               break;
             }
             result = jx_list_new_with_size(2);
@@ -253,7 +255,12 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       }
       /* now process the source list, introducing symbol resolution where needed */
       while(size--) {
-        jx_ob entry = jx__code_bind_with_source(namespace,jx_list_remove(source, size));
+        jx_ob entry;
+        if(size>unresolved) {
+          entry = jx__code_bind_with_source(namespace,jx_list_remove(source, size));
+        } else {
+          entry = jx_list_remove(source, size);
+        }
         if(jx_ident_check(entry)) {
           if(size>unresolved) {
             jx_ob new_entry = jx_list_new_with_size(2);
@@ -418,11 +425,11 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
                   jx_list *payload_list = payload.data.io.list;
                   jx_ob ident = jx_ob_only_strong_with_ob
                     (jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1)));
-                  jx_ob inv_node = jx_ob_only_strong_with_ob
+                  jx_ob args = jx_ob_only_strong_with_ob
                     (jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 2)));
                   jx_ob code = jx_ob_only_strong_with_ob
                     (jx_ob_copy(jx__list_borrow(payload_list, 3)));
-                  jx_ob function = jx_function_new_with_def(ident, inv_node, code);
+                  jx_ob function = jx_function_new_with_def(ident, args, code);
                   jx_ob_replace(&result,
                                 jx_ob_from_status(jx_hash_set(node, ident, function)));
                 } else
@@ -431,12 +438,12 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_LAMBDA:        /* [lambda node code] */
                 if(jx_list_check(payload)) {
                   jx_list *payload_list = payload.data.io.list;
-                  jx_ob inv_node = jx_ob_only_strong_with_ob
+                  jx_ob args = jx_ob_only_strong_with_ob
                     (jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1)));
                   jx_ob code = jx_ob_only_strong_with_ob
                     (jx_ob_copy(jx__list_borrow(payload_list, 2)));
                   jx_ob function = jx_function_new_with_def(jx_ob_from_null(),
-                                                            inv_node, code);
+                                                            args, code);
                   jx_ob_replace(&result, function);
                 } else
                     jx_ob_replace_with_null(&result);
@@ -669,7 +676,8 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
           } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
             jx_ob payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
             jx_function *fn = builtin.data.io.function;
-            jx_ob_replace(&result, jx_function_call(fn, node, payload));        /* consumes payload */
+            jx_ob_free(jx_list_remove(payload,0)); /* remove the function identifier */
+            jx_ob_replace(&result, jx_function_call(fn, node, payload));   /* consumes payload */
           } else {
             jx_ob_replace(&result, jx_ob_from_null());
           }

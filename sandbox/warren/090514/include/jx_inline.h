@@ -183,7 +183,7 @@ struct jx__opaque_ob {
 struct jx__function {
   jx_gc gc;
   jx_ob name;
-  jx_ob node; 
+  jx_ob args;
   jx_ob code;
 };
 
@@ -1583,25 +1583,13 @@ JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
     jx_ob_not_weak_with_ob( jx__code_exec(node,code) ): jx_ob_copy(code);
 }
 
+jx_ob jx__hash_copy(jx_hash * hash);
 JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
 {
-  jx_ob payload_ident = jx_ob_from_ident("_");
-  if(jx_hash_check(fn->node)) {
-    /* standard functions run inside their own node namespace (and
-       thus can potentially be concurrent) */
-    jx_ob inv_node = jx_ob_copy(fn->node);
-    jx_ob result = JX_OB_NULL;
-    if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
-      if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
-        result = jx_code_eval(inv_node,fn->code);
-      } else { /* real function -> use exec */
-        result = jx_code_exec(inv_node,fn->code);
-      }
-    }
-    jx_ob_free(inv_node);
-    return result;
-  } else {
-    /* inner functions run within the host node namespace */
+  jx_ob args = fn->args;
+  if(jx_null_check(args)) {
+    jx_ob payload_ident = jx_ob_from_ident("_");
+      /* inner functions run within the host node namespace */
     jx_ob saved_payload = jx_hash_remove(node, payload_ident);
     if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
       jx_ob result;
@@ -1618,6 +1606,91 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
       jx_hash_set(node, payload_ident, saved_payload);
       return jx_ob_from_null();
     }
+  } else if(jx_hash_check(args)) { /* simply namespace for args */
+    /* standard functions run inside their own node namespace (and
+       thus can potentially be concurrent) */
+    jx_ob payload_ident = jx_ob_from_ident("_");
+    jx_ob inv_node = jx_ob_copy(args);
+    jx_ob result = JX_OB_NULL;
+    if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
+      if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
+        result = jx_code_eval(inv_node,fn->code);
+      } else { /* real function -> use exec */
+        result = jx_code_exec(inv_node,fn->code);
+      }
+    }
+    jx_ob_free(inv_node);
+    return result;
+  } else if(jx_list_check(args)) { /* parameter list exists */
+    jx_ob ob_null = JX_OB_NULL;
+    jx_ob result;
+    jx_ob inv_node;
+    jx_list *args_list = args.data.io.list;
+    jx_ob sub_list = jx__list_borrow(args_list,0);
+    jx_ob kwd_hash = JX_OB_NULL;
+    if(jx_list_check(sub_list)) { /* [[arg1,arg2...],{arg1:def1,arg2:def2]} */
+      jx_ob kwds = jx__list_borrow(args_list,1);
+      if(jx_hash_check(kwds)) {
+        inv_node = jx__hash_copy(kwds.data.io.hash);
+      } else {
+        inv_node = jx_hash_new();
+      }
+      {
+        jx_list *args_list2 = sub_list.data.io.list;
+        jx_list *payload_list = payload.data.io.list;
+        jx_int i,size = jx_list_size(sub_list);
+        jx_int size2 = jx_list_size(payload);
+        if(size2<size) size = size2;
+        for(i=0;i<size;i++) {
+          jx_hash_set(inv_node,jx__list_borrow(args_list2,i),
+                      jx__list_swap(payload_list,i, ob_null));
+        }
+        if(size2>size) { /* keyword args also provided in payload? */
+          kwd_hash = jx__list_borrow(payload_list,size);
+        }
+      }
+      jx_jxon_dump(stdout,"args",sub_list);
+      jx_jxon_dump(stdout,"payload",payload);
+    } else { /* only positional arguments */
+      jx_list *args_list = args.data.io.list;
+      jx_list *payload_list = payload.data.io.list;
+      jx_int i,size = jx_list_size(args);
+      jx_int size2 = jx_list_size(payload);
+      inv_node = jx_hash_new();
+      for(i=0;i<size;i++) {
+        jx_hash_set(inv_node,jx__list_borrow(args_list,i),
+                    jx__list_swap(payload_list,i, ob_null));
+      }
+      if(size2>size) { /* keyword args also provided in payload? */
+        kwd_hash = jx__list_borrow(payload_list,size);
+      }
+    }
+    /* process keyword argument hash (THIS STRATEGY WILL CHANGE) */
+    if(jx_hash_check(kwd_hash)) {
+      jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
+      if(jx_list_check(kwd_list)) {
+        jx_list *args_list3 = kwd_list.data.io.list;
+        jx_int i,size3 = jx__list_size(args_list3);
+        for(i=0;i<size3;i+=2) {
+          jx_hash_set(inv_node,jx__list_swap(args_list3,i, ob_null),
+                      jx__list_swap(args_list3,i+1, ob_null));
+        }
+      }
+      jx_ob_free(kwd_list);
+    }
+
+    jx_jxon_dump(stdout,"inv_node",inv_node);
+    if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
+      result = jx_code_eval(inv_node,fn->code);
+    } else { /* real function -> use exec */
+      result = jx_code_exec(inv_node,fn->code);
+    }
+    jx_ob_free(payload);
+    jx_ob_free(inv_node);
+    return result;
+  } else {
+    /* primitive as argument list? what does that mean? */
+    return jx_ob_from_null();
   }
 }
 #endif

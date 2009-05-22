@@ -63,11 +63,11 @@ int main(int argc, char **argv)
       jx_ob_free(jxon);
     }
     {
-      jx_ob source = jx_ob_from_jxon_str("[ [ my_fn ] ]");
+      jx_ob source = jx_ob_from_jxon_str("[ my_fn ]");
       jx_ob code = jx_code_bind_with_source(builtins, source);
       {
         jx_ob jxon = jx_ob_to_jxon(code);
-        printf("# %s\n",jx_ob_as_str(&jxon));
+        printf("# eval: %s\n",jx_ob_as_str(&jxon));
         P1("0 == %d",jx_ob_free(jxon));
       }
       {
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
         jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
-          printf("# %s\n",jx_ob_as_str(&jxon));
+          printf("# exec: %s\n",jx_ob_as_str(&jxon));
           P1("0 == %d",jx_ob_free(jxon));
         }
         {

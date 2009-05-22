@@ -1686,7 +1686,7 @@ jx_ob jx_hash_new_with_flags(jx_int flags)
   return result;
 }
 
-static jx_ob jx__hash_copy(jx_hash * hash)
+jx_ob jx__hash_copy(jx_hash * hash)
 {
   jx_ob result = jx_hash_new();
   if(result.meta.bits & JX_META_BIT_HASH) {
@@ -3434,7 +3434,7 @@ jx_ob jx__builtin_copy(jx_ob ob)
   } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
     jx_function *fn = ob.data.io.function;
     return jx_function_new_with_def(jx_ob_copy(fn->name), 
-                                    jx_ob_copy(fn->node), 
+                                    jx_ob_copy(fn->args), 
                                     jx_ob_copy(fn->code));
   }
   return result;
@@ -3603,12 +3603,12 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 
 /* functions */
 
-jx_ob jx_function_new_with_def(jx_ob name, jx_ob node, jx_ob code)
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob code)
 {
   jx_ob result = JX_OB_NULL;
   jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
   if(fn) {
-    fn->node = node;
+    fn->args = args;
     fn->name = name;
     fn->code = code;
     result.data.io.function = fn;
@@ -3625,7 +3625,7 @@ jx_ob jx_function_to_impl(jx_ob ob)
     jx_function *fn = ob.data.io.function;  
     jx_ob result = jx_list_new_with_size(3);
     jx_list_replace(result, 0, jx_ob_copy(fn->name));
-    jx_list_replace(result, 1, jx_ob_copy(fn->node));
+    jx_list_replace(result, 1, jx_ob_copy(fn->args));
     jx_list_replace(result, 2, jx_ob_copy(fn->code));
     return result;
   }
@@ -3668,7 +3668,7 @@ jx_status jx__ob_free(jx_ob ob)
         } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
           jx_function *fn = ob.data.io.function;
           jx_ob_free(fn->name);
-          jx_ob_free(fn->node);
+          jx_ob_free(fn->args);
           jx_ob_free(fn->code);
           jx_free(fn);
         }
