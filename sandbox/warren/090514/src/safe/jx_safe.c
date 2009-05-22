@@ -86,6 +86,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
 
   ok = jx_declare(ok,namespace,"list_get", JX_BUILTIN_LIST_GET);
   ok = jx_declare(ok,namespace,"append", JX_BUILTIN_APPEND);
+  ok = jx_declare(ok,namespace,"extend", JX_BUILTIN_EXTEND);
   ok = jx_declare(ok,namespace,"insert", JX_BUILTIN_INSERT);
   ok = jx_declare(ok,namespace,"replace", JX_BUILTIN_REPLACE);
   ok = jx_declare(ok,namespace,"list_remove", JX_BUILTIN_LIST_REMOVE);

@@ -891,7 +891,21 @@ static void jx__list_make_strong(jx_list * I)
     jx_ob *ob = I->data.ob_vla;
     for(i = 0; i < size; i++) {
       if(ob->meta.bits & JX_META_BIT_GC) {
-        *ob = jx_ob_strong_with_ob(*ob);
+        *ob = jx_ob_make_strong_with_ob(*ob);
+      }
+      ob++;
+    }
+  }
+}
+
+static void jx__list_only_strong(jx_list * I)
+{
+  if(!I->packed_meta_bits) {     
+    jx_int i, size = jx_vla_size(&I->data.ob_vla);
+    jx_ob *ob = I->data.ob_vla;
+    for(i = 0; i < size; i++) {
+      if(ob->meta.bits & JX_META_BIT_GC) {
+        *ob = jx_ob_not_weak_with_ob(*ob);
       }
       ob++;
     }
@@ -1389,11 +1403,11 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
     jx_int list2_size = jx__list_size(list2);
     if(!list1_size) {
       list1->packed_meta_bits = 0;
-      jx_vla_free(&list1);
+      jx_vla_free(&list1->data.vla);
     }
     if(!list2_size) {
       list2->packed_meta_bits = 0;
-      jx_vla_free(&list2);
+      jx_vla_free(&list2->data.vla);
     }
     if(list1_size && list2_size) {
       if(list1->packed_meta_bits != list2->packed_meta_bits) {
@@ -1617,7 +1631,19 @@ static void jx__hash_make_strong(jx_hash * I)
   jx_ob *ob = I->key_value;
   for(i = 0; i < size; i++) {
     if(ob->meta.bits & JX_META_BIT_GC) {
-      *ob = jx_ob_strong_with_ob(*ob);
+      *ob = jx_ob_make_strong_with_ob(*ob);
+    }
+    ob++;
+  }
+}
+
+static void jx__hash_only_strong(jx_hash * I)
+{ 
+  jx_int i, size = jx_vla_size(&I->key_value);
+  jx_ob *ob = I->key_value;
+  for(i = 0; i < size; i++) {
+    if(ob->meta.bits & JX_META_BIT_GC) {
+      *ob = jx_ob_only_strong_with_ob(*ob);
     }
     ob++;
   }
@@ -3355,7 +3381,7 @@ jx_ob jx__ob_copy(jx_ob ob)
   return jx_ob_from_null();
 }
 
-jx_ob jx__ob_strong_with_ob(jx_ob ob)
+jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_WEAK_REF) {
@@ -3384,6 +3410,24 @@ jx_ob jx__ob_strong_with_ob(jx_ob ob)
       break;
     case JX_META_BIT_HASH:
       jx__hash_make_strong(ob.data.io.hash);
+      break;
+    }
+  }
+  return ob;
+}
+
+jx_ob jx__ob_only_strong_with_ob(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits;
+  if(bits & JX_META_BIT_WEAK_REF) {
+    ob = jx_null_with_ob(ob);
+  } else {
+    switch (bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_LIST:
+      jx__list_only_strong(ob.data.io.list);
+      break;
+    case JX_META_BIT_HASH:
+      jx__hash_only_strong(ob.data.io.hash); /* TO DO fix resuting corruption of null entry */
       break;
     }
   }

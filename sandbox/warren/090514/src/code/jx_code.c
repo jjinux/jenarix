@@ -54,6 +54,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_LAMBDA  7
 #define JX_BUILTIN_APPLY   8
 #define JX_BUILTIN_INVOKE  9
+#define JX_BUILTIN_SECURE  10
 
 #define JX_BUILTIN_SPECIAL_FORMS_LIMIT 16
 
@@ -69,6 +70,7 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
 {
   jx_bool ok = JX_TRUE;
 
+  ok = jx_declare(ok, namespace, "nop", JX_BUILTIN_NOP);
   ok = jx_declare(ok, namespace, "if", JX_BUILTIN_IF);
   ok = jx_declare(ok, namespace, "while", JX_BUILTIN_WHILE);
   ok = jx_declare(ok, namespace, "do", JX_BUILTIN_DO);
@@ -78,7 +80,7 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "lambda", JX_BUILTIN_LAMBDA);
   ok = jx_declare(ok, namespace, "apply", JX_BUILTIN_APPLY);
   ok = jx_declare(ok, namespace, "invoke", JX_BUILTIN_INVOKE);
-  ok = jx_declare(ok, namespace, "nop", JX_BUILTIN_NOP);
+  ok = jx_declare(ok, namespace, "secure", JX_BUILTIN_SECURE);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
@@ -91,6 +93,97 @@ jx_status jx_code_expose_secure_builtins(jx_ob namespace)
   ok = ok && jx_ok(jx_code_expose_special_forms(namespace));
 
   return ok ? JX_SUCCESS : JX_FAILURE;
+}
+
+/* this crucial transformation wraps secure branches containing borrow
+   operations (weak references), and replaces insecure borrow
+   operations with get operations */
+
+static jx_ob jx__code_secure_with_source(jx_ob source,jx_int level)
+{
+  switch (JX_META_MASK_TYPE_BITS & source.meta.bits) {
+  case JX_META_BIT_LIST:
+    if(source.data.io.list->packed_meta_bits) { /* packed lists cannot contain code */
+      return source;
+    } else {
+      jx_int size = jx_list_size(source);
+      jx_ob result = jx_list_new_with_size(size);
+      jx_ob list = result;
+      jx_bool must_secure = JX_FALSE;
+      jx_bool allow_borrow = JX_FALSE;
+      jx_ob first = jx_list_borrow(source,0);
+      if(jx_builtin_selector_check(first) && (first.data.io.int_ != JX_BUILTIN_INVOKE)) {
+        allow_borrow = JX_TRUE;
+      }
+      while(size--) {
+        jx_ob entry1 = jx_list_remove(source,size);
+        if((!level) && 
+           jx_builtin_selector_check(entry1) && 
+           (entry1.data.io.int_ == JX_BUILTIN_BORROW)) {
+          jx_ob_replace(&entry1,jx_builtin_new_from_selector(JX_BUILTIN_GET));
+        } else if(jx_list_check(entry1)) {
+          jx_int size1 = jx_list_size(entry1);
+          while(size1--) {
+            jx_ob entry2 = jx_list_borrow(entry1,size1);              
+            if((!level) && 
+               jx_builtin_selector_check(entry2) && 
+               (entry2.data.io.int_ == JX_BUILTIN_BORROW)) {
+              jx_list_replace(entry1,size1,jx_builtin_new_from_selector(JX_BUILTIN_GET));
+            } else if(jx_list_check(entry2)) {
+              jx_int size2 = jx_list_size(entry2);
+              while(size2--) {
+                jx_ob entry3 = jx_list_borrow(entry2,size2);              
+                if(jx_builtin_selector_check(entry3) && 
+                   (entry3.data.io.int_ == JX_BUILTIN_BORROW)) {
+                  if(allow_borrow) {
+                    must_secure = JX_TRUE; 
+                  } else {
+                    jx_list_replace(entry2,size2,jx_builtin_new_from_selector(JX_BUILTIN_GET));
+                  }
+                }
+              }
+            }
+          }
+        }
+        jx_list_replace(list, size,jx__code_secure_with_source(entry1,level+1));
+      }
+      if(must_secure) {
+        result = jx_list_new_with_size(2);
+        jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_SECURE));
+        jx_list_replace(result, 1, list);
+      }
+      jx_ob_free(source);
+      return result;
+    }
+    break;
+  case JX_META_BIT_BUILTIN:
+  case JX_META_BIT_IDENT:
+  case JX_META_BIT_BOOL:
+  case JX_META_BIT_FLOAT:
+  case JX_META_BIT_INT:
+  case JX_META_BIT_STR:
+    return source;
+    break;
+  case JX_META_BIT_HASH:
+    {
+      jx_ob result = jx_hash_new();
+      jx_ob list = jx_list_new_with_hash(source);       /* destroys source */
+      jx_int size = jx_list_size(list);
+      while(size) {
+        jx_ob key = jx_list_remove(list, 0);
+        jx_ob value = jx_list_remove(list, 0);
+        size = size - 2;
+        jx_hash_set(result, key, jx__code_secure_with_source(value,level+1));
+      }
+      jx_ob_free(list);
+      return result;
+    }
+    break;
+   default:                     
+    jx_ob_free(source);
+    return jx_ob_from_null();
+    break;
+  }
 }
 
 /* consume source & return builtin-bound executable */
@@ -117,12 +210,12 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
           } else {
             result = jx_list_new_with_size(2);
             jx_list_replace(result, 0, builtin);
-            jx_list_replace(result, 1, list);
+            jx_list_replace(result, 1, list); /* NOTE: list aliases result */
           }
         } else {                /* unknown identifier (fall back upon late binding) */
           result = jx_list_new_with_size(2);
           jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_INVOKE));
-          jx_list_replace(result, 1, list);
+          jx_list_replace(result, 1, list); /* NOTE: list aliases result */
         }
       } else if(jx_builtin_check(ident) && ident.data.io.int_ == JX_BUILTIN_NOP) {
         jx_ob_free(result);
@@ -180,9 +273,22 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_INVOKE));
       jx_list_replace(result, 1, source);
     }
-    return result;
+    return jx__code_secure_with_source(result,0);
   } else
-    return jx__code_bind_with_source(namespace, source);
+    return jx__code_secure_with_source
+      ( jx__code_bind_with_source(namespace, source),0);
+}
+
+JX_INLINE jx_ob jx_code_eval_allow_weak(jx_ob node, jx_ob expr)
+{
+  return (expr.meta.bits & JX_META_BIT_GC) ?
+    jx__code_eval(node,expr) : expr;
+}
+
+JX_INLINE jx_ob jx_code_exec_allow_weak(jx_ob node, jx_ob expr)
+{
+  return (expr.meta.bits & JX_META_BIT_GC) ?
+    jx__code_eval(node,expr) : expr;
 }
 
 jx_ob jx__code_eval(jx_ob node, jx_ob expr)
@@ -201,158 +307,169 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
           if(bits & JX_META_BIT_BUILTIN_SELECTOR) {
             if(builtin.data.io.int_ < JX_BUILTIN_SPECIAL_FORMS_LIMIT) {
               jx_ob payload = jx__list_borrow(expr_list, 1);
-              if(jx_list_check(payload)) {
-                switch (builtin.data.io.int_) {
-                case JX_BUILTIN_IF:
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob cond = jx_code_eval(node, jx__list_borrow(payload_list, 1));
-                    if(jx_ob_as_bool(cond)) {
-                      jx_ob_replace(&result,
-                                    jx_code_exec(node, jx__list_borrow(payload_list, 2)));
-                    } else {
-                      jx_ob_replace(&result,
-                                    jx_code_exec(node, jx__list_borrow(payload_list, 3)));
-                    }
-                    jx_ob_free(cond);
-                  }
-                  break;
-                case JX_BUILTIN_WHILE:
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob cond = jx__list_borrow(payload_list, 1);
-                    jx_ob body = jx__list_borrow(payload_list, 2);
-                    while(1) {
-                      jx_ob test = jx_code_eval(node, cond);
-                      if(jx_ob_as_bool(test)) {
-                        jx_ob_free(test);
-                        jx_ob_replace(&result, jx_code_exec(node, body));
-                      } else {
-                        jx_ob_free(test);
-                        break;
-                      }
-                    }
-                  }
-                  break;
-                case JX_BUILTIN_DO:
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob body = jx__list_borrow(payload_list, 1);
-                    jx_ob cond = jx__list_borrow(payload_list, 2);
-                    jx_bool keep_going = JX_TRUE;
-                    while(keep_going) {
-                      jx_ob_replace(&result, jx_code_exec(node, body));
-                      jx_ob test = jx_code_eval(node, cond);
-                      keep_going = jx_ob_as_bool(test);
-                      jx_ob_free(test);
-                    }
-                  }
-                  break;
-                case JX_BUILTIN_FOR:   /* [for x [get x] [add x 1] [get x]] */
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob cond = jx__list_borrow(payload_list, 2);
-                    jx_ob step = jx__list_borrow(payload_list, 3);
-                    jx_ob body = jx__list_borrow(payload_list, 4);
-                    jx_ob_free(jx_code_eval(node, jx__list_borrow(payload_list, 1)));
-                    while(1) {
-                      jx_ob test = jx_code_eval(node, cond);
-                      if(jx_ob_as_bool(test)) {
-                        jx_ob_free(test);
-                        jx_ob_replace(&result, jx_code_exec(node, body));
-                      } else {
-                        jx_ob_free(test);
-                        break;
-                      }
-                      jx_ob_free(jx_code_eval(node, step));
-                    }
-                  }
-                  break;
-                case JX_BUILTIN_DEF:   /* [def name node code] */
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob ident = jx_code_eval(node, jx__list_borrow(payload_list, 1));
-                    jx_ob inv_node = jx_code_eval(node, jx__list_borrow(payload_list, 2));
-                    jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 3));
-                    jx_ob function = jx_function_new_with_def(ident, inv_node, code);
+              switch (builtin.data.io.int_) {
+              case JX_BUILTIN_IF:
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob cond = jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1));
+                  if(jx_ob_as_bool(cond)) {
                     jx_ob_replace(&result,
-                                  jx_ob_from_status(jx_hash_set(node, ident, function)));
+                                  jx_code_exec_allow_weak(node, jx__list_borrow(payload_list, 2)));
+                  } else {
+                    jx_ob_replace(&result,
+                                  jx_code_exec_allow_weak(node, jx__list_borrow(payload_list, 3)));
                   }
-                  break;
-                case JX_BUILTIN_LAMBDA:        /* [lambda node code] */
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob inv_node = jx_code_eval(node, jx__list_borrow(payload_list, 1));
-                    jx_ob code = jx_ob_copy(jx__list_borrow(payload_list, 2));
-                    jx_ob function = jx_function_new_with_def(jx_ob_from_null(),
-                                                              inv_node, code);
-                    jx_ob_replace(&result, function);
-                  }
-                  break;
-                case JX_BUILTIN_APPLY: /* [lambda node code] */
-                  {
-                    jx_list *payload_list = payload.data.io.list;
-                    jx_ob fn = jx_code_eval(node, jx__list_borrow(payload_list, 1));
-                    if(jx_builtin_any_fn_check(fn)) {
-                      jx_ob e_payload =
-                        jx_code_eval(node, jx__list_borrow(payload_list, 2));
-                      jx_ob frame = jx_list_new_with_size(2);
-                      jx_list_replace(frame, 0, fn);
-                      jx_list_replace(frame, 1, e_payload);
-                      jx_ob_replace(&result, jx_code_eval(node, frame));
-                      jx_ob_free(frame);
-                    } else {    /* trying to apply a non-function */
-                      jx_ob_replace(&result, jx_ob_from_null());
-                      jx_ob_free(fn);
+                  jx_ob_free(cond);
+                } else
+                  jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_WHILE:
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob cond = jx__list_borrow(payload_list, 1);
+                  jx_ob body = jx__list_borrow(payload_list, 2);
+                  while(1) {
+                    jx_ob test = jx_code_eval_allow_weak(node, cond);
+                    if(jx_ob_as_bool(test)) {
+                      jx_ob_free(test);
+                      jx_ob_replace(&result, jx_code_exec_allow_weak(node, body));
+                    } else {
+                      jx_ob_free(test);
+                      break;
                     }
                   }
-                  break;
-                case JX_BUILTIN_INVOKE:
-                  {
-                    jx_ob e_payload = jx_code_eval(node, jx__list_borrow(expr_list, 1));
-                    if(jx_list_check(e_payload)) {
-                      jx_list *e_payload_list = e_payload.data.io.list;
-                      jx_ob ident = jx__list_borrow(e_payload_list, 0);
-                      jx_ob fn;
-                      if(jx_hash_peek(&fn, node, ident)) {
-                        if(jx_builtin_any_fn_check(fn)) {
-                          jx_ob frame = jx_list_new_with_size(2);
-                          jx_list_replace(frame, 0, jx_ob_take_weak_ref(fn));
-                          jx_list_replace(frame, 1, e_payload);
-                          jx_ob_replace(&result, jx_code_eval(node, frame));
-                          jx_ob_free(frame);
-                        } else {
-                          jx_ob_replace(&result, jx_ob_copy(fn));
-                          jx_ob_free(e_payload);
-                        }
+                } else
+                  jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_DO:
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob body = jx__list_borrow(payload_list, 1);
+                  jx_ob cond = jx__list_borrow(payload_list, 2);
+                  jx_bool keep_going = JX_TRUE;
+                  while(keep_going) {
+                    jx_ob_replace(&result, jx_code_exec_allow_weak(node, body));
+                    jx_ob test = jx_code_eval_allow_weak(node, cond);
+                    keep_going = jx_ob_as_bool(test);
+                    jx_ob_free(test);
+                  }
+                } else
+                    jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_FOR:   /* [for x [get x] [add x 1] [get x]] */
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob cond = jx__list_borrow(payload_list, 2);
+                  jx_ob step = jx__list_borrow(payload_list, 3);
+                  jx_ob body = jx__list_borrow(payload_list, 4);
+                  jx_ob_free(jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1)));
+                  while(1) {
+                    jx_ob test = jx_code_eval_allow_weak(node, cond);
+                    if(jx_ob_as_bool(test)) {
+                      jx_ob_free(test);
+                      jx_ob_replace(&result, jx_code_exec_allow_weak(node, body));
+                    } else {
+                      jx_ob_free(test);
+                      break;
+                    }
+                    jx_ob_free(jx_code_eval_allow_weak(node, step));
+                  }
+                } else
+                    jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_DEF:   /* [def name node code] */
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob ident = jx_ob_only_strong_with_ob
+                    (jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1)));
+                  jx_ob inv_node = jx_ob_only_strong_with_ob
+                    (jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 2)));
+                  jx_ob code = jx_ob_only_strong_with_ob
+                    (jx_ob_copy(jx__list_borrow(payload_list, 3)));
+                  jx_ob function = jx_function_new_with_def(ident, inv_node, code);
+                  jx_ob_replace(&result,
+                                jx_ob_from_status(jx_hash_set(node, ident, function)));
+                } else
+                    jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_LAMBDA:        /* [lambda node code] */
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob inv_node = jx_ob_only_strong_with_ob
+                    (jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1)));
+                  jx_ob code = jx_ob_only_strong_with_ob
+                    (jx_ob_copy(jx__list_borrow(payload_list, 2)));
+                  jx_ob function = jx_function_new_with_def(jx_ob_from_null(),
+                                                            inv_node, code);
+                  jx_ob_replace(&result, function);
+                } else
+                    jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_APPLY: /* [lambda node code] */
+                if(jx_list_check(payload)) {
+                  jx_list *payload_list = payload.data.io.list;
+                  jx_ob fn = jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 1));
+                  if(jx_builtin_any_fn_check(fn)) {
+                    jx_ob e_payload = jx_code_eval_allow_weak(node, jx__list_borrow(payload_list, 2));
+                    jx_ob frame = jx_list_new_with_size(2);
+                    jx_list_replace(frame, 0, fn);
+                    jx_list_replace(frame, 1, e_payload);
+                    jx_ob_replace(&result, jx_code_eval_allow_weak(node, frame));
+                    jx_ob_free(frame);
+                  } else {    /* trying to apply a non-function */
+                    jx_ob_replace_with_null(&result);
+                    jx_ob_free(fn);
+                  }
+                } else
+                    jx_ob_replace_with_null(&result);
+                break;
+              case JX_BUILTIN_INVOKE:
+                {
+                  jx_ob e_payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
+                  if(jx_list_check(e_payload)) {
+                    jx_list *e_payload_list = e_payload.data.io.list;
+                    jx_ob ident = jx__list_borrow(e_payload_list, 0);
+                    jx_ob fn;
+                    if(jx_hash_peek(&fn, node, ident)) {
+                      if(jx_builtin_any_fn_check(fn)) {
+                        jx_ob frame = jx_list_new_with_size(2);
+                        jx_list_replace(frame, 0, jx_ob_take_weak_ref(fn));
+                        jx_list_replace(frame, 1, e_payload);
+                        jx_ob_replace(&result, jx_code_eval_allow_weak(node, frame));
+                        jx_ob_free(frame);
                       } else {
-                        jx_ob_replace(&result, e_payload);
-                      }
-                    } else if(jx_ident_check(e_payload)) {
-                      jx_ob value;
-                      if(jx_hash_peek(&value, node, e_payload)) {
-                        jx_ob_replace(&result, jx_ob_copy(value));
+                        jx_ob_replace(&result, jx_ob_copy(fn));
                         jx_ob_free(e_payload);
-                      } else {
-                        jx_ob_replace(&result, e_payload);
                       }
                     } else {
                       jx_ob_replace(&result, e_payload);
                     }
+                  } else if(jx_ident_check(e_payload)) {
+                    jx_ob value;
+                    if(jx_hash_peek(&value, node, e_payload)) {
+                      jx_ob_replace(&result, jx_ob_copy(value));
+                      jx_ob_free(e_payload);
+                    } else {
+                      jx_ob_replace(&result, e_payload);
+                    }
+                  } else {
+                    jx_ob_replace(&result, e_payload);
                   }
-                  break;
-                case JX_BUILTIN_QUOTE:
-                  jx_ob_replace(&result, jx_ob_copy(payload));
-                  break;
-                default:
-                  jx_ob_replace(&result, jx_code_eval(node, payload));
-                  break;
                 }
-              } else {
-                jx_ob_replace(&result, jx_ob_from_null());
+                break;
+              case JX_BUILTIN_SECURE:
+                /* prevents weak references from escaping the local frame */
+                jx_ob_replace(&result, jx_ob_only_strong_with_ob(jx_code_eval_allow_weak(node, payload)));
+                break;
+              case JX_BUILTIN_QUOTE:
+                jx_ob_replace(&result, jx_ob_copy(payload));
+                break;
+              default:
+                jx_ob_replace(&result, jx_code_eval_allow_weak(node, payload));
+                break;
               }
             } else {
-              jx_ob payload = jx_code_eval(node, jx__list_borrow(expr_list, 1));
+              jx_ob payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
               switch (builtin.data.io.int_) {
               case JX_BUILTIN_SET:
                 result = jx_safe_set(node, payload);
@@ -360,16 +477,15 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_GET:
                 result = jx_safe_get(node, payload);
                 break;
-              case JX_BUILTIN_BORROW:
-                result = jx_safe_borrow(node, payload);
-                break;
               case JX_BUILTIN_TAKE:
                 result = jx_safe_take(node, payload);
+                break;
+              case JX_BUILTIN_BORROW:
+                result = jx_safe_borrow(node, payload);
                 break;
               case JX_BUILTIN_DEL:
                 result = jx_safe_del(node, payload);
                 break;
-
               case JX_BUILTIN_SIZE:
                 result = jx_safe_size(node, payload);
                 break;
@@ -445,6 +561,9 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_APPEND:
                 result = jx_safe_append(node, payload);
                 break;
+              case JX_BUILTIN_EXTEND:
+                result = jx_safe_extend(node, payload);
+                break;
               case JX_BUILTIN_INSERT:
                 result = jx_safe_insert(node, payload);
                 break;
@@ -468,13 +587,13 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               jx_ob_free(payload);
             }
           } else if(bits & JX_META_BIT_BUILTIN_NATIVE_FN) {
-            jx_ob payload = jx_code_eval(node, jx__list_borrow(expr_list, 1));
+            jx_ob payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
             jx_native_fn fn = builtin.data.io.native_fn;
             if(fn) {
               jx_ob_replace(&result, fn(node, payload));        /* consumes payload */
             }
           } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
-            jx_ob payload = jx_code_eval(node, jx__list_borrow(expr_list, 1));
+            jx_ob payload = jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, 1));
             jx_function *fn = builtin.data.io.function;
             jx_ob_replace(&result, jx_function_call(fn, node, payload));        /* consumes payload */
           } else {
@@ -488,7 +607,7 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
             jx_list *result_list = result.data.io.list;
             while(i < size) {
               jx_ob_replace(result_list->data.ob_vla + i,
-                            jx_code_eval(node, jx__list_borrow(expr_list, i)));
+                            jx_code_eval_allow_weak(node, jx__list_borrow(expr_list, i)));
               i++;
             }
           }
@@ -506,7 +625,7 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
         jx_ob key = jx_list_remove(list, 0);
         jx_ob value = jx_list_remove(list, 0);
         size = size - 2;
-        jx_hash_set(result, key, jx_code_eval(node, value));
+        jx_hash_set(result, key, jx_code_eval_allow_weak(node, value));
         jx_ob_free(value);
       }
       jx_ob_free(list);
@@ -531,12 +650,13 @@ jx_ob jx__code_exec(jx_ob node, jx_ob code)
   jx_list *code_list = code.data.io.list;
   jx_ob inst = jx__list_borrow(code_list, 0);
   if(jx_builtin_any_fn_check(inst)) {   /* list with a single builtin instruction */
-    jx_ob_replace(&result, jx_code_eval(node, code));
+    printf("here\n");
+    jx_ob_replace(&result, jx_code_eval_allow_weak(node, code));
   } else {
     for(pc = 0; pc < size; pc++) {
       if(pc)
         inst = jx__list_borrow(code_list, pc);
-      jx_ob_replace(&result, jx_code_eval(node, inst));
+      jx_ob_replace(&result, jx_code_eval_allow_weak(node, inst));
     }
   }
   return result;

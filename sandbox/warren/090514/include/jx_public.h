@@ -197,7 +197,20 @@ jx_bool jx_ob_read_only(jx_ob ob);
 jx_ob jx_ob_copy(jx_ob ob); /* always deep / recursive; copies of
                                shared (read only) containers are not shared */
 
-jx_ob jx_ob_strong_with_ob(jx_ob ob); /* eliminates weak references with deep copies */
+/* coping with weak references */
+
+jx_ob jx_ob_not_weak_with_ob(jx_ob ob); /* filters out weak reference (root only) */
+
+jx_ob jx_ob_only_strong_with_ob(jx_ob ob); /* replaces weak references with null */
+jx_ob jx_ob_make_strong_with_ob(jx_ob ob); /* replaces weak references with deep copies */
+
+/* replacing, swapping */
+
+jx_status jx_ob_replace(jx_ob *ob_ptr,jx_ob ob);
+jx_status jx_ob_replace_with_null(jx_ob *ob_ptr);
+
+jx_ob jx_ob_swap(jx_ob *ob_ptr,jx_ob ob);
+jx_ob jx_ob_swap_with_null(jx_ob *ob_ptr);
 
 /* convenient method for freeing and re-initializing */
 
@@ -239,6 +252,9 @@ jx_status jx_list_combine(jx_ob list1, jx_ob list2);    /* takes ownership of an
 jx_ob jx_list_borrow(jx_ob list, jx_int index); /* borrows list entry */
 jx_ob jx_list_get(jx_ob list, jx_int index); /* copies list entry (returns ownership) */
 jx_ob jx_list_remove(jx_ob list, jx_int index); /* returns ownership of removed entry */
+jx_ob jx_list_swap_with_null(jx_ob list, jx_int index); /* return ownership of swapped-out object */
+jx_ob jx_list_swap(jx_ob list, jx_int index, jx_ob ob); /* return ownership of swapped-out object */
+
 jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
 
 /* homogenous lists with variable length arrays (vla's)  */

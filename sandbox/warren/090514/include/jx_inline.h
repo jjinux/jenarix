@@ -370,11 +370,31 @@ JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
     jx__ob_copy(ob) : ob;
 }
 
-jx_ob jx__ob_strong_with_ob(jx_ob ob);
-JX_INLINE jx_ob jx_ob_strong_with_ob(jx_ob ob)
+JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_ob_free(ob);
+  return result;
+}
+
+JX_INLINE jx_ob jx_ob_not_weak_with_ob(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_WEAK_REF) ?
+    jx_null_with_ob(ob) : ob;
+}
+
+jx_ob jx__ob_make_strong_with_ob(jx_ob ob);
+JX_INLINE jx_ob jx_ob_make_strong_with_ob(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
-    jx__ob_strong_with_ob(ob) : ob;
+    jx__ob_make_strong_with_ob(ob) : ob;
+}
+
+jx_ob jx__ob_only_strong_with_ob(jx_ob ob);
+JX_INLINE jx_ob jx_ob_only_strong_with_ob(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_GC) ?
+    jx__ob_only_strong_with_ob(ob) : ob;
 }
 
 JX_INLINE jx_ob jx_ob_from_null(void)
@@ -410,13 +430,6 @@ JX_INLINE jx_ob jx_ob_from_float(jx_float float_)
 {
   jx_ob result = JX_OB_FLOAT;
   result.data.io.float_ = float_;
-  return result;
-}
-
-JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
-{
-  jx_ob result = JX_OB_NULL;
-  jx_ob_free(ob);
   return result;
 }
 
@@ -596,11 +609,33 @@ JX_INLINE jx_bool jx_function_check(jx_ob ob)
 
 /* convenience function */
 
-JX_INLINE jx_status jx_ob_replace(jx_ob *ob_ptr,jx_ob ob)
+JX_INLINE jx_ob jx_ob_swap(jx_ob *ob_ptr,jx_ob ob)
 {
-  jx_status result = jx_ob_free(*ob_ptr);
+  jx_ob result = *ob_ptr;
   *ob_ptr = ob;
   return result;
+}
+
+JX_INLINE jx_ob jx_ob_swap_with_null(jx_ob *ob_ptr)
+{
+  jx_ob result = *ob_ptr;
+  *ob_ptr = jx_ob_from_null();
+  return result;
+}
+
+
+JX_INLINE jx_status jx_ob_replace_with_null(jx_ob *ob_ptr)
+{
+  jx_status status = jx_ob_free(*ob_ptr);
+  *ob_ptr = jx_ob_from_null();
+  return status;
+}
+
+JX_INLINE jx_status jx_ob_replace(jx_ob *ob_ptr, jx_ob ob)
+{
+  jx_status status = jx_ob_free(*ob_ptr);
+  *ob_ptr = ob;
+  return status;
 }
 
 JX_INLINE jx_bool jx_ok(jx_status status)
@@ -865,6 +900,44 @@ JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
     jx__list_borrow(list.data.io.list, index) :
+    jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_swap(jx_list * I, jx_int index, jx_ob ob)
+{
+  if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
+    if(!I->packed_meta_bits) {
+      return jx_ob_swap(I->data.ob_vla + index, ob);
+    } else {
+      if(I->data.vla && (I->packed_meta_bits != ob.meta.bits)) {
+        if(!jx_ok(jx__list_unpack_data(I)))
+          return jx_ob_from_null();
+      }
+      if(I->data.vla) {
+        if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
+          jx_ob result = jx__list_get_packed_data(I, index);
+          jx__list_set_packed_data(I, index, ob);
+          return result;
+        } else if(!I->packed_meta_bits) {
+          return jx_ob_swap(I->data.ob_vla + index, ob);
+        }
+      }
+    }
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_list_swap_with_null(jx_ob list, jx_int index)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_swap(list.data.io.list, index, jx_ob_from_null()) :
+    jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_list_swap(jx_ob list, jx_int index, jx_ob ob)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_swap(list.data.io.list, index, ob) :
     jx_ob_from_null();
 }
 
@@ -1155,6 +1228,15 @@ JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
     case JX_META_BIT_STR:
       return jx__str__concat(jx_ob_as_str(&left), jx_str_len(left),
                              jx_ob_as_str(&right), jx_str_len(right));
+      break;
+    case JX_META_BIT_LIST:
+      {
+        jx_ob result = jx_ob_copy(left);
+        if(!jx_ok( jx_list_combine( result, jx_ob_copy(right)) ) ) {
+          jx_ob_replace_with_null(&result);
+        }
+        return result;
+      }
       break;
     }
   } 
@@ -1455,19 +1537,18 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
   }
 }
 
-
 jx_ob jx__code_eval(jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {
   return (expr.meta.bits & JX_META_BIT_GC) ?
-    jx__code_eval(node,expr) : expr;
+    jx_ob_not_weak_with_ob( jx__code_eval(node,expr) ) : expr;
 }
 
 jx_ob jx__code_exec(jx_ob node, jx_ob code);
 JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
   return (code.meta.bits & JX_META_BIT_LIST) ?
-    jx__code_exec(node,code) : jx_ob_copy(code);
+    jx_ob_not_weak_with_ob( jx__code_exec(node,code) ): jx_ob_copy(code);
 }
 
 JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
