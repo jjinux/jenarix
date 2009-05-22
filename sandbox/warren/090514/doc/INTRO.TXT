@@ -253,38 +253,38 @@ x;
 
 # impl (function)
 
-# set (identifier) (value)
+# set (ident) (value)
 # set (hash) (key) (value)
 # set (list) (index) (value)
 
-# get (identifier) 
+# get (ident) 
 # get (list) (index)
 # get (hash) (key)
 
-# take (identifier)
+# take (ident)
 # take (list) (index)
 # take (hash) (key)
 
-# del (identifier)
+# del (ident)
 # del (list) (index)
 # del (hash) (key)
 
-# borrow (identifier)
+# borrow (ident)   <---- # hopefully this will go away!
 
-# decr (identifier)
-# incr (identifier)
+# decr (ident)
+# incr (ident)
 
-# append (list-identifier) (expr)
-# append (list) (expr)
+# append (list-ident) (expr)
+# pop (list-ident) (expr)
 
-# extend (list-identifier) (list)
-# extend (list) (list)
+# shift (list-ident) (expr)
+# unshift (list-ident) (expr)
 
-# insert (list-identifier) (index) (value)
-# insert (list) (index) (value)
-
-# resize (list-identifier) (size) (fill)
-# resize (list) (size) (fill)
+# extend (list-ident) (list)
+# insert (list-ident) (index) (value)
+# resize (list-ident) (size) (fill)
+# slice (list-ident) (size) (fill)
+# cutout (list-ident) (size) (fill)
 
 # identical (expr) (expr)
 # eq (expr) (expr)
