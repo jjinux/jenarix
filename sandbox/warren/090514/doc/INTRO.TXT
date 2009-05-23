@@ -145,6 +145,38 @@ y;
 # in the first position of a list.  Identifiers in all other positions
 # are simply resolved like normal.
 
+# THIS IS WHERE WERE PRESENTLY BREAK FROM LISP in a BIG WAY and need to 
+# think carefully about whether or not our approach makes sense.
+
+# LISP function evaluations cascade: ((fn) 1 2) will call both fn and
+# the function returned by function, and the second call will take 1 2
+# as the argument list.  In LISP, a function encountered at the first
+# position of a list is ALWAYS a function invocation.  To prevent that,
+# use of the quote operator is required.
+
+# In JXON: [[fn] 1 3] merely returns the function as the first entry
+# in the surrounding list.  That's because the ONLY automatic function
+# invocation in JXON is when an IDENTIFIER in first position RESOLVES
+# to a function.  Evaluating a list with a function in first position
+# doesn't by itself have any special meaning.  
+
+# To get a secondary evaluation in JSON, you would need to do
+# something more like: [apply [fn] [1 2]] or perhaps
+# [eval [fn] 1 2 ] 
+# behavior instead of requiring quote to disable such behavior
+
+# So a key question for JSON: Does the data-centeric nature of JSON
+# combined with our target user community (general scientists --
+# not computer scientists) justify this decidedly non-LISP-like behavior?
+
+# Speaking personally, I have never been a big fan of 'quote in LISP...
+
+# Another area of divergenge is the differential behavior of Python 
+# lambdas versus LISP lambdas.  LISP lambdas are 100% the equivalent
+# of functions whereas Python lambdas are expressions not list of
+# statements like a function.
+
+# 
 # Control flow
 
 [set x 0];

@@ -3436,6 +3436,8 @@ jx_ob jx__builtin_copy(jx_ob ob)
     return jx_function_new_with_def(jx_ob_copy(fn->name), 
                                     jx_ob_copy(fn->args), 
                                     jx_ob_copy(fn->code));
+  } else {
+    
   }
   return result;
 }

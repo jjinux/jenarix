@@ -1663,6 +1663,9 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
         if(size2>size) { /* keyword args also provided in payload? */
           kwd_hash = jx__list_borrow(payload_list,size);
         }
+      } else { 
+        /* how do we handle case when function expects multiple arguments
+           but caller only provides one? */
       }
     }
     /* process keyword argument hash (THIS STRATEGY WILL CHANGE) */
@@ -1686,7 +1689,8 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
     jx_ob_free(payload);
     jx_ob_free(inv_node);
     return result;
-  } else {
+  } else { 
+    /* arg declaration is not a list */
     jx_ob inv_node = jx_hash_new();
     jx_ob result;
     jx_hash_set(inv_node, args, payload);
