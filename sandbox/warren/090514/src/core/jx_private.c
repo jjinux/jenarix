@@ -990,6 +990,47 @@ jx_bool jx__ob_shared(jx_ob ob)
   return JX_FALSE;
 }
 
+jx_int jx__list_index(jx_list * I,jx_ob ob)
+{
+  jx_int I_size = jx__list_size(I);
+  if(I_size) {
+    if(I->packed_meta_bits) {
+      jx_int i;
+      switch (I->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
+      case JX_META_BIT_INT:
+        {
+          jx_int *I_int = I->data.int_vla;
+          jx_int target = ob.data.io.int_;
+          for(i = 0; i < I_size; i++) {
+            if(*(I_int++) == target)
+              return i;
+          }
+        }
+        return JX_TRUE;
+        break;
+      case JX_META_BIT_FLOAT:
+        {
+          jx_float *I_float = I->data.float_vla;
+          jx_float target = ob.data.io.float_;
+          for(i = 0; i < I_size; i++) {
+            if(*(I_float++) == target)
+              return i;
+          }
+        }
+        break;
+      }
+    } else {                    /* standard objects */
+      jx_int i;
+      jx_ob *I_ob = I->data.ob_vla;
+      for(i = 0; i < I_size; i++) {
+        if(jx_ob_identical(*(I_ob++), ob))
+          return 1;
+      }
+    }
+  }
+  return -1;
+}
+
 static jx_status jx__list_free(jx_list * list)
 {
   if(list->gc.shared)
@@ -1103,6 +1144,61 @@ jx_bool jx__list_equal(jx_list * left, jx_list * right)
       jx_ob *right_ob = right->data.ob_vla;
       for(i = 0; i < left_size; i++) {
         if(!jx_ob_equal(*(left_ob++), *(right_ob++)))
+          return JX_FALSE;
+      }
+      return JX_TRUE;
+    }
+  }
+  return JX_FALSE;
+}
+
+jx_bool jx__list_identical(jx_list * left, jx_list * right)
+{
+  jx_int left_size = jx__list_size(left);
+  jx_int right_size = jx__list_size(right);
+  if(left_size == right_size) {
+    if(!left_size)
+      return JX_TRUE;
+    else if(left->packed_meta_bits != right->packed_meta_bits) {
+      /* rare circumstance  -- one packed, but not other */
+      int i;
+      for(i = 0; i < left_size; i++) {
+        if(!jx_ob_identical(jx__list_borrow(left, i), jx__list_borrow(right, i)))
+          return JX_FALSE;
+      }
+      return JX_TRUE;
+    } else if(left->packed_meta_bits) {
+      jx_int i;
+      switch (left->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
+      case JX_META_BIT_INT:
+        {
+          jx_int *left_int = left->data.int_vla;
+          jx_int *right_int = right->data.int_vla;
+          for(i = 0; i < left_size; i++) {
+            if(*(left_int++) != *(right_int++))
+              return JX_FALSE;
+          }
+        }
+        return JX_TRUE;
+        break;
+      case JX_META_BIT_FLOAT:
+        {
+          jx_float *left_float = left->data.float_vla;
+          jx_float *right_float = right->data.float_vla;
+          for(i = 0; i < left_size; i++) {
+            if(*(left_float++) != *(right_float++))
+              return JX_FALSE;
+          }
+        }
+        return JX_TRUE;
+        break;
+      }
+    } else {                    /* standard objects */
+      jx_int i;
+      jx_ob *left_ob = left->data.ob_vla;
+      jx_ob *right_ob = right->data.ob_vla;
+      for(i = 0; i < left_size; i++) {
+        if(!jx_ob_identical(*(left_ob++), *(right_ob++)))
           return JX_FALSE;
       }
       return JX_TRUE;
@@ -2618,7 +2714,8 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
                   ob[1] = JX_OWN(value);
                   result = JX_SUCCESS;
                   if(info->usage > 8) {
-                    jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE);      /* switch to true hash */
+                    jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE);     
+                    /* switch to true hash */
                   }
                 }
               } else {
@@ -2853,6 +2950,60 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
                 if(!jx__hash_peek(&right_value, right, kv_ob[0]))
                   return JX_FALSE;
                 else if(!jx_ob_equal(kv_ob[1], right_value))
+                  return JX_FALSE;
+              }
+              index++;
+            } while(index <= mask);
+            return JX_TRUE;
+          }
+          break;
+        }
+      }
+    }
+  }
+  return JX_FALSE;
+}
+
+static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
+{
+  jx_int left_size = jx__hash_size(left);
+  jx_int right_size = jx__hash_size(right);
+
+  if(left_size == right_size) {
+    if(!left_size)
+      return JX_TRUE;
+    else {
+      jx_hash_info *info = (jx_hash_info *) left->info;
+      if((!info) || (info->mode == JX_HASH_LINEAR)) {
+        register jx_int i = (info ? info->usage : left_size);
+        register jx_ob *ob = left->key_value;
+        while(i--) {
+          jx_ob right_value = JX_OB_NULL;
+          if(!jx__hash_peek(&right_value, right, ob[0]))
+            return JX_FALSE;
+          else if(!jx_ob_identical(ob[1], right_value))
+            return JX_FALSE;
+          ob += 2;
+        }
+        return JX_TRUE;
+      } else {
+        switch (info->mode) {
+        case JX_HASH_ONE_TO_ANY:
+        case JX_HASH_ONE_TO_ONE:
+        case JX_HASH_ONE_TO_NIL:
+          {
+            jx_uint32 mask = info->mask;
+            jx_uint32 *hash_table = info->table;
+            jx_ob *key_value = left->key_value;
+            jx_uint32 index = 0;
+            do {
+              jx_uint32 *hash_entry = hash_table + (index << 1);
+              if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
+                jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                jx_ob right_value = JX_OB_NULL;
+                if(!jx__hash_peek(&right_value, right, kv_ob[0]))
+                  return JX_FALSE;
+                else if(!jx_ob_identical(kv_ob[1], right_value))
                   return JX_FALSE;
               }
               index++;
@@ -3570,8 +3721,10 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
     }
     break;
   case JX_META_BIT_LIST:
+    return jx__list_identical(left.data.io.list,right.data.io.list);
     break;
   case JX_META_BIT_HASH:
+    return jx__hash_identical(left.data.io.hash,right.data.io.hash);
     break;
   }
   return JX_FALSE;

@@ -163,9 +163,11 @@ jx_bool jx_builtin_fn_check(jx_ob o);
 
 /* comparing objects */
 
-jx_bool jx_ob_identical(jx_ob left, jx_ob right);
+jx_bool jx_ob_same(jx_ob left, jx_ob right); /* refer to the same memory ([1] != [1]) */
 
-jx_bool jx_ob_equal(jx_ob left, jx_ob right);  
+jx_bool jx_ob_identical(jx_ob left, jx_ob right); /* bitwise identical (1 != 1.0) */
+
+jx_bool jx_ob_equal(jx_ob left, jx_ob right); /* conceptually equal (1 == 1.0)*/
 
 /* sizing objects */
 
@@ -259,6 +261,8 @@ jx_ob jx_list_new_from_slice(jx_ob list, jx_int start, jx_int stop); /* returns 
 jx_ob jx_list_new_with_cutout(jx_ob list, jx_int start, jx_int stop); /* returns ownership of cutout entry */
 jx_ob jx_list_swap_with_null(jx_ob list, jx_int index); /* return ownership of swapped-out object */
 jx_ob jx_list_swap(jx_ob list, jx_int index, jx_ob ob); /* return ownership of swapped-out object */
+
+jx_int jx_list_index(jx_ob list, jx_ob ob); 
 
 jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
 

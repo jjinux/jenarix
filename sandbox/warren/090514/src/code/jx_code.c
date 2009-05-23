@@ -252,6 +252,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             case JX_BUILTIN_SLICE:
             case JX_BUILTIN_CUTOUT:
             case JX_BUILTIN_LAMBDA:
+            case JX_BUILTIN_HAS:
               unresolved = 1;
               break;
             case JX_BUILTIN_DEF:
@@ -664,6 +665,9 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_SIZE:
                 result = jx_safe_size(node, payload);
                 break;
+              case JX_BUILTIN_SAME:
+                result = jx_safe_same(node, payload);
+                break;
               case JX_BUILTIN_IDENTICAL:
                 result = jx_safe_identical(node, payload);
                 break;
@@ -768,6 +772,10 @@ jx_ob jx__code_eval(jx_ob node, jx_ob expr)
               case JX_BUILTIN_SYMBOLS:
                 result = jx_safe_symbols(node, payload);
                 break;
+              case JX_BUILTIN_HAS:
+                result = jx_safe_has(node, payload);
+                break;
+                
               }
               
               jx_ob_free(payload);

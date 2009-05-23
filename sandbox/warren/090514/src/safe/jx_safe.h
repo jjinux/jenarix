@@ -95,6 +95,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_INCR        64
 #define JX_BUILTIN_DECR        65
 #define JX_BUILTIN_SYMBOLS     71
+#define JX_BUILTIN_HAS         72
+#define JX_BUILTIN_SAME        73
 
 #define JX_BIN_OP(SUFFIX) \
 JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
@@ -176,6 +178,36 @@ JX_INLINE jx_ob jx_safe_get(jx_ob node, jx_ob payload)
       case JX_META_BIT_HASH:
         return jx_hash_get(container,
                            jx_list_borrow(payload,2));
+        break;
+      }
+    }
+    break;
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_safe_has(jx_ob node, jx_ob payload)
+{
+  jx_int size = jx_list_size(payload);
+  switch(size) {
+  case 2:
+    return jx_ob_from_bool( jx_hash_has_key(node, jx_list_borrow(payload,1)));
+    break;
+  case 3:
+    {
+      jx_ob container = jx_list_borrow(payload,1);
+      if(jx_ident_check(container))
+        container = jx_hash_borrow(node,container);
+      switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
+      case JX_META_BIT_LIST:
+        return jx_ob_from_bool
+          ( jx_list_index(container,
+                         jx_list_borrow(payload,2)) >= 0);
+        break;
+      case JX_META_BIT_HASH:
+        return jx_ob_from_bool
+          ( jx_hash_has_key(container,
+                            jx_list_borrow(payload,2)));
         break;
       }
     }
@@ -317,6 +349,12 @@ JX_INLINE jx_ob jx_safe_del(jx_ob node, jx_ob payload)
   return jx_ob_from_status(jx_hash_delete(node, jx_list_borrow(payload,1)));
 }
 
+
+JX_INLINE jx_ob jx_safe_same(jx_ob node, jx_ob payload)
+{
+  return jx_ob_from_bool(jx_ob_same(jx_list_borrow(payload,1),
+                                    jx_list_borrow(payload,2)));
+}
 
 JX_INLINE jx_ob jx_safe_identical(jx_ob node, jx_ob payload)
 {
@@ -512,5 +550,7 @@ JX_INLINE jx_ob jx_safe_symbols(jx_ob node, jx_ob payload)
 {
   return jx_ob_copy(node);
 }
+
+
 
 #endif

@@ -312,6 +312,9 @@ x;
 # take (list) (index)
 # take (hash) (key)
 
+# has (ident)
+# has (hash) (key)
+
 # del (ident)
 # del (list) (index)
 # del (hash) (key)
@@ -361,6 +364,7 @@ x;
 # fill (count) (withwhat)
 
 # symbols
+
 
 
 

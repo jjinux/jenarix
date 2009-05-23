@@ -102,6 +102,9 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   ok = jx_declare(ok,namespace,"fill", JX_BUILTIN_FILL);
 
   ok = jx_declare(ok,namespace,"symbols", JX_BUILTIN_SYMBOLS);
+  ok = jx_declare(ok,namespace,"has", JX_BUILTIN_HAS);
+
+  ok = jx_declare(ok,namespace,"same", JX_BUILTIN_SAME);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

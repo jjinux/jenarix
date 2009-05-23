@@ -79,7 +79,7 @@
 # function: [def name args body ]
 
 # functions with null args use the caller's namespace
-# with the _ identifier for the payload
+# with the _ identifier for the payload (on entry)
 
 [eq {} [symbols]];
 
@@ -102,11 +102,14 @@
 # functions with {} args use their own private namespace
 # with the _ identifier for the payload 
 
-[eq y 1];
+[eq {} [symbols]];
+[eq null [def fn {} _]];
+[eq [1] [fn 1]];
+[eq 
 [eq null [del fn]];
-[eq [quote [fn 1]] [fn 1]];
 
-[eq null [def fn x x]];
+
+
 
 # functions with ident args use their own private namespace 
 # but receive the entire payload in one symbol

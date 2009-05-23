@@ -694,6 +694,25 @@ JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
   return ob;
 }
 
+JX_INLINE jx_bool jx_ob_same(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_FOR_HASH;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_FOR_HASH;
+
+#if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
+    return ((left_bits == right_bits) &&
+            (left.data.raw.word == right.data.raw.word) &&
+            (left.data.raw.bits == right.data.raw.bits));
+#else
+#if (JX_TINY_STR_SIZE == 18)
+    return ((left_bits == right_bits) &&
+            (left.data.raw.word[0] == right.data.raw.word[0]) &&
+            (left.data.raw.word[1] == right.data.raw.word[1]) &&
+            (left.data.raw.bits    == right.data.raw.bits   ));
+#endif
+#endif
+}
+
 jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right);
 
 JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
@@ -707,13 +726,11 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
     return jx__ob_gc_identical(left, right);
   } else {
 #if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
-    return ((left_bits == right_bits) &&
-            (left.data.raw.word == right.data.raw.word) &&
+    return ((left.data.raw.word == right.data.raw.word) &&
             (left.data.raw.bits == right.data.raw.bits));
 #else
 #if (JX_TINY_STR_SIZE == 18)
-    return ((left_bits == right_bits) &&
-            (left.data.raw.word[0] == right.data.raw.word[0]) &&
+    return ((left.data.raw.word[0] == right.data.raw.word[0]) &&
             (left.data.raw.word[1] == right.data.raw.word[1]) &&
             (left.data.raw.bits    == right.data.raw.bits   ));
 #endif
@@ -988,6 +1005,14 @@ JX_INLINE jx_ob jx_list_pop(jx_ob list)
     return jx__list_remove(list.data.io.list, size-1);
   else
     return jx_ob_from_null();
+}
+
+jx_int jx__list_index(jx_list * I,jx_ob ob);
+JX_INLINE jx_int jx_list_index(jx_ob list,jx_ob ob)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_index(list.data.io.list, ob) :
+    -1;
 }
 
 jx_status jx__list_delete(jx_list * I, jx_int index);
