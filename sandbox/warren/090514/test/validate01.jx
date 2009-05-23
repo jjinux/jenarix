@@ -1,0 +1,120 @@
+
+# validation file for JXON (should be completely true)
+
+# This file should be the definitive reference for correct JXON
+# behavior in a number of key aspects. 
+
+# all of the following forms should evaluate to true;
+
+[eq true true];
+[eq false false];
+[eq false [eq true false]];
+[eq false [eq false true]];
+
+# no pre-defined symbols should exist 
+
+[eq {} [symbols]];
+
+# identity
+
+[eq true [identical null null]];
+[eq true [identical true true]];
+[eq true [identical false false]];
+[eq false [identical 1 1.0]];
+[eq true  [identical "take" "take"]];
+[eq false [identical true 1]];
+[eq false [identical true 0]];
+[eq false [identical false 1]];
+[eq false [identical false 0]];
+[eq false [identical a b]];
+[eq true  [identical a a]];
+
+# equality
+
+[eq false [eq null false]];
+[eq false [eq null 0]];
+[eq false [eq null true]];
+
+[eq true  [eq false 0]];
+[eq true  [eq false 0.0]];
+[eq true  [eq true 1]];
+[eq true  [eq true 1.0]];
+[eq false [eq false 1]];
+[eq false [eq false 1.0]];
+[eq false [eq true 0]];
+[eq false [eq true 0.0]];
+
+[eq false [eq false ""]];
+[eq false [eq true "1"]];
+
+[eq false [eq false a]];
+[eq false [eq false 1]];
+[eq false [eq false 1.0]];
+[eq false [eq false "1"]];
+
+[eq false [eq false []]];
+
+[eq true  [not ""]];
+[eq false [not "0"]];
+
+[eq true  [not []]];
+[eq false [not [0]]];
+
+[eq true  [not {}]];
+[eq false [not {0:0}]];
+
+# numerical comparison
+
+[eq false [eq 1 0]];
+[eq true [eq 1 1 ]];
+[eq true [eq 1 1.0]];
+[eq false [eq 1.0 2.0]];
+
+# string comparison
+
+[eq true [eq "take" "take"]];
+
+# much more to come...
+
+# function: [def name args body ]
+
+# functions with null args use the caller's namespace
+# with the _ identifier for the payload
+
+[eq {} [symbols]];
+
+[eq null [def fn null _]];
+[eq [1] [fn 1]];
+[eq null [del fn]];
+[eq [quote [fn 1]] [fn 1]];
+
+[eq [quote y] y];
+[eq null [def fn null [set y _]]];
+[eq null [fn]];
+[eq y []];
+[eq null [fn 9]];
+[eq y [9]];
+[eq null [del y]];
+[eq null [del fn]];
+
+[eq {} [symbols]];
+
+# functions with {} args use their own private namespace
+# with the _ identifier for the payload 
+
+[eq y 1];
+[eq null [del fn]];
+[eq [quote [fn 1]] [fn 1]];
+
+[eq null [def fn x x]];
+
+# functions with ident args use their own private namespace 
+# but receive the entire payload in one symbol
+
+# functions with [ident ...] args have only positional arguments
+
+# functions with [[ident ...],{ident:default,...}] take both keyword and positional args.
+
+
+
+

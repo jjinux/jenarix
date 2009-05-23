@@ -733,6 +733,9 @@ JX_INLINE jx_bool jx_ob_equal(jx_ob left, jx_ob right)
     if((left_bits | right_bits) & JX_META_BIT_GC) {
       return JX_FALSE;
     } else {
+      if((left_bits && !right_bits) ||
+         (right_bits && !left_bits))
+        return JX_FALSE;
       return jx__ob_non_gc_equal(left, right);
     }
   } else if(left_bits & JX_META_BIT_GC) {
@@ -926,6 +929,11 @@ JX_INLINE jx_ob jx__list_swap(jx_list * I, jx_int index, jx_ob ob)
     }
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_swap_with_null(jx_list *list, jx_int index)
+{
+  return jx__list_swap(list, index, jx_ob_from_null());
 }
 
 JX_INLINE jx_ob jx_list_swap_with_null(jx_ob list, jx_int index)
@@ -1168,6 +1176,7 @@ JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
   return JX_FALSE;
 }
 
+
 JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
@@ -1199,6 +1208,14 @@ JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
       return result;
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_bool jx_hash_take(jx_ob * result, jx_ob hash, jx_ob key)
+{
+  if(hash.meta.bits & JX_META_BIT_HASH) {
+    return jx__hash_remove(result, hash.data.io.hash, key);
+  }
+  return JX_FALSE;
 }
 
 JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
@@ -1590,7 +1607,8 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
   if(jx_null_check(args)) {
     jx_ob payload_ident = jx_ob_from_ident("_");
       /* inner functions run within the host node namespace */
-    jx_ob saved_payload = jx_hash_remove(node, payload_ident);
+    jx_ob saved_payload = JX_OB_NULL;
+    jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
     if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
       jx_ob result;
       if(jx_null_check(fn->name)) { /* anonymous / lambda -> use eval */
@@ -1598,15 +1616,20 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
       } else { /* real function -> use exec */
         result = jx_code_exec(node,fn->code);
       }
-      if(!jx_ok(jx_hash_set(node,payload_ident,saved_payload)))
-        jx_ob_free(saved_payload);
+      if(saved) 
+        jx_hash_set(node, payload_ident, saved_payload);
+      else
+        jx_hash_delete(node, payload_ident);
       return result;
     } else {
       jx_ob_free(payload);
-      jx_hash_set(node, payload_ident, saved_payload);
+      if(saved) 
+        jx_hash_set(node, payload_ident, saved_payload);
+      else
+        jx_hash_delete(node, payload_ident);
       return jx_ob_from_null();
     }
-  } else if(jx_hash_check(args)) { /* simply namespace for args */
+  } else if(jx_hash_check(args)) { /* simple namespace -- no processing */
     /* standard functions run inside their own node namespace (and
        thus can potentially be concurrent) */
     jx_ob payload_ident = jx_ob_from_ident("_");
@@ -1648,6 +1671,8 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
         if(size2>size) { /* keyword args also provided in payload? */
           kwd_hash = jx__list_borrow(payload_list,size);
         }
+      } else if(jx_list_size(sub_list)) { /* payload primitive -> [x] */
+        jx_hash_set(inv_node, jx_list_borrow(sub_list,0), payload);
       }
     } else { /* only positional arguments */
       inv_node = jx_hash_new();
@@ -1663,12 +1688,11 @@ JX_INLINE jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload)
         if(size2>size) { /* keyword args also provided in payload? */
           kwd_hash = jx__list_borrow(payload_list,size);
         }
-      } else { 
-        /* how do we handle case when function expects multiple arguments
-           but caller only provides one? */
+      } else if(jx_list_size(args)) { /* payload primitive -> [x] */
+        jx_hash_set(inv_node, jx_list_borrow(args,0), payload);
       }
     }
-    /* process keyword argument hash (THIS STRATEGY WILL CHANGE) */
+    /* process keyword argument hash, if present (THIS STRATEGY WILL CHANGE) */
     if(jx_hash_check(kwd_hash)) {
       jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
       if(jx_list_check(kwd_list)) {

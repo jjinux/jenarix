@@ -44,6 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* symbols */
 
+#define JX_BUILTIN_FILL        15
+#define JX_BUILTIN_RANGE       16
 #define JX_BUILTIN_SET         17
 #define JX_BUILTIN_GET         18
 #define JX_BUILTIN_BORROW      19
@@ -92,6 +94,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define JX_BUILTIN_INCR        64
 #define JX_BUILTIN_DECR        65
+#define JX_BUILTIN_SYMBOLS     71
 
 #define JX_BIN_OP(SUFFIX) \
 JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
@@ -218,6 +221,34 @@ JX_INLINE jx_ob jx_safe_decr(jx_ob node, jx_ob payload)
                  jx_ob_from_int(1)));
   }
   return result;
+}
+
+JX_INLINE jx_ob jx_safe_fill(jx_ob node, jx_ob payload)
+{
+  return jx_list_new_with_fill(jx_ob_as_int(jx_list_borrow(payload,1)),
+                               jx_list_get(payload,2));
+}
+
+JX_INLINE jx_ob jx_safe_range(jx_ob node, jx_ob payload)
+{
+  jx_int size = jx_list_size(payload);
+  switch(size) {
+  case 2:
+    return jx_list_new_with_range(0,
+                                  jx_ob_as_int(jx_list_borrow(payload,1)),
+                                  1);
+    break;
+  case 3:
+    return jx_list_new_with_range(jx_ob_as_int(jx_list_borrow(payload,1)),
+                                  jx_ob_as_int(jx_list_borrow(payload,2)),
+                                  1);
+    break;
+  default:
+    return jx_list_new_with_range(jx_ob_as_int(jx_list_borrow(payload,1)),
+                                  jx_ob_as_int(jx_list_borrow(payload,2)),
+                                  jx_ob_as_int(jx_list_borrow(payload,3)));
+    break;
+  }
 }
 
 JX_INLINE jx_ob jx_safe_take(jx_ob node, jx_ob payload)
@@ -475,6 +506,11 @@ JX_INLINE jx_ob jx_safe_impl(jx_ob node, jx_ob payload)
     jx_ob fn = jx_hash_borrow(node, arg);
     return jx_function_to_impl(fn);
   }
+}
+
+JX_INLINE jx_ob jx_safe_symbols(jx_ob node, jx_ob payload)
+{
+  return jx_ob_copy(node);
 }
 
 #endif

@@ -485,7 +485,10 @@ jx_ob jx__ob_to_str(jx_ob ob)
   case 0:
     return jx_ob_from_str("null");
   case JX_META_BIT_BOOL:
-    return jx_ob_from_str(ob.data.io.bool_ ? "true" : "false");
+    if(ob.data.io.bool_)
+      return jx_ob_from_str("true");
+    else
+      return jx_ob_from_str("false");
     break;
   default:
     return jx_ob_to_jxon(ob);   /* default encoding */
@@ -623,8 +626,8 @@ jx_int jx__str_compare(jx_ob left, jx_ob right)
 {                               /* on entry, we know the types aren't matched */
   jx_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {    /* we have at least one string */
-    jx_ob left_str = jx_ob_to_str(left_str);
-    jx_ob right_str = jx_ob_to_str(right_str);
+    jx_ob left_str = jx_ob_to_str(left);
+    jx_ob right_str = jx_ob_to_str(right);
     jx_int result = jx_str_compare(left_str, right_str);
     jx_ob_free(left_str);
     jx_ob_free(right_str);
@@ -840,6 +843,27 @@ jx_ob jx_list_new_with_size(jx_int size)
   jx_ob result = jx_list_new();
   if(result.meta.bits & JX_META_BIT_LIST) {
     result.data.io.list->data.vla = jx_vla_new(sizeof(jx_ob), size);    /* zero'd memory */
+  }
+  return result;
+}
+
+jx_ob jx_list_new_with_range(jx_int start, jx_int stop, jx_int step)
+{
+  jx_ob result = jx_list_new();
+  jx_int delta = stop - start;
+  if(step && ((delta>0)==(step>0))) {
+    jx_int steps = (delta / step);
+    if(delta % step) steps++;
+    if(steps) {
+      jx_int *ptr = jx_list_as_int_vla(result);
+      if(jx_ok(jx_vla_resize(&ptr,steps))) {
+        jx_list_set_int_vla(result,&ptr);
+        while(steps--) {
+          *(ptr++) = start;
+            start += step;
+        }
+      }
+    }
   }
   return result;
 }
@@ -3554,14 +3578,11 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
 }
 
 jx_bool jx__ob_non_gc_equal(jx_ob left, jx_ob right)
-{
+{ /* we know incoming types don't match */
   jx_bits merge_bits = left.meta.bits | right.meta.bits;
-#if 0
-  if(merge_bits & JX_META_BIT_STR) {
-    return jx__str_eq(left, right);
-  } else
-#endif
-  if(merge_bits & JX_META_BIT_FLOAT) {
+  if(merge_bits & (JX_META_BIT_STR|JX_META_BIT_IDENT)) {
+    return JX_FALSE;
+  } else if(merge_bits & JX_META_BIT_FLOAT) {
     return jx_ob_as_float(left) == jx_ob_as_float(right);
   } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
     return jx_ob_as_int(left) == jx_ob_as_int(right);

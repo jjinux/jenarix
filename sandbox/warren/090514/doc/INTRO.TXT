@@ -145,8 +145,9 @@ y;
 # in the first position of a list.  Identifiers in all other positions
 # are simply resolved like normal.
 
-# THIS IS WHERE WERE PRESENTLY BREAK FROM LISP in a BIG WAY and need to 
-# think carefully about whether or not our approach makes sense.
+# NOTE: this is one way in which we break from LISP in a BIG WAY and
+# thus, we need to think carefully about whether or not our approach
+# really makes sense.
 
 # LISP function evaluations cascade: ((fn) 1 2) will call both fn and
 # the function returned by function, and the second call will take 1 2
@@ -160,23 +161,35 @@ y;
 # to a function.  Evaluating a list with a function in first position
 # doesn't by itself have any special meaning.  
 
-# To get a secondary evaluation in JSON, you would need to do
-# something more like: [apply [fn] [1 2]] or perhaps
-# [eval [fn] 1 2 ] 
-# behavior instead of requiring quote to disable such behavior
+# To get a secondary evaluation in JSON, you must add something more:
+# [apply [fn] [1 2]] or [calll [fn] 1 2 ] 
 
 # So a key question for JSON: Does the data-centeric nature of JSON
 # combined with our target user community (general scientists --
 # not computer scientists) justify this decidedly non-LISP-like behavior?
 
-# Speaking personally, I have never been a big fan of 'quote in LISP...
+# I think it does:
 
-# Another area of divergenge is the differential behavior of Python 
+# Speaking personally, I have never been a big fan of 'quote in LISP.
+# It's the sort of thing that scares non-geeks.  RPN is bad enough as
+# it is...why make it worse.
+
+# Also the performance overhead of using arrays instead of a chains of
+# cons cells means that we're never going to really be LISP.  An
+# efficient "map" function needs to send tokens one by one -- not one
+# each in its own list.
+
+# Another area of divergence is the differential behavior of Python
 # lambdas versus LISP lambdas.  LISP lambdas are 100% the equivalent
-# of functions whereas Python lambdas are expressions not list of
-# statements like a function.
+# of functions whereas Python lambdas are expressions not lists of
+# statements like a function.  I don't mind Python lambdas -- but I do
+# want the option of adding explicit "exec"  behavior
 
-# 
+# Tentative executive decison: JXON isn't going to be LISP.  because
+# JXON is an intermediate language, it's not critical that it map
+# perfectly into LISP or any other existing system.  What we need are
+# good front-ends which do offer the user familiar space.
+
 # Control flow
 
 [set x 0];
@@ -281,7 +294,9 @@ x;
 
 # apply (function) (payload)
 
-# map (function) (list)
+# call (function) (arg1) (arg2) (arg2)
+
+# map (function) (list)  # process each member using a length-1 argument list (SLOW!)
 
 # impl (function)
 
@@ -342,6 +357,10 @@ x;
 
 # size (expr)
 
+# range (start) (stop) (step)
+# fill (count) (withwhat)
+
+# symbols
 
 
 

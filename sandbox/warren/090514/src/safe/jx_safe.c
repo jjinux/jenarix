@@ -54,7 +54,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
 
   ok = jx_declare(ok,namespace,"set", JX_BUILTIN_SET);
   ok = jx_declare(ok,namespace,"get", JX_BUILTIN_GET);
-  ok = jx_declare(ok,namespace,"borrow", JX_BUILTIN_BORROW);
+  //  ok = jx_declare(ok,namespace,"borrow", JX_BUILTIN_BORROW);
   ok = jx_declare(ok,namespace,"take", JX_BUILTIN_TAKE);
   ok = jx_declare(ok,namespace,"del", JX_BUILTIN_DEL);
 
@@ -63,6 +63,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   ok = jx_declare(ok,namespace,"lt", JX_BUILTIN_LT);
   ok = jx_declare(ok,namespace,"ge", JX_BUILTIN_GE);
   ok = jx_declare(ok,namespace,"le", JX_BUILTIN_LE);
+  ok = jx_declare(ok,namespace,"ne", JX_BUILTIN_NE);
   ok = jx_declare(ok,namespace,"identical", JX_BUILTIN_IDENTICAL);
 
   ok = jx_declare(ok,namespace,"output", JX_BUILTIN_OUTPUT);
@@ -96,6 +97,11 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   ok = jx_declare(ok,namespace,"decr", JX_BUILTIN_DECR);
 
   ok = jx_declare(ok,namespace,"impl", JX_BUILTIN_IMPL);
+
+  ok = jx_declare(ok,namespace,"range", JX_BUILTIN_RANGE);
+  ok = jx_declare(ok,namespace,"fill", JX_BUILTIN_FILL);
+
+  ok = jx_declare(ok,namespace,"symbols", JX_BUILTIN_SYMBOLS);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
