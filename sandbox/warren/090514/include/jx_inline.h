@@ -1706,30 +1706,33 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
   }
 }
 
-jx_ob jx__code_eval(jx_tls *tls, jx_ob node, jx_ob expr);
+#define JX_EVAL_ALLOW_NESTED_WEAK_REFS  0x01
+#define JX_EVAL_DEFER_INVOCATION        0x02
+
+jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {
   return (expr.meta.bits & JX_META_BIT_GC) ?
-    jx__code_eval(NULL,node,expr) : expr;
+    jx__code_eval(NULL,0,node,expr) : expr;
 }
 
-jx_ob jx__code_exec(jx_tls *tls, jx_ob node, jx_ob expr);
+jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
   return (code.meta.bits & JX_META_BIT_LIST) ?
-    jx__code_exec(NULL,node,code) : jx_ob_copy(code);
+    jx__code_exec(NULL,0,node,code) : jx_ob_copy(code);
 }
 
-JX_INLINE jx_ob jx_code_eval_tls(jx_tls *tls, jx_ob node, jx_ob expr)
+JX_INLINE jx_ob jx_code_eval_tls(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr)
 {
   return (expr.meta.bits & JX_META_BIT_GC) ?
-    jx__code_eval(tls, node,expr) : expr;
+    jx__code_eval(tls, flags, node,expr) : expr;
 }
 
-JX_INLINE jx_ob jx_code_exec_tls(jx_tls *tls, jx_ob node, jx_ob code)
+JX_INLINE jx_ob jx_code_exec_tls(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
 {
   return (code.meta.bits & JX_META_BIT_LIST) ?
-    jx__code_exec(tls,node,code) : jx_ob_copy(code);
+    jx__code_exec(tls,flags,node,code) : jx_ob_copy(code);
 }
 
 jx_ob jx__hash_copy(jx_hash * hash);
@@ -1748,8 +1751,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob saved_payload = JX_OB_NULL;
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
-        jx_ob result = fn->block ? jx_code_exec_tls(tls,node,fn->body) :
-          jx_code_eval_tls(tls, node,fn->body);
+        jx_ob result = fn->block ? jx_code_exec_tls(tls, 0, node,fn->body) :
+          jx_code_eval_tls(tls, 0, node,fn->body);
         if(saved) 
           jx_hash_set(node, payload_ident, saved_payload);
         else
@@ -1772,7 +1775,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob inv_node = jx_ob_copy(args);
       jx_ob result = JX_OB_NULL;
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
-        result = fn->block ? jx_code_exec_tls(tls,inv_node,fn->body) : jx_code_eval_tls(tls, inv_node,fn->body);
+        result = fn->block ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
+          jx_code_eval_tls(tls, 0, inv_node,fn->body);
       }
       jx_ob_free_tls(tls,inv_node);
       jx_ob_free(function);
@@ -1838,7 +1842,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         }
         jx_ob_free_tls(tls,kwd_list);
       }
-      result = fn->block ? jx_code_exec_tls(tls,inv_node,fn->body) : jx_code_eval_tls(tls, inv_node,fn->body);
+      result = fn->block ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
+        jx_code_eval_tls(tls, 0, inv_node,fn->body);
       jx_ob_free_tls(tls,payload);
       jx_ob_free_tls(tls, inv_node);
       jx_ob_free(function);
@@ -1848,7 +1853,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
       jx_ob result;
       //      jx_jxon_dump(stdout,"args",args);
-      result = fn->block ? jx_code_exec_tls(tls,inv_node,fn->body) : jx_code_eval_tls(tls, inv_node,fn->body);
+      result = fn->block ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
+        jx_code_eval_tls(tls, 0, inv_node,fn->body);
       jx_ob_free_tls(tls,inv_node);
       jx_ob_free(function);
       return result;
@@ -1871,8 +1877,8 @@ JX_INLINE jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload)
 
 JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob payload)
 {
-  jx_jxon_dump(stdout,"jx_macro_call macro",macro);
-  jx_jxon_dump(stdout,"jx_macro_call payload", payload);
+  //  jx_jxon_dump(stdout,"jx_macro_call macro",macro);
+  //  jx_jxon_dump(stdout,"jx_macro_call payload", payload);
   if(jx_macro_check(macro)) {
     jx_function *fn = macro.data.io.function;
     jx_ob args = fn->args;
@@ -1882,13 +1888,13 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       jx_ob saved_payload = JX_OB_NULL;
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident,payload))) {
-        jx_ob ob = jx_code_eval_tls(tls, node, fn->body);
+        jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, node, fn->body);
         if(saved) 
           jx_hash_set(node, payload_ident, saved_payload);
         else
           jx_hash_delete(node, payload_ident);
         {
-          jx_ob result = jx_code_eval_tls(tls, node, ob);
+          jx_ob result = jx_code_eval_tls(tls, 0, node, ob);
           jx_ob_free_tls(tls,ob);
           jx_ob_free_tls(tls,payload);
           jx_ob_free(macro);
@@ -1911,12 +1917,12 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       jx_ob result = JX_OB_NULL;
       
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
-        jx_ob ob = jx_code_eval_tls(tls, inv_node, fn->body);
+        jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         jx_ob_free_tls(tls,payload);
         jx_ob_free_tls(tls, inv_node);
         jx_ob_free(macro);
         {
-          jx_ob result = jx_code_eval_tls(tls, node, ob);
+          jx_ob result = jx_code_eval_tls(tls, 0, node, ob);
           jx_ob_free_tls(tls, ob);
           return result;
         }
@@ -1983,13 +1989,13 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
         }
         jx_ob_free_tls(tls,kwd_list);
       }
-      jx_jxon_dump(stdout,"inv_node",inv_node);
-      jx_jxon_dump(stdout,"body",fn->body);
+      //      jx_jxon_dump(stdout,"inv_node",inv_node);
+      //      jx_jxon_dump(stdout,"body",fn->body);
       {
-        jx_ob ob = jx_code_eval_tls(tls, inv_node, fn->body);
-        jx_jxon_dump(stdout,"node",node);
-        jx_jxon_dump(stdout,"ob",ob);
-        result = jx_code_eval_tls(tls, node, ob);
+        jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        //        jx_jxon_dump(stdout,"node",node);
+        //jx_jxon_dump(stdout,"ob",ob);
+        result = jx_code_eval_tls(tls, 0, node, ob);
         jx_ob_free_tls(tls, ob);
         jx_ob_free_tls(tls, payload);
         jx_ob_free_tls(tls, inv_node);
@@ -2001,9 +2007,9 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
       jx_ob result;
       {
-        jx_ob ob = jx_code_eval_tls(tls, inv_node, fn->body);
+        jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         jx_ob_free(macro);
-        result = jx_code_eval_tls(tls, node, ob);
+        result = jx_code_eval_tls(tls, 0, node, ob);
         jx_ob_free_tls(tls,inv_node);
         jx_ob_free_tls(tls,ob);
         jx_ob_free_tls(tls,payload);
