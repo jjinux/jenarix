@@ -95,7 +95,6 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   
   ok = jx_declare(ok,namespace,"incr", JX_BUILTIN_INCR);
   ok = jx_declare(ok,namespace,"decr", JX_BUILTIN_DECR);
-
   ok = jx_declare(ok,namespace,"impl", JX_BUILTIN_IMPL);
 
   ok = jx_declare(ok,namespace,"range", JX_BUILTIN_RANGE);
@@ -103,6 +102,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
 
   ok = jx_declare(ok,namespace,"symbols", JX_BUILTIN_SYMBOLS);
   ok = jx_declare(ok,namespace,"has", JX_BUILTIN_HAS);
+
 
   ok = jx_declare(ok,namespace,"same", JX_BUILTIN_SAME);
 

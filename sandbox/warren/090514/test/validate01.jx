@@ -86,11 +86,13 @@
 [eq null [def fn null _]];
 [eq [1] [fn 1]];
 [eq null [del fn]];
-[eq [quote [fn 1]] [fn 1]];
 
-[eq [quote y] y];
+[eq [raw [fn 1]] [fn 1]];
+[eq [raw y] y];
+
 [eq null [def fn null [set y _]]];
 [eq null [fn]];
+
 [eq y []];
 [eq null [fn 9]];
 [eq y [9]];
@@ -103,12 +105,10 @@
 # with the _ identifier for the payload 
 
 [eq {} [symbols]];
-[eq null [def fn {} _]];
-[eq [1] [fn 1]];
-[eq 
+[eq null [def fn {} [set y_]]];
+[eq [raw y] y];
+
 [eq null [del fn]];
-
-
 
 
 # functions with ident args use their own private namespace 

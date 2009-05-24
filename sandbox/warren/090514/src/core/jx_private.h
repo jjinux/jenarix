@@ -44,6 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define JX_ZERO_ARRAY_SIZE 1
 
+
+
 typedef struct {
   jx_uint32 mode, usage, stale_usage;
   jx_uint32 mask;               /* 2^n - 1 */

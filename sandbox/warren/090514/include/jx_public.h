@@ -320,9 +320,10 @@ jx_ob jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns own
 /* jxon output */
 
 #define JX_JXON_FLAG_LOSSY_JSON  0x40000000
-#define JX_JXON_FLAG_ENCODE_JSON 0x40000000
-#define JX_JXON_FLAG_PRETTY      0x20000000
-#define JX_JXON_FLAG_INDENT      0x10000000
+#define JX_JXON_FLAG_ENCODE_JSON 0x20000000
+#define JX_JXON_FLAG_PRETTY      0x10000000
+#define JX_JXON_FLAG_INDENT      0x08000000
+#define JX_JXON_FLAG_SHOW_WEAK   0x04000000
 #define JX_JXON_FLAG_INDENT_MASK 0x0000007F
 
 jx_ob jx_ob_to_jxon(jx_ob ob);
@@ -348,9 +349,9 @@ jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
 
 /* functions */
 
-jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob fn);
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block);
 jx_ob jx_function_to_impl(jx_ob ob);
-jx_ob jx_function_call(jx_function *fn, jx_ob node, jx_ob payload);
+jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
 /* code execution engine */
 

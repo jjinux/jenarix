@@ -305,10 +305,6 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
           jx_ob name = jx_hash_get_key(builtins,ob);
           if(jx_ident_check(name)) {
             sprintf(buffer,"*%s*",jx_ob_as_ident(&name)); /* TO DO replace -- not range checked */
-            if(buffer[4]) {
-              buffer[4]='*';
-              buffer[5]=0;
-            }
           }
           jx_ob_free(name);
         }

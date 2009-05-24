@@ -11,12 +11,12 @@
 #    a = a - 1
 
 [ while a
-  [ [append [borrow b] a]
+  [ [append b a]
     [set a [sub a 1]] ]
 ];
 
 # print len(b)
 
-[size [borrow b]];
+[size b];
 
 

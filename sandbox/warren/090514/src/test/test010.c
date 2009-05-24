@@ -229,7 +229,8 @@ int main(int argc, char **argv)
     P1("0 == %d",jx_ob_free(builtins));
     P1("0 == %d",jx_ob_free(node));
   }
- 
+
+
   /* can we combine all of the above? */
   {
     jx_ob node = jx_hash_new();
@@ -314,7 +315,7 @@ int main(int argc, char **argv)
 
     {
       jx_ob source = jx_ob_from_jxon_str(
-"[[set,x,[]],[[append,[borrow,x],1]],[[append,[borrow,x],{2:3}]],[get,x]]");
+"[[set,x,[]],[[append,x,1]],[[append,x,{2:3}]],[get,x]]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
         printf("# %s\n",jx_ob_as_str(&jxon));

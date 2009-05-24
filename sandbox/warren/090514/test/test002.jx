@@ -9,41 +9,41 @@
 
 # now see what happens when we try to get a borrowed reference
 
-[borrow x];
+x;
 
-[[borrow x]];
+[x];
 
-[[borrow x],[borrow x]];
+[x,x];
 
-[[borrow x] [[borrow x]]];
+[x [x]];
 
-[[borrow x] [[borrow x]] [[[borrow x]]]];
+[x [x] [[x]]];
 
-[borrow [borrow x]];
+x;
 
-[jenarix_fn [borrow x]];
+[jenarix_fn x];
 
-[jenarix_fn [borrow x] [[borrow x]]];
+[jenarix_fn x [x]];
 
 # notice how the symbolic expressions from each of the above are using *get* not *borrow*
 
 # but when we find a legal use, we get the real thing:
 
-[append [borrow x] 1];
+[append x 1];
 
 # but only if we use the weak reference in the permitted position
 
-[append [borrow x] [borrow x]];
+[append x x];
 
 [get x];
 
-[append [borrow x] [get x]];
+[append x [get x]];
 
 [get x];
 
 # okay, now attempt to crash jenarix
 
-[set y [borrow x]];
+[set y x];
 
 [get y];
 

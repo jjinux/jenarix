@@ -12,12 +12,12 @@
 
 
 [ while [get a] 
-  [ [hash_set [borrow b] [get a] 1]
+  [ [hash_set b [get a] 1]
     [set a [sub [get a] 1]] ]
 ];
 
 # print len(b)
 
-[size [borrow b]];
+[size b];
 
 

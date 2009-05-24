@@ -46,8 +46,8 @@ identify;
 [size [get b]];
 
 [ while [get a] 
-  [ [append [borrow b] [get a]]
-    [hash_set [borrow c] [get a] 1]
+  [ [append b [get a]]
+    [hash_set c [get a] 1]
     [set a [sub [get a] 1]] ]
 ];
 
@@ -62,11 +62,11 @@ identify;
 
 [set b []];
 
-[for [set a 1] [lt [get a] 10] [set a [add [get a] 1]] [append [borrow b] [get a]]];
+[for [set a 1] [lt [get a] 10] [set a [add [get a] 1]] [append b [get a]]];
 
 [get b];
 
-[for [set a 10] [get a] [set a [sub [get a] 1]] [append [borrow b] [get a]]];
+[for [set a 10] [get a] [set a [sub [get a] 1]] [append b [get a]]];
 
 [get b];
 

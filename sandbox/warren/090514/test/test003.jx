@@ -12,17 +12,17 @@
 
 [set a [1.0]];
 
-[resize [borrow a] 100 0.5];
+[resize a 100 0.5];
 
 [get a];
 
-[size [borrow a]];
+[size a];
 
-[resize [borrow a] 10];
+[resize a 10];
 
 [get a];
 
-[size [borrow a]];
+[size a];
 
 [lambda [add [list_get [borrow _] 1] 2] ];
 

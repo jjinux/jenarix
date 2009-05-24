@@ -183,13 +183,16 @@ int main(int argc, char **argv)
     jx_ob list4 = jx_list_new_with_fill(3,jx_ob_from_str("a really really long string"));
     jx_ob list5 = jx_list_new_with_fill(3,jx_ob_from_str("a really really long string"));
     jx_ob list6 = jx_list_new_with_fill(3,jx_ob_from_str("a really really really long string"));
-    
-    P1("0 == %d", jx_ob_identical(list1,list2));    
+
+    P1("0 == %d", jx_ob_same(list1,list2));        
+
+    P1("1 == %d", jx_ob_identical(list1,list2));    
     P1("1 == %d", jx_ob_equal(list1,list2));    
     P1("0 == %d", jx_ob_equal(list1,list3));    
     P1("0 == %d", jx_ob_equal(list2,list3));    
 
-    P1("0 == %d", jx_ob_identical(list4,list5));    
+    P1("0 == %d", jx_ob_same(list4,list5));    
+    P1("1 == %d", jx_ob_identical(list4,list5));    
     P1("1 == %d", jx_ob_equal(list4,list5));    
     P1("0 == %d", jx_ob_equal(list4,list6));    
     P1("0 == %d", jx_ob_equal(list2,list6));    
@@ -209,7 +212,8 @@ int main(int argc, char **argv)
     jx_ob hash2 = jx_hash_new();
     jx_ob hash3 = jx_hash_new();
 
-    P1("0 == %d", jx_ob_identical(hash1,hash2));    
+    P1("0 == %d", jx_ob_same(hash1,hash2));    
+    P1("1 == %d", jx_ob_identical(hash1,hash2));    
     P1("1 == %d", jx_ob_equal(hash1,hash2));    
     P1("1 == %d", jx_ob_equal(hash2,hash3));    
 
