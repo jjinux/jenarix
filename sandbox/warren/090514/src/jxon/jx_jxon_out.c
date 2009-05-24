@@ -315,25 +315,25 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
         if(jx_ok(jx_code_expose_secure_builtins(builtins))) {
           jx_ob name = jx_hash_get_key(builtins,ob);
           if(jx_ident_check(name)) {
-            sprintf(buffer,"@%s",jx_ob_as_ident(&name)); /* TO DO replace -- not range checked */
+            sprintf(buffer,"`%s",jx_ob_as_ident(&name)); /* TO DO replace -- not range checked */
           }
           jx_ob_free(name);
         }
         if(!buffer[0]) {
-          sprintf(buffer,"@op_%d",ob.data.io.int_);
+          sprintf(buffer,"`op:%d",ob.data.io.int_);
         }
         jx_ob_free(builtins);
       } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
-        sprintf(buffer,"@opaque_ob_%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"`opaque_ob:%p",(void*)ob.data.io.vla); /* deliberate misread */
         return jx_ob_from_str(buffer);
       } else if(bits & JX_META_BIT_BUILTIN_NATIVE_FN) {
-        sprintf(buffer,"@native_fn_%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"`native_fn:%p",(void*)ob.data.io.vla); /* deliberate misread */
       } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
         jx_function *fn = ob.data.io.function;
         if(jx_ident_check(fn->name)) {
-          sprintf(buffer,"@function_%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
+          sprintf(buffer,"`function:%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
         } else {
-          sprintf(buffer,"@function_%p",(void*)ob.data.io.vla); /* deliberate misread */
+          sprintf(buffer,"`function:%p",(void*)ob.data.io.vla); /* deliberate misread */
         }
       }
       return jx_ob_from_str(buffer);

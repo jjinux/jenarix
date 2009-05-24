@@ -191,7 +191,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_JXON_SCON); }
 
-    "@" (L|D)+  { RET(JX_JXON_BUILTIN); }
+    "`" (L|D|":")+  { RET(JX_JXON_BUILTIN); }
     
     "["         { RET(JX_JXON_OPEN_RECT_BRACE); }
     "]"         { RET(JX_JXON_CLOSE_RECT_BRACE); }
