@@ -8,17 +8,29 @@
 # terminated with a semicolon; this requirement may vanish in the
 # future.
 
-# JXON is a cross between LISP and JSON semantics.
-#
+# JXON is a cross between LISP, JSON, and functional semantics.
+
 # With respect to JSON, JXON adds two new primitive types (identifiers
 # and builtins), adds support for single-quoted strings, allows all
 # primitive types to serve as hash keys, treats commas as optional,
-# and supports #-delimited single-line comments.
-#
+# accepts either parentheses and square braces, and supports
+# #-delimited single-line comments.
 
 # With respect to LISP, JXON phrases are LISP-like symbolic-
 # expressions (S-expressions) which the Jenarix runtime is capable of
 # creating, transforming, binding, and executing.  
+#
+# Compared to LISP, JSON draws a distinction between functional
+# expressions, where the full body is returned following evaluation,
+# and code blocks, where only the last item evaluated is returned.  
+
+# Thus, in JXON, "def" is used to create a named functions containing
+# code blocks (like Python "def") and "defun" is used to create a named
+# functions containing expressions (like LISP "defun") 
+
+# Likewise, "code" is used to create anonymous lambda functions
+# containing code blocks and "lambda" is used to create anonymous lambda
+# functions containing expressions.
 
 # JXON primitives include:
 
@@ -73,7 +85,7 @@ a.compound.identifier;
  0 1 0
  0 0 1];
 
-[my_fn arg1,arg2];
+(my_fn arg1 arg2);
 
 [[][][]];
 
@@ -97,7 +109,13 @@ a.compound.identifier;
 # So what about programming?  Well, first note that all executing code
 # has an associated namespace.  You can set values using set:
 
-[set x 100];
+[set x,100];
+
+(set x 100);
+
+# note that you can use either square or curly braces, and commas as
+# you see fit
+
 
 # and recall them using get:
 
@@ -113,7 +131,7 @@ x;
 
 # You can of course store containers as well:
 
-[set y [0,0,0]];
+(set y [0,0,0]);
 
 y;
 
@@ -121,7 +139,7 @@ y;
 
 # And modify them
 
-[append y 1];
+(append y 1);
 
 y;
 
@@ -143,7 +161,7 @@ x;
 
 # result: 1
 
-[if false [set x 1] [set x 0]];
+(if false [set x 1] [set x 0]);
 
 x;
 
@@ -153,13 +171,13 @@ x;
 
 [set x 10];
 
-[do 
-  [
+(do 
+  (
     [output x]
     [set x [sub x 1]]
-  ]
+  )
   [gt x 5]
-];
+);
 
 [set y [2,5,8,10]];
 
@@ -183,11 +201,11 @@ x;
 
 # Lambda and Apply
 
-[apply [lambda null _] 1.50];
+[apply [code null _] 1.50];
 
 # result: 1.5
 
-[apply [lambda {a:4} [_,a]] 3];
+[apply [code {a:4} [_,a]] 3];
 
 # result: [3,4]
 
@@ -233,7 +251,8 @@ x;
 
 # def (name) (namespace) (code)
 
-# lambda (namespace) (code)
+# code (namespace) (code)
+# expr (namespace) (expr)
 
 # apply (function) (payload)
 

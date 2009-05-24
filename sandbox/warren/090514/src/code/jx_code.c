@@ -54,18 +54,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_CODE       7
 #define JX_BUILTIN_APPLY      8
 #define JX_BUILTIN_INVOKE     9
-#define JX_BUILTIN_SECURE    10
+
 #define JX_BUILTIN_RESOLVE   11
 #define JX_BUILTIN_MAP       12
-#define JX_BUILTIN_COND      13
+#define JX_BUILTIN_TEST      13
 #define JX_BUILTIN_SWITCH    14
 #define JX_BUILTIN_DISPATCH  15
 #define JX_BUILTIN_RAW       16
 #define JX_BUILTIN_EVAL      17
 #define JX_BUILTIN_EXEC      18
 #define JX_BUILTIN_SELECT    19
-#define JX_BUILTIN_DEFX      20
-#define JX_BUILTIN_EXPR      21
+#define JX_BUILTIN_DEFUN     20
+#define JX_BUILTIN_LAMBDA    21
 
 #define JX_BUILTIN_SPECIAL_FORMS_LIMIT 22
 
@@ -87,26 +87,22 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "while", JX_BUILTIN_WHILE);
   ok = jx_declare(ok, namespace, "do", JX_BUILTIN_DO);
   ok = jx_declare(ok, namespace, "for", JX_BUILTIN_FOR);
-
-
+  ok = jx_declare(ok, namespace, "test", JX_BUILTIN_TEST);
 
   ok = jx_declare(ok, namespace, "quote", JX_BUILTIN_QUOTE);
   ok = jx_declare(ok, namespace, "raw", JX_BUILTIN_RAW);
 
-
-
   ok = jx_declare(ok, namespace, "def", JX_BUILTIN_DEF);
 
-  ok = jx_declare(ok, namespace, "defx", JX_BUILTIN_DEFX);
+  ok = jx_declare(ok, namespace, "defun", JX_BUILTIN_DEFUN);
 
   ok = jx_declare(ok, namespace, "code", JX_BUILTIN_CODE);
-  ok = jx_declare(ok, namespace, "expr", JX_BUILTIN_EXPR);
+  ok = jx_declare(ok, namespace, "expr", JX_BUILTIN_LAMBDA);
 
   ok = jx_declare(ok, namespace, "apply", JX_BUILTIN_APPLY);
   ok = jx_declare(ok, namespace, "map", JX_BUILTIN_MAP);
 
-
-  ok = jx_declare(ok, namespace, "secure", JX_BUILTIN_SECURE);
+  //  ok = jx_declare(ok, namespace, "secure", JX_BUILTIN_SECURE);
 
   ok = jx_declare(ok, namespace, "resolve", JX_BUILTIN_RESOLVE);
 
@@ -272,11 +268,12 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
           case JX_BUILTIN_SLICE:
           case JX_BUILTIN_CUTOUT:
           case JX_BUILTIN_CODE:
+          case JX_BUILTIN_LAMBDA:
           case JX_BUILTIN_HAS:
             unresolved = 2;
             break;
           case JX_BUILTIN_DEF:
-          case JX_BUILTIN_DEFX:
+          case JX_BUILTIN_DEFUN:
             unresolved = 3;
             break;
           }
@@ -338,11 +335,12 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
 {
   if(jx_ident_check(source)) {  /* if code consists solely of a top-level identifier */
     jx_ob builtin = jx_hash_borrow(namespace, source);
-    jx_ob result = jx_list_new_with_size(2);
+    jx_ob result;
     if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
+      result = jx_list_new_with_size(1);
       jx_list_replace(result, 0, builtin);
-      jx_list_replace(result, 1, source);
     } else {                    /* unknown identifier (fall back upon late binding) */
+      result = jx_list_new_with_size(2);
       jx_list_replace(result, 0, jx_builtin_new_from_selector(JX_BUILTIN_RESOLVE));
       jx_list_replace(result, 1, source);
     }
@@ -587,7 +585,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
               }
             }
             break;
-          case JX_BUILTIN_COND: /* [*cond* expr expr expr] */
+          case JX_BUILTIN_TEST: /* [*test* expr expr expr] */
             {
               jx_ob cond = (size>1) ? jx_code_eval_tls(tls, node, expr_vla[1]) : jx_ob_from_null();
               jx_bool cond_bool = jx_ob_as_bool(cond);
@@ -624,7 +622,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
             }
             break;
           case JX_BUILTIN_DEF:   /* [def name node code] */
-          case JX_BUILTIN_DEFX:  /* [defx name node expr] */
+          case JX_BUILTIN_DEFUN:  /* [defun name node expr] */
             {
               jx_ob name = (size > 1) ? jx_ob_copy(expr_vla[1]) : jx_ob_from_null();
               jx_ob args = (size > 2) ? jx_ob_copy(expr_vla[2]) : jx_ob_from_null();
@@ -633,9 +631,6 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
               jx_ob function = jx_function_new_with_def
                 (name, args, body, expr_vla->data.io.int_ == JX_BUILTIN_DEF);
               if(!jx_ok( jx_hash_set(node,key,function))) {
-                jx_ob_free(name);
-                jx_ob_free(args);
-                jx_ob_free(body);
                 jx_ob_free(key);
                 jx_ob_free(function);
               }
@@ -643,7 +638,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
             }
             break;
           case JX_BUILTIN_CODE: /* [code args code] */
-          case JX_BUILTIN_EXPR: /* [expr args expr] */
+          case JX_BUILTIN_LAMBDA: /* [expr args expr] */
             {
               jx_ob name = JX_OB_NULL;
               jx_ob args = (size > 1) ? jx_ob_copy(expr_vla[1]) : jx_ob_from_null();

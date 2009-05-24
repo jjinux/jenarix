@@ -3853,7 +3853,7 @@ jx_ob jx__builtin_copy(jx_ob ob)
   } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
   } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
     jx_function *fn = ob.data.io.function;
-    printf("copying function\n");
+    //    printf("copying function\n");
     return jx_function_new_with_def(jx_ob_copy(fn->name), 
                                     jx_ob_copy(fn->args), 
                                     jx_ob_copy(fn->body),
@@ -4036,7 +4036,7 @@ jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block
     fn->body = body;
     fn->block = block;
 
-    //    jx_jxon_dump(stdout,"new function name",name);
+    //jx_jxon_dump(stdout,"new function name",name);
     //jx_jxon_dump(stdout,"new function args",args);
     //jx_jxon_dump(stdout,"new function code",body);
     //fprintf(stdout,"new function block: %d\n",block);

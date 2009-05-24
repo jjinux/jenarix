@@ -43,7 +43,12 @@ static jx_ob jx__list_to_jxon(jx_list * list, jx_int flags)
   jx_int i, size = jx_vla_size(&list->data.vla);
   jx_char *vla = jx_vla_new(1, 2);
   if(vla) {
-    jx_bool comma = JX_FALSE;
+    jx_bool spacer = JX_FALSE;
+    char square[] = "]", rounded[] = ")";
+    char space[] = " ", comma[] = ",";
+    char *delimit = square;
+    char *sep = comma;
+
     vla[0] = '[';
     if(list->packed_meta_bits) {
       switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
@@ -55,10 +60,10 @@ static jx_ob jx__list_to_jxon(jx_list * list, jx_int flags)
             ob.data.io.int_ = *(int_++);
             {
               jx_ob str = jx_ob_to_jxon_with_flags(ob, flags);
-              if(comma) {
+              if(spacer) {
                 jx_vla_append_c_str(&vla, ",");
               } else
-                comma = JX_TRUE;
+                spacer = JX_TRUE;
               jx_vla_append_ob_str(&vla, str);
               jx_ob_free(str);
             }
@@ -73,10 +78,10 @@ static jx_ob jx__list_to_jxon(jx_list * list, jx_int flags)
             ob.data.io.float_ = *(float_++);
             {
               jx_ob str = jx_ob_to_jxon_with_flags(ob, flags);
-              if(comma) {
+              if(spacer) {
                 jx_vla_append_c_str(&vla, ",");
               } else
-                comma = JX_TRUE;
+                spacer = JX_TRUE;
               jx_vla_append_ob_str(&vla, str);
               jx_ob_free(str);
             }
@@ -86,18 +91,24 @@ static jx_ob jx__list_to_jxon(jx_list * list, jx_int flags)
       }
     } else {
       jx_ob *ob = list->data.ob_vla;
-
+      if(ob && (jx_ident_check(*ob)||(jx_builtin_callable_check(*ob)))) {
+        vla[0] = '(';
+        delimit = rounded;
+        sep = space;
+      }
+      
       for(i = 0; i < size; i++) {
         jx_ob str = jx_ob_to_jxon_with_flags(*(ob++), flags);
-        if(comma) {
-          jx_vla_append_c_str(&vla, ",");
-        } else
-          comma = JX_TRUE;
+        if(spacer>0) {
+          jx_vla_append_c_str(&vla, sep);
+        } else {
+          spacer++;
+        }
         jx_vla_append_ob_str(&vla, str);
         jx_ob_free(str);
       }
     }
-    jx_vla_append_c_str(&vla, "]");
+    jx_vla_append_c_str(&vla, delimit);
     return jx_ob_with_str_vla(&vla);
   }
   return jx_ob_from_null();
@@ -304,25 +315,25 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
         if(jx_ok(jx_code_expose_secure_builtins(builtins))) {
           jx_ob name = jx_hash_get_key(builtins,ob);
           if(jx_ident_check(name)) {
-            sprintf(buffer,"*%s*",jx_ob_as_ident(&name)); /* TO DO replace -- not range checked */
+            sprintf(buffer,"@%s",jx_ob_as_ident(&name)); /* TO DO replace -- not range checked */
           }
           jx_ob_free(name);
         }
         if(!buffer[0]) {
-          sprintf(buffer,"*op_%d*",ob.data.io.int_);
+          sprintf(buffer,"@op_%d",ob.data.io.int_);
         }
         jx_ob_free(builtins);
       } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
-        sprintf(buffer,"*opaque_ob:%p*",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"@opaque_ob_%p",(void*)ob.data.io.vla); /* deliberate misread */
         return jx_ob_from_str(buffer);
       } else if(bits & JX_META_BIT_BUILTIN_NATIVE_FN) {
-        sprintf(buffer,"*native_fn:%p*",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"@native_fn_%p",(void*)ob.data.io.vla); /* deliberate misread */
       } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
         jx_function *fn = ob.data.io.function;
         if(jx_ident_check(fn->name)) {
-          sprintf(buffer,"*fn:%s*",jx_ob_as_ident(&fn->name)); /* deliberate misread */
+          sprintf(buffer,"@function_%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
         } else {
-          sprintf(buffer,"*fn:%p*",(void*)ob.data.io.vla); /* deliberate misread */
+          sprintf(buffer,"@function_%p",(void*)ob.data.io.vla); /* deliberate misread */
         }
       }
       return jx_ob_from_str(buffer);

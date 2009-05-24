@@ -1735,9 +1735,9 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
   if(jx_function_check(function)) {
     jx_function *fn = function.data.io.function;
     jx_ob args = fn->args;
-    if(jx_null_check(args)) {
+    if(jx_null_check(args)) { /* inner functions run within the host node namespace */
+
       jx_ob payload_ident = jx_ob_from_ident("_");
-      /* inner functions run within the host node namespace */
       jx_ob saved_payload = JX_OB_NULL;
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
@@ -1764,7 +1764,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob inv_node = jx_ob_copy(args);
       jx_ob result = JX_OB_NULL;
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
-        result = fn->block ? jx_code_exec_tls(tls,node,fn->body) : jx_code_eval_tls(tls, node,fn->body);
+        result = fn->block ? jx_code_exec_tls(tls,inv_node,fn->body) : jx_code_eval_tls(tls, inv_node,fn->body);
       }
       jx_ob_free_tls(tls,inv_node);
       jx_ob_free(function);
@@ -1830,7 +1830,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         }
         jx_ob_free_tls(tls,kwd_list);
       }
-      result = fn->block ? jx_code_exec_tls(tls,node,fn->body) : jx_code_eval_tls(tls, node,fn->body);
+      result = fn->block ? jx_code_exec_tls(tls,inv_node,fn->body) : jx_code_eval_tls(tls, inv_node,fn->body);
       jx_ob_free_tls(tls,payload);
       jx_ob_free_tls(tls, inv_node);
       jx_ob_free(function);
@@ -1840,7 +1840,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
       jx_ob result;
       //      jx_jxon_dump(stdout,"args",args);
-      result = fn->block ? jx_code_exec_tls(tls,node,fn->body) : jx_code_eval_tls(tls, node,fn->body);
+      result = fn->block ? jx_code_exec_tls(tls,inv_node,fn->body) : jx_code_eval_tls(tls, inv_node,fn->body);
       jx_ob_free_tls(tls,inv_node);
       jx_ob_free(function);
       return result;

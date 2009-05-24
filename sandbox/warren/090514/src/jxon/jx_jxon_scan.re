@@ -191,13 +191,16 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_JXON_SCON); }
 
-    "*" (L|D|":")+ "*" { RET(JX_JXON_BUILTIN); }
+    "@" (L|D)+  { RET(JX_JXON_BUILTIN); }
     
     "["         { RET(JX_JXON_OPEN_RECT_BRACE); }
     "]"         { RET(JX_JXON_CLOSE_RECT_BRACE); }
 
     "{"         { RET(JX_JXON_OPEN_CURLY_BRACE); }
     "}"         { RET(JX_JXON_CLOSE_CURLY_BRACE); }
+
+    "("         { RET(JX_JXON_OPEN_PAR); }
+    ")"         { RET(JX_JXON_CLOSE_PAR); }
 
     ","         { RET(JX_JXON_COMMA); }
     ":"         { RET(JX_JXON_COLON); }
@@ -253,8 +256,6 @@ comment:
 
 
   /* not used:
-    "("         { RET(JX_JXON_OPENPAR); }
-    ")"         { RET(JX_JXON_CLOSEPAR); }
     "."         { RET(JX_JXON_DOT); }
     "`"         { RET(JX_JXON_BACKAPOSTROPHE); }
 

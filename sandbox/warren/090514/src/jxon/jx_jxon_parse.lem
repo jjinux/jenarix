@@ -267,8 +267,23 @@ list(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
   printf("list(A) = []\n");
 #endif
 }
+list(A) ::= OPEN_PAR CLOSE_PAR.
+{ 
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list(A) = []\n");
+#endif
+}
 
 list(A) ::= OPEN_RECT_BRACE list_of_expressions(B) CLOSE_RECT_BRACE.
+{ 
+  A = B; 
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list(A) = [ B ]\n");
+#endif
+}
+
+list(A) ::= OPEN_PAR list_of_expressions(B) CLOSE_PAR.
 { 
   A = B; 
 #ifdef JX_JXON_PARSER_DEBUG
