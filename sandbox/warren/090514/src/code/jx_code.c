@@ -66,8 +66,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_SELECT    19
 #define JX_BUILTIN_DEFUN     20
 #define JX_BUILTIN_LAMBDA    21
+#define JX_BUILTIN_DEFMAC    22
 
-#define JX_BUILTIN_SPECIAL_FORMS_LIMIT 22
+#define JX_BUILTIN_SPECIAL_FORMS_LIMIT 23
 
 static jx_bool jx_declare(jx_bool ok, jx_ob namespace, jx_char * ident, jx_int selector)
 {
@@ -95,6 +96,8 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "def", JX_BUILTIN_DEF);
 
   ok = jx_declare(ok, namespace, "defun", JX_BUILTIN_DEFUN);
+
+  ok = jx_declare(ok, namespace, "defmac", JX_BUILTIN_DEFMAC);
 
   ok = jx_declare(ok, namespace, "code", JX_BUILTIN_CODE);
   ok = jx_declare(ok, namespace, "lambda", JX_BUILTIN_LAMBDA);
@@ -236,7 +239,8 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_int unresolved = 0;
       if(jx_ident_check(ident)) {
         jx_ob builtin = jx_hash_borrow(namespace, ident);
-        if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
+        if(jx_builtin_check(builtin)) { 
+          /* known builtin function (early / fixed binding) */
           unresolved = 1;
           switch(builtin.data.io.int_) {
           case JX_BUILTIN_NOP: /* [nop # ...] -> bind(#) */
@@ -274,6 +278,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             break;
           case JX_BUILTIN_DEF:
           case JX_BUILTIN_DEFUN:
+          case JX_BUILTIN_DEFMAC:
             unresolved = 3;
             break;
           }
@@ -610,7 +615,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
                   //                  jx_jxon_dump(stdout,"resolved",result);
                   {
                     jx_ob weak = jx_ob_take_weak_ref(result);
-                    //                    printf("returning possible weak ref\n");
+                    //printf("returning possible weak ref\n");
                     return weak;
                   }
                 } else {
@@ -645,6 +650,22 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
               jx_ob body = (size > 2) ? jx_ob_copy(expr_vla[2]) : jx_ob_from_null();
               return jx_function_new_with_def
                 (name,args,body,expr_vla->data.io.int_ == JX_BUILTIN_CODE);
+            }
+            break;
+          case JX_BUILTIN_DEFMAC:  /* [defmac name node expr] */
+            {
+              jx_ob name = (size > 1) ? jx_ob_copy(expr_vla[1]) : jx_ob_from_null();
+              jx_ob args = (size > 2) ? jx_ob_copy(expr_vla[2]) : jx_ob_from_null();
+              jx_ob body = (size > 3) ? jx_ob_copy(expr_vla[3]) : jx_ob_from_null();
+              jx_ob key = jx_ob_copy(name);
+              jx_ob function = jx_macro_new_with_def
+                (name, args, body );
+              //jx_ob_dump(stdout,"macro",function);
+              if(!jx_ok( jx_hash_set(node,key,function))) {
+                jx_ob_free(key);
+                jx_ob_free(function);
+              }
+              return jx_ob_from_null();
             }
             break;
           case JX_BUILTIN_DISPATCH: /* [dispatch index [callable0 ...] payload ] */
@@ -895,14 +916,26 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
             jx_ob *expr_ob = expr_list->data.ob_vla;
             jx_ob *result_vla = result_list->data.ob_vla;
             jx_ob *result_ob = result_vla;
+            jx_bool macro_flag = JX_FALSE;
             for(i=0;i<size;i++) {
-              if(expr_ob->meta.bits & (JX_META_BIT_LIST|JX_META_BIT_HASH)) {
+              if((!macro_flag) && (expr_ob->meta.bits & (JX_META_BIT_LIST|JX_META_BIT_HASH))) {
                 *(result_ob++) = jx_code_eval_allow_weak(tls, 0, node, *expr_ob);
-              } else { /* not a container */
+              } else { /* not a container or we're processing a macro */
                 *(result_ob++) = jx_ob_copy(*expr_ob);
               }
               expr_ob++;
+              if( (!(i||macro_flag)) && ((result_ob[-1].meta.bits & 
+                            (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))==
+                           (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))) {
+                macro_flag = JX_TRUE;
+              }
             }
+            if(macro_flag) {
+              jx_ob macro = jx__list_remove(result_list,0);
+              printf("expand macro\n");
+              return jx__macro_call(tls,node,macro,result);
+            }
+
             //jx_jxon_dump(stdout,"post-eval",result);
             /* WARNING / REMINDER: we may now have some weak
                references at top level in the result list -- these
@@ -924,7 +957,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int weak_nest, jx_ob node, 
                 jx__code_make_strong(result_list->data.ob_vla + 1, size - 1);
                 {
                   jx_native_fn native_fn = result_vla->data.io.native_fn;
-                  jx_jxon_dump(stdin,"result",result);
+                  //                  jx_jxon_dump(stdin,"result",result);
                   if(native_fn) {
                     jx_ob function = jx__list_remove(result_list, 0); /* strip function pointer */
                     result = native_fn(node, result); 

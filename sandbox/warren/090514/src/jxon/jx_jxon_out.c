@@ -307,11 +307,14 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
       return jx_ob_from_str("\"builtin\"");
     } else { /* for debugging and troublshooting only */
       char buffer[50];
-      if(bits & JX_META_BIT_BUILTIN_VLA) {
+      buffer[0] = 0;
+      switch(bits & JX_META_MASK_BUILTIN_TYPE) {
+      case JX_META_BIT_BUILTIN_VLA:
         sprintf(buffer,"*vla:%p*",(void*)ob.data.io.vla);
-      } else if(bits & JX_META_BIT_BUILTIN_SELECTOR) {
-        jx_ob builtins = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
-        buffer[0] = 0;
+        break;
+      case JX_META_BIT_BUILTIN_SELECTOR:
+        {
+          jx_ob builtins = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
         if(jx_ok(jx_code_expose_secure_builtins(builtins))) {
           jx_ob name = jx_hash_get_key(builtins,ob);
           if(jx_ident_check(name)) {
@@ -323,18 +326,34 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
           sprintf(buffer,"`op:%d",ob.data.io.int_);
         }
         jx_ob_free(builtins);
-      } else if(bits & JX_META_BIT_BUILTIN_OPAQUE_OB) {
-        sprintf(buffer,"`opaque_ob:%p",(void*)ob.data.io.vla); /* deliberate misread */
-        return jx_ob_from_str(buffer);
-      } else if(bits & JX_META_BIT_BUILTIN_NATIVE_FN) {
-        sprintf(buffer,"`native_fn:%p",(void*)ob.data.io.vla); /* deliberate misread */
-      } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
-        jx_function *fn = ob.data.io.function;
-        if(jx_ident_check(fn->name)) {
-          sprintf(buffer,"`function:%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
-        } else {
-          sprintf(buffer,"`function:%p",(void*)ob.data.io.vla); /* deliberate misread */
         }
+        break;
+      case JX_META_BIT_BUILTIN_OPAQUE_OB:
+        sprintf(buffer,"`opaque_ob:%p",(void*)ob.data.io.vla); /* deliberate misread */
+        break;
+      case JX_META_BIT_BUILTIN_NATIVE_FN:
+        sprintf(buffer,"`native_fn:%p",(void*)ob.data.io.vla); /* deliberate misread */
+        break;
+      case JX_META_BIT_BUILTIN_FUNCTION:
+        {
+          jx_function *fn = ob.data.io.function;
+          if(jx_ident_check(fn->name)) {
+            sprintf(buffer,"`function:%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
+          } else {
+          sprintf(buffer,"`function:%p",(void*)ob.data.io.vla); /* deliberate misread */
+          }
+        }
+        break;
+      case JX_META_BIT_BUILTIN_MACRO:
+        {
+          jx_function *fn = ob.data.io.function;
+          if(jx_ident_check(fn->name)) {
+            sprintf(buffer,"`macro:%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
+          } else {
+            sprintf(buffer,"`macro:%p",(void*)ob.data.io.vla); /* deliberate misread */
+          }
+        }
+        break;
       }
       return jx_ob_from_str(buffer);
     }

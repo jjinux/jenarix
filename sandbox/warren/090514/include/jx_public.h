@@ -347,6 +347,10 @@ jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner);
 jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
 
+/* macros */
+
+jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body);
+
 /* functions */
 
 jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block);

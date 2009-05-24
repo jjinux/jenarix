@@ -3858,8 +3858,11 @@ jx_ob jx__builtin_copy(jx_ob ob)
                                     jx_ob_copy(fn->args), 
                                     jx_ob_copy(fn->body),
                                     fn->block);
-  } else {
-    
+  } else if(bits & JX_META_BIT_BUILTIN_MACRO) {
+    jx_function *fn = ob.data.io.function;
+    return jx_macro_new_with_def(jx_ob_copy(fn->name), 
+                                 jx_ob_copy(fn->args), 
+                                 jx_ob_copy(fn->body));
   }
   return result;
 }
@@ -4050,6 +4053,30 @@ jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block
   return result;
 }
 
+jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
+  if(fn) {
+    fn->name = name;
+    fn->args = args;
+    fn->body = body;
+    fn->block = JX_FALSE;
+
+    //jx_jxon_dump(stdout,"new function name",name);
+    //jx_jxon_dump(stdout,"new function args",args);
+    //jx_jxon_dump(stdout,"new function code",body);
+    //fprintf(stdout,"new function block: %d\n",block);
+    result.data.io.function = fn;
+    result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_MACRO | JX_META_BIT_GC;
+  } else {
+    jx_ob_free(name);
+    jx_ob_free(args);
+    jx_ob_free(body);
+  }
+  return result;
+}
+
 jx_ob jx_function_to_impl(jx_ob ob)
 {
   if(jx_function_check(ob)) {
@@ -4093,7 +4120,7 @@ jx_status jx__ob_free(jx_tls *tls, jx_ob ob)
           return JX_SUCCESS;
         }
       }
-    } else if(bits & JX_META_BIT_BUILTIN_FUNCTION) {
+    } else if(bits & (JX_META_BIT_BUILTIN_FUNCTION|JX_META_BIT_BUILTIN_MACRO)) {
       jx_function *fn = ob.data.io.function;
       jx_ob_free_tls(tls,fn->name);
       jx_ob_free_tls(tls,fn->args);

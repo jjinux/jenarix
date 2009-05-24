@@ -145,12 +145,13 @@ struct jx__ob {
 /* tiny_str size bits are used by builtins */
 
 #define JX_META_MASK_BUILTIN_TYPE      0x001F
-#define JX_META_BIT_BUILTIN_VLA        0x0001
+
+#define JX_META_BIT_BUILTIN_VLA        0x0000
+#define JX_META_BIT_BUILTIN_OPAQUE_OB  0x0001
 #define JX_META_BIT_BUILTIN_SELECTOR   0x0002
-#define JX_META_BIT_BUILTIN_OPAQUE_OB  0x0004
+#define JX_META_BIT_BUILTIN_MACRO      0x0004
 #define JX_META_BIT_BUILTIN_NATIVE_FN  0x0008
 #define JX_META_BIT_BUILTIN_FUNCTION   0x0010
-
 
 /* object initializers */
 
@@ -671,7 +672,8 @@ JX_INLINE jx_bool jx_builtin_callable_check(jx_ob ob)
   register jx_bits bits = ob.meta.bits;
   return (bits & JX_META_BIT_BUILTIN) && 
     (bits & 
-     (JX_META_BIT_BUILTIN_SELECTOR |      
+     (JX_META_BIT_BUILTIN_MACRO |      
+      JX_META_BIT_BUILTIN_SELECTOR |      
       JX_META_BIT_BUILTIN_NATIVE_FN |      
       JX_META_BIT_BUILTIN_FUNCTION));
 }
@@ -679,6 +681,11 @@ JX_INLINE jx_bool jx_builtin_callable_check(jx_ob ob)
 JX_INLINE jx_bool jx_function_check(jx_ob ob)
 {
   return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_FUNCTION);
+}
+
+JX_INLINE jx_bool jx_macro_check(jx_ob ob)
+{
+  return jx_builtin_check(ob) && (ob.meta.bits & JX_META_BIT_BUILTIN_MACRO);
 }
 
 /* convenience function */
@@ -1741,7 +1748,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob saved_payload = JX_OB_NULL;
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
-        jx_ob result = fn->block ? jx_code_exec_tls(tls,node,fn->body) : jx_code_eval_tls(tls, node,fn->body);
+        jx_ob result = fn->block ? jx_code_exec_tls(tls,node,fn->body) :
+          jx_code_eval_tls(tls, node,fn->body);
         if(saved) 
           jx_hash_set(node, payload_ident, saved_payload);
         else
@@ -1860,4 +1868,153 @@ JX_INLINE jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload)
   jx_tls_free(tls);
   return result;
 }
+
+JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob payload)
+{
+  jx_jxon_dump(stdout,"jx_macro_call macro",macro);
+  jx_jxon_dump(stdout,"jx_macro_call payload", payload);
+  if(jx_macro_check(macro)) {
+    jx_function *fn = macro.data.io.function;
+    jx_ob args = fn->args;
+
+    if(jx_null_check(args)) { /* inner functions run within the host node namespace */
+      jx_ob payload_ident = jx_ob_from_ident("_");
+      jx_ob saved_payload = JX_OB_NULL;
+      jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
+      if(jx_ok( jx_hash_set(node,payload_ident,payload))) {
+        jx_ob ob = jx_code_eval_tls(tls, node, fn->body);
+        if(saved) 
+          jx_hash_set(node, payload_ident, saved_payload);
+        else
+          jx_hash_delete(node, payload_ident);
+        {
+          jx_ob result = jx_code_eval_tls(tls, node, ob);
+          jx_ob_free_tls(tls,ob);
+          jx_ob_free_tls(tls,payload);
+          jx_ob_free(macro);
+          return result;
+        }
+      } else {
+        if(saved) 
+          jx_hash_set(node, payload_ident, saved_payload);
+        else
+          jx_hash_delete(node, payload_ident);
+        jx_ob_free_tls(tls,payload);
+        jx_ob_free(macro);
+        return jx_ob_from_null();
+      }
+    } else if(jx_hash_check(args)) { /* simple namespace -- no processing */
+      /* standard functions run inside their own node namespace (and
+         thus can potentially be concurrent) */
+      jx_ob payload_ident = jx_ob_from_ident("_");
+      jx_ob inv_node = jx_ob_copy(args);
+      jx_ob result = JX_OB_NULL;
+      
+      if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
+        jx_ob ob = jx_code_eval_tls(tls, inv_node, fn->body);
+        jx_ob_free_tls(tls,payload);
+        jx_ob_free_tls(tls, inv_node);
+        jx_ob_free(macro);
+        {
+          jx_ob result = jx_code_eval_tls(tls, node, ob);
+          jx_ob_free_tls(tls, ob);
+          return result;
+        }
+      }
+      return result;
+    } else if(jx_list_check(args)) { /* parameter list exists */
+      jx_ob ob_null = JX_OB_NULL;
+      jx_ob result;
+      jx_ob inv_node;
+      jx_list *args_list = args.data.io.list;
+      jx_ob sub_list = jx__list_borrow(args_list,0);
+      jx_ob kwd_hash = JX_OB_NULL;
+      if(jx_list_check(sub_list)) { /* have both positional and keyword defaults */
+        jx_ob kwds = jx__list_borrow(args_list,1);
+        if(jx_hash_check(kwds)) {
+          inv_node = jx__hash_copy(kwds.data.io.hash);
+        } else {
+          inv_node = jx_tls_hash_new(tls);
+        }
+        if(jx_list_check(payload)) {
+          jx_list *args_list2 = sub_list.data.io.list;
+          jx_list *payload_list = payload.data.io.list;
+          jx_int i,size = jx_list_size(sub_list);
+          jx_int size2 = jx_list_size(payload);
+          if(size2<size) size = size2;
+          for(i=0;i<size;i++) {
+            jx_hash_set(inv_node,jx__list_borrow(args_list2,i),
+                        jx__list_swap(payload_list,i, ob_null));
+          }
+          if(size2>size) { /* keyword args also provided in payload? */
+            kwd_hash = jx__list_borrow(payload_list,size);
+          }
+        } else if(jx_list_size(sub_list)) { /* payload primitive -> [x] */
+          jx_hash_set(inv_node, jx_list_borrow(sub_list,0), payload);
+        }
+      } else { /* only positional arguments */
+        inv_node = jx_tls_hash_new(tls);
+        if(jx_list_check(payload)) {
+          jx_list *args_list = args.data.io.list;
+          jx_list *payload_list = payload.data.io.list;
+          jx_int i,size = jx_list_size(args);
+          jx_int size2 = jx_list_size(payload);
+          for(i=0;i<size;i++) {
+            jx_hash_set(inv_node,jx__list_borrow(args_list,i),
+                        jx__list_swap(payload_list,i, ob_null));
+          }
+          if(size2>size) { /* keyword args also provided in payload? */
+            kwd_hash = jx__list_borrow(payload_list,size);
+          }
+        } else if(jx_list_size(args)) { /* payload primitive -> [x] */
+          jx_hash_set(inv_node, jx_list_borrow(args,0), payload);
+        }
+      }
+      /* process keyword argument hash, if present (THIS STRATEGY WILL CHANGE) */
+      if(jx_hash_check(kwd_hash)) {
+        jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
+        if(jx_list_check(kwd_list)) {
+          jx_list *args_list3 = kwd_list.data.io.list;
+          jx_int i,size3 = jx__list_size(args_list3);
+          for(i=0;i<size3;i+=2) {
+            jx_hash_set(inv_node,jx__list_swap(args_list3,i, ob_null),
+                        jx__list_swap(args_list3,i+1, ob_null));
+          }
+        }
+        jx_ob_free_tls(tls,kwd_list);
+      }
+      jx_jxon_dump(stdout,"inv_node",inv_node);
+      jx_jxon_dump(stdout,"body",fn->body);
+      {
+        jx_ob ob = jx_code_eval_tls(tls, inv_node, fn->body);
+        jx_jxon_dump(stdout,"node",node);
+        jx_jxon_dump(stdout,"ob",ob);
+        result = jx_code_eval_tls(tls, node, ob);
+        jx_ob_free_tls(tls, ob);
+        jx_ob_free_tls(tls, payload);
+        jx_ob_free_tls(tls, inv_node);
+        jx_ob_free(macro);
+        return result;
+      }
+    } else {
+      /* args declaration is a primitive */
+      jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
+      jx_ob result;
+      {
+        jx_ob ob = jx_code_eval_tls(tls, inv_node, fn->body);
+        jx_ob_free(macro);
+        result = jx_code_eval_tls(tls, node, ob);
+        jx_ob_free_tls(tls,inv_node);
+        jx_ob_free_tls(tls,ob);
+        jx_ob_free_tls(tls,payload);
+        return result;
+      }
+    }
+  } else {
+    jx_ob_free_tls(tls,payload);
+    jx_ob_free(macro);
+    return jx_ob_from_null();
+  }
+}
+
 #endif
