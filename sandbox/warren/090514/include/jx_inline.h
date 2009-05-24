@@ -1994,7 +1994,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       {
         jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         //        jx_jxon_dump(stdout,"node",node);
-        //jx_jxon_dump(stdout,"ob",ob);
+        //        jx_jxon_dump(stdout,"ob",ob);
         result = jx_code_eval_tls(tls, 0, node, ob);
         jx_ob_free_tls(tls, ob);
         jx_ob_free_tls(tls, payload);

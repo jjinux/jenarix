@@ -4081,11 +4081,24 @@ jx_ob jx_function_to_impl(jx_ob ob)
 {
   if(jx_function_check(ob)) {
     jx_function *fn = ob.data.io.function;  
-    jx_ob result = jx_list_new_with_size(3);
+    jx_ob result = jx_list_new_with_size(4);
     jx_list_replace(result, 0, jx_ob_copy(fn->name));
     jx_list_replace(result, 1, jx_ob_copy(fn->args));
     jx_list_replace(result, 2, jx_ob_copy(fn->body));
     jx_list_replace(result, 3, jx_ob_from_bool(fn->block));
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
+jx_ob jx_macro_to_impl(jx_ob ob)
+{
+  if(jx_function_check(ob)) {
+    jx_function *fn = ob.data.io.function;  
+    jx_ob result = jx_list_new_with_size(3);
+    jx_list_replace(result, 0, jx_ob_copy(fn->name));
+    jx_list_replace(result, 1, jx_ob_copy(fn->args));
+    jx_list_replace(result, 2, jx_ob_copy(fn->body));
     return result;
   }
   return jx_ob_from_null();

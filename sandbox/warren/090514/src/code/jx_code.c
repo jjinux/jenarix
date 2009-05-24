@@ -533,7 +533,8 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, jx_ob callable,
 
 static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
 {
-  //  jx_jxon_dump(stdout,"eval entered with expr",expr);
+  //  jx_jxon_dump(stdout,"eval entered with",expr);
+  //  printf("   and flags %d\n",flags);
   switch (expr.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_LIST:
     {
@@ -549,9 +550,9 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
            ((bits = expr_vla->meta.bits) & JX_META_BIT_BUILTIN_SELECTOR) &&
            (expr_vla->data.io.int_ < JX_BUILTIN_SPECIAL_FORMS_LIMIT) &&
            ((!(flags & JX_EVAL_DEFER_INVOCATION)) || 
-            (expr_vla->data.io.int_ != JX_BUILTIN_RESOLVE))) {
+            (expr_vla->data.io.int_ == JX_BUILTIN_RESOLVE))) {
           jx_int size = jx_vla_size(&expr_vla);
-          //          printf("found special form\n");
+          //                   printf("found special form %d\n",expr_vla->data.io.int_);
           switch (expr_vla->data.io.int_) {
           case JX_BUILTIN_QUOTE:
           case JX_BUILTIN_RAW:
@@ -767,7 +768,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
           case JX_BUILTIN_APPLY: /* [apply callable payload] */
             {
               jx_ob callable = (size>1) ? jx_code_eval_allow_weak
-                (tls, 0, node, expr_vla[1]) : jx_ob_from_null();
+                (tls, flags, node, expr_vla[1]) : jx_ob_from_null();
               jx_ob payload = (size>2) ? jx_code_eval_tls(tls, flags, node, expr_vla[2]) :
                 jx_ob_from_null();
               if(jx_builtin_callable_check(callable)) {
@@ -782,7 +783,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
           case JX_BUILTIN_MAP: /* [map callable list] */
             {    
               jx_ob callable = (size>1) ? jx_code_eval_allow_weak
-                (tls, 0, node, expr_vla[1]) : jx_ob_from_null();
+                (tls, flags, node, expr_vla[1]) : jx_ob_from_null();
               jx_ob inp = (size>2) ? jx_code_eval_tls(tls, flags, node, expr_vla[2]) : 
                 jx_ob_from_null();
               if(jx_builtin_callable_check(callable) && jx_list_check(inp)) {
@@ -919,7 +920,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
             jx_bool macro_flag = JX_FALSE;
             for(i=0;i<size;i++) {
               if((!macro_flag) && (expr_ob->meta.bits & (JX_META_BIT_LIST|JX_META_BIT_HASH))) {
-                *(result_ob++) = jx_code_eval_allow_weak(tls, 0, node, *expr_ob);
+                *(result_ob++) = jx_code_eval_allow_weak(tls, flags, node, *expr_ob);
               } else { /* not a container or we're processing a macro */
                 *(result_ob++) = jx_ob_copy(*expr_ob);
               }
@@ -936,17 +937,22 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
               return jx__macro_call(tls,node,macro,result);
             }
 
-            //jx_jxon_dump(stdout,"post-eval",result);
+            //            jx_jxon_dump(stdout,"post-eval",result);
             /* WARNING / REMINDER: we may now have some weak
                references at top level in the result list -- these
                will need to be eliminated or made strong (deep copied)
                before we return the frame or hand it over to a
                user-defined function
             */
+            //            printf("flags %d\n",flags);
+
+            if(flags & JX_EVAL_DEFER_INVOCATION) {
+              return result;
+            } else if((flags & JX_EVAL_DEFER_INVOCATION) || 
+               (!jx_builtin_callable_check(result_vla[0]))) {
             /* if weak nesting is allowed, or first entry is not a
                function, then simply return value */
-            if((flags & (JX_EVAL_ALLOW_NESTED_WEAK_REFS|JX_EVAL_DEFER_INVOCATION)) || 
-               (!jx_builtin_callable_check(result_vla[0]))) {
+
               if(!(flags & JX_EVAL_ALLOW_NESTED_WEAK_REFS)) {
                 jx__code_make_strong(result_vla,size);
               }

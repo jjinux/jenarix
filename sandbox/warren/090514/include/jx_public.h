@@ -355,6 +355,7 @@ jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body);
 
 jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block);
 jx_ob jx_function_to_impl(jx_ob ob);
+jx_ob jx_macro_to_impl(jx_ob ob);
 jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
 /* code execution engine */

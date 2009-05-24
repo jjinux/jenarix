@@ -546,6 +546,8 @@ JX_INLINE jx_ob jx_safe_impl(jx_ob node, jx_ob payload)
   jx_ob arg = jx_list_borrow(payload,0);
   if(jx_function_check(arg)) {
     return jx_function_to_impl(arg);
+  } else if(jx_macro_check(arg)) {
+    return jx_macro_to_impl(arg);
   } else {
     jx_ob fn = jx_hash_borrow(node, arg);
     return jx_function_to_impl(fn);
