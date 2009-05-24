@@ -12,7 +12,7 @@
 
 
 [ while [get a] 
-  [ [hash_set b [get a] 1]
+  [ [set b [get a] 1]
     [set a [sub [get a] 1]] ]
 ];
 
