@@ -102,8 +102,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** for now, malloc'ing non-terminals. ***/
 
+%destructor implicit_list        { jx_ob_free($$); }
 %destructor expression           { jx_ob_free($$); }
+%destructor stop_expression      { jx_ob_free($$); }
 %destructor primitive            { jx_ob_free($$); }
+%destructor container            { jx_ob_free($$); }
 %destructor list                 { jx_ob_free($$); }
 %destructor list_of_expressions  { jx_ob_free($$); }
 %destructor hash                 { jx_ob_free($$); }
@@ -146,8 +149,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** Declare parser token types ***/
 
+%type implicit_list          { jx_ob }
+%type stop_expression        { jx_ob }
 %type expression             { jx_ob }
 %type primitive              { jx_ob }
+%type container              { jx_ob }
 %type list                   { jx_ob }
 %type list_of_expressions    { jx_ob }
 %type hash                   { jx_ob }
@@ -160,14 +166,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** The grammer itself ***/
 
-statement ::= EOI. 
+statement ::= SOI EOI. 
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = EOI\n"); 
 #endif
 }
 
-statement ::= expression(B) EOI. 
+statement ::= SOI stop_expression(B). 
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(B) EOI\n"); 
@@ -176,13 +182,80 @@ statement ::= expression(B) EOI.
   context->result = B; /* save the result */
 }
 
-statement ::= expression(B) SEMICOLON. 
+statement ::= SOI implicit_list(B).
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(B) SEMICOLON\n"); 
 #endif
   jx_ob_free(context->result); /* free previous result (if any) */ 
   context->result = B; /* save the result */
+}
+
+stop_expression(A) ::= primitive(B) EOI.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) EOI\n");
+#endif
+}
+
+stop_expression(A) ::= primitive(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) EOI\n");
+#endif
+}
+
+stop_expression(A) ::= container(B) EOI.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) EOI\n");
+#endif
+}
+
+stop_expression(A) ::= container(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) SEMICOLON\n");
+#endif
+}
+
+implicit_list(A) ::= implicit_list(B) EOI.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= implicit_list(B) EOI.\n");
+#endif
+}
+
+implicit_list(A) ::= implicit_list(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= implicit_list(B) SEMICOLON.\n");
+#endif
+}
+
+implicit_list(A) ::= implicit_list(B) expression(C).
+{  
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= implicit_list(B) expression(C) EOI.\n");
+#endif
+}
+
+implicit_list(A) ::= primitive(B) expression(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= SOI primitive(B) expression(C).\n");
+#endif
 }
 
 expression(A) ::= primitive(B). 
@@ -193,7 +266,7 @@ expression(A) ::= primitive(B).
 #endif
 }
 
-expression(A) ::= list(B). 
+expression(A) ::= container(B). 
 {  
    A = B;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -201,7 +274,15 @@ expression(A) ::= list(B).
 #endif
 }
 
-expression(A) ::= hash(B). 
+container(A) ::= list(B). 
+{  
+   A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("expression(A) = list(B)\n");
+#endif
+}
+
+container(A) ::= hash(B). 
 {  
    A = B;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -267,6 +348,7 @@ list(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
   printf("list(A) = []\n");
 #endif
 }
+
 list(A) ::= OPEN_PAR CLOSE_PAR.
 { 
   A = jx_list_new();

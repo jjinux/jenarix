@@ -1,32 +1,42 @@
 # This is an introduction to the Jenarix intermediate language JXON,
-# which is a JSON-based eXecutable Object Notation.
+# which is a JSON-derived eXecutable Object Notation 
 
 # NOTE: the following examples are intended to be run through ./jxeval
 # interactively.  Please try them for yourself!
 
 # Also note that ./jxeval currently requires that each JXON phrase be
-# terminated with a semicolon; this requirement may vanish in the
-# future.
+# terminated with a semicolon;
 
-# JXON is a cross between LISP, JSON, and functional semantics.
+# JXON draws from LISP, JSON, functional, and data-flow architecture.
 
-# With respect to JSON, JXON adds two new primitive types (identifiers
-# and builtins), adds support for single-quoted strings, allows all
-# primitive types to serve as hash keys, treats commas as optional,
-# accepts either parentheses and square braces, and supports
-# #-delimited single-line comments.
+# JXON is a strict super-set of JSON syntax and can be encoded in JSON
+# through escaping system without loss of structure or fidelity. 
+
+# - JXON adds two new primitive types (identifiers and builtins),
+
+# - JXON allows for single-quoted as well as double-quoted strings
+
+# - JXON permits all primitive types to serve as hash keys
+
+# - Commas as optional in JSON -- whitespace is sufficient
+
+# - JXON accepts either parentheses and square braces
+
+# - JXON supports #-delimited single-line comments.
 
 # With respect to LISP, JXON phrases are LISP-like symbolic-
 # expressions (S-expressions) which the Jenarix runtime is capable of
-# creating, transforming, binding, and executing.  
-#
-# Compared to LISP, JSON draws a distinction between functional
-# expressions, where the full body is returned following evaluation,
-# and code blocks, where only the last item evaluated is returned.  
+# creating, transforming, binding, and executing.
 
-# Thus, in JXON, "def" is used to create a named functions containing
-# code blocks (like Python "def") and "defun" is used to create a named
-# functions containing expressions (like LISP "defun") 
+# JXON also includes a LISP-like macro facility with a simpler syntax
+
+# Compared to LISP, JXON draws a distinction between functional
+# expressions: where the full body is returned following evaluation,
+# and code blocks: where only the last item evaluated is returned.
+
+# Accordingly in JXON, 'def' is used to create a named functions containing
+# code blocks (like Python 'def') and 'defun'is used to create a named
+# functions containing expressions (like LISP 'defun') 
 
 # Likewise, "code" is used to create anonymous lambda functions
 # containing code blocks and "lambda" is used to create anonymous lambda
@@ -65,11 +75,15 @@ a.compound.identifier;
 # - and builtins (which represent bound entities that cannot be
 #   directly input, and are instead created and used at runtime)
 
-*add*;
+# NOTE: Builtins can be recognized in JXON output by their leading
+# back-quote (which by the way has nothing to do with LISP's
+# backquote)
 
-*fn:my_custom_fn*;
+`add;
 
-*native_fn:0x123456*;  
+`fn:my_custom_fn;
+
+`native_fn_0x00123456;  
 
 # JXON containers include:
 
@@ -77,7 +91,7 @@ a.compound.identifier;
 
 [1,2,3];
 
-[a b c];
+(a b c);
 
 [true,2.0,'a'];
 
@@ -101,27 +115,42 @@ a.compound.identifier;
  c:a
 };
 
+# NOTE the the default JXON parser accepts implicit lists at the top level
+# consisting of two or more elements:
+
+a;
+
+# result: a
+
+a b;
+
+# result: (a b)
+
+
 # JXON containers can be nested to arbitrary levels of complexity,
 # just like with JSON
 
-[{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}] ]  ]];
+[{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}](a b c)]  ]];
 
 # So what about programming?  Well, first note that all executing code
 # has an associated namespace.  You can set values using set:
 
 [set x,100];
 
-(set x 100);
-
-# note that you can use either square or curly braces, and commas as
-# you see fit
-
-
 # and recall them using get:
 
 [get x];  
 
 # result: 100
+
+# or simply enter the symbol literally
+
+x;
+
+# note that you can use either square or curly braces, and commas as
+# you see fit
+
+(set x 100);
 
 # or merely the symbol itself
 

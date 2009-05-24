@@ -310,7 +310,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags)
       buffer[0] = 0;
       switch(bits & JX_META_MASK_BUILTIN_TYPE) {
       case JX_META_BIT_BUILTIN_VLA:
-        sprintf(buffer,"*vla:%p*",(void*)ob.data.io.vla);
+        sprintf(buffer,"`vla:%p",(void*)ob.data.io.vla);
         break;
       case JX_META_BIT_BUILTIN_SELECTOR:
         {

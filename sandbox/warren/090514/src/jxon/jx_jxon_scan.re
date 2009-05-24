@@ -283,11 +283,15 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
 
   void *jx_Parser = jx_jxon_Alloc( (void *(*)(size_t))jx__jxon_alloc);
 
+
   jx_word tok_type = 0;
   jx_char stack_buffer[SSCANF_BUFSIZE];
   
   state->context.status = 0;
+
+  jx_jxon_(jx_Parser, JX_JXON_SOI, jx_ob_from_null(), &state->context);
   state->n_tok_parsed = 0;
+
   while(!state->context.exhausted) {
     tok_type = jx_scan(state);
     {
