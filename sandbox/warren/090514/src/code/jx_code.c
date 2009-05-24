@@ -97,7 +97,7 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "defun", JX_BUILTIN_DEFUN);
 
   ok = jx_declare(ok, namespace, "code", JX_BUILTIN_CODE);
-  ok = jx_declare(ok, namespace, "expr", JX_BUILTIN_LAMBDA);
+  ok = jx_declare(ok, namespace, "lambda", JX_BUILTIN_LAMBDA);
 
   ok = jx_declare(ok, namespace, "apply", JX_BUILTIN_APPLY);
   ok = jx_declare(ok, namespace, "map", JX_BUILTIN_MAP);

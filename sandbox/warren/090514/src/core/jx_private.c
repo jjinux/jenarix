@@ -1931,7 +1931,7 @@ jx_int *jx_list_as_int_vla(jx_ob ob)
         return list->data.int_vla;
       } else if(!list->data.vla) {
         list->packed_meta_bits = JX_META_BIT_INT;
-        list->data.int_vla = (jx_int *) jx_vla_new(sizeof(int), 0);
+        list->data.int_vla = (jx_int *) jx_vla_new(sizeof(jx_int), 0);
         return list->data.int_vla;
       }
     }
@@ -1961,7 +1961,7 @@ jx_float *jx_list_as_float_vla(jx_ob ob)
         return list->data.float_vla;
       } else if(!list->data.vla) {
         list->packed_meta_bits = JX_META_BIT_FLOAT;
-        list->data.float_vla = (jx_float *) jx_vla_new(sizeof(float), 0);
+        list->data.float_vla = (jx_float *) jx_vla_new(sizeof(jx_float), 0);
         return list->data.float_vla;
       }
     }
