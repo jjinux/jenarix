@@ -33,7 +33,8 @@ struct Jx__heapTrackerEntry {
 /* global variables */
 
 static Jx_heapTrackerEntry *jx_heap_Hash[JX__HEAP_HASH_SIZE];
-static jx_size jx_heap_Count=0, jx_heap_MaxCount=0, jx_heap_TotalCount=0;
+static jx_word jx_heap_Count=0, jx_heap_MaxCount=0, jx_heap_TotalCount=0;
+static jx_word jx_atExitFlag = JX_FALSE;
 
 #define JX__HEAP_TYPE_BLOCK 0
 #define JX__HEAP_TYPE_VLA 1
@@ -89,6 +90,7 @@ static void Jx__heapBlockOthersUntilReady(void)
 
 static void Jx__atExit(void)
 {
+  jx_atExitFlag = JX_TRUE;
   jx_heap_dump(0);
 }
 
@@ -241,15 +243,15 @@ jx_status jx_heap_dump(jx_int32 flags)
 {
   jx_status status = JX_SUCCESS;
 #ifdef JX_HEAP_TRACKER_MUTEX
-  if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
+  if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)) || jx_atExitFlag)
 #endif
     {
   
-      jx_int a;
+      jx_word a;
       jx_uint tot = 0;
       Jx_heapTrackerEntry *rec;
       jx_char type[]="FV";
-      jx_int cnt=0;
+      jx_word cnt=0;
       
 #ifdef JX__HEAP_DUMP_SORT
       HeapDumpOutput *output = NULL;
@@ -266,8 +268,8 @@ jx_status jx_heap_dump(jx_int32 flags)
           cnt++;
         }
       }
-      output = (HeapDumpOutput*)jx_os_malloc(cnt*jx_sizeof(HeapDumpOutput));
-      index = (jx_uint*)jx_os_malloc(cnt*jx_sizeof(jx_uint));
+      output = (HeapDumpOutput*)jx_os_malloc(cnt*sizeof(HeapDumpOutput));
+      index = (jx_uint*)jx_os_malloc(cnt*sizeof(jx_uint));
       cnt = 0;
 #endif
       
@@ -386,7 +388,7 @@ JX_INLINE jx_status Jx_malloc(void **result, jx_size size
     register Jx_heapTrackerEntry *entry;
     
     if(! (entry = (Jx_heapTrackerEntry*)
-          jx_os_malloc(jx_sizeof(Jx_heapTrackerEntry) + size))) {
+          jx_os_malloc(sizeof(Jx_heapTrackerEntry) + size))) {
       status = JX_STATUS_OUT_OF_MEMORY;
     } else {
       Jx_heapTrack(entry,file,line,type,size);
@@ -414,7 +416,7 @@ JX_INLINE jx_status Jx_calloc(void **result, jx_size size
   register Jx_heapTrackerEntry *entry;
   
   if(! (entry = (Jx_heapTrackerEntry*)
-        jx_os_calloc(jx_sizeof(Jx_heapTrackerEntry) + size,1) )) {
+        jx_os_calloc(sizeof(Jx_heapTrackerEntry) + size,1) )) {
     status = JX_STATUS_OUT_OF_MEMORY;
   } else {
     Jx_heapTrack(entry,file,line,type,size);
@@ -452,7 +454,7 @@ JX_INLINE jx_status Jx_realloc(void **result, jx_size size
        jx_size old_size = entry->size;
        if(JX_IS_OK( Jx_heapUntrack(entry))) {
          Jx_heapTrackerEntry* new_entry = (Jx_heapTrackerEntry*)
-           jx_os_realloc(entry, size + jx_sizeof(Jx_heapTrackerEntry));
+           jx_os_realloc(entry, size + sizeof(Jx_heapTrackerEntry));
          if(!new_entry) {
            status = JX_STATUS_OUT_OF_MEMORY;
            Jx_heapTrack(entry,file,line,type,old_size);
@@ -499,14 +501,14 @@ JX_INLINE jx_status Jx_realloc_recopy(void **result,
      if(JX_IS_OK( Jx_heapEntryFromPtr(&entry, *result, type) )) {
        jx_size old_size = entry->size;
        if(JX_IS_OK( Jx_heapUntrack(entry))) {
-         jx_size new_tot_size = new_size + jx_sizeof(Jx_heapTrackerEntry);
+         jx_size new_tot_size = new_size + sizeof(Jx_heapTrackerEntry);
          Jx_heapTrackerEntry* new_entry = (Jx_heapTrackerEntry*)
            jx_os_malloc(new_tot_size);
          if(!new_entry) {
            status = JX_STATUS_OUT_OF_MEMORY;
            Jx_heapTrack(entry,file,line,type,old_size);
          } else {
-           jx_size cur_tot_size = cur_size + jx_sizeof(Jx_heapTrackerEntry);
+           jx_size cur_tot_size = cur_size + sizeof(Jx_heapTrackerEntry);
            jx_size min_tot_size = (new_tot_size < cur_tot_size) ? new_tot_size : cur_tot_size;
            if(min_tot_size) jx_os_memcpy(new_entry, entry, min_tot_size);
            jx_os_free(entry);
@@ -542,7 +544,7 @@ JX_INLINE jx_status Jx_free(void **result
       if(JX_IS_OK( Jx_heapEntryFromPtr(&entry, *result, type) )) {
         if(JX_IS_OK( Jx_heapUntrack(entry) )) {        
 #ifdef JX_HEAP_GRINDER
-          jx_os_memset((void*)entry, -1, jx_sizeof(Jx_heapTrackerEntry) + entry->size);
+          jx_os_memset((void*)entry, -1, sizeof(Jx_heapTrackerEntry) + entry->size);
 #endif
 #ifndef JX_HEAP_SINGLE_USE
           jx_os_free(entry);
@@ -583,7 +585,7 @@ void *jx_heap_MallocRaw(jx_size size
     register Jx_heapTrackerEntry *entry;
     
     if( (entry = (Jx_heapTrackerEntry*)
-         jx_os_malloc(jx_sizeof(Jx_heapTrackerEntry) + size)) ) {
+         jx_os_malloc(sizeof(Jx_heapTrackerEntry) + size)) ) {
       Jx_heapTrack(entry,file,line,JX__HEAP_TYPE_BLOCK,size);
       result = (entry+1);
     }
@@ -618,7 +620,7 @@ void *jx_heap_CallocRaw(jx_size size
   {
     register Jx_heapTrackerEntry *entry;
     if( (entry = (Jx_heapTrackerEntry*)
-         jx_os_calloc(jx_sizeof(Jx_heapTrackerEntry) + size,1)) ) {
+         jx_os_calloc(sizeof(Jx_heapTrackerEntry) + size,1)) ) {
       Jx_heapTrack(entry,file,line,JX__HEAP_TYPE_BLOCK,size);
       result = (entry+1);
     }
@@ -847,11 +849,11 @@ jx_status jx_heap_VlaAlloc(void **result,
   register jx_status status = JX_SUCCESS;
   if(auto_zero) {
     status = JX__HEAP_VLA_CALLOC(&vla,
-                                        jx_sizeof(Jx_HeapVLA)+
+                                        sizeof(Jx_HeapVLA)+
                                         (unit_size*init_size));
   } else {
     status = JX__HEAP_VLA_MALLOC(&vla,
-                                        jx_sizeof(Jx_HeapVLA)+
+                                        sizeof(Jx_HeapVLA)+
                                         (unit_size*init_size));
   }
   if(JX_OK(status)) {
@@ -930,7 +932,7 @@ jx_status jx_heap_VlaAddIndex(void **result, jx_size index
         /* NOTE: hardcoded 50% growth factor for arrays */
         if(!JX_IS_OK( 
                      JX__HEAP_VLA_REALLOC(&vla,
-                                          jx_sizeof(Jx_HeapVLA)+
+                                          sizeof(Jx_HeapVLA)+
                                           (vla->unit_size*new_alloc)) )) {
           /* no luck? keep trying for less and less memory */
           new_alloc = ((new_alloc + vla->alloc) >> 1 );
@@ -938,7 +940,7 @@ jx_status jx_heap_VlaAddIndex(void **result, jx_size index
           if(vla->auto_zero) {
             
             jx_char *start = ((char*)vla) + 
-              jx_sizeof(Jx_HeapVLA) + (vla->unit_size*vla->size);
+              sizeof(Jx_HeapVLA) + (vla->unit_size*vla->size);
             jx_os_memset(start, 0, vla->unit_size*(new_alloc-vla->size));
           }
           vla->alloc = new_alloc;
@@ -985,17 +987,17 @@ jx_status jx_heap_VlaSetSize(void **result, jx_size size
       if( vla->auto_zero ) {
         /* zero out the records we are no longer using */
         jx_char *start = ((char*)vla) + 
-          jx_sizeof(Jx_HeapVLA)+(vla->unit_size*size);
+          sizeof(Jx_HeapVLA)+(vla->unit_size*size);
         jx_os_memset(start, 0, vla->unit_size*(vla->size-size));
       } 
       vla->size = size;
       *result = (void*)(vla+1);
     } else if(JX_IS_OK( JX__HEAP_VLA_REALLOC(&vla,
-                                             jx_sizeof(Jx_HeapVLA)+
+                                             sizeof(Jx_HeapVLA)+
                                              (vla->unit_size*size)) )) {
       if( (size > vla->size) && vla->auto_zero) {
         jx_char *start = ((char*)vla) + 
-          jx_sizeof(Jx_HeapVLA)+(vla->unit_size*vla->size);
+          sizeof(Jx_HeapVLA)+(vla->unit_size*vla->size);
         jx_os_memset(start, 0, vla->unit_size*(size-vla->size));
       }
       vla->size = size;
@@ -1018,14 +1020,14 @@ jx_status jx_heap_VlaSetSizeRecopy(void **result, jx_size size
   if(*result) {
     Jx_HeapVLA *vla = (((Jx_HeapVLA*)*result)-1);
     if(JX_IS_OK( JX__HEAP_VLA_REALLOC_RECOPY((void**)&vla,
-                                             jx_sizeof(Jx_HeapVLA)+
+                                             sizeof(Jx_HeapVLA)+
                                              (vla->unit_size*size),
-                                             jx_sizeof(Jx_HeapVLA)+
+                                             sizeof(Jx_HeapVLA)+
                                              (vla->unit_size*vla->size))
                  )) {                
       if( (size > vla->size) && vla->auto_zero) {
         jx_char *start = ((char*)vla) + 
-          jx_sizeof(Jx_HeapVLA)+(vla->unit_size*vla->size);
+          sizeof(Jx_HeapVLA)+(vla->unit_size*vla->size);
         jx_os_memset(start, 0, vla->unit_size*(size-vla->size));
       }
       vla->size = size;
@@ -1117,11 +1119,11 @@ jx_status jx_heap_VlaClone(void **result, void *ptr
     jx_size init_size = src_vla->size;
     if(auto_zero) {
       status = JX__HEAP_VLA_CALLOC(&vla,
-                                   jx_sizeof(Jx_HeapVLA)+
+                                   sizeof(Jx_HeapVLA)+
                                    (unit_size*init_size));
     } else {
       status = JX__HEAP_VLA_MALLOC(&vla,
-                                   jx_sizeof(Jx_HeapVLA)+
+                                   sizeof(Jx_HeapVLA)+
                                    (unit_size*init_size));
     }
     if(JX_OK(status)) {

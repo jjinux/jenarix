@@ -17,7 +17,7 @@ jx_os_process *jx_os_Process = JX_NULL;
 jx_os_mutex jx_os_AtomicityMutex;
 #endif
 
-jx_status jx_os_process_init(int argc, const char* argv[])
+jx_status jx_os_process_init(int argc, char* argv[])
 {
   return jx__os_process_init(argc,argv);
 }

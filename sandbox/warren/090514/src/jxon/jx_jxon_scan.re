@@ -89,7 +89,7 @@ static jx_size jx_read_file(FILE *file, jx_char *buf, jx_size buf_size, jx_int m
     break;
   case JX_JXON_SCANNER_MODE_CONSOLE:
     if(fgets((char*)buf, buf_size, stdin)) {
-      return strlen(buf);
+      return jx_strlen(buf);
     } else 
       return 0;
     break;
@@ -106,7 +106,7 @@ static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
       jx_diff cnt = s->tok - s->bot; /* amount of open space in buffer */
       if(cnt) {
         if(s->lim > s->tok) { /* any remaining characters? */
-          memcpy(s->bot, s->tok, s->lim - s->tok); /* move to start of buffer */
+          jx_os_memcpy(s->bot, s->tok, s->lim - s->tok); /* move to start of buffer */
         }
         s->tok = s->bot;  /* shift pointers accordingly */
         s->ptr -= cnt; 
@@ -119,7 +119,7 @@ static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
         jx_char *buf = (jx_char*) jx_calloc(1,((s->lim - s->bot) +
                                                BSIZE)*sizeof(jx_char));
         if(buf) { /* and copy contents to new buffer */
-          memcpy(buf, s->tok, s->lim - s->tok);
+          jx_os_memcpy(buf, s->tok, s->lim - s->tok);
           s->tok = buf; /* adjust pointers accordingly */
           s->ptr = &buf[s->ptr - s->bot];
           cursor = &buf[cursor - s->bot];
@@ -463,7 +463,7 @@ jx_ob jx_ob_from_jxon_str(jx_char *st)
   jx_jxon_scanner_state_init(&state);
   jx_ob result = JX_OB_NULL;
   state.cur = st;
-  state.eof = st + strlen(st) + 1;
+  state.eof = st + jx_strlen(st) + 1;
   state.mode = JX_JXON_SCANNER_MODE_STRING;
   jx_jxon_scan_input(&state);
   if(state.context.status == JX_YES) {

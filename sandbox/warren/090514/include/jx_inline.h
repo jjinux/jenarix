@@ -214,7 +214,7 @@ typedef struct {
 
 #define JX_PTR(p) ( (p) ? JX_SUCCESS : JX_STATUS_NULL_PTR )
 
-#define JX_NULLIFY(x) jx_os_memset((void*) &(x), 0, jx_sizeof(x));
+#define JX_NULLIFY(x) jx_os_memset((void*) &(x), 0, sizeof(x));
 
 /* prototypes */
 

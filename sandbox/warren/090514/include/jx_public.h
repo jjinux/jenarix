@@ -68,10 +68,12 @@ typedef unsigned int jx_uint32; /* for hash codes, etc. */
   typedef unsigned long long jx_uint64;
 #endif
 
-/* for machine-width memory allocations and pointer arithmetic */
+/* for pointer arithmetic, memory allocations, and
+   machine-word-optimal fields */
 
 typedef size_t jx_size; 
 typedef ptrdiff_t jx_diff;
+typedef ptrdiff_t jx_word;
 
 /* define base types */
 
@@ -440,6 +442,11 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source);
 
 jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);
+
+/* operating-system level process initialization */
+
+jx_status jx_os_process_init(int argc, char* argv[]);
+jx_status jx_os_process_complete(void);
 
 /* destroying owned objects */
 

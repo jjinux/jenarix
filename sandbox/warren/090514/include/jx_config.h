@@ -25,7 +25,6 @@
 
 #define JX_TINY_STR_SIZE 10
 
-
 /* do we want fake threads or real threads? */
 
 #define noJX_OS_FAKE_THREADS 

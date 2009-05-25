@@ -67,33 +67,33 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
    some operating systems (e.g. versions of Darwin) */
 
 #define JX_HEAP_ALLOC(result, type) \
-   jx_heap_Calloc((void**)result, jx_sizeof(type) _JX_HEAP_TRACKER_CALL)
+   jx_heap_Calloc((void**)result, sizeof(type) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_ALLOC_RAW(type) \
-  ((type*)jx_heap_CallocRaw(jx_sizeof(type) _JX_HEAP_TRACKER_CALL))
+  ((type*)jx_heap_CallocRaw(sizeof(type) _JX_HEAP_TRACKER_CALL))
 
 #define JX_HEAP_ALLOC_RAW_VOID(size) \
   jx_heap_CallocRaw(size _JX_HEAP_TRACKER_CALL)
 
 
 #define JX_HEAP_MALLOC(result, type, size) \
-   jx_heap_Malloc((void**)result,jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
+   jx_heap_Malloc((void**)result,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_MALLOC_RAW(type, size) \
-  ((type*)jx_heap_MallocRaw(jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL))
+  ((type*)jx_heap_MallocRaw(sizeof(type)*(size) _JX_HEAP_TRACKER_CALL))
 
 #define JX_HEAP_MALLOC_RAW_VOID(size) \
   jx_heap_MallocRaw(size _JX_HEAP_TRACKER_CALL)
 
 
 #define JX_HEAP_CALLOC(result, type, size) \
-  jx_heap_Calloc((void**)result,jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
+  jx_heap_Calloc((void**)result,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_CALLOC_VOID(result, size) \
   jx_heap_Calloc((void**)result,size _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_CALLOC_RAW(type, size) \
-  ((type*)jx_heap_CallocRaw(jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
+  ((type*)jx_heap_CallocRaw(sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_CALLOC_RAW_VOID(size) \
   jx_heap_CallocRaw(size _JX_HEAP_TRACKER_CALL)
@@ -101,23 +101,23 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
 
 
 #define JX_HEAP_REALLOC(result, type, size) \
-  jx_heap_Realloc((void**)result,jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
+  jx_heap_Realloc((void**)result,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_REALLOC_RECOPY(result, type, new_size, cur_size) \
-  jx_heap_ReallocRecopy((void**)result,jx_sizeof(type)*(new_size),jx_sizeof(type)*(cur_size) _JX_HEAP_TRACKER_CALL)
+  jx_heap_ReallocRecopy((void**)result,sizeof(type)*(new_size),sizeof(type)*(cur_size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_REALLOC_RAW(ptr,type, size) \
-  ((type*)jx_heap_ReallocRaw((void*)ptr,jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL))
+  ((type*)jx_heap_ReallocRaw((void*)ptr,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL))
 
 #define JX_HEAP_REALLOC_RAW_RECOPY(ptr, type, new_size, cur_size) \
-   ((type*)jx_heap_ReallocRawRecopy(ptr,jx_sizeof(type)*(new_size),jx_sizeof(type)*(cur_size) _JX_HEAP_TRACKER_CALL))
+   ((type*)jx_heap_ReallocRawRecopy(ptr,sizeof(type)*(new_size),sizeof(type)*(cur_size) _JX_HEAP_TRACKER_CALL))
 
 #define JX_HEAP_REALLOC_RAW_VOID(ptr, size) \
   jx_heap_ReallocRaw((void*)ptr,(size) _JX_HEAP_TRACKER_CALL)
 
 
 #define JX_HEAP_RECALLOC(result, type, size, old_size)                  \
-  jx_heap_Recalloc((void**)result,jx_sizeof(type)*(size),jx_sizeof(type)*(old_size) _JX_HEAP_TRACKER_CALL)
+  jx_heap_Recalloc((void**)result,sizeof(type)*(size),sizeof(type)*(old_size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_RECALLOC_VOID(result, size, old_size)                \
   jx_heap_Recalloc((void**)result,size,old_size _JX_HEAP_TRACKER_CALL)
@@ -131,16 +131,16 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
    ((*(result)) ? jx_heap_Free((void**)(result) _JX_HEAP_TRACKER_CALL) : JX_SUCCESS)
 
 #define JX_HEAP_VLA_MALLOC(result, type, init_size) \
-   jx_heap_VlaAlloc((void**)result, jx_sizeof(type), init_size, JX_FALSE _JX_HEAP_TRACKER_CALL)
+   jx_heap_VlaAlloc((void**)result, sizeof(type), init_size, JX_FALSE _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_VLA_MALLOC_RAW(type, init_size) \
-  jx_heap_VlaAllocRaw(jx_sizeof(type), init_size, JX_FALSE _JX_HEAP_TRACKER_CALL)
+  jx_heap_VlaAllocRaw(sizeof(type), init_size, JX_FALSE _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_VLA_CALLOC(result, type, init_size) \
-   jx_heap_VlaAlloc((void**)result,jx_sizeof(type),init_size,JX_TRUE _JX_HEAP_TRACKER_CALL)
+   jx_heap_VlaAlloc((void**)result,sizeof(type),init_size,JX_TRUE _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_VLA_CALLOC_RAW(type, init_size) \
-   jx_heap_VlaAllocRaw(jx_sizeof(type),init_size,JX_TRUE _JX_HEAP_TRACKER_CALL)
+   jx_heap_VlaAllocRaw(sizeof(type),init_size,JX_TRUE _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_VLA_MALLOC_VOID(result, unit_size, init_size) \
    jx_heap_VlaAlloc((void**)(result), unit_size, init_size, JX_FALSE _JX_HEAP_TRACKER_CALL)

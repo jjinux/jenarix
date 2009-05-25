@@ -404,7 +404,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
       jx_char *buffer = jx_malloc(size + 2);
       if(buffer) {
         buffer[0] = '"';
-        memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
+        jx_os_memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
         buffer[size] = '"';
         buffer[size + 1] = 0;
         {
@@ -424,7 +424,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
       char buffer[JX_TINY_STR_SIZE + 2];
       jx_int size = bits & JX_META_MASK_TINY_STR_SIZE;
       buffer[0] = '"';
-      memcpy(buffer + 1, ob.data.io.tiny_str, size);
+      jx_os_memcpy(buffer + 1, ob.data.io.tiny_str, size);
       buffer[size + 1] = '"';
       buffer[size + 2] = 0;
       {
@@ -447,7 +447,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         jx_char *buffer = jx_malloc(size + 2);
         if(buffer) {
           buffer[0] = '"';
-          memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
+          jx_os_memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
           buffer[size] = '"';
           buffer[size + 1] = 0;
           {
@@ -466,7 +466,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         char buffer[JX_TINY_STR_SIZE + 2];
         jx_int size = bits & JX_META_MASK_TINY_STR_SIZE;
         buffer[0] = '"';
-        memcpy(buffer + 1, ob.data.io.tiny_str, size);
+        jx_os_memcpy(buffer + 1, ob.data.io.tiny_str, size);
         buffer[size + 1] = '"';
         buffer[size + 2] = 0;
         {
@@ -617,7 +617,7 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
   jx_int width = 0;
   jx_int left = width;
   if(width && prefix) {
-    left -= strlen(prefix) + 2;
+    left -= jx_strlen(prefix) + 2;
   }
   {
     jx_ob jxon = jx_ob_to_jxon_with_flags(ob,

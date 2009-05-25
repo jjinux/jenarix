@@ -22,9 +22,6 @@ extern "C" {
 
   extern jx_os_process *jx_os_Process;
 
-  jx_status jx_os_process_init(int argc, const char* argv[]);
-  
-  jx_status jx_os_process_complete(void);
   jx_status jx_os_usleep(jx_size usec);
   
   jx_status jx_os_thread_array_new(jx_os_thread **result, jx_size count);

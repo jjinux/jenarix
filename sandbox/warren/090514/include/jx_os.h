@@ -130,7 +130,7 @@ typedef struct timeval jx_os_timeval;
 #define jx_stdin jx_os_stdin
 #define jx_stderr jx_os_stderr
 #define jx_stdout jx_os_stdout
-#define jx_sizeof jx_os_sizeof
+#define jx_strlen jx_os_strlen
 
 /* defines */
 
@@ -161,6 +161,7 @@ typedef struct timeval jx_os_timeval;
 #else
 #define JX_INLINE __inline__ static
 #endif
+
 
 /* workaround for compilers which disallow [0] size arrays */
 

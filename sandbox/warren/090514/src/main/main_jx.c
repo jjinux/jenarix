@@ -57,66 +57,73 @@ static jx_bool jx_adapt_for_console(void)
     return JX_FALSE;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-  jx_ob namespace = jx_hash_new();
-  jx_ob scanner = jx_jxon_scanner_new_with_file(stdin);
-  jx_ob node = jx_hash_new();
-  jx_bool console = jx_adapt_for_console();
+  if(jx_ok(jx_os_process_init(argc, argv))) {
+    
+    jx_ob namespace = jx_hash_new();
+    jx_ob scanner = jx_jxon_scanner_new_with_file(stdin);
+    jx_ob node = jx_hash_new();
+    jx_bool console = jx_adapt_for_console();
 
-  jx_code_expose_secure_builtins(namespace);
+    jx_code_expose_secure_builtins(namespace);
 
-  {
-    jx_ob source = JX_OB_NULL;
-    jx_status status;
-    jx_bool done = JX_FALSE;
-    while( !done ) {
-      status = jx_jxon_scanner_next_ob(&source, scanner);
-      switch(status) {
-      case JX_YES:
-        if(console) jx_jxon_dump(stdout, "#s", source);
-        {
-          jx_ob code = jx_code_bind_with_source(namespace, source);
-          source = jx_ob_from_null();
-                      
-          jx_jxon_dump(stdout, "#c", code);
+    {
+      jx_ob source = JX_OB_NULL;
+      jx_status status;
+      jx_bool done = JX_FALSE;
+      while( !done ) {
+        status = jx_jxon_scanner_next_ob(&source, scanner);
+        switch(status) {
+        case JX_YES:
+          if(console) jx_jxon_dump(stdout, "#s", source);
           {
-            jx_ob result = jx_code_eval(node,code);
+            jx_ob code = jx_code_bind_with_source(namespace, source);
+            source = jx_ob_from_null();
+                      
+            jx_jxon_dump(stdout, "#c", code);
+            {
+              jx_ob result = jx_code_eval(node,code);
             
-            if(console) {
-              jx_jxon_dump(stdout, "#r", result);
-            } else {
-              jx_ob jxon = jx_ob_to_jxon(result);
-              printf("%s;\n",jx_ob_as_str(&jxon));
-              jx_ob_free(jxon);
+              if(console) {
+                jx_jxon_dump(stdout, "#r", result);
+              } else {
+                jx_ob jxon = jx_ob_to_jxon(result);
+                printf("%s;\n",jx_ob_as_str(&jxon));
+                jx_ob_free(jxon);
+              }
+              jx_ob_free(result);
             }
-            jx_ob_free(result);
+            jx_ob_free(code);
           }
-          jx_ob_free(code);
+          break;
+        case JX_STATUS_SYNTAX_ERROR: /* catch this error */
+          {
+            jx_ob message = jx_jxon_scanner_get_error_message(scanner);
+            printf("Error: invalid syntax\n");
+            if(jx_str_check(message)) 
+              printf("%s\n",jx_ob_as_str(&message));
+            if(!console)
+              done = JX_TRUE;
+            else
+              jx_jxon_scanner_purge_input(scanner);
+            jx_ob_free(message);
+          }
+          break;
+        default: /* about on all other errors */
+          done = JX_TRUE;
+          break;
         }
-        break;
-      case JX_STATUS_SYNTAX_ERROR: /* catch this error */
-        {
-          jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-          printf("Error: invalid syntax\n");
-          if(jx_str_check(message)) 
-            printf("%s\n",jx_ob_as_str(&message));
-          if(!console)
-            done = JX_TRUE;
-          else
-            jx_jxon_scanner_purge_input(scanner);
-          jx_ob_free(message);
-        }
-        break;
-      default: /* about on all other errors */
-        done = JX_TRUE;
-        break;
       }
+      jx_ob_free(source);
     }
-    jx_ob_free(source);
+    jx_ob_free(node);
+    jx_ob_free(scanner);
+    jx_ob_free(namespace);
+
+    jx_os_process_complete();
+    return EXIT_SUCCESS;
   }
-  jx_ob_free(node);
-  jx_ob_free(scanner);
-  jx_ob_free(namespace);
+  return EXIT_FAILURE;
 }
 

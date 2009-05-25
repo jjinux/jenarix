@@ -26,6 +26,12 @@
 extern "C" {
 #endif
 
+#ifdef JX_HEAP_TRACKER
+#ifndef JX_OS_FAKE_THREADS
+#define JX_HEAP_TRACKER_MUTEX
+#endif
+#endif
+
 struct jx__os_process {
 #ifdef JX_HEAP_TRACKER_MUTEX
   jx_os_mutex heap_mutex;
@@ -35,7 +41,7 @@ struct jx__os_process {
 
 extern jx_os_process *jx_os_Process;
 
-JX_INLINE jx_status jx__os_process_init(int argc, const char* argv[])
+JX_INLINE jx_status jx__os_process_init(int argc, char* argv[])
 {
   if(!jx_os_Process) {
 
@@ -43,7 +49,7 @@ JX_INLINE jx_status jx__os_process_init(int argc, const char* argv[])
     jx_os_mutex_init(&jx_os_AtomicityMutex);
 #endif
 
-    jx_os_Process = (jx_os_process*)jx_os_calloc(1,jx_sizeof(jx_os_process));
+    jx_os_Process = (jx_os_process*)jx_os_calloc(1,sizeof(jx_os_process));
     { /* msvc6 workaround */
       jx_status status = JX_PTR(jx_os_Process);  
 #ifdef JX_HEAP_TRACKER_MUTEX

@@ -68,7 +68,7 @@ void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content)
     vla->alloc = size;
     vla->rec_size = rec_size;
     vla->size = size;
-    memcpy(base, content, rec_size * size);
+    jx_os_memcpy(base, content, rec_size * size);
     return (void *) base;
   } else
     return NULL;
@@ -111,7 +111,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
       jx_int padding = (((char *) vla) - ((char *) vla->ptr));
       if(new_bytes <= padding) {        /* we have enough space in front */
         jx_vla *new_vla = (jx_vla *) (((char *) vla) - new_bytes);
-        memmove(new_vla, vla, sizeof(jx_vla) + vla->rec_size * old_size);
+        jx_os_memmove(new_vla, vla, sizeof(jx_vla) + vla->rec_size * old_size);
         vla = new_vla;
         vla->alloc = new_alloc;
         new_vla->size = new_size;
@@ -129,7 +129,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
             jx_int less_alloc = ((new_alloc - new_size) >> 1);  /* half & half */
             jx_int padding = less_alloc * rec_size;
             jx_vla *new_vla = (jx_vla *) (((char *) vla) + padding);
-            memmove(new_vla, vla, sizeof(jx_vla) + rec_size * new_size);
+            jx_os_memmove(new_vla, vla, sizeof(jx_vla) + rec_size * new_size);
             vla = new_vla;
             new_alloc -= less_alloc;
           }
@@ -150,7 +150,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
           jx_int new_bytes = rec_size * addl_alloc;
           jx_int new_alloc = vla->alloc + addl_alloc;
           jx_vla *new_vla = (jx_vla *) (((char *) vla) - new_bytes);
-          memmove(new_vla, vla, sizeof(jx_vla) + rec_size * new_size);
+          jx_os_memmove(new_vla, vla, sizeof(jx_vla) + rec_size * new_size);
           vla = new_vla;
           vla->alloc = new_alloc;
           *(vla_ptr) = vla;
@@ -212,12 +212,12 @@ jx_status jx__vla_append_c_str(void **ref, jx_char * str)
   if(*ref) {
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
     if(vla->rec_size == 1) {
-      jx_int str_len = strlen(str);
+      jx_int str_len = jx_strlen(str);
       jx_int size = vla->size;
       jx_status status = jx_vla_append(ref, (size ? str_len : str_len + 1));
       if(jx_ok(status)) {
         jx_char *base = (jx_char *) (*ref);
-        memcpy(base + (size ? size - 1 : 0), str, str_len + 1);
+        jx_os_memcpy(base + (size ? size - 1 : 0), str, str_len + 1);
         return vla->size;
       } else {
         return status;
@@ -237,7 +237,7 @@ jx_status jx__vla_append_ob_str(void **ref, jx_ob ob)
       jx_status status = jx_vla_append(ref, (old_size ? str_len : str_len + 1));
       if(jx_ok(status)) {
         jx_char *base = (jx_char *) (*ref);
-        memcpy(base + (old_size ? old_size - 1 : 0), jx_ob_as_str(&ob), str_len + 1);
+        jx_os_memcpy(base + (old_size ? old_size - 1 : 0), jx_ob_as_str(&ob), str_len + 1);
         return vla->size;
       }
       return status;
@@ -271,7 +271,7 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
           if(!index) {
             memset(base, 0, rec_size * count);
           } else {
-            memmove(base, base + count * rec_size, index * rec_size);
+            jx_os_memmove(base, base + count * rec_size, index * rec_size);
             memset(base + index * rec_size, 0, rec_size * count);
           }
         }
@@ -284,7 +284,7 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
       if(jx_ok(status)) {
         jx_char *base = (jx_char *) (vla + 1);
         (*ref) = base;
-        memmove(base + (index + count) * vla->rec_size,
+        jx_os_memmove(base + (index + count) * vla->rec_size,
                 base + index * vla->rec_size, (old_size - index) * vla->rec_size);
         memset(base + index * vla->rec_size, 0, vla->rec_size * count);
       }
@@ -308,7 +308,7 @@ jx_status jx__vla_extend(void **ref1, void **ref2)
         jx_char *base1 = (jx_char *) (vla1 + 1);
         jx_char *base2 = (jx_char *) (vla2 + 1);
         (*ref1) = base1;
-        memcpy(base1 + rec_size * old_vla1_size, base2, rec_size * vla2->size);
+        jx_os_memcpy(base1 + rec_size * old_vla1_size, base2, rec_size * vla2->size);
       }
       return status;
     }
@@ -318,7 +318,7 @@ jx_status jx__vla_extend(void **ref1, void **ref2)
     if(vla1) {
       jx_char *base1 = (jx_char *) (vla1 + 1);
       jx_char *base2 = (jx_char *) (vla2 + 1);
-      memcpy(base1, base2, vla2->rec_size * vla2->size);
+      jx_os_memcpy(base1, base2, vla2->rec_size * vla2->size);
       (*ref1) = base1;
       return JX_SUCCESS;
     }
@@ -343,7 +343,7 @@ jx_status jx__vla_remove(void **ref, jx_int index, jx_int count)
         register jx_int rec_size = vla->rec_size;
         if(index) {
           jx_char *base = (jx_char *) (vla + 1);
-          memmove(base + count * rec_size, base, index * rec_size);
+          jx_os_memmove(base + count * rec_size, base, index * rec_size);
         }
         {
           register jx_int new_alloc = vla->alloc - count;
@@ -357,7 +357,7 @@ jx_status jx__vla_remove(void **ref, jx_int index, jx_int count)
           return JX_SUCCESS;
         }
       } else {
-        memmove(base + index * vla->rec_size,
+        jx_os_memmove(base + index * vla->rec_size,
                 base + (count + index) * vla->rec_size,
                 ((vla->size - index) - count) * vla->rec_size);
         return jx_vla_resize(ref, new_size);
@@ -740,18 +740,18 @@ jx_ob jx__ob_to_ident(jx_ob ob)
 
 jx_ob jx_ob_from_str(jx_char * str)
 {
-  jx_int len = strlen(str);
+  jx_int len = jx_strlen(str);
   jx_ob result = JX_OB_NULL;
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_STR | len;
-    memcpy(result.data.io.tiny_str, str, len + 1);
+    jx_os_memcpy(result.data.io.tiny_str, str, len + 1);
   } else {
     /* string not tiny -- use heap */
     result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
-      memcpy(result.data.io.str + sizeof(jx_str), str, len + 1);
+      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len + 1);
     }
   }
   return result;
@@ -763,13 +763,13 @@ jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_STR | len;
-    memcpy(result.data.io.tiny_str, str, len + 1);
+    jx_os_memcpy(result.data.io.tiny_str, str, len + 1);
   } else {
     /* string not tiny -- use heap */
     result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
-      memcpy(result.data.io.str + sizeof(jx_str), str, len);
+      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
       result.data.io.str[sizeof(jx_str) + len] = 0;
     }
   }
@@ -784,7 +784,7 @@ jx_ob jx_ob_with_str_vla(jx_char ** ref)
     size--;
   if(size < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_STR | size;
-    memcpy(result.data.io.tiny_str, *ref, size + 1);
+    jx_os_memcpy(result.data.io.tiny_str, *ref, size + 1);
     jx_vla_free(ref);
   } else {
     /* string not tiny -- use heap */
@@ -792,7 +792,7 @@ jx_ob jx_ob_with_str_vla(jx_char ** ref)
     if(jx_ok(jx_vla_resize(ref, size + sizeof(jx_str)))) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
       /* insert jx_str record in front of chars */
-      memmove((*ref) + sizeof(jx_str), (*ref), size);
+      jx_os_memmove((*ref) + sizeof(jx_str), (*ref), size);
       jx__gc_init((jx_gc *) * ref);
       result.data.io.str = *ref;
     } else {
@@ -823,8 +823,8 @@ jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int r
   jx_int total_size = left_len + right_len + 1;
   jx_char *vla = jx_vla_new(1, total_size + sizeof(jx_str));
   if(vla) {
-    memcpy(vla + sizeof(jx_str), left, left_len);
-    memcpy(vla + sizeof(jx_str) + left_len, right, right_len + 1);
+    jx_os_memcpy(vla + sizeof(jx_str), left, left_len);
+    jx_os_memcpy(vla + sizeof(jx_str) + left_len, right, right_len + 1);
     result.data.io.str = vla;
     result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
   }
@@ -1014,18 +1014,18 @@ jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 
 jx_ob jx_ob_from_ident(jx_char * ident)
 {
-  jx_int len = strlen(ident);
+  jx_int len = jx_strlen(ident);
   jx_ob result = JX_OB_NULL;
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_IDENT | len;
-    memcpy(result.data.io.tiny_str, ident, len + 1);
+    jx_os_memcpy(result.data.io.tiny_str, ident, len + 1);
   } else {
     /* string not tiny -- use heap */
     result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
-      memcpy(result.data.io.str + sizeof(jx_str), ident, len + 1);
+      jx_os_memcpy(result.data.io.str + sizeof(jx_str), ident, len + 1);
     }
   }
   return result;
@@ -1280,7 +1280,7 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * list)
 
 jx_ob jx__str_join_with_list(jx_list * list, jx_char * sep)
 {
-  jx_int sep_len = sep ? strlen(sep) : 0;
+  jx_int sep_len = sep ? jx_strlen(sep) : 0;
   jx_int size = jx__list_size(list);
   jx_int total = size ? sep_len * (size - 1) : 0;
   if(list->packed_meta_bits) {
@@ -1300,10 +1300,10 @@ jx_ob jx__str_join_with_list(jx_list * list, jx_char * sep)
         for(i = 0; i < size; i++) {
           jx_int len = jx_str_len(*ob);
           if(i && sep) {
-            memcpy(next, sep, sep_len);
+            jx_os_memcpy(next, sep, sep_len);
             next += sep_len;
           }
-          memcpy(next, jx_ob_as_str(ob++), len);
+          jx_os_memcpy(next, jx_ob_as_str(ob++), len);
           next += len;
         }
         next[0] = 0;
@@ -3771,7 +3771,7 @@ jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
             for(i = 0; i < size; i += 2) {
               if(ob[0].meta.bits != JX_META_NOT_AN_OB) {        /* purge the inactives */
                 if(count != i) {
-                  memcpy(key_value + count, ob, sizeof(jx_ob) * 2);
+                  jx_os_memcpy(key_value + count, ob, sizeof(jx_ob) * 2);
                 }
                 count += 2;
               }
