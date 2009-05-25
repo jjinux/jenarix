@@ -5,8 +5,8 @@ include Rules.make
 
 all: tests main
 
-libjx.a: core jxon code safe
-	ar -cr libjx.a src/core/*.o src/jxon/*.o src/code/*.o src/safe/*.o
+libjx.a: core jxon vm os
+	ar -cr libjx.a src/core/*.o src/jxon/*.o src/vm/*.o src/os/*.o
 
 core:
 	cd src/core;$(MAKE)
@@ -17,15 +17,14 @@ gen:
 jxon: 
 	cd src/jxon;$(MAKE)
 
-code:
-	cd src/code;$(MAKE)
-
-safe:
-	cd src/safe;$(MAKE)
+os:
+	cd src/os;$(MAKE);
+vm:
+	cd src/vm;$(MAKE)
 
 main: libjx.a
 	cd src/main; $(MAKE)
-	mv src/main/main_jxeval jxeval
+	mv src/main/main_jx jx
 
 test100: gen libjx.a
 	cd src/test;$(MAKE) test100

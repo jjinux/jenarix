@@ -33,7 +33,23 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* owned C types (to be used exclusively throughout) */
+/* learn how we're being (or have been) compiled */
+
+#include "jx_config.h"
+
+/* establish our relationship with the underlying operating system */
+
+#include "jx_os.h"
+
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
+/* declare our own C types (to be used exclusively throughout) */
 
 typedef int jx_bool;
 typedef char jx_char;
@@ -43,35 +59,39 @@ typedef unsigned short jx_uint16;       /* for small bit masks, etc. */
 
 typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
-typedef long long jx_int64;
 
-/* Depending on compliation settings, Jenarix objects are either 64,
-   96, or 160 bits wide (that's 48, 80, or 160 bits of data plus 16
-   bits of meta information).  Within the available space, the data
-   field can contain either 32 bit or 64 bit C primitives, and tiny
-   embedded strings of 6, 10, or 18 bytes including the sentinel */
+#ifdef WIN32
+  typedef __int64 jx_int64;
+  typedef unsigned __int64 jx_uint64;
+#else
+  typedef long long jx_int64;
+  typedef unsigned long long jx_uint64;
+#endif
 
-/* Jenarix configuration */
+/* for machine-width memory allocations and pointer arithmetic */
 
-#define notJX_64_BIT
-
-#define JX_TINY_STR_SIZE 10
-/* may only be 6, 10, or 18 -- JX_64_BIT forces at least 10 */
+typedef size_t jx_size; 
+typedef ptrdiff_t jx_diff;
 
 /* define base types */
 
 #ifdef JX_64_BIT
 /* uses 64-bit integers and double-precision floating point */
 typedef jx_int64 jx_int;
+typedef jx_uint64 jx_uint;
 typedef double jx_float;
 #define JX_TINY_STR_MIN_SIZE 10
+#define JX_FLOAT_ZERO 0.0
+#define JX_UWORD_MAX 0xFFFFFFFFFFFFFFFF
 #else
 /* uses 32-bit integers and single-precision floating point */
-typedef int jx_int;
+typedef jx_int32 jx_int;
+typedef jx_int32 jx_uint;
 typedef float jx_float;
+#define JX_FLOAT_ZERO 0.0F
+#define JX_UINT_MAX 0xFFFFFFFF
 #define JX_TINY_STR_MIN_SIZE 6
 #endif
-
 
 /* our ubiquitous jenarix object type */
 
@@ -79,25 +99,62 @@ typedef struct jx__ob jx_ob;
 
 /* constants */
 
-#define JX_NULL                 NULL
-#define JX_YES                     1
-#define JX_NO                      0
 #define JX_TRUE                    1
 #define JX_FALSE                   0
 
-/* status codes */
+/* status codes: 
+   errors status always < 0
+   normal status = 0
+   non-error informative status >=0
+*/
 
-#define JX_SUCCESS                 0
-#define JX_FAILURE                -1
-#define JX_STATUS_SYNTAX_ERROR    -2 
-#define JX_STATUS_EXHAUSTED       -3
+#define JX_STATUS_YES                    JX_TRUE
+#define JX_STATUS_NO                    JX_FALSE
+#define JX_STATUS_SUCCESS               JX_FALSE
 
+#define JX_STATUS_FREED_WEAK                   2
+#define JX_STATUS_FREED_SHARED                 3
 
+#define JX_STATUS_FAILURE                     -1
+#define JX_STATUS_NULL_PTR                    -2
+#define JX_STATUS_OUT_OF_MEMORY               -3
+#define JX_STATUS_EXHAUSTED                   -4
+#define JX_STATUS_SYNTAX_ERROR                -5
+#define JX_STATUS_OS_THREAD_CREATION_FAILURE  -6
+#define JX_STATUS_OS_THREADING_ERROR          -7
+#define JX_STATUS_OS_MUTEX_ERROR              -8
+#define JX_STATUS_OS_COND_ERROR               -9
+#define JX_STATUS_OS_RLOCK_ERROR             -10
+#define JX_STATUS_OS_ERROR                   -11
+#define JX_STATUS_OS_TLS_ERROR               -12
+
+/* shortcuts */
+
+#define JX_SUCCESS JX_STATUS_SUCCESS
+#define JX_FAILURE JX_STATUS_FAILURE
+#define JX_YES     JX_STATUS_YES
+#define JX_NO      JX_STATUS_NO
+
+/* enable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
 
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by API-users as private */
 
 #include "jx_inline.h"
+
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
 
 /* meaningful prepositions, for systematic memory management:
 
@@ -360,12 +417,17 @@ jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
 /* macros */
 
 jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body);
-
-/* functions */
-
-jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block);
-jx_ob jx_function_to_impl(jx_ob ob);
 jx_ob jx_macro_to_impl(jx_ob ob);
+
+/* JXON-based functions */
+
+#define JX_FUNCTION_MODE_EVAL            1
+#define JX_FUNCTION_MODE_EXEC            2
+#define JX_FUNCTION_MODE_PARALLEL_EVAL   3
+#define JX_FUNCTION_MODE_ASYNC_EXEC      4
+
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode);
+jx_ob jx_function_to_impl(jx_ob ob);
 jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
 /* code execution engine */
@@ -381,5 +443,13 @@ jx_ob jx_code_exec(jx_ob node, jx_ob code);
 /* destroying owned objects */
 
 jx_status jx_ob_free(jx_ob ob);
+
+/* enable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
 
 #endif

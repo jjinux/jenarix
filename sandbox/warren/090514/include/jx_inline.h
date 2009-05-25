@@ -1,6 +1,14 @@
 #ifndef _H_jx_inline
 #define _H_jx_inline
 
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -33,7 +41,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <math.h>
+/* Depending on compliation settings, Jenarix objects are either 64,
+   96, or 160 bits wide (that's 48, 80, or 160 bits of data plus 16
+   bits of meta information).  Within the available space, the data
+   field can contain either 32 bit or 64 bit C primitives, and tiny
+   embedded strings of 6, 10, or 18 bytes including the sentinel */
 
 /* adapt to tiny string size (a least as large as a machine
    pointer + 2 bytes) */
@@ -163,9 +175,6 @@ struct jx__ob {
 #define JX_OB_LIST     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
 #define JX_OB_HASH     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
-/* inline methods */
-
-#define JX_INLINE __inline__ static
 
 struct jx__list {
   jx_bits packed_meta_bits;
@@ -197,8 +206,17 @@ typedef struct {
   jx_gc gc;
 } jx_str;
 
-/* prototypes */
+/* convenience macros */
 
+#define JX_OK(s) ((s)>=0)
+
+#define JX_ERR(s) ((s)<0)
+
+#define JX_PTR(p) ( (p) ? JX_SUCCESS : JX_STATUS_NULL_PTR )
+
+#define JX_NULLIFY(x) jx_os_memset((void*) &(x), 0, jx_sizeof(x));
+
+/* prototypes */
 
 void jx_tls_free(jx_tls *tls);
 jx_tls *jx_tls_new(void);
@@ -236,10 +254,10 @@ JX_INLINE jx_status jx_ob_free(jx_ob ob)
   register jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_GC) {
     if(bits & JX_META_BIT_WEAK_REF) {
-      return JX_FAILURE;
+      return JX_STATUS_FREED_WEAK;
     } else {
       /* object has resources which need to be garbage collected */
-      return jx__ob_free(NULL,ob);   /* call non-inline routine */
+      return jx__ob_free(JX_NULL,ob);   /* call non-inline routine */
     }
   }
   return JX_SUCCESS;
@@ -367,6 +385,7 @@ void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 #define   jx_vla_reset(r)           jx__vla_reset((void**)(void*)(r))
 #define   jx_vla_free(r)            jx__vla_free((void**)(void*)(r))
 void *jx__vla_copy(void **ref);
+
 JX_INLINE jx_int jx__vla_size(void **ref)
 {
   if(*ref) {
@@ -717,7 +736,12 @@ JX_INLINE jx_status jx_ob_replace_tls(jx_tls *tls, jx_ob *ob_ptr, jx_ob ob)
 
 JX_INLINE jx_bool jx_ok(jx_status status)
 {
-  return (status >= 0);
+  return JX_OK(status);
+}
+
+JX_INLINE jx_bool jx_err(jx_status status)
+{
+  return JX_ERR(status);
 }
 
 JX_INLINE jx_int jx_str_len(jx_ob ob)
@@ -1550,7 +1574,7 @@ jx_ob jx__str_join_with_list(jx_list * list, jx_char *sep);
 JX_INLINE jx_ob jx_str_join_with_list(jx_ob list)
 {
   if(list.meta.bits & JX_META_BIT_LIST) {
-    jx_ob result = jx__str_join_with_list(list.data.io.list,NULL);
+    jx_ob result = jx__str_join_with_list(list.data.io.list,JX_NULL);
     jx_ob_free(list);
     return result;
   }
@@ -1560,7 +1584,7 @@ JX_INLINE jx_ob jx_str_join_with_list(jx_ob list)
 JX_INLINE jx_ob jx_str_join_with_list_sep(jx_ob list, jx_ob sep)
 {
   if(list.meta.bits & JX_META_BIT_LIST) {
-    jx_char *sep_str = NULL;
+    jx_char *sep_str = JX_NULL;
     jx_ob result;
     if(sep.meta.bits & JX_META_BIT_STR) {
       sep_str = jx_ob_as_str(&sep);
@@ -1702,14 +1726,14 @@ jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {
   return (expr.meta.bits & JX_META_BIT_GC) ?
-    jx__code_eval(NULL,0,node,expr) : expr;
+    jx__code_eval(JX_NULL,0,node,expr) : expr;
 }
 
 jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_exec(jx_ob node, jx_ob code)
 {
   return (code.meta.bits & JX_META_BIT_LIST) ?
-    jx__code_exec(NULL,0,node,code) : jx_ob_copy(code);
+    jx__code_exec(JX_NULL,0,node,code) : jx_ob_copy(code);
 }
 
 JX_INLINE jx_ob jx_code_eval_tls(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr)
@@ -2011,5 +2035,14 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
     return jx_ob_from_null();
   }
 }
+
+/* enable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
 
 #endif

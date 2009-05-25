@@ -33,15 +33,16 @@
 
 # Compared to LISP, JXON draws a distinction between functional
 # expressions: where the full list body is returned following
-# evaluation, and code blocks: where only the last item of the
-# evaluated list body is returned.  
+# evaluation (EVAL behavior), and code blocks: where only the last
+# item of the evaluated list body is returned (EXEC behavior).  As a
+# performance optimization, JXON function bodies are flagged
+# internally as being destined for EVAL or EXEC, and we expect to add
+# some additional flags in the future to reflect parallel EVAL
+# (expression returned) and asynchronous EXEC (no return).
 
-# AS OF 090525, I believe this distinction can be eliminated through use
-# of the "exec" special form.
 
-# This is necessary because JXON maintains a distinction between
-# primitives and lists, whereas everything is a list pointer in LISP.
-# It's also necessary for performance resons since JXON lists are slow
+
+#  JXON lists are slow
 # and expensive "heap" objects whereas all JXON primitives (except for
 # non-tiny strings) are self-contined stack objects (like registers).
 
