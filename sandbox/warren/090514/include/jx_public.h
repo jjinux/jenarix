@@ -143,17 +143,18 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
 
 /* jxon output */
 
-#define JX_JXON_FLAG_JSON_ENCODE  0x40000000
-#define JX_JXON_FLAG_JSON_LOSSY   0x20000000
-#define JX_JXON_FLAG_PRETTY       0x10000000
-#define JX_JXON_FLAG_INDENT       0x08000000
-#define JX_JXON_FLAG_SHOW_WEAK    0x04000000
-#define JX_JXON_FLAG_COMMENT      0x02000000
-#define JX_JXON_FLAG_NOT_NEWLINE  0x01000000
-
-#define JX_JXON_FLAG_TAB_MASK     0x000F0000
-#define JX_JXON_FLAG_WIDTH_MASK   0x0000FF00
-#define JX_JXON_FLAG_INDENT_MASK  0x000000FF
+#define JX_JXON_FLAG_JSON_ENCODE    0x40000000
+#define JX_JXON_FLAG_JSON_LOSSY     0x20000000
+#define JX_JXON_FLAG_PRETTY         0x10000000
+#define JX_JXON_FLAG_INDENT         0x08000000
+#define JX_JXON_FLAG_SHOW_WEAK      0x04000000
+#define JX_JXON_FLAG_COMMENT        0x02000000
+#define JX_JXON_FLAG_NOT_NEWLINE    0x01000000
+#define JX_JXON_FLAG_NO_ROUNDED     0x00800000
+#define JX_JXON_FLAG_APPROX_FLOAT   0x00400000
+#define JX_JXON_FLAG_TAB_MASK       0x000F0000
+#define JX_JXON_FLAG_WIDTH_MASK     0x0000FF00
+#define JX_JXON_FLAG_INDENT_MASK    0x000000FF
 
 jx_ob jx_ob_to_jxon(jx_ob ob);
 void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);

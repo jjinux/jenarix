@@ -1,5 +1,6 @@
 
-CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99 -O3 -m64 -DJX_64_BIT
+CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99 -O3 -m64
+# -DJX_64_BIT
 
 LDFLAGS = -m64
 

@@ -128,18 +128,17 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
 static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, jx_int *space_left)
 {
   jx_int i, size = jx_vla_size(&list->data.vla);
-  jx_bool spacer = JX_FALSE;
   char square[] = "]", rounded[] = ")";
   char space[] = " ", comma[] = ",";
   char *delimit = square;
   char *sep = comma;
 
   flags = prefix(ref,flags,space_left);
-  flags = autowrap(ref,flags,space_left,1);
+  flags = autowrap(ref,flags,space_left,2);
   {
     int ob_start = jx_vla_size(ref);
 
-    jx_vla_append_c_str(ref, "["); 
+    jx_vla_append_c_str(ref, " ["); 
 
     flags = nest(flags,1);
 
@@ -151,12 +150,15 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
           jx_int *int_ = list->data.int_vla;
           for(i = 0; i < size; i++) {
             ob.data.io.int_ = *(int_++);
-            if(spacer) {
-              flags = autowrap(ref,flags,space_left,1);
-              jx_vla_append_c_str(ref, ",");
-            } else
-              spacer = JX_TRUE;
             jx_ob_free( jx__ob_to_jxon_with_flags(ob, ref, flags, space_left));
+            if(i<(size-1)) {
+              flags = autowrap(ref,flags,space_left,1);
+              jx_vla_append_c_str(ref, sep);
+              if(JX_JXON_FLAG_PRETTY && sep[0]!=' ') {
+                flags = autowrap(ref,flags,space_left,1);
+                jx_vla_append_c_str(ref, " ");
+              }
+            }
           }
         }
         break;
@@ -166,33 +168,42 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
           jx_float *float_ = list->data.float_vla;
           for(i = 0; i < size; i++) {
             ob.data.io.float_ = *(float_++);
-            if(spacer) {
-              flags = autowrap(ref,flags,space_left,1);
-              jx_vla_append_c_str(ref, ",");
-            } else
-              spacer = JX_TRUE;
             jx_ob_free( jx__ob_to_jxon_with_flags(ob, ref, flags, space_left));
+            if(i<(size-1)) {
+              flags = autowrap(ref,flags,space_left,1);
+              jx_vla_append_c_str(ref, sep);
+              if(JX_JXON_FLAG_PRETTY && sep[0]!=' ') {
+                flags = autowrap(ref,flags,space_left,1);
+                jx_vla_append_c_str(ref, " ");
+              }
+            }
           }
         }
         break;
       }
     } else {
       jx_ob *ob = list->data.ob_vla;
-      if(!(flags&JX_JXON_FLAG_JSON_ENCODE)) {
+      if(!(flags&(JX_JXON_FLAG_JSON_ENCODE |
+                  JX_JXON_FLAG_NO_ROUNDED))) {
         if(ob && (jx_ident_check(*ob)||(jx_builtin_callable_check(*ob)))) {
-          (*ref)[ob_start-1] = '(';
+          (*ref)[ob_start] = '(';
           delimit = rounded;
           sep = space;
         }
       }
       for(i = 0; i < size; i++) {
-        if(spacer>0) {
+        jx_ob_free( jx__ob_to_jxon_with_flags(*(ob++), ref, flags, space_left) );
+        if(i<(size-1)) {
           flags = autowrap(ref,flags,space_left,1);
           jx_vla_append_c_str(ref, sep);
-        } else {
-          spacer++;
+          if(JX_JXON_FLAG_PRETTY && jx_list_check(*ob)) {
+            flags = newline(ref,flags,space_left);
+            flags = prefix(ref,flags,space_left);
+          } else if(JX_JXON_FLAG_PRETTY && sep[0]!=' ') {
+            flags = autowrap(ref,flags,space_left,1);
+            jx_vla_append_c_str(ref, " ");
+          }
         }
-        jx_ob_free( jx__ob_to_jxon_with_flags(*(ob++), ref, flags, space_left) );
       }
     }
     flags = autowrap(ref,flags,space_left,1);
@@ -355,9 +366,26 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
     {
       char buffer[50];
 #ifdef JX_64_BIT
-      snprintf(buffer, sizeof(buffer), "%.17g", ob.data.io.float_);
+      if(flags & JX_JXON_FLAG_APPROX_FLOAT) {
+        snprintf(buffer, sizeof(buffer), 
+                 "%.15g", 
+                 ob.data.io.float_);
+      } else {
+        snprintf(buffer, sizeof(buffer), 
+                 "%.17g", 
+                 ob.data.io.float_);
+      }
 #else
-      snprintf(buffer, sizeof(buffer), "%.8g", ob.data.io.float_);
+      if(flags & JX_JXON_FLAG_APPROX_FLOAT) {
+        snprintf(buffer, sizeof(buffer), 
+                 "%.7g", 
+                 ob.data.io.float_);
+      } else {
+        snprintf(buffer, sizeof(buffer), 
+                 "%.8g", 
+                 ob.data.io.float_);
+      }
+
 #endif
       force_float(buffer);
       {
@@ -498,7 +526,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
           jx_ob_free(name);
         }
         if(!buffer[0]) {
-          sprintf(buffer,"`op:%d",ob.data.io.int_);
+          sprintf(buffer,"`op:%d",(int)ob.data.io.int_);
         }
         jx_ob_free(builtins);
         }
@@ -596,7 +624,9 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
   {
     jx_ob jxon = jx_ob_to_jxon_with_flags(ob,
                                           JX_JXON_FLAG_COMMENT | 
-                                          JX_JXON_FLAG_PRETTY | 
+                                          JX_JXON_FLAG_PRETTY |  
+                                          //JX_JXON_FLAG_NO_ROUNDED |
+                                          JX_JXON_FLAG_APPROX_FLOAT |
                                           JX_JXON_FLAG_SHOW_WEAK | 
                                           JX_JXON_FLAG_NOT_NEWLINE,
                                           0,width,left);
