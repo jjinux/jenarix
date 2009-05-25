@@ -193,13 +193,15 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
       }
       for(i = 0; i < size; i++) {
         jx_ob_free( jx__ob_to_jxon_with_flags(*(ob++), ref, flags, space_left) );
-        if(i&&(i<(size-1))) {
-          flags = autowrap(ref,flags,space_left,1);
-          jx_vla_append_c_str(ref, sep);
-          if(JX_JXON_FLAG_PRETTY && jx_list_check(*ob)) {
+        if(i<(size-1)) {
+          if((sep[0]!=' ') || (!jx_list_check(*ob))) {
+            flags = autowrap(ref,flags,space_left,1);
+            jx_vla_append_c_str(ref, sep);
+          }
+          if(i && JX_JXON_FLAG_PRETTY && jx_list_check(*ob)) {
             flags = newline(ref,flags,space_left);
             flags = prefix(ref,flags,space_left);
-          } else if(JX_JXON_FLAG_PRETTY && sep[0]!=' ') {
+          } else if(JX_JXON_FLAG_PRETTY && (sep[0]!=' ') && !jx_list_check(*ob)) {
             flags = autowrap(ref,flags,space_left,1);
             jx_vla_append_c_str(ref, " ");
           }
@@ -631,7 +633,11 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
                                           JX_JXON_FLAG_NOT_NEWLINE,
                                           0,width,left);
     
-    fprintf(f,"%s: %s\n",prefix, jx_ob_as_str(&jxon));
+    if(jx_list_check(ob)||jx_hash_check(ob)) {
+      fprintf(f,"%s:%s\n",prefix, jx_ob_as_str(&jxon));
+    } else {
+      fprintf(f,"%s: %s\n",prefix, jx_ob_as_str(&jxon));
+    }
     jx_ob_free(jxon);
   }
 }
