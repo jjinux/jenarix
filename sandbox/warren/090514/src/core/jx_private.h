@@ -36,15 +36,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_mem_wrap.h"
 
-#define jx_os_read read
-#define jx_os_sscanf sscanf
-#define jx_os_fprintf fprintf
-#define jx_os_strncpy strncpy
+/* macros for our private status-handling idiom */
 
+#define JX_IS_OK(x) (JX_OK(status=(x)))
 
-#define JX_ZERO_ARRAY_SIZE 1
+#define JX_OK_DO(x) { if(JX_OK(status)) {status = (x);}}
 
+#define JX_ERR_DO(x) { if(JX_ERR(status)) {x;}}
 
+#define JX_DO(x) {status = (x);}
 
 typedef struct {
   jx_uint32 mode, usage, stale_usage;

@@ -30,8 +30,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdio.h>
-
 #include "jx_public.h"
 
 #define C1(ex,s1) printf("# %s (%s line %d,);\n",s1,__FILE__,__LINE__);

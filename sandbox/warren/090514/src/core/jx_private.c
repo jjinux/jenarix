@@ -36,10 +36,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
 
@@ -893,7 +889,7 @@ jx_bool jx__str_free(jx_char * str)
 {
   jx_str *I = (jx_str *) str;
   if(I->gc.shared) {
-    return JX_FAILURE;
+    return JX_STATUS_FREED_SHARED;
   } else {
     jx_vla_free(&str);
     return JX_SUCCESS;
@@ -1269,7 +1265,7 @@ jx_int jx__list_index(jx_list * I,jx_ob ob)
 static jx_status jx__list_free(jx_tls *tls, jx_list * list)
 {
   if(list->gc.shared)
-    return JX_FAILURE;
+    return JX_STATUS_FREED_SHARED;
   if(!list->packed_meta_bits) {
     jx_int i, size = jx_vla_size(&list->data.vla);
     jx_ob *ob = list->data.ob_vla;
@@ -2104,7 +2100,7 @@ static void jx__hash_only_strong(jx_hash * I)
 static jx_status jx__hash_free(jx_tls *tls, jx_hash * I)
 {
   if(I->gc.shared)
-    return JX_FAILURE;
+    return JX_STATUS_FREED_SHARED;
   jx_int size = jx_vla_size(&I->key_value);
   if(size) {
     jx_ob *ob = I->key_value;

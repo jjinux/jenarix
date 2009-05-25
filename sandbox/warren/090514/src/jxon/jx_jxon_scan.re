@@ -32,15 +32,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-
 #include "jx_jxon_private.h"
-
-typedef jx_uint32 jx_size;
-typedef jx_uint32 jx_uword;
-typedef jx_int32  jx_word;
 
 #define JX_JXON_SCANNER_MODE_FILE    0 
 #define JX_JXON_SCANNER_MODE_STRING  1
@@ -48,7 +40,7 @@ typedef jx_int32  jx_word;
 
 typedef struct {
   jx_char *bot, *tok, *ptr, *cur, *pos, *lim, *top, *eof;
-  jx_word line;
+  jx_int line;
   jx_int n_tok_parsed;
 
   jx_int mode;
@@ -111,7 +103,7 @@ static jx_char *jx_fill(jx_jxon_scanner_state *s, jx_char *cursor)
   case JX_JXON_SCANNER_MODE_FILE:
   case JX_JXON_SCANNER_MODE_CONSOLE:
     if(!s->eof) { /* only fill if eof is not set (known) */
-      jx_uword cnt = s->tok - s->bot; /* amount of open space in buffer */
+      jx_diff cnt = s->tok - s->bot; /* amount of open space in buffer */
       if(cnt) {
         if(s->lim > s->tok) { /* any remaining characters? */
           memcpy(s->bot, s->tok, s->lim - s->tok); /* move to start of buffer */
@@ -282,9 +274,7 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
   /* allocate parser */
 
   void *jx_Parser = jx_jxon_Alloc( (void *(*)(size_t))jx__jxon_alloc);
-
-
-  jx_word tok_type = 0;
+  jx_int tok_type = 0;
   jx_char stack_buffer[SSCANF_BUFSIZE];
   
   state->context.status = 0;

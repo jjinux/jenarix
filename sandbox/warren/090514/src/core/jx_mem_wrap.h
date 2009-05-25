@@ -33,36 +33,86 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdlib.h>
-
 #define JX_MEM_LOG_ALL 0
 #define JX_MEM_LOG_SUMMARY 1
 
-#if 1
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
+#ifndef JX_MEM_WRAP
 
 /* just use system malloc, etc. */
+
 #define jx_malloc(s) malloc(s)
 #define jx_calloc(c,s) calloc(c,s)
 #define jx_realloc(p,s) realloc(p,s)
 #define jx_free(p) free(p)
+#define jx_mem_dump() 
 
 #else
  
-/* activate optional memory logger, counter, & overrun detector */
+#ifndef JX_HEAP_TRACKER
 
+/* use our lightweight (threads blind) memory logger, counter, &
+   overrun detector */
 
-#define jx_malloc(s) jx__malloc(s,__FILE__,__LINE__)
-#define jx_calloc(c,s) jx__calloc(c,s,__FILE__,__LINE__)
-#define jx_realloc(p,s) jx__realloc(p,s,__FILE__,__LINE__)
-#define jx_free(p) jx__free(p,__FILE__,__LINE__)
+#define jx_malloc(s) jx__malloc(s, JX__FILE__, JX__LINE__)
+#define jx_calloc(c,s) jx__calloc(c, s, JX__FILE__, JX__LINE__)
+#define jx_realloc(p,s) jx__realloc(p, s, JX__FILE__, JX__LINE__)
+#define jx_free(p) jx__free(p, JX__FILE__, JX__LINE__)
 
 void jx_mem_dump(void);
-void *jx__malloc(size_t size, char *file, int line);
-void *jx__malloc(size_t size, char *file, int line);
-void *jx__calloc(size_t count, size_t size, char *file, int line);
-void *jx__realloc(void *ptr, size_t size, char *file, int line);
+
+void *jx__malloc(jx_size size, char *file, int line);
+void *jx__malloc(jx_size size, char *file, int line);
+void *jx__calloc(jx_size count, jx_size size, char *file, int line);
+void *jx__realloc(void *ptr, jx_size size, char *file, int line);
 void jx__free(void *ptr, char *file, int line);
 
+#else
+
+/* use our robust, thread-safe, status-returning JX_HEAP system */
+
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
 #endif
+#endif
+
+#include "jx_heap.h"
+
+/* enable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
+#define jx_mem_dump jx_heap_dump(0);
+
+#define jx_malloc JX_HEAP_MALLOC_RAW_VOID(size);
+#define jx_calloc(c,s) JX_HEAP_CALLOC_RAW_VOID(((c)*(s)));
+#define jx_realloc(p,s) JX_HEAP_REALLOC_RAW_VOID(p,s)
+#define jx_free(p) JX_HEAP_VLA_FREE_RAW(p)
+
+#endif
+#endif
+
+/* enable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
 #endif
 

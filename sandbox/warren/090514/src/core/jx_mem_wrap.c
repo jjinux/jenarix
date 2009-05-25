@@ -30,13 +30,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdio.h>
-
 #include "jx_public.h"
 #include "jx_mem_wrap.h"
 
 #define JX_TRIP_WIRE_SIZE 16
-
 
 typedef struct {
   size_t size;
