@@ -105,6 +105,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
 
 
   ok = jx_declare(ok,namespace,"same", JX_BUILTIN_SAME);
+  ok = jx_declare(ok,namespace,"str",  JX_BUILTIN_STR);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

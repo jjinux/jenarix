@@ -398,7 +398,7 @@ int main(int argc, char **argv)
       jx_ob_free(jxon);
     }
     {
-      jx_ob jxon = jx_ob_to_jxon_with_flags(hash,JX_JXON_FLAG_LOSSY_JSON);
+      jx_ob jxon = jx_ob_to_jxon_with_flags(hash,JX_JXON_FLAG_JSON_LOSSY,0,0,0);
       C1("%s", jx_ob_as_str(&jxon));
       jx_ob_free(jxon);
     }

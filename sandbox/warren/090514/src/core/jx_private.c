@@ -222,6 +222,7 @@ jx_status jx__vla_append_c_str(void **ref, jx_char * str)
       if(jx_ok(status)) {
         jx_char *base = (jx_char *) (*ref);
         memcpy(base + (size ? size - 1 : 0), str, str_len + 1);
+        return vla->size;
       } else {
         return status;
       }
@@ -241,6 +242,7 @@ jx_status jx__vla_append_ob_str(void **ref, jx_ob ob)
       if(jx_ok(status)) {
         jx_char *base = (jx_char *) (*ref);
         memcpy(base + (old_size ? old_size - 1 : 0), jx_ob_as_str(&ob), str_len + 1);
+        return vla->size;
       }
       return status;
     }

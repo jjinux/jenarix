@@ -92,14 +92,14 @@ int main(int argc, char **argv)
         {
           jx_ob code = jx_code_bind_with_source(namespace, source);
           source = jx_ob_from_null();
-          
+                      
           jx_jxon_dump(stdout, "# eval", code);
           {
             jx_ob result = jx_code_eval(node,code);
             
-            if(console) 
+            if(console) {
               jx_jxon_dump(stdout, "# result", result);
-            else {
+            } else {
               jx_ob jxon = jx_ob_to_jxon(result);
               printf("%s;\n",jx_ob_as_str(&jxon));
               jx_ob_free(jxon);

@@ -64,18 +64,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    * semicolons delimit JXON blocks and signal the parser to either
      accept the input or throw an error
 
-  PLANNED:
+ PLANNED:
  
-   * JSON ecoding of JXON enhancement through use of prefixes:
+   * JSON ecoding of JXON executable notation through use of prefixes:
 
      "jxD_0" "jxF_0.12" "jxS_anystring" "jxI_hello.warren"
-
-   * multi-line strings wrapped inside triple-quotes """ and '''
 
    * operators (automatically translated into identifiers): 
         + - * / ! && || ^ etc.
 
-   * an explicit concatenation operator for string literals ("a" . "b"?)
+   * an explicit concatenation operator in the parser for string
+     literals ("a" . "b"?)
+
+ CONSIDERED:
+
+   * multi-line strings wrapped inside triple-quotes """ and '''
+
 */
 
 %nonassoc ERROR. 

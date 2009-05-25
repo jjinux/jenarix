@@ -93,6 +93,7 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_EXHAUSTED       -3
 
 
+
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by API-users as private */
 
@@ -139,6 +140,25 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
                                            need to return a pointer to
                                            characters within the object
                                            itself when using tiny_str's */
+
+/* jxon output */
+
+#define JX_JXON_FLAG_JSON_ENCODE  0x40000000
+#define JX_JXON_FLAG_JSON_LOSSY   0x20000000
+#define JX_JXON_FLAG_PRETTY       0x10000000
+#define JX_JXON_FLAG_INDENT       0x08000000
+#define JX_JXON_FLAG_SHOW_WEAK    0x04000000
+#define JX_JXON_FLAG_COMMENT      0x02000000
+#define JX_JXON_FLAG_NOT_NEWLINE  0x01000000
+
+#define JX_JXON_FLAG_TAB_MASK     0x000F0000
+#define JX_JXON_FLAG_WIDTH_MASK   0x0000FF00
+#define JX_JXON_FLAG_INDENT_MASK  0x000000FF
+
+jx_ob jx_ob_to_jxon(jx_ob ob);
+void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);
+jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags, jx_int indent, 
+                               jx_int width, jx_int space_left);
 
 /* constructive casts which preserve the source object and return a new object */
 
@@ -317,17 +337,6 @@ jx_status jx_hash_delete(jx_ob hash, jx_ob key);        /* borrows key and delet
 jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value);      /* borrows value and returns borrowed key */
 jx_ob jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns owned copy of key */
 
-/* jxon output */
-
-#define JX_JXON_FLAG_LOSSY_JSON  0x40000000
-#define JX_JXON_FLAG_ENCODE_JSON 0x20000000
-#define JX_JXON_FLAG_PRETTY      0x10000000
-#define JX_JXON_FLAG_INDENT      0x08000000
-#define JX_JXON_FLAG_SHOW_WEAK   0x04000000
-#define JX_JXON_FLAG_INDENT_MASK 0x0000007F
-
-jx_ob jx_ob_to_jxon(jx_ob ob);
-jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags);
 
 /* json input */
 

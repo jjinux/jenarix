@@ -98,6 +98,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_HAS         67
 #define JX_BUILTIN_SAME        68
 
+#define JX_BUILTIN_STR         70
+
 #define JX_BIN_OP(SUFFIX) \
 JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
 { \
@@ -130,7 +132,7 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
     break;
   case 3:
     {
-      jx_ob container = jx_list_borrow(payload,1);
+      jx_ob container = jx_list_borrow(payload,0);
       if(jx_ident_check(container))
         container = jx_hash_borrow(node,container);
       switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
@@ -138,7 +140,7 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
         return jx_ob_from_status
           ( jx_list_replace
             (container, 
-             jx_ob_as_int( jx_list_borrow(payload,2)),
+             jx_ob_as_int( jx_list_borrow(payload,1)),
              jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2))));
         break;
       case JX_META_BIT_HASH:
@@ -559,6 +561,10 @@ JX_INLINE jx_ob jx_safe_symbols(jx_ob node, jx_ob payload)
   return jx_ob_copy(node);
 }
 
-
+JX_INLINE jx_ob jx_safe_str(jx_ob node, jx_ob payload)
+{
+  jx_ob something = jx_list_borrow(payload,0);
+  return jx_ob_to_str(something);
+}
 
 #endif

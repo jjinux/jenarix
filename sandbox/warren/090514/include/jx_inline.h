@@ -259,11 +259,12 @@ JX_INLINE jx_status jx_ob_free_tls(jx_tls *tls,jx_ob ob)
   return JX_SUCCESS;
 }
 
-jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags);
+jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags, jx_int indent, 
+                               jx_int width, jx_int space_left);
 
 JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
 {
-  return jx_ob_to_jxon_with_flags(ob, 0);
+  return jx_ob_to_jxon_with_flags(ob, 0, 0, 0, 0);
 }
 
 /* debugging */
@@ -297,18 +298,6 @@ JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
 }
 
 
-JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
-{
-  jx_ob jxon = jx_ob_to_jxon(ob);
-  jx_char weak[] = "(weak ref) ",nothing[] ="";
-  jx_char *info = nothing;
-  jx_ob_as_str(&jxon);
-  if(ob.meta.bits & JX_META_BIT_WEAK_REF) {
-    info = weak;
-  }
-  fprintf(f,"%s: %s%s\n",prefix, info, jx_ob_as_str(&jxon));
-  jx_ob_free(jxon);
-}
 
 /* builtin fn objects are a means through which jenarix can be extended */
 

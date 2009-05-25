@@ -517,6 +517,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, jx_ob callable,
       case JX_BUILTIN_HAS:
         jx_ob_replace_tls(tls, &payload, jx_safe_has(node, payload));
         break;
+      case JX_BUILTIN_STR:
+        jx_ob_replace_tls(tls, &payload, jx_safe_str(node, payload));
+        break;
       default: /* unrecognized selector? purge weak */
         jx_ob_free(callable);
         jx_ob_replace_with_null(&payload);
@@ -937,7 +940,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
               return jx__macro_call(tls,node,macro,result);
             }
 
-            //            jx_jxon_dump(stdout,"post-eval",result);
+            //jx_jxon_dump(stdout,"post-eval",result);
             /* WARNING / REMINDER: we may now have some weak
                references at top level in the result list -- these
                will need to be eliminated or made strong (deep copied)
