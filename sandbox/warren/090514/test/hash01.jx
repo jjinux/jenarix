@@ -28,7 +28,7 @@
     ]
 );
 
-[del main1];
-[main2];
+[del main2];
+[main1];
 
 
