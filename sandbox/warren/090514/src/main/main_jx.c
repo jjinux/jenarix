@@ -30,11 +30,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include "jx_public.h"
 
 #ifndef WIN32
@@ -53,19 +48,10 @@ static jx_bool jx_adapt_for_console(void)
     _setmode(fileno(stdout), O_BINARY);
 #endif
 #ifdef WIN32
-#if 0
-    {
-      unsigned long on = 1;
-      ioctlsocket(0, FIONBIO, &on);
-    }
-#endif
 #endif
     setvbuf(stdin,  (char *)NULL, _IONBF, BUFSIZ);
     setvbuf(stdout, (char *)NULL, _IONBF, BUFSIZ);
     setvbuf(stderr, (char *)NULL, _IONBF, BUFSIZ);
-#if 0
-    fcntl(0,F_SETFL,O_NONBLOCK);
-#endif
     return JX_TRUE;
   } else
     return JX_FALSE;
@@ -88,18 +74,18 @@ int main(int argc, char **argv)
       status = jx_jxon_scanner_next_ob(&source, scanner);
       switch(status) {
       case JX_YES:
-        if(console) jx_jxon_dump(stdout, "# source", source);
+        if(console) jx_jxon_dump(stdout, "#s", source);
         {
           jx_ob code = jx_code_bind_with_source(namespace, source);
           source = jx_ob_from_null();
-          
-          jx_jxon_dump(stdout, "# exec", code);
+                      
+          jx_jxon_dump(stdout, "#c", code);
           {
-            jx_ob result = jx_code_exec(node,code);
+            jx_ob result = jx_code_eval(node,code);
             
-            if(console) 
-              jx_jxon_dump(stdout, "# result", result);
-            else {
+            if(console) {
+              jx_jxon_dump(stdout, "#r", result);
+            } else {
               jx_ob jxon = jx_ob_to_jxon(result);
               printf("%s;\n",jx_ob_as_str(&jxon));
               jx_ob_free(jxon);
@@ -112,10 +98,9 @@ int main(int argc, char **argv)
       case JX_STATUS_SYNTAX_ERROR: /* catch this error */
         {
           jx_ob message = jx_jxon_scanner_get_error_message(scanner);
+          printf("Error: invalid syntax\n");
           if(jx_str_check(message)) 
             printf("%s\n",jx_ob_as_str(&message));
-          else
-            printf("Error: invalid syntax\n");
           if(!console)
             done = JX_TRUE;
           else
