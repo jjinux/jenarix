@@ -5,7 +5,7 @@ JX_ROOT=../..
 
 include $(JX_ROOT)/Rules.make
 
-CFLAGS=-I$(JX_ROOT)/include -I$(JX_ROOT)/src/core $(CFLAGS_ALL)
+CFLAGS=-I$(JX_ROOT)/include -I$(JX_ROOT)/src/core -I$(JX_ROOT)/src/os $(CFLAGS_ALL)
 
 jx_jxon_out.o: jx_jxon_out.c $(JX_INC_FILES)
 

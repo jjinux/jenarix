@@ -86,7 +86,7 @@ typedef double jx_float;
 #else
 /* uses 32-bit integers and single-precision floating point */
 typedef jx_int32 jx_int;
-typedef jx_int32 jx_uint;
+typedef jx_uint32 jx_uint;
 typedef float jx_float;
 #define JX_FLOAT_ZERO 0.0F
 #define JX_UINT_MAX 0xFFFFFFFF
@@ -118,15 +118,16 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_FAILURE                     -1
 #define JX_STATUS_NULL_PTR                    -2
 #define JX_STATUS_OUT_OF_MEMORY               -3
-#define JX_STATUS_EXHAUSTED                   -4
-#define JX_STATUS_SYNTAX_ERROR                -5
-#define JX_STATUS_OS_THREAD_CREATION_FAILURE  -6
-#define JX_STATUS_OS_THREADING_ERROR          -7
-#define JX_STATUS_OS_MUTEX_ERROR              -8
-#define JX_STATUS_OS_COND_ERROR               -9
-#define JX_STATUS_OS_RLOCK_ERROR             -10
-#define JX_STATUS_OS_ERROR                   -11
-#define JX_STATUS_OS_TLS_ERROR               -12
+#define JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP     -4
+#define JX_STATUS_EXHAUSTED                   -5
+#define JX_STATUS_SYNTAX_ERROR                -6
+#define JX_STATUS_OS_THREAD_CREATION_FAILURE  -7
+#define JX_STATUS_OS_THREADING_ERROR          -8
+#define JX_STATUS_OS_MUTEX_ERROR              -9
+#define JX_STATUS_OS_COND_ERROR              -10
+#define JX_STATUS_OS_RLOCK_ERROR             -11
+#define JX_STATUS_OS_ERROR                   -12
+#define JX_STATUS_OS_TLS_ERROR               -13
 
 /* shortcuts */
 

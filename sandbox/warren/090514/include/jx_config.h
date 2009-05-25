@@ -25,23 +25,26 @@
 
 #define JX_TINY_STR_SIZE 10
 
+
 /* do we want fake threads or real threads? */
 
 #define noJX_OS_FAKE_THREADS 
 
+
 /* DEBUG SETTINGS */
 
-/* wrap malloc, calloc, realloc, and free? (tripwire, etc.) */
+/* wrap malloc, calloc, realloc, and free? (print atexit) */
 
 #define JX_MEM_WRAP
 
-/* track heap objects in depth? (with print-out) */
+/* track heap objects in depth? (print atexit) */
 
-#define noJX_HEAP_TRACKER
+#define JX_HEAP_TRACKER
 
 /* should we scramble released memory whenever possible? */
 
 #define noJX_HEAP_GRINDER
+
 
 /* should we avoid re-using memory? */
 

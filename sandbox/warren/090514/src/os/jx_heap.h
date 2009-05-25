@@ -36,8 +36,8 @@ typedef struct {
 
 jx_status jx_heap_dump(jx_int32 flags);
 jx_size jx_heap_usage(void);
-#define _JX_HEAP_TRACKER_CALL ,JX__FILE__,JX__LINE__
-#define _JX_HEAP_TRACKER_DECL ,char *file,int line
+#define _JX_HEAP_TRACKER_CALL , JX__FILE__, JX__LINE__
+#define _JX_HEAP_TRACKER_DECL , char *file, int line
 
 #else
 
@@ -93,7 +93,7 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
   jx_heap_Calloc((void**)result,size _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_CALLOC_RAW(type, size) \
-  ((type*)jx_heap_CallocRaw(jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL))
+  ((type*)jx_heap_CallocRaw(jx_sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_CALLOC_RAW_VOID(size) \
   jx_heap_CallocRaw(size _JX_HEAP_TRACKER_CALL)
@@ -113,7 +113,7 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
    ((type*)jx_heap_ReallocRawRecopy(ptr,jx_sizeof(type)*(new_size),jx_sizeof(type)*(cur_size) _JX_HEAP_TRACKER_CALL))
 
 #define JX_HEAP_REALLOC_RAW_VOID(ptr, size) \
-  jx_heap_ReallocRaw((void*)ptr,size _JX_HEAP_TRACKER_CALL))
+  jx_heap_ReallocRaw((void*)ptr,(size) _JX_HEAP_TRACKER_CALL)
 
 
 #define JX_HEAP_RECALLOC(result, type, size, old_size)                  \

@@ -98,10 +98,10 @@ extern "C" {
 
 #define jx_mem_dump jx_heap_dump(0);
 
-#define jx_malloc JX_HEAP_MALLOC_RAW_VOID(size);
-#define jx_calloc(c,s) JX_HEAP_CALLOC_RAW_VOID(((c)*(s)));
+#define jx_malloc(s) JX_HEAP_MALLOC_RAW_VOID(s)
+#define jx_calloc(c,s) JX_HEAP_CALLOC_RAW_VOID((c)*(s))
 #define jx_realloc(p,s) JX_HEAP_REALLOC_RAW_VOID(p,s)
-#define jx_free(p) JX_HEAP_VLA_FREE_RAW(p)
+#define jx_free(p) JX_HEAP_FREE_RAW(p)
 
 #endif
 #endif
