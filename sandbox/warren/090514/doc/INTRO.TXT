@@ -1,5 +1,6 @@
-# This is an introduction to the Jenarix intermediate language JXON,
-# which is a JSON-derived eXecutable Object Notation 
+# This is an introduction to the Jenarix intermediate language JXON
+# (pronounced "jackson") which is a derivative of JSON (pronounced
+# "jason").
 
 # NOTE: the following examples are intended to be run through ./jxeval
 # interactively.  Please try them for yourself!
@@ -24,23 +25,36 @@
 
 # - JXON supports #-delimited single-line comments.
 
-# With respect to LISP, JXON phrases are LISP-like symbolic-
+# With respect to LISP, JXON phrases are LISP-inspired symbolic-
 # expressions (S-expressions) which the Jenarix runtime is capable of
 # creating, transforming, binding, and executing.
 
-# JXON also includes a LISP-like macro facility with a simpler syntax
+# JXON also includes a LISP-like macro facility with a simpler syntax.
 
 # Compared to LISP, JXON draws a distinction between functional
-# expressions: where the full body is returned following evaluation,
-# and code blocks: where only the last item evaluated is returned.
+# expressions: where the full list body is returned following
+# evaluation, and code blocks: where only the last item of the
+# evaluated list body is returned.  
 
-# Accordingly in JXON, 'def' is used to create a named functions containing
-# code blocks (like Python 'def') and 'defun'is used to create a named
-# functions containing expressions (like LISP 'defun') 
+# AS OF 090525, I believe this distinction can be eliminated through use
+# of the "exec" special form.
+
+# This is necessary because JXON maintains a distinction between
+# primitives and lists, whereas everything is a list pointer in LISP.
+# It's also necessary for performance resons since JXON lists are slow
+# and expensive "heap" objects whereas all JXON primitives (except for
+# non-tiny strings) are self-contined stack objects (like registers).
+
+# Accordingly JXON 'def' is used to create a named functions
+# containing code blocks (like Python 'def') and JXON 'defun'is used
+# to create a named functions containing expressions (like LISP
+# 'defun').  
 
 # Likewise, "code" is used to create anonymous lambda functions
 # containing code blocks and "lambda" is used to create anonymous lambda
 # functions containing expressions.
+
+# Expressions can of course contains code blocks which 
 
 # JXON primitives include:
 
