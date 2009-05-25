@@ -193,7 +193,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
       }
       for(i = 0; i < size; i++) {
         jx_ob_free( jx__ob_to_jxon_with_flags(*(ob++), ref, flags, space_left) );
-        if(i<(size-1)) {
+        if(i&&(i<(size-1))) {
           flags = autowrap(ref,flags,space_left,1);
           jx_vla_append_c_str(ref, sep);
           if(JX_JXON_FLAG_PRETTY && jx_list_check(*ob)) {
