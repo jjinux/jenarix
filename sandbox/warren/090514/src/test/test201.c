@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_private.h"
 
-#define N_THREAD 2
+#define N_THREAD 8
 
 typedef struct {
   jx_int id;
@@ -48,17 +48,23 @@ void *thread_fn(void *id_ptr)
 
   {
     jx_int i,j;
-    for(i=0;i<1000;i++) {
-      for(j=0;j<1000;j++) {
+    for(i=0;i<10;i++) {
+      for(j=0;j<10;j++) {
         if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
+
+          jx_os_usleep(1);
           jx_os_spinlock_acquire(&lock,JX_TRUE);
           jx_os_spinlock_release(&lock);
+
           jx_os_spinlock_acquire(&lock,JX_TRUE);
           jx_os_spinlock_release(&lock);
+
           jx_os_spinlock_acquire(&lock,JX_TRUE);
           jx_os_spinlock_release(&lock);
+
           jx_os_spinlock_acquire(&lock,JX_TRUE);
           jx_os_spinlock_release(&lock);
+
           jx_os_spinlock_release(&lock);
         }
       }
