@@ -53,8 +53,8 @@ void *thread_fn(void *id_ptr)
     for(i=100;i<5000;i++) {
       jx_hash_delete(info->hash, jx_ob_from_int(i));
     }
-
   }
+
   printf("thread %d complete\n",info->id);
   return NULL;
 }
@@ -66,6 +66,8 @@ jx_status run_test(void)
 
   jx_status status;
   jx_ob hash = jx_hash_new();
+
+  jx_ob_set_synchronized(hash,true,true);
 
   if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
 
