@@ -532,6 +532,7 @@ JX_INLINE jx_status jx__os_rlock_acquire(jx_os_rlock *rlock,jx_bool blocking)
   jx_status status = JX_PTR(rlock);
   if(JX_OK(status)) {
     if(rlock->owned && (rlock->owner == pthread_self())) {
+      /* will this non-barriered read actually work on multi-core systems? */
       status = JX_STATUS_YES;
       rlock->count++;
     } else if(blocking) {
@@ -596,7 +597,6 @@ JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool sp
     if(spinlock->owned && (spinlock->owner == pthread_self())) {
       status = JX_STATUS_YES;
       spinlock->count++;
-      printf("skipped %d\n",spinlock->count);
     } else {
       int pause = 0;
       while(1) {
@@ -632,17 +632,15 @@ JX_INLINE jx_status jx__os_spinlock_release(jx_os_spinlock *spinlock)
         {
           jx_int pause = 0;
           while(!jx_os_atomic32_cas(&spinlock->atomic,1,0)) {
-	    jx_int masturbate = pause;
-	    pause += clock()&0xF;
-	    while(masturbate--)
-	      jx__os_usleep(pause);
-	  }
-	}
+            jx_int masturbate = pause;
+            pause += clock()&0xF;
+            while(masturbate--)
+              jx__os_usleep(pause);
+          }
+        }
       } else if(spinlock->count < 0) {
         status = JX_STATUS_OS_SPINLOCK_ERROR;
-	printf("error A\n");
-      } else {
-	printf("count %d\n",spinlock->count);
+        printf("error A\n");
       }
     } else {
       printf("error B\n");

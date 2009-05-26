@@ -35,9 +35,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define N_THREAD 2
 
 typedef struct {
-  jx_ob hash;
   jx_int id;
 } thread_info;
+
+static jx_os_spinlock lock;
 
 void *thread_fn(void *id_ptr)
 {
@@ -48,8 +49,18 @@ void *thread_fn(void *id_ptr)
   {
     jx_int i,j;
     for(i=0;i<1000;i++) {
-      for(j=0;j<100;j++) {
-        jx_hash_set(info->hash, jx_ob_from_int(j),jx_ob_from_int(info->id));
+      for(j=0;j<1000;j++) {
+        if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
+          jx_os_spinlock_acquire(&lock,JX_TRUE);
+          jx_os_spinlock_release(&lock);
+          jx_os_spinlock_acquire(&lock,JX_TRUE);
+          jx_os_spinlock_release(&lock);
+          jx_os_spinlock_acquire(&lock,JX_TRUE);
+          jx_os_spinlock_release(&lock);
+          jx_os_spinlock_acquire(&lock,JX_TRUE);
+          jx_os_spinlock_release(&lock);
+          jx_os_spinlock_release(&lock);
+        }
       }
     }
   }
@@ -65,8 +76,8 @@ jx_status run_test(void)
   thread_info thread_info[N_THREAD];
 
   jx_status status;
-  jx_ob hash = jx_hash_new();
-  
+  jx_os_spinlock_init(&lock);
+
   if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
 
     {
@@ -75,7 +86,6 @@ jx_status run_test(void)
         jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
 
         thread_info[i].id = i;
-        thread_info[i].hash = hash;
 
         JX_OK_DO( jx_os_thread_start(thread, thread_fn, thread_info + i));
       }
@@ -92,7 +102,6 @@ jx_status run_test(void)
 
     JX_OK_DO( jx_os_thread_array_free( &thread_array ));
   }
-  jx_ob_free(hash);
   return status;
 }
 

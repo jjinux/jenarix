@@ -3170,8 +3170,12 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
         }
       }
     }
-    if(I->synchronized) 
-      jx_os_spinlock_release(&I->spinlock);
+    if(I->synchronized) {
+      jx_status sta = jx_os_spinlock_release(&I->spinlock);
+      if(!JX_OK(sta)) {
+        printf("%d\n",sta);
+      }
+    }
   }
   return status;
 }
