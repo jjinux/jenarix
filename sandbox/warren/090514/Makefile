@@ -3,7 +3,7 @@ JX_ROOT=.
 
 include Rules.make
 
-all: main test202 tests 
+all: main test204 tests 
 
 libjx.a: core jxon vm os
 	ar -cr libjx.a src/core/*.o src/jxon/*.o src/vm/*.o src/os/*.o
@@ -26,20 +26,11 @@ main: libjx.a
 	cd src/main; $(MAKE)
 	mv src/main/main_jx jx
 
-test100: libjx.a
-	cd src/test;$(MAKE) test100
-
-test200: libjx.a
-	cd src/test;$(MAKE) test200
-
-test201: libjx.a
-	cd src/test;$(MAKE) test201
-
-test202: libjx.a
-	cd src/test;$(MAKE) test202
-
 test203: libjx.a
 	cd src/test;$(MAKE) test203
+
+test204: libjx.a
+	cd src/test;$(MAKE) test204
 
 tests: libjx.a
 	cd src/test;$(MAKE)

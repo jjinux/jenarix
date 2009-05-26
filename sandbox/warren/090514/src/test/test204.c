@@ -32,13 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_private.h"
 
-#define N_THREAD 8
+#define N_PACKETS 100000
+
+#define N_THREAD 16
 
 typedef struct {
   jx_int id;
+  jx_ob list;
 } thread_info;
-
-static jx_os_spinlock lock;
 
 void *thread_fn(void *id_ptr)
 {
@@ -48,10 +49,26 @@ void *thread_fn(void *id_ptr)
 
   {
     jx_int i;
-    for(i=0;i<10000;i++) {
-      if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
-        printf("%d %d\n",i,info->id);
-        jx_os_spinlock_release(&lock);
+    if(!info->id) {
+      for(i=0;i<N_PACKETS;i++) {
+        jx_list_append(info->list, jx_ob_from_int(1));
+      }
+    } else {
+      int cnt = 0;
+      while(1) {
+        jx_ob ob = jx_list_remove(info[-1].list,0);
+        if(!jx_null_check(ob)) {
+          cnt++;
+          if(info->id!=(N_THREAD-1)) {
+            jx_ob new_ob = jx_ob_add(ob,ob);
+            jx_list_append(info->list, new_ob); 
+          } else {
+            printf("count: %d\n",++cnt);
+            jx_jxon_dump(stdout, "output", ob);
+          }
+          if(cnt==N_PACKETS)
+            break;
+        }
       }
     }
   }
@@ -75,11 +92,13 @@ jx_status run_test(void)
         jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
 
         thread_info[i].id = i;
+        thread_info[i].list = jx_list_new();
+
+        jx_ob_set_synchronized(thread_info[i].list,JX_TRUE,JX_TRUE);
 
         JX_OK_DO( jx_os_thread_start(thread, thread_fn, thread_info + i));
       }
     }
-
     {
       jx_int i;
       for(i=0; i<N_THREAD; i++) {
@@ -88,7 +107,6 @@ jx_status run_test(void)
         JX_OK_DO( jx_os_thread_join(thread) );
       }
     }
-
     JX_OK_DO( jx_os_thread_array_free( &thread_array ));
   }
   return status;

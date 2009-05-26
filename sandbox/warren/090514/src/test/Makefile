@@ -10,6 +10,11 @@ all: \
 	test008 \
 	test009 \
 	test010 \
+	test200 \
+	test201 \
+	test202 \
+	test203 \
+	test204 \
 	jx_echo
 
 JX_ROOT=../..
@@ -35,7 +40,8 @@ test100.o: test100.c $(JX_INC_FILES)
 test200.o: test200.c $(JX_INC_FILES)
 test201.o: test201.c $(JX_INC_FILES)
 test202.o: test202.c $(JX_INC_FILES)
-test203.o: test202.c $(JX_INC_FILES)
+test203.o: test203.c $(JX_INC_FILES)
+test204.o: test204.c $(JX_INC_FILES)
 
 test001: test001.o $(JX_ROOT)/libjx.a
 test002: test002.o $(JX_ROOT)/libjx.a
@@ -54,6 +60,7 @@ test200: test200.o $(JX_ROOT)/libjx.a
 test201: test201.o $(JX_ROOT)/libjx.a
 test202: test202.o $(JX_ROOT)/libjx.a
 test203: test203.o $(JX_ROOT)/libjx.a
+test204: test204.o $(JX_ROOT)/libjx.a
 
 jx_echo: jx_echo.o $(JX_ROOT)/libjx.a
 
@@ -73,5 +80,6 @@ clean:
 	test201 \
 	test202 \
 	test203 \
+	test204 \
 	jx_echo
 

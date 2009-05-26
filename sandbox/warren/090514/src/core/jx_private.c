@@ -1867,7 +1867,7 @@ jx_status jx__list_append(jx_list * I, jx_ob ob)
       jx_int size = jx_vla_size(&I->data.vla);
       if(jx_vla_grow_check(&I->data.vla, size)) {
         if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
-          jx__list_set_packed_data(I, size, ob);
+          jx__list_set_packed_data_locked(I, size, ob);
         } else if(!I->packed_meta_bits) {
           I->data.ob_vla[size] = JX_OWN(ob);
         }
@@ -1880,7 +1880,7 @@ jx_status jx__list_append(jx_list * I, jx_ob ob)
         I->packed_meta_bits = ob.meta.bits;
         I->data.vla = jx_vla_new(packed_size, 1);
         if(I->data.vla) {
-          jx__list_set_packed_data(I, 0, ob);
+          jx__list_set_packed_data_locked(I, 0, ob);
           status = JX_SUCCESS;
           goto unlock;
         }
@@ -1919,7 +1919,7 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
       if(!jx_ok(jx_vla_insert(&I->data.vla, index, 1)))
         goto unlock;
       else if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
-        jx__list_set_packed_data(I, index, ob);
+        jx__list_set_packed_data_locked(I, index, ob);
       } else if(!I->packed_meta_bits) {
         I->data.ob_vla[index] = JX_OWN(ob);
       }
@@ -1931,7 +1931,7 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
         I->packed_meta_bits = ob.meta.bits;
         I->data.vla = jx_vla_new(packed_size, 1);
         if(I->data.vla) {
-          jx__list_set_packed_data(I, 0, ob);
+          jx__list_set_packed_data_locked(I, 0, ob);
           status = JX_SUCCESS;
           goto unlock;
          }
@@ -2048,15 +2048,11 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
     if(!I->gc.shared) {
       if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
         if(I->packed_meta_bits) {
-          jx_ob result = jx__list_get_packed_data(I, index);
+          result = jx__list_get_packed_data_locked(I, index);
           jx_vla_remove(&I->data.vla, index, 1);
-          return result;
         } else {
-          jx_ob result = I->data.ob_vla[index];
-          if(jx_ok(jx_vla_remove(&I->data.vla, index, 1))) {
-            return result;
-          } else
-            return jx_ob_from_null();
+          result = I->data.ob_vla[index];
+          jx_vla_remove(&I->data.vla, index, 1); 
         }
       }
     }

@@ -980,7 +980,6 @@ JX_INLINE void jx__list_set_packed_data_locked(jx_list * list, jx_int index, jx_
   }
 }
 
-void jx__list_set_packed_data_locked(jx_list * I, jx_int index, jx_ob ob);
 JX_INLINE void jx__list_set_packed_data(jx_list * I, jx_int index, jx_ob ob)
 {
   jx_bool synchronized = I->synchronized;
@@ -1092,7 +1091,7 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
   return JX_FAILURE;
 }
 
-JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
+JX_INLINE jx_ob jx__list_get_packed_data_locked(jx_list * list, jx_int index)
 {
   switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_INT:
@@ -1103,6 +1102,21 @@ JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
     break;
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_get_packed_data(jx_list * I, jx_int index)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_bool synchronized = I->synchronized;
+  jx_status status = synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    result = jx__list_get_packed_data_locked(I,index);
+    if(synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return result;
 }
 
 JX_INLINE jx_ob jx__list_borrow_locked(jx_list * I, jx_int index)
