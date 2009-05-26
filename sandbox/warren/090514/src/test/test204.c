@@ -63,7 +63,7 @@ void *thread_fn(void *id_ptr)
             jx_ob new_ob = jx_ob_add(ob,ob);
             jx_list_append(info->list, new_ob); 
           } else {
-            printf("count: %d\n",++cnt);
+            printf("count: %d\n",cnt);
             jx_jxon_dump(stdout, "output", ob);
           }
           if(cnt==N_PACKETS)
