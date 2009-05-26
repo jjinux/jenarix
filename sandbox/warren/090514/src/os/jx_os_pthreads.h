@@ -52,7 +52,9 @@ struct jx__os_rlock {
 
 #ifdef __linux__
 
+/*
 typedef volatile jx_int32 jx_os_atomic32;
+*/
 
 #ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
 #define JX_GCC_ATOMIC_BUILTINS
@@ -201,7 +203,9 @@ JX_INLINE jx_bool jx_os_atomic32_cas(jx_os_atomic32 *atomic,
 
 #include <libkern/OSAtomic.h>
 
+/*
 typedef volatile int32_t jx_os_atomic32;
+*/
 
 JX_INLINE int32_t jx_os_atomic32_read(jx_os_atomic32 *atomic)
 {
@@ -239,13 +243,6 @@ JX_INLINE jx_bool jx_os_atomic32_cas(jx_os_atomic32 *atomic,
 }
 #endif
 
-
-struct jx__os_spinlock {
-  jx_os_atomic32 atomic;
-  jx_bool owned;
-  pthread_t owner;
-  jx_int count;
-};
 
 JX_INLINE jx_status jx__os_usleep(jx_size usec)
 {
@@ -581,29 +578,18 @@ JX_INLINE jx_status jx__os_rlock_destroy(jx_os_rlock *rlock)
   return status;
 }
 
-JX_INLINE jx_status jx__os_spinlock_init(jx_os_spinlock *spinlock)
-{
-  jx_status status = JX_PTR(spinlock);
-  if(JX_OK(status)) {
-    jx_os_memset((void*)spinlock,0,sizeof(jx_os_spinlock));
-  }
-  return status;
-}
-
 JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin)
 {
   jx_status status = JX_PTR(spinlock);
   if(JX_OK(status)) {
-    while(1) {
+    if(spin) {
+      while(!jx_os_atomic32_cas(&spinlock->atomic,0,1));
+      status = JX_STATUS_YES;
+    } else {
       if(jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
-        spinlock->owned = JX_TRUE;
-        spinlock->owner = pthread_self();
-        spinlock->count++;
         status = JX_STATUS_YES;
-        break;
-      } else if(!spin) {
+      } else {
         status = JX_STATUS_NO;
-        break;
       }
     }
   }
@@ -619,10 +605,6 @@ JX_INLINE jx_status jx__os_spinlock_release(jx_os_spinlock *spinlock)
   return status;
 }
 
-JX_INLINE jx_status jx__os_spinlock_destroy(jx_os_spinlock *spinlock)
-{
-  return JX_PTR(spinlock);
-}
 
 /* enable C++ mangling */
 #ifdef __cplusplus

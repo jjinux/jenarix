@@ -187,8 +187,9 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
       jx_ob *ob = list->data.ob_vla;
       if(!(flags&(JX_JXON_FLAG_JSON_ENCODE |
                   JX_JXON_FLAG_NO_ROUNDED))) {
-        if(ob && (jx_ident_check(*ob)||(jx_builtin_callable_check(*ob)))) {
-          (*ref)[ob_start] = '(';
+        if(ob &&  (flags & JX_JXON_FLAG_PRETTY) && (jx_ident_check(*ob) || 
+                                                    (jx_builtin_callable_check(*ob)))) {
+          (*ref)[ob_start-1] = '(';
           delimit = rounded;
           sep = space;
         }

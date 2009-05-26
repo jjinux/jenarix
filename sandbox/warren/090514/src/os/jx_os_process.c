@@ -202,11 +202,6 @@ jx_status jx_os_rlock_destroy(jx_os_rlock *rlock)
   return jx__os_rlock_destroy(rlock);
 }
 
-jx_status jx_os_spinlock_init(jx_os_spinlock *spinlock)
-{
-  return jx__os_spinlock_init(spinlock);
-}
-
 jx_status jx_os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin)
 {
   return jx__os_spinlock_acquire(spinlock, spin);
@@ -215,10 +210,5 @@ jx_status jx_os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin)
 jx_status jx_os_spinlock_release(jx_os_spinlock *spinlock)
 {
   return jx__os_spinlock_release(spinlock);
-}
-
-jx_status jx_os_spinlock_destroy(jx_os_spinlock *spinlock)
-{
-  return jx__os_spinlock_destroy(spinlock);
 }
 

@@ -177,8 +177,10 @@ struct jx__ob {
 
 
 struct jx__list {
-  jx_bits packed_meta_bits;
   jx_gc gc;
+  jx_bits packed_meta_bits;
+  jx_bool synchronized;
+  jx_os_spinlock lock;
   union {
     jx_ob *ob_vla;     
     jx_float *float_vla;
@@ -886,10 +888,25 @@ JX_INLINE jx_bool jx_ob_equal(jx_ob left, jx_ob right)
 
 /* lists */
 
-JX_INLINE jx_int jx__list_size(jx_list * I)
+JX_INLINE jx_int jx__list_size_locked(jx_list * I)
 {
   return jx_vla_size(&I->data.vla);
 }
+
+JX_INLINE jx_int jx__list_size(jx_list * I)
+{
+  jx_int result = 0;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    result = jx__list_size_locked(I);
+    if(I->synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return result;
+}
+
 
 JX_INLINE jx_int jx_list_size(jx_ob ob)
 {
@@ -902,14 +919,15 @@ JX_INLINE jx_int jx_list_size(jx_ob ob)
 jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill);
 JX_INLINE jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill)
 {
+  jx_status status = JX_FAILURE;
   jx_bits bits = list.meta.bits;
   if(bits & JX_META_BIT_LIST) {
-    if(jx_ok(jx__list_resize(list.data.io.list, size, fill))) {
+    status = jx__list_resize(list.data.io.list, size, fill);
+    if(jx_ok(status)) {
       jx_ob_free(fill);
-      return JX_SUCCESS;
     }
   }
-  return JX_FAILURE;
+  return status;
 }
 
 jx_ob jx_list_new(void);
@@ -1035,7 +1053,7 @@ JX_INLINE jx_ob jx__list_get_packed_data(jx_list * list, jx_int index)
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx__list_borrow(jx_list * I, jx_int index)
+JX_INLINE jx_ob jx__list_borrow_locked(jx_list * I, jx_int index)
 {
   if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
     if(I->packed_meta_bits) {
@@ -1047,6 +1065,20 @@ JX_INLINE jx_ob jx__list_borrow(jx_list * I, jx_int index)
   return jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx__list_borrow(jx_list * I, jx_int index)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    result = jx__list_borrow_locked(I,index);
+    if(I->synchronized) {
+      status = jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return result;
+}
+
 JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
@@ -1054,7 +1086,7 @@ JX_INLINE jx_ob jx_list_borrow(jx_ob list, jx_int index)
     jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx__list_swap(jx_list * I, jx_int index, jx_ob ob)
+JX_INLINE jx_ob jx__list_swap_locked(jx_list * I, jx_int index, jx_ob ob)
 {
   if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
     if(!I->packed_meta_bits) {
@@ -1076,6 +1108,25 @@ JX_INLINE jx_ob jx__list_swap(jx_list * I, jx_int index, jx_ob ob)
     }
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_swap(jx_list * I, jx_int index, jx_ob ob)
+{
+  jx_ob result = JX_OB_NULL;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    result = jx__list_swap_locked(I,index,ob);
+    if(I->synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return result;
+}
+
+JX_INLINE jx_ob jx__list_swap_with_null_locked(jx_list *list, jx_int index)
+{
+  return jx__list_swap_locked(list, index, jx_ob_from_null());
 }
 
 JX_INLINE jx_ob jx__list_swap_with_null(jx_list *list, jx_int index)

@@ -49,52 +49,6 @@ extern "C" {
 #endif
 #endif
 
-/* declare our own C types (to be used exclusively throughout) */
-
-typedef int jx_bool;
-typedef char jx_char;
-typedef int jx_status;
-
-typedef unsigned short jx_uint16;       /* for small bit masks, etc. */
-
-typedef int jx_int32;
-typedef unsigned int jx_uint32; /* for hash codes, etc. */
-
-#ifdef WIN32
-  typedef __int64 jx_int64;
-  typedef unsigned __int64 jx_uint64;
-#else
-  typedef long long jx_int64;
-  typedef unsigned long long jx_uint64;
-#endif
-
-/* for pointer arithmetic, memory allocations, and
-   machine-word-optimal fields */
-
-typedef size_t jx_size; 
-typedef ptrdiff_t jx_diff;
-typedef ptrdiff_t jx_word;
-
-/* define base types */
-
-#ifdef JX_64_BIT
-/* uses 64-bit integers and double-precision floating point */
-typedef jx_int64 jx_int;
-typedef jx_uint64 jx_uint;
-typedef double jx_float;
-#define JX_TINY_STR_MIN_SIZE 10
-#define JX_FLOAT_ZERO 0.0
-#define JX_UWORD_MAX 0xFFFFFFFFFFFFFFFF
-#else
-/* uses 32-bit integers and single-precision floating point */
-typedef jx_int32 jx_int;
-typedef jx_uint32 jx_uint;
-typedef float jx_float;
-#define JX_FLOAT_ZERO 0.0F
-#define JX_UINT_MAX 0xFFFFFFFF
-#define JX_TINY_STR_MIN_SIZE 6
-#endif
-
 /* our ubiquitous jenarix object type */
 
 typedef struct jx__ob jx_ob;
