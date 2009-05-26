@@ -130,6 +130,9 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_OS_RLOCK_ERROR             -11
 #define JX_STATUS_OS_ERROR                   -12
 #define JX_STATUS_OS_TLS_ERROR               -13
+#define JX_STATUS_OS_SPINLOCK_ERROR          -14
+#define JX_STATUS_PERMISSION_DENIED          -15
+#define JX_STATUS_OB_NOT_HASHABLE            -16
 
 /* shortcuts */
 

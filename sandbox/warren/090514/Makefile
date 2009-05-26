@@ -29,6 +29,12 @@ main: libjx.a
 test100: gen libjx.a
 	cd src/test;$(MAKE) test100
 
+test200: gen libjx.a
+	cd src/test;$(MAKE) test200
+
+test201: gen libjx.a
+	cd src/test;$(MAKE) test201
+
 tests: libjx.a
 	cd src/test;$(MAKE)
 

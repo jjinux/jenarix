@@ -7,8 +7,9 @@
  * reserved.  It is unlawful to modify or remove this notice.
  * TRADEMARK NOTICE: Jenarix is a Trademark of DeLano Scientific LLC.
 */
+
 #ifndef _H_jx_os_process_private
-#define _H_jx_os_plocess_private
+#define _H_jx_os_process_private
 
 #include "jx_os_process.h"
 

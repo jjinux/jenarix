@@ -44,8 +44,9 @@ JX_INLINE_STATIC jx_os_atomic32 jx_os_atomic32_exchange(jx_os_atomic32 *atomic, 
 }
 
 JX_INLINE_STATIC jx_boolean jx_os_atomic32_cas(jx_os_atomic32 *atomic, 
-                                               jx_os_atomic32 new_value,
-                                               jx_os_atomic32 old_value)
+                                               jx_os_atomic32 old_value,
+                                               jx_os_atomic32 new_value)
+
 {
   if(InterlockedCompareExchange(atomic, new_value, old_value) == old_value) 
     return JX_TRUE;

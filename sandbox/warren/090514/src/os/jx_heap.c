@@ -11,8 +11,6 @@
 #include "jx_private.h"
 #include "jx_heap.h"
 
-#include "jx_os_process_private.h"
-
 #ifdef JX_HEAP_TRACKER
 
 #define Jx__FILE_MAX_SIZE 64

@@ -206,11 +206,15 @@ typedef struct {
   jx_gc gc;
 } jx_str;
 
-/* convenience macros */
+/* status checking */
 
 #define JX_OK(s) ((s)>=0)
 
 #define JX_ERR(s) ((s)<0)
+
+#define JX_POS(s) ((s)>0)
+
+/* convenience macros */
 
 #define JX_PTR(p) ( (p) ? JX_SUCCESS : JX_STATUS_NULL_PTR )
 

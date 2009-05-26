@@ -16,7 +16,7 @@ JX_ROOT=../..
 
 include $(JX_ROOT)/Rules.make
 
-CFLAGS=-I$(JX_ROOT)/include -I$(JX_ROOT)/src/core $(CFLAGS_ALL)
+CFLAGS=-I$(JX_ROOT)/include -I$(JX_ROOT)/src/core -I$(JX_ROOT)/src/os $(CFLAGS_ALL)
 
 test001.o: test001.c $(JX_INC_FILES)
 test002.o: test002.c $(JX_INC_FILES)
@@ -29,7 +29,12 @@ test008.o: test008.c $(JX_INC_FILES)
 test009.o: test009.c $(JX_INC_FILES)
 test010.o: test010.c $(JX_INC_FILES)
 
+
 test100.o: test100.c $(JX_INC_FILES)
+
+test200.o: test200.c $(JX_INC_FILES)
+
+test201.o: test201.c $(JX_INC_FILES)
 
 test001: test001.o $(JX_ROOT)/libjx.a
 test002: test002.o $(JX_ROOT)/libjx.a
@@ -41,6 +46,12 @@ test007: test007.o $(JX_ROOT)/libjx.a
 test008: test008.o $(JX_ROOT)/libjx.a
 test009: test009.o $(JX_ROOT)/libjx.a
 test010: test010.o $(JX_ROOT)/libjx.a
+
+test100: test100.o $(JX_ROOT)/libjx.a
+
+test200: test200.o $(JX_ROOT)/libjx.a
+
+test201: test201.o $(JX_ROOT)/libjx.a
 
 jx_echo: jx_echo.o $(JX_ROOT)/libjx.a
 
@@ -56,5 +67,7 @@ clean:
 	test008 \
 	test009 \
 	test010 \
+	test200 \
+	test201 \
 	jx_echo
 

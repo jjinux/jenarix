@@ -35,10 +35,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 #include "jx_mem_wrap.h"
+#include "jx_os_process_private.h"
 
 /* macros for our private status-handling idiom */
 
 #define JX_IS_OK(x) (JX_OK(status=(x)))
+
+#define JX_IS_YES(x) ((status=(x))==JX_YES)
 
 #define JX_OK_DO(x) { if(JX_OK(status)) {status = (x);}}
 
@@ -88,8 +91,10 @@ typedef struct {
 
 struct jx__hash {
   jx_gc gc; 
+  jx_bool synchronized;
   jx_ob *key_value;             /* variable length array of key/value objects owned by the table */
   jx_uint32 *info;              /* variable length array of the hash table information record */
+  jx_os_spinlock spinlock;
 };
 
 #define JX_HASH_INFO_SIZE (sizeof(jx_hash_info)/sizeof(jx_uint32))

@@ -49,6 +49,7 @@ struct jx__os_rlock {
   jx_int count;
 };
 
+
 #ifdef __linux__
 
 typedef volatile jx_int32 jx_os_atomic32;
@@ -83,6 +84,7 @@ JX_INLINE jx_int32 jx_os__cas(volatile jx_int32 *ptr,
         jx_os__cas(mem, old_value, new_value)
 #endif
 #endif
+
 
 JX_INLINE jx_int32 jx_os_atomic32_read(jx_os_atomic32 *atomic)
 {
@@ -139,7 +141,7 @@ JX_INLINE jx_int32 jx_os_atomic32_increment(jx_os_atomic32 *atomic)
 }
 
 JX_INLINE jx_int32 jx_os_atomic32_exchange(jx_os_atomic32 *atomic,
-						  jx_os_atomic32 new_value)
+                                           jx_int32 new_value)
 {
 #ifdef JX_OS_CAS
   jx_os_atomic32 old_value;
@@ -170,8 +172,8 @@ JX_INLINE jx_int32 jx_os_atomic32_exchange(jx_os_atomic32 *atomic,
 }
 
 JX_INLINE jx_bool jx_os_atomic32_cas(jx_os_atomic32 *atomic, 
-                                               jx_os_atomic32 new_value,
-                                               jx_os_atomic32 old_value)
+                                     jx_int32 old_value,
+                                     jx_int32 new_value)
 {
 #ifdef JX_OS_CAS
   return (JX_OS_CAS(atomic,old_value,new_value)==old_value);
@@ -217,25 +219,33 @@ JX_INLINE int32_t jx_os_atomic32_increment(jx_os_atomic32 *atomic)
 }
 
 JX_INLINE int32_t jx_os_atomic32_exchange(jx_os_atomic32 *atomic,
-                                                 jx_os_atomic32 new_value)
+                                          jx_int32 new_value)
 {
   jx_os_atomic32 old_value;
   while(1) {
     old_value = *atomic;
-    if(OSAtomicCompareAndSwap32(old_value, new_value, (int32_t*)atomic))
+    if(OSAtomicCompareAndSwap32Barrier(old_value, new_value, (int32_t*)atomic))
       break;
   }
   return old_value;
 }
 
 JX_INLINE jx_bool jx_os_atomic32_cas(jx_os_atomic32 *atomic, 
-                                               jx_os_atomic32 new_value,
-                                               jx_os_atomic32 old_value)
+                                     jx_int32 old_value,
+                                     jx_int32 new_value)
+
 {
-  return OSAtomicCompareAndSwap32(old_value, new_value, (int32_t*)atomic);
+  return OSAtomicCompareAndSwap32Barrier(old_value, new_value, (int32_t*)atomic);
 }
 #endif
 
+
+struct jx__os_spinlock {
+  jx_os_atomic32 atomic;
+  jx_bool owned;
+  pthread_t owner;
+  jx_int count;
+};
 
 JX_INLINE jx_status jx__os_usleep(jx_size usec)
 {
@@ -248,7 +258,7 @@ JX_INLINE jx_status jx__os_usleep(jx_size usec)
   return JX_SUCCESS;
 }
 
-JX_INLINE jx_status jx__os_thread_start(jx_os_thread *thread, void (*func)(void *), void *arg)
+JX_INLINE jx_status jx__os_thread_start(jx_os_thread *thread, jx_os_thread_fn func, void *arg)
 {
   jx_status status = JX_PTR(thread);
   if(JX_OK(status)) {
@@ -568,6 +578,82 @@ JX_INLINE jx_status jx__os_rlock_destroy(jx_os_rlock *rlock)
     status = jx__os_mutex_destroy(&rlock->mutex);
   }
   return status;
+}
+
+JX_INLINE jx_status jx__os_spinlock_init(jx_os_spinlock *spinlock)
+{
+  jx_status status = JX_PTR(spinlock);
+  if(JX_OK(status)) {
+    jx_os_memset((void*)spinlock,0,sizeof(jx_os_spinlock));
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin)
+{
+  jx_status status = JX_PTR(spinlock);
+  if(JX_OK(status)) {
+    if(spinlock->owned && (spinlock->owner == pthread_self())) {
+      status = JX_STATUS_YES;
+      spinlock->count++;
+    } else {
+      while(1) {
+        if(jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
+          spinlock->owned = JX_TRUE;
+          spinlock->owner = pthread_self();
+          spinlock->count++;
+          status = JX_STATUS_YES;
+          break;
+        } else if(!spin) {
+          status = JX_STATUS_NO;
+          break;
+        }
+#if 0
+        {
+          jx_int masturbate = pause;
+          pause += 1 + (clock()&0xF);
+          while(masturbate--)
+            jx__os_usleep(pause);
+        }
+#endif
+      }
+    }
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx__os_spinlock_release(jx_os_spinlock *spinlock)
+{
+  jx_status status = JX_PTR(spinlock);
+  if(JX_OK(status)) {
+    if(spinlock->owned && (spinlock->owner == pthread_self())) {
+      if((spinlock->count--) == 1) {
+        spinlock->owned = JX_FALSE;
+        while(!jx_os_atomic32_cas(&spinlock->atomic,1,0));
+#if 0
+        {
+          jx_int pause = 0;
+
+            jx_int masturbate = pause;
+            pause += clock()&0xF;
+            while(masturbate--)
+              jx__os_usleep(pause);
+          }
+
+#endif
+      } else if(!(spinlock->count>0)) {
+        status = JX_STATUS_OS_SPINLOCK_ERROR;
+      }
+    } else {
+      status = JX_STATUS_OS_SPINLOCK_ERROR;
+    }
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx__os_spinlock_destroy(jx_os_spinlock *spinlock)
+{
+  return JX_PTR(spinlock);
 }
 
 /* enable C++ mangling */

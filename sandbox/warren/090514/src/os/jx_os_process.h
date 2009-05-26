@@ -8,7 +8,7 @@
  * TRADEMARK NOTICE: Jenarix is a Trademark of DeLano Scientific LLC.
 */
 #ifndef _H_jx_os_process
-#define _H_jx_os_plocess
+#define _H_jx_os_process
 
 #include "jx_public.h"
 
@@ -20,50 +20,73 @@ extern "C" {
 #endif
 #endif
 
-  extern jx_os_process *jx_os_Process;
+extern jx_os_process *jx_os_Process;
 
-  jx_status jx_os_usleep(jx_size usec);
-  
-  jx_status jx_os_thread_array_new(jx_os_thread **result, jx_size count);
-  jx_os_thread *jx_os_thread_array_entry(jx_os_thread *thread, jx_size offset);
-  jx_status jx_os_thread_array_free(jx_os_thread **result);
-  
-  jx_status jx_os_thread_start(jx_os_thread *thread, void (*func)(void *), void *arg);
-  jx_status jx_os_thread_join(jx_os_thread *thread);
-  jx_status jx_os_thread_get_current(jx_os_thread *thread);
-  
-  jx_status jx_os_mutex_array_new(jx_os_mutex **result, jx_size size);
-  jx_os_mutex *jx_os_mutex_array_entry(jx_os_mutex *mutex, jx_size offset);
-  jx_status jx_os_mutex_array_free(jx_os_mutex **result);
+jx_status jx_os_usleep(jx_size usec);
 
-  jx_status jx_os_mutex_init(jx_os_mutex *mutex);
-  jx_status jx_os_mutex_lock(jx_os_mutex *mutex);
-  jx_status jx_os_mutex_unlock(jx_os_mutex *mutex);
-  jx_status jx_os_mutex_trylock(jx_os_mutex *mutex);
-  jx_status jx_os_mutex_destroy(jx_os_mutex *mutex);
-  
-  jx_status jx_os_cond_array_new(jx_os_cond **result, jx_size size);
-  jx_os_cond *jx_os_cond_array_entry(jx_os_cond *cond, jx_size offset);
-  jx_status jx_os_cond_array_free(jx_os_cond **result);
+jx_status jx_os_thread_array_new(jx_os_thread **result, jx_size count);
+jx_os_thread *jx_os_thread_array_entry(jx_os_thread *thread, jx_size offset);
+jx_status jx_os_thread_array_free(jx_os_thread **result);
 
-  jx_status jx_os_cond_init(jx_os_cond *cond);
-  jx_status jx_os_cond_wait(jx_os_cond *cond, jx_os_mutex *mutex);
-  jx_status jx_os_cond_timedwait(jx_os_cond *cond, jx_os_mutex *mutex, jx_size usec);
-  jx_status jx_os_cond_signal(jx_os_cond *cond);
-  jx_status jx_os_cond_broadcast(jx_os_cond *cond);
-  jx_status jx_os_cond_destroy(jx_os_cond *cond);
-  
-  jx_status jx_os_tls_set(jx_os_tls *tls, void *value);
-  jx_status jx_os_tls_get(jx_os_tls *tls, void **value);
-  jx_status jx_os_tls_init(jx_os_tls *tls);
-  jx_status jx_os_tls_destroy(jx_os_tls *tls);
+typedef void *(*jx_os_thread_fn)(void*);
 
-  jx_status jx_os_rlock_array_new(jx_os_rlock **result, jx_size size);
-  jx_status jx_os_rlock_array_free(jx_os_rlock **result);
-  jx_status jx_os_rlock_init(jx_os_rlock *rlock);
-  jx_status jx_os_rlock_acquire(jx_os_rlock *rlock, jx_bool blocking);
-  jx_status jx_os_rlock_release(jx_os_rlock *rlock);
-  jx_status jx_os_rlock_destroy(jx_os_rlock *rlock);
+jx_status jx_os_thread_start(jx_os_thread *thread, jx_os_thread_fn func, void *arg);
+jx_status jx_os_thread_join(jx_os_thread *thread);
+jx_status jx_os_thread_get_current(jx_os_thread *thread);
+
+jx_status jx_os_mutex_array_new(jx_os_mutex **result, jx_size size);
+jx_os_mutex *jx_os_mutex_array_entry(jx_os_mutex *mutex, jx_size offset);
+jx_status jx_os_mutex_array_free(jx_os_mutex **result);
+
+jx_status jx_os_mutex_init(jx_os_mutex *mutex);
+jx_status jx_os_mutex_lock(jx_os_mutex *mutex);
+jx_status jx_os_mutex_unlock(jx_os_mutex *mutex);
+jx_status jx_os_mutex_trylock(jx_os_mutex *mutex);
+jx_status jx_os_mutex_destroy(jx_os_mutex *mutex);
+
+jx_status jx_os_cond_array_new(jx_os_cond **result, jx_size size);
+jx_os_cond *jx_os_cond_array_entry(jx_os_cond *cond, jx_size offset);
+jx_status jx_os_cond_array_free(jx_os_cond **result);
+
+jx_status jx_os_cond_init(jx_os_cond *cond);
+jx_status jx_os_cond_wait(jx_os_cond *cond, jx_os_mutex *mutex);
+jx_status jx_os_cond_timedwait(jx_os_cond *cond, jx_os_mutex *mutex, jx_size usec);
+jx_status jx_os_cond_signal(jx_os_cond *cond);
+jx_status jx_os_cond_broadcast(jx_os_cond *cond);
+jx_status jx_os_cond_destroy(jx_os_cond *cond);
+
+jx_status jx_os_tls_set(jx_os_tls *tls, void *value);
+jx_status jx_os_tls_get(jx_os_tls *tls, void **value);
+jx_status jx_os_tls_init(jx_os_tls *tls);
+jx_status jx_os_tls_destroy(jx_os_tls *tls);
+
+jx_status jx_os_rlock_array_new(jx_os_rlock **result, jx_size size);
+jx_status jx_os_rlock_array_free(jx_os_rlock **result);
+jx_status jx_os_rlock_init(jx_os_rlock *rlock);
+jx_status jx_os_rlock_acquire(jx_os_rlock *rlock, jx_bool blocking);
+jx_status jx_os_rlock_release(jx_os_rlock *rlock);
+jx_status jx_os_rlock_destroy(jx_os_rlock *rlock);
+
+jx_status jx_os_spinlock_init(jx_os_spinlock *spinlock);
+jx_status jx_os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin);
+jx_status jx_os_spinlock_release(jx_os_spinlock *spinlock);
+jx_status jx_os_spinlock_destroy(jx_os_spinlock *spinlock);
+
+/* also, don't forget about the atomic32 inlines! */
+
+#if 0
+
+typedef   ...private... jx_os_atomic32;
+JX_INLINE jx_int32 jx_os_atomic32_read(jx_os_atomic32 *atomic);
+JX_INLINE jx_int32 jx_os_atomic32_decrement(jx_os_atomic32 *atomic);
+JX_INLINE jx_int32 jx_os_atomic32_increment(jx_os_atomic32 *atomic);
+JX_INLINE jx_int32 jx_os_atomic32_exchange(jx_os_atomic32 *atomic,
+                                           jx_int32 new_value);
+JX_INLINE jx_bool jx_os_atomic32_cas(jx_os_atomic32 *atomic, 
+                                     jx_int32 old_value,
+                                     jx_int32 new_value);
+
+#endif
 
 /* enable C++ mangling */
 #ifdef __cplusplus

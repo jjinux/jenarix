@@ -508,13 +508,23 @@ jx_hash *jx_tls_hash_calloc(jx_tls *tls)
   return jx_calloc(1,sizeof(jx_hash));
 }
 
+JX_INLINE jx_status jx_hash_init(jx_hash *I)
+{
+  I->synchronized = JX_TRUE;
+  return jx_os_spinlock_init(&I->spinlock);
+}
+
 jx_ob jx_tls_hash_new(jx_tls *tls)
 {
   jx_hash *hash = jx_tls_hash_calloc(tls);
   if(hash) {
-    jx_ob result = JX_OB_HASH;
-    result.data.io.hash = hash;
-    return result;
+    if(jx_ok(jx_hash_init(hash))) {
+      jx_ob result = JX_OB_HASH;
+      result.data.io.hash = hash;
+      return result;
+    } else {
+      jx_free(hash);
+    }
   }
   return jx_hash_new();
 }
@@ -2027,11 +2037,16 @@ jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
 jx_ob jx_hash_new(void)
 {
   jx_ob result = JX_OB_HASH;
-  if((result.data.io.hash = (jx_hash *) jx_calloc(1, sizeof(jx_hash)))) {
-    return result;
-  } else {
-    return jx_ob_from_null();
+  jx_hash *I = (jx_hash *) jx_calloc(1, sizeof(jx_hash));
+  if(I) {
+    if(jx_ok(jx_hash_init(I))) {
+      result.data.io.hash = I;
+      return result;
+    } else {
+      jx_free(I);
+    }
   }
+  return jx_ob_from_null();
 }
 
 static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack);
@@ -2111,6 +2126,7 @@ static jx_status jx__hash_free(jx_tls *tls, jx_hash * I)
   }
   jx_tls_vla_free(tls,&I->key_value);
   jx_tls_vla_free(tls,&I->info);
+  jx_os_spinlock_destroy(&I->spinlock);
   jx_tls_hash_free(tls,I);
   return JX_SUCCESS;
 }
@@ -2863,294 +2879,301 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
 
 jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
 {
-  jx_status result = JX_FAILURE;
-  if(I->gc.shared)
-    return result;
-  else {
-    jx_uint32 hash_code = jx_ob_hash_code(key);
-    if(!hash_code) {            /* unhashable key */
-      return result;
-    } else {
-      if(!I->info) {            /* "no info" mode -- search & match objects directly  */
-        if(!I->key_value) {
-          /* new table, first entry  */
-          I->key_value = jx_vla_new(sizeof(jx_ob), 2);
-          if(I->key_value) {
-            I->key_value[0] = JX_OWN(key);      /* takes ownership */
-            I->key_value[1] = JX_OWN(value);    /* takes ownership */
-            result = JX_SUCCESS;
-          }
-        } else {
-          jx_uint32 size = jx_vla_size(&I->key_value);
-          if(1) {
-            jx_bool found = JX_FALSE;
-            register jx_uint32 i = (size >> 1);
-            register jx_ob *ob = I->key_value;
-            while(i--) {
-#if 0
-              fprintf(stderr, "%08x %04x %04x == %08x %04x %04x %d\n",
-                      (unsigned int) ob[0].data.raw.word,
-                      (unsigned int) ob[0].data.raw.bits,
-                      (unsigned int) ob[0].meta.bits,
-                      (unsigned int) key.data.raw.word,
-                      (unsigned int) key.data.raw.bits,
-                      (unsigned int) key.meta.bits, jx_ob_identical(ob[0], key)
-                );
-#endif
-              if(jx_ob_identical(ob[0], key)) {
-                found = JX_TRUE;
-                jx_ob_free(ob[0]);
-                jx_ob_free(ob[1]);
-                ob[0] = JX_OWN(key);    /* takes ownership */
-                ob[1] = JX_OWN(value);  /* takes ownership */
-                result = JX_SUCCESS;
-                break;
-              }
-              ob += 2;
-            }
-            if(!found) {
-              if(jx_ok(jx_vla_grow_check(&I->key_value, size + 1))) {
-                I->key_value[size] = key;
-                I->key_value[size + 1] = value;
-                result = JX_SUCCESS;
-                if(size > 8) {  /* switch to linear hash once we have more than four elements */
-                  jx__hash_recondition(I, JX_HASH_LINEAR, JX_FALSE);
-                }
-              }
-            }
-          }
-        }
-      } else {                  /* we have an info record */
-        if(!I->key_value) {
-          I->key_value = jx_vla_new(sizeof(jx_ob), 0);
-        }
-        if(I->key_value && I->info) {
-          jx_hash_info *info = (jx_hash_info *) I->info;
-          switch (info->mode) {
-          case JX_HASH_LINEAR:
-            {
-              register jx_uint32 i = info->usage;
-              register jx_uint32 *hash_entry = info->table;
-              register jx_ob *ob = I->key_value;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->spinlock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
 
+    status = JX_FAILURE;
+    if(!I->gc.shared) {
+      status = JX_STATUS_PERMISSION_DENIED;
+    } else {
+      jx_uint32 hash_code = jx_ob_hash_code(key);
+      if(hash_code) {            /* unhashable key */
+        status = JX_STATUS_OB_NOT_HASHABLE;
+      } else {
+        if(!I->info) {            /* "no info" mode -- search & match objects directly  */
+          if(!I->key_value) {
+            /* new table, first entry  */
+            I->key_value = jx_vla_new(sizeof(jx_ob), 2);
+            if(I->key_value) {
+              I->key_value[0] = JX_OWN(key);      /* takes ownership */
+              I->key_value[1] = JX_OWN(value);    /* takes ownership */
+              status = JX_SUCCESS;
+            }
+          } else {
+            jx_uint32 size = jx_vla_size(&I->key_value);
+            if(1) {
               jx_bool found = JX_FALSE;
+              register jx_uint32 i = (size >> 1);
+              register jx_ob *ob = I->key_value;
               while(i--) {
-                if(*hash_entry == hash_code) {
-                  if(jx_ob_identical(ob[0], key)) {
-                    found = JX_TRUE;
-                    break;
-                  }
+#if 0
+                fprintf(stderr, "%08x %04x %04x == %08x %04x %04x %d\n",
+                        (unsigned int) ob[0].data.raw.word,
+                        (unsigned int) ob[0].data.raw.bits,
+                        (unsigned int) ob[0].meta.bits,
+                        (unsigned int) key.data.raw.word,
+                        (unsigned int) key.data.raw.bits,
+                        (unsigned int) key.meta.bits, jx_ob_identical(ob[0], key)
+                        );
+#endif
+                if(jx_ob_identical(ob[0], key)) {
+                  found = JX_TRUE;
+                  jx_ob_free(ob[0]);
+                  jx_ob_free(ob[1]);
+                  ob[0] = JX_OWN(key);    /* takes ownership */
+                  ob[1] = JX_OWN(value);  /* takes ownership */
+                  status = JX_SUCCESS;
+                  break;
                 }
-                hash_entry++;
                 ob += 2;
               }
               if(!found) {
-                jx_uint32 usage = info->usage;
-                if(jx_ok(jx_vla_grow_check(&I->info, usage + JX_HASH_INFO_SIZE)) &&
-                   jx_ok(jx_vla_grow_check(&I->key_value, (usage << 1) + 1))) {
-                  info = (jx_hash_info *) I->info;
-                  hash_entry = info->table + usage;
-                  ob = I->key_value + (usage << 1);
-                  info->usage++;
-                  *hash_entry = hash_code;
-                  ob[0] = JX_OWN(key);
-                  ob[1] = JX_OWN(value);
-                  result = JX_SUCCESS;
-                  if(info->usage > 8) {
-                    jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE);     
-                    /* switch to true hash */
+                if(jx_ok(jx_vla_grow_check(&I->key_value, size + 1))) {
+                  I->key_value[size] = key;
+                  I->key_value[size + 1] = value;
+                  status = JX_SUCCESS;
+                  if(size > 8) {  /* switch to linear hash once we have more than four elements */
+                    jx__hash_recondition(I, JX_HASH_LINEAR, JX_FALSE);
                   }
                 }
-              } else {
-                jx_ob_free(ob[0]);
-                jx_ob_free(ob[1]);
-                ob[0] = JX_OWN(key);
-                ob[1] = JX_OWN(value);
-                result = JX_SUCCESS;
               }
             }
-            break;
-          case JX_HASH_ONE_TO_ANY:
-          case JX_HASH_ONE_TO_NIL:
-            if((info->usage + 1) > (3 * info->mask) >> 2) {     /* more than ~3/4'rs full */
-              jx__hash_recondition(I, info->mode, JX_FALSE);
-              info = (jx_hash_info *) I->info;
-            }
-            {
-              jx_uint32 mask = info->mask;
-              jx_uint32 *hash_table = info->table;
-              jx_uint32 usage = info->usage;
-              jx_ob *key_value = I->key_value;
-              jx_bool found = JX_FALSE;
-              jx_uint32 *dest_ptr = JX_NULL;
-              jx_bool dest_virgin = JX_FALSE;
-              jx_uint32 index = mask & hash_code;
-              jx_uint32 sentinel = index;
-              do {
-                jx_uint32 *hash_entry = hash_table + (index << 1);
-                if(!hash_entry[1]) {
-                  /* virgin slot terminates probe... */
-                  if(!dest_ptr) {
-                    dest_ptr = hash_entry;
-                    dest_virgin = JX_TRUE;
+          }
+        } else {                  /* we have an info record */
+          if(!I->key_value) {
+            I->key_value = jx_vla_new(sizeof(jx_ob), 0);
+          }
+          if(I->key_value && I->info) {
+            jx_hash_info *info = (jx_hash_info *) I->info;
+            switch (info->mode) {
+            case JX_HASH_LINEAR:
+              {
+                register jx_uint32 i = info->usage;
+                register jx_uint32 *hash_entry = info->table;
+                register jx_ob *ob = I->key_value;
+                
+                jx_bool found = JX_FALSE;
+                while(i--) {
+                  if(*hash_entry == hash_code) {
+                    if(jx_ob_identical(ob[0], key)) {
+                      found = JX_TRUE;
+                      break;
+                    }
                   }
-                  break;
-                } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
-                  /* deleted slot -- save for future insertion */
-                  if(!dest_ptr)
-                    dest_ptr = hash_entry;
-                } else if((hash_entry[0] == hash_code) &&
-                          jx_ob_identical(key_value
-                                          [hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK],
-                                          key)) {
-                  /* matched key, so we must replace */
-                  dest_ptr = hash_entry;
-                  found = JX_TRUE;
-                  break;
+                  hash_entry++;
+                  ob += 2;
                 }
-                index = (index + 1) & mask;
-              } while(index != sentinel);
-              if(dest_ptr) {
                 if(!found) {
-                  jx_uint32 kv_offset;
-                  if(dest_virgin) {
-                    kv_offset = ((info->stale_usage + usage) << 1);     /* allocate new key_value */
-                  } else {
-                    kv_offset = (dest_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);   /* use existing key_value */
-                  }
-                  if(jx_ok(jx_vla_grow_check(&I->key_value, kv_offset + 1))) {
-                    key_value = I->key_value;
-                    if(!dest_virgin)
-                      info->stale_usage--;
-                    dest_ptr[0] = hash_code;
-                    dest_ptr[1] = (kv_offset | JX_HASH_ENTRY_ACTIVE);
-                    key_value[kv_offset] = JX_OWN(key);
-                    key_value[kv_offset + 1] = JX_OWN(value);
-                    result = JX_SUCCESS;
+                  jx_uint32 usage = info->usage;
+                  if(jx_ok(jx_vla_grow_check(&I->info, usage + JX_HASH_INFO_SIZE)) &&
+                     jx_ok(jx_vla_grow_check(&I->key_value, (usage << 1) + 1))) {
+                    info = (jx_hash_info *) I->info;
+                    hash_entry = info->table + usage;
+                    ob = I->key_value + (usage << 1);
                     info->usage++;
-                  } else {
-                    result = JX_FAILURE;
+                    *hash_entry = hash_code;
+                    ob[0] = JX_OWN(key);
+                    ob[1] = JX_OWN(value);
+                    status = JX_SUCCESS;
+                    if(info->usage > 8) {
+                      jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE);     
+                      /* switch to true hash */
+                    }
                   }
                 } else {
-                  jx_uint32 kv_offset = (dest_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
-                  jx_ob_free(key_value[kv_offset]);
-                  jx_ob_free(key_value[kv_offset + 1]);
-                  key_value[kv_offset] = JX_OWN(key);
-                  key_value[kv_offset + 1] = JX_OWN(value);
-                  result = JX_SUCCESS;
+                  jx_ob_free(ob[0]);
+                  jx_ob_free(ob[1]);
+                  ob[0] = JX_OWN(key);
+                  ob[1] = JX_OWN(value);
+                  status = JX_SUCCESS;
                 }
               }
-            }
-            break;
-          case JX_HASH_ONE_TO_ONE:
-            {
-              jx_uint32 reverse_hash_code = jx_ob_hash_code(value);
-              if(!reverse_hash_code) {
-                result = JX_FAILURE;
-              } else {
-                if((info->usage + 1) > (3 * info->mask) >> 2) { /* more than ~3/4'rs full */
-                  jx__hash_recondition(I, info->mode, JX_FALSE);
-                  info = (jx_hash_info *) I->info;
-                }
-                {
-                  jx_uint32 mask = info->mask;
-                  jx_uint32 usage = info->usage;
-                  jx_ob *key_value = I->key_value;
-                  jx_uint32 *dest_forward_ptr = JX_NULL;
-                  jx_uint32 *dest_reverse_ptr = JX_NULL;
-                  jx_bool forward_found = JX_FALSE;
-                  jx_bool reverse_found = JX_FALSE;
-                  jx_bool virgin_forward = JX_FALSE;
-                  jx_bool virgin_reverse = JX_FALSE;
-                  {
-                    jx_uint32 *hash_table = info->table;
-                    jx_uint32 index = mask & hash_code;
-                    jx_uint32 sentinel = index;
-                    do {
-                      jx_uint32 *hash_entry = hash_table + (index << 1);
-                      if(!hash_entry[1]) {
-                        if(!dest_forward_ptr) {
-                          dest_forward_ptr = hash_entry;
-                          virgin_forward = JX_TRUE;
-                        }
-                        break;
-                      } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
-                        if(!dest_forward_ptr)
-                          dest_forward_ptr = hash_entry;
-                      } else if((hash_entry[0] == hash_code) &&
-                                jx_ob_identical(key_value
-                                                [hash_entry[1] &
-                                                 JX_HASH_ENTRY_KV_OFFSET_MASK], key)) {
-                        forward_found = JX_TRUE;
-                        break;
-                      }
-                      index = (index + 1) & mask;
-                    } while(index != sentinel);
+              break;
+            case JX_HASH_ONE_TO_ANY:
+            case JX_HASH_ONE_TO_NIL:
+              if((info->usage + 1) > (3 * info->mask) >> 2) {     /* more than ~3/4'rs full */
+                jx__hash_recondition(I, info->mode, JX_FALSE);
+                info = (jx_hash_info *) I->info;
+              }
+              {
+                jx_uint32 mask = info->mask;
+                jx_uint32 *hash_table = info->table;
+                jx_uint32 usage = info->usage;
+                jx_ob *key_value = I->key_value;
+                jx_bool found = JX_FALSE;
+                jx_uint32 *dest_ptr = JX_NULL;
+                jx_bool dest_virgin = JX_FALSE;
+                jx_uint32 index = mask & hash_code;
+                jx_uint32 sentinel = index;
+                do {
+                  jx_uint32 *hash_entry = hash_table + (index << 1);
+                  if(!hash_entry[1]) {
+                    /* virgin slot terminates probe... */
+                    if(!dest_ptr) {
+                      dest_ptr = hash_entry;
+                      dest_virgin = JX_TRUE;
+                    }
+                    break;
+                  } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
+                    /* deleted slot -- save for future insertion */
+                    if(!dest_ptr)
+                      dest_ptr = hash_entry;
+                  } else if((hash_entry[0] == hash_code) &&
+                            jx_ob_identical(key_value
+                                            [hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK],
+                                            key)) {
+                    /* matched key, so we must replace */
+                    dest_ptr = hash_entry;
+                    found = JX_TRUE;
+                    break;
                   }
-                  {
-                    jx_uint32 *hash_table = info->table + ((mask + 1) << 1);
-                    jx_uint32 index = mask & reverse_hash_code;
-                    jx_uint32 sentinel = index;
-                    do {
-                      jx_uint32 *hash_entry = hash_table + (index << 1);
-                      if(!hash_entry[1]) {
-                        if(!dest_reverse_ptr) {
-                          dest_reverse_ptr = hash_entry;
-                          virgin_reverse = JX_TRUE;
-                        }
-                        break;
-                      } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
-                        if(!dest_reverse_ptr)
-                          dest_reverse_ptr = hash_entry;
-                      } else if((hash_entry[0] == reverse_hash_code) &&
-                                jx_ob_identical(key_value
-                                                [(hash_entry[1] &
-                                                  JX_HASH_ENTRY_KV_OFFSET_MASK) + 1],
-                                                value)) {
-                        reverse_found = JX_TRUE;
-                        break;
-                      }
-                      index = (index + 1) & mask;
-                    } while(index != sentinel);
-                  }
-                  if(!(forward_found || reverse_found)) {
+                  index = (index + 1) & mask;
+                } while(index != sentinel);
+                if(dest_ptr) {
+                  if(!found) {
                     jx_uint32 kv_offset;
-                    if(virgin_forward && virgin_reverse) {
-                      kv_offset = ((info->stale_usage + usage) << 1);
-                    } else if(!virgin_forward) {
-                      kv_offset = (dest_forward_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                    if(dest_virgin) {
+                      kv_offset = ((info->stale_usage + usage) << 1);     /* allocate new key_value */
                     } else {
-                      kv_offset = (dest_reverse_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                      kv_offset = (dest_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);   /* use existing key_value */
                     }
                     if(jx_ok(jx_vla_grow_check(&I->key_value, kv_offset + 1))) {
                       key_value = I->key_value;
-
-                      if(!(virgin_forward || virgin_reverse))
+                      if(!dest_virgin)
                         info->stale_usage--;
-
-                      dest_forward_ptr[0] = hash_code;
-                      dest_forward_ptr[1] = (kv_offset | JX_HASH_ENTRY_ACTIVE);
-
-                      dest_reverse_ptr[0] = reverse_hash_code;
-                      dest_reverse_ptr[1] = (kv_offset | JX_HASH_ENTRY_ACTIVE);
-
+                      dest_ptr[0] = hash_code;
+                      dest_ptr[1] = (kv_offset | JX_HASH_ENTRY_ACTIVE);
                       key_value[kv_offset] = JX_OWN(key);
                       key_value[kv_offset + 1] = JX_OWN(value);
-
-                      result = JX_SUCCESS;
+                      status = JX_SUCCESS;
                       info->usage++;
+                    } else {
+                      status = JX_FAILURE;
+                    }
+                  } else {
+                    jx_uint32 kv_offset = (dest_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                    jx_ob_free(key_value[kv_offset]);
+                    jx_ob_free(key_value[kv_offset + 1]);
+                    key_value[kv_offset] = JX_OWN(key);
+                    key_value[kv_offset + 1] = JX_OWN(value);
+                    status = JX_SUCCESS;
+                  }
+                }
+              }
+              break;
+            case JX_HASH_ONE_TO_ONE:
+              {
+                jx_uint32 reverse_hash_code = jx_ob_hash_code(value);
+                if(!reverse_hash_code) {
+                  status = JX_FAILURE;
+                } else {
+                  if((info->usage + 1) > (3 * info->mask) >> 2) { /* more than ~3/4'rs full */
+                    jx__hash_recondition(I, info->mode, JX_FALSE);
+                    info = (jx_hash_info *) I->info;
+                  }
+                  {
+                    jx_uint32 mask = info->mask;
+                    jx_uint32 usage = info->usage;
+                    jx_ob *key_value = I->key_value;
+                    jx_uint32 *dest_forward_ptr = JX_NULL;
+                    jx_uint32 *dest_reverse_ptr = JX_NULL;
+                    jx_bool forward_found = JX_FALSE;
+                    jx_bool reverse_found = JX_FALSE;
+                    jx_bool virgin_forward = JX_FALSE;
+                    jx_bool virgin_reverse = JX_FALSE;
+                    {
+                      jx_uint32 *hash_table = info->table;
+                      jx_uint32 index = mask & hash_code;
+                      jx_uint32 sentinel = index;
+                      do {
+                        jx_uint32 *hash_entry = hash_table + (index << 1);
+                        if(!hash_entry[1]) {
+                          if(!dest_forward_ptr) {
+                            dest_forward_ptr = hash_entry;
+                            virgin_forward = JX_TRUE;
+                          }
+                          break;
+                        } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
+                          if(!dest_forward_ptr)
+                            dest_forward_ptr = hash_entry;
+                        } else if((hash_entry[0] == hash_code) &&
+                                  jx_ob_identical(key_value
+                                                  [hash_entry[1] &
+                                                   JX_HASH_ENTRY_KV_OFFSET_MASK], key)) {
+                          forward_found = JX_TRUE;
+                          break;
+                        }
+                        index = (index + 1) & mask;
+                      } while(index != sentinel);
+                    }
+                    {
+                      jx_uint32 *hash_table = info->table + ((mask + 1) << 1);
+                      jx_uint32 index = mask & reverse_hash_code;
+                      jx_uint32 sentinel = index;
+                      do {
+                        jx_uint32 *hash_entry = hash_table + (index << 1);
+                        if(!hash_entry[1]) {
+                          if(!dest_reverse_ptr) {
+                            dest_reverse_ptr = hash_entry;
+                            virgin_reverse = JX_TRUE;
+                          }
+                          break;
+                        } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
+                          if(!dest_reverse_ptr)
+                            dest_reverse_ptr = hash_entry;
+                        } else if((hash_entry[0] == reverse_hash_code) &&
+                                  jx_ob_identical(key_value
+                                                  [(hash_entry[1] &
+                                                    JX_HASH_ENTRY_KV_OFFSET_MASK) + 1],
+                                                  value)) {
+                          reverse_found = JX_TRUE;
+                          break;
+                        }
+                        index = (index + 1) & mask;
+                      } while(index != sentinel);
+                    }
+                    if(!(forward_found || reverse_found)) {
+                      jx_uint32 kv_offset;
+                      if(virgin_forward && virgin_reverse) {
+                        kv_offset = ((info->stale_usage + usage) << 1);
+                      } else if(!virgin_forward) {
+                        kv_offset = (dest_forward_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                      } else {
+                        kv_offset = (dest_reverse_ptr[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                      }
+                      if(jx_ok(jx_vla_grow_check(&I->key_value, kv_offset + 1))) {
+                        key_value = I->key_value;
+
+                        if(!(virgin_forward || virgin_reverse))
+                          info->stale_usage--;
+
+                        dest_forward_ptr[0] = hash_code;
+                        dest_forward_ptr[1] = (kv_offset | JX_HASH_ENTRY_ACTIVE);
+
+                        dest_reverse_ptr[0] = reverse_hash_code;
+                        dest_reverse_ptr[1] = (kv_offset | JX_HASH_ENTRY_ACTIVE);
+
+                        key_value[kv_offset] = JX_OWN(key);
+                        key_value[kv_offset + 1] = JX_OWN(value);
+
+                        status = JX_SUCCESS;
+                        info->usage++;
+                      }
                     }
                   }
                 }
               }
+              break;
             }
-            break;
           }
         }
       }
     }
+    if(I->synchronized) 
+      jx_os_spinlock_release(&I->spinlock);
   }
-  return result;
+  return status;
 }
 
 static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)

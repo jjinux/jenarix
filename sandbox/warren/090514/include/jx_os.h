@@ -114,6 +114,7 @@ typedef struct jx__os_mutex jx_os_mutex;
 typedef struct jx__os_cond jx_os_cond;
 typedef struct jx__os_tls jx_os_tls;
 typedef struct jx__os_rlock jx_os_rlock;
+typedef struct jx__os_spinlock jx_os_spinlock;
 
 /* platform-specific time stuff */
 
