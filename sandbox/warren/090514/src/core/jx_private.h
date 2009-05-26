@@ -94,7 +94,7 @@ struct jx__hash {
   jx_bool synchronized;
   jx_ob *key_value;             /* variable length array of key/value objects owned by the table */
   jx_uint32 *info;              /* variable length array of the hash table information record */
-  jx_os_spinlock spinlock;
+  jx_os_spinlock lock;
 };
 
 #define JX_HASH_INFO_SIZE (sizeof(jx_hash_info)/sizeof(jx_uint32))

@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_mem_wrap.h"
 
 #ifndef JX_HEAP_TRACKER
+#ifdef JX_MEM_WRAP
 
 #define JX_TRIP_WIRE_SIZE 16
 
@@ -171,5 +172,5 @@ void jx__free(void *ptr, char *file, int line)
     fprintf(stderr, "jx_free: %p (%s:%d)\n", ptr, file, line);
   free(true_ptr);
 }
-
+#endif
 #endif

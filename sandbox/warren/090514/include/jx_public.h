@@ -275,8 +275,13 @@ jx_bool jx_ob_ge(jx_ob left, jx_ob right);
    stored/conveyed through mutable containers, provided that those
    containers are gone by the time read only status is cleared) */
 
-jx_ob jx_ob_set_read_only(jx_ob ob, jx_bool read_only);
-jx_bool jx_ob_read_only(jx_ob ob);
+jx_status jx_ob_set_shared(jx_ob ob, jx_bool shared);
+jx_bool jx_ob_shared(jx_ob ob);
+
+/* synchronized */
+
+jx_status jx_ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recursive);
+jx_bool jx_ob_synchronized(jx_ob ob);
 
 /* copying */
 

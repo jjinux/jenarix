@@ -130,13 +130,19 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
   char *sep = comma;
 
   flags = prefix(ref,flags,space_left);
-  flags = autowrap(ref,flags,space_left,2);
+  flags = autowrap(ref,flags,space_left,1);
+  if(flags & JX_JXON_FLAG_PRETTY) {
+    flags = autowrap(ref,flags,space_left,1);
+    jx_vla_append_c_str(ref, " "); 
+  }
   {
     int ob_start = jx_vla_size(ref);
 
-    jx_vla_append_c_str(ref, " ["); 
+    jx_vla_append_c_str(ref, "["); 
 
-    flags = nest(flags,1);
+    if(flags & JX_JXON_FLAG_PRETTY) {
+      flags = nest(flags,1);
+    }
 
     if(list->packed_meta_bits) {
       switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
@@ -150,7 +156,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
             if(i<(size-1)) {
               flags = autowrap(ref,flags,space_left,1);
               jx_vla_append_c_str(ref, sep);
-              if(JX_JXON_FLAG_PRETTY && sep[0]!=' ') {
+              if((flags & JX_JXON_FLAG_PRETTY) && (sep[0]!=' ')) {
                 flags = autowrap(ref,flags,space_left,1);
                 jx_vla_append_c_str(ref, " ");
               }
@@ -168,7 +174,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
             if(i<(size-1)) {
               flags = autowrap(ref,flags,space_left,1);
               jx_vla_append_c_str(ref, sep);
-              if(JX_JXON_FLAG_PRETTY && sep[0]!=' ') {
+              if((flags & JX_JXON_FLAG_PRETTY) && (sep[0]!=' ')) {
                 flags = autowrap(ref,flags,space_left,1);
                 jx_vla_append_c_str(ref, " ");
               }
@@ -194,10 +200,10 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
             flags = autowrap(ref,flags,space_left,1);
             jx_vla_append_c_str(ref, sep);
           }
-          if(i && JX_JXON_FLAG_PRETTY && jx_list_check(*ob)) {
+          if(i && (flags & JX_JXON_FLAG_PRETTY) && jx_list_check(*ob)) {
             flags = newline(ref,flags,space_left);
             flags = prefix(ref,flags,space_left);
-          } else if(JX_JXON_FLAG_PRETTY && (sep[0]!=' ') && !jx_list_check(*ob)) {
+          } else if((flags & JX_JXON_FLAG_PRETTY) && (sep[0]!=' ') && !jx_list_check(*ob)) {
             flags = autowrap(ref,flags,space_left,1);
             jx_vla_append_c_str(ref, " ");
           }
@@ -206,7 +212,10 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
     }
     flags = autowrap(ref,flags,space_left,1);
     jx_vla_append_c_str(ref, delimit);
-    flags = nest(flags,-1);
+
+    if(flags & JX_JXON_FLAG_PRETTY) {
+      flags = nest(flags,-1);
+    }
   }
   return JX_SUCCESS;
 }
@@ -242,7 +251,7 @@ static jx_status jx__hash_to_jxon(jx_hash * I, jx_char **ref, jx_int flags, jx_i
 #endif
 
         jx_ob_free( jx__ob_to_jxon_with_flags(ob[0], ref, flags, space_left) );
-              flags = autowrap(ref,flags,space_left,1);
+        flags = autowrap(ref,flags,space_left,1);
         jx_vla_append_c_str(ref, ":");
         jx_ob_free( jx__ob_to_jxon_with_flags(ob[1], ref, flags, space_left) );
         ob += 2;
@@ -352,10 +361,10 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         jx_ob st = jx_ob_from_str(buffer);
         if(!ref) {
           return st;
-      } else {
-        flags = autowrap(ref,flags,space_left,jx_str_len(st));
-        jx_vla_append_ob_str(ref, st);
-        return jx_null_with_ob(st);
+        } else {
+          flags = autowrap(ref,flags,space_left,jx_str_len(st));
+          jx_vla_append_ob_str(ref, st);
+          return jx_null_with_ob(st);
         }
       }
     }

@@ -788,6 +788,24 @@ JX_INLINE jx_bool jx_ob_shared(jx_ob ob)
   }
   return JX_FALSE;
 }
+jx_status jx__ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recursive);
+JX_INLINE jx_status jx_ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recursive)
+{
+  if(ob.meta.bits & JX_META_BIT_GC) {
+    return jx__ob_set_synchronized(ob, synchronized,recursive);
+  }
+  return JX_SUCCESS;
+}
+
+jx_bool jx__ob_synchronized(jx_ob ob);
+JX_INLINE jx_bool jx_ob_synchronized(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits;
+  if(bits & JX_META_BIT_GC) {
+    return jx__ob_synchronized(ob);
+  }
+  return JX_FALSE;
+}
 
 JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
 {
