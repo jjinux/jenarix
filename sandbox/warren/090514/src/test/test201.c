@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_private.h"
 
-#define N_THREAD 100
+#define N_THREAD 2
 
 typedef struct {
   jx_ob hash;

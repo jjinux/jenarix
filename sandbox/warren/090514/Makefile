@@ -26,13 +26,13 @@ main: libjx.a
 	cd src/main; $(MAKE)
 	mv src/main/main_jx jx
 
-test100: gen libjx.a
+test100: libjx.a
 	cd src/test;$(MAKE) test100
 
-test200: gen libjx.a
+test200: libjx.a
 	cd src/test;$(MAKE) test200
 
-test201: gen libjx.a
+test201: libjx.a
 	cd src/test;$(MAKE) test201
 
 tests: libjx.a
