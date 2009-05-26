@@ -67,7 +67,7 @@ jx_status run_test(void)
   jx_status status;
   jx_ob hash = jx_hash_new();
 
-  jx_ob_set_synchronized(hash,true,true);
+  jx_ob_set_synchronized(hash,JX_TRUE,JX_TRUE);
 
   if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
 

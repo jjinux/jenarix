@@ -48,7 +48,7 @@ void *thread_fn(void *id_ptr)
 
   {
     jx_int i;
-    for(i=0;i<100000;i++) {
+    for(i=0;i<10000;i++) {
       if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
         printf("%d %d\n",i,info->id);
         jx_os_spinlock_release(&lock);
