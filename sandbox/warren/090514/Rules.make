@@ -6,7 +6,8 @@ CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99
 # -O3 -m64
 # -DJX_64_BIT
 
-LDFLAGS = -lm -pthread
+LDFLAGS = -lm
+# -pthread
 #-m64
 
 # include file list for manual Makefile dependencies

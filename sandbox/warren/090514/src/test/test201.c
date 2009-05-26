@@ -50,35 +50,13 @@ void *thread_fn(void *id_ptr)
     jx_int i;
     for(i=0;i<100000;i++) {
       if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
-	
-	printf("got it as %d %d\n",info->id,i);
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_release(&lock);
-	
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_release(&lock);
-	jx_os_spinlock_release(&lock);
-	jx_os_spinlock_release(&lock);
-	jx_os_spinlock_release(&lock);
-	jx_os_spinlock_release(&lock);
-	
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_release(&lock);
-	
-	jx_os_spinlock_acquire(&lock,JX_TRUE);
-	jx_os_spinlock_release(&lock);
-	
-	jx_os_spinlock_release(&lock);
+        printf("%d %d\n",i,info->id);
+        jx_os_spinlock_release(&lock);
       }
     }
   }
 
   printf("thread %d complete\n",info->id);
-
   return NULL;
 }
 

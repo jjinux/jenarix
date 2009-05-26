@@ -594,21 +594,16 @@ JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool sp
 {
   jx_status status = JX_PTR(spinlock);
   if(JX_OK(status)) {
-    if(spinlock->owned && (spinlock->owner == pthread_self())) {
-      status = JX_STATUS_YES;
-      spinlock->count++;
-    } else {
-      while(1) {
-        if(jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
-          spinlock->owned = JX_TRUE;
-          spinlock->owner = pthread_self();
-          spinlock->count++;
-          status = JX_STATUS_YES;
-          break;
-        } else if(!spin) {
-          status = JX_STATUS_NO;
-          break;
-        }
+    while(1) {
+      if(jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
+        spinlock->owned = JX_TRUE;
+        spinlock->owner = pthread_self();
+        spinlock->count++;
+        status = JX_STATUS_YES;
+        break;
+      } else if(!spin) {
+        status = JX_STATUS_NO;
+        break;
       }
     }
   }
@@ -619,18 +614,7 @@ JX_INLINE jx_status jx__os_spinlock_release(jx_os_spinlock *spinlock)
 {
   jx_status status = JX_PTR(spinlock);
   if(JX_OK(status)) {
-    if(spinlock->owned && (spinlock->owner == pthread_self())) {
-      if((spinlock->count--) == 1) {
-        spinlock->owned = JX_FALSE;
-	while(!jx_os_atomic32_cas(&spinlock->atomic,1,0));
-      } else if(spinlock->count < 0) {
-        status = JX_STATUS_OS_SPINLOCK_ERROR;
-        printf("error A\n");
-      }
-    } else {
-      printf("error B\n");
-      status = JX_STATUS_OS_SPINLOCK_ERROR;
-    }
+    while(!jx_os_atomic32_cas(&spinlock->atomic,1,0));
   }
   return status;
 }
