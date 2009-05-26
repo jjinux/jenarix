@@ -597,6 +597,7 @@ JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool sp
       status = JX_STATUS_YES;
       spinlock->count++;
     } else {
+      int pause = 0;
       while(1) {
         if(jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
           spinlock->owned = JX_TRUE;
@@ -608,14 +609,12 @@ JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool sp
           status = JX_STATUS_NO;
           break;
         }
-#if 0
         {
           jx_int masturbate = pause;
           pause += 1 + (clock()&0xF);
           while(masturbate--)
             jx__os_usleep(pause);
         }
-#endif
       }
     }
   }
@@ -629,18 +628,14 @@ JX_INLINE jx_status jx__os_spinlock_release(jx_os_spinlock *spinlock)
     if(spinlock->owned && (spinlock->owner == pthread_self())) {
       if((spinlock->count--) == 1) {
         spinlock->owned = JX_FALSE;
-        while(!jx_os_atomic32_cas(&spinlock->atomic,1,0));
-#if 0
         {
           jx_int pause = 0;
-
-            jx_int masturbate = pause;
+          while(!jx_os_atomic32_cas(&spinlock->atomic,1,0));
+          jx_int masturbate = pause;
             pause += clock()&0xF;
             while(masturbate--)
               jx__os_usleep(pause);
-          }
-
-#endif
+        }
       } else if(!(spinlock->count>0)) {
         status = JX_STATUS_OS_SPINLOCK_ERROR;
       }
