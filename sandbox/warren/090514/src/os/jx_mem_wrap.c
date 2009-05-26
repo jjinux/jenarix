@@ -50,6 +50,7 @@ typedef struct {
 } jx_mem_ftr;
 
 int jx_mem_count = 0, jx_mem_count_max = 0;
+
 void jx_mem_dump(void)
 {
   if(JX_MEM_LOG_ALL || JX_MEM_LOG_SUMMARY || jx_mem_count)

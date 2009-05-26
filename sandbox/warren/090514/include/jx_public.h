@@ -318,6 +318,8 @@ jx_status jx_int_vla_free(jx_int ** ref);       /* will set (*ref) to NULL */
 jx_ob jx_list_new_with_int_vla(jx_int ** ref);  /* takes ownership of vla */
 jx_int *jx_list_as_int_vla(jx_ob ob);   /* borrows vla if homogenous, else NULL */
 jx_status jx_list_set_int_vla(jx_ob list, jx_int ** ref);       /* update list vla */
+jx_float *jx_list_take_int_vla(jx_ob ob);
+jx_status jx_list_replace_int_vla(jx_ob ob, jx_float ** ref);   
 
 jx_float *jx_float_vla_new(jx_float size);
 jx_status jx_float_vla_resize(jx_float ** ref, jx_int size);
@@ -326,6 +328,8 @@ jx_status jx_float_vla_free(jx_float ** ref);   /* will set (*ref) to NULL */
 jx_ob jx_list_new_with_float_vla(jx_float ** ref);      /* takes ownership of new vla */
 jx_float *jx_list_as_float_vla(jx_ob ob);       /* borrows vla if homogenous, else NULL */
 jx_status jx_list_set_float_vla(jx_ob ob, jx_float ** ref);     /* update list vla */
+jx_float *jx_list_take_float_vla(jx_ob ob);
+jx_status jx_list_replace_float_vla(jx_ob ob, jx_float ** ref);   
 
 jx_ob jx_ob_with_str_vla(jx_char ** ref);
 

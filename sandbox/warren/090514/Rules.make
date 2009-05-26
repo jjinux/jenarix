@@ -2,13 +2,14 @@
 # right now we're just targeting GCC, so hopefully these settings will
 # work on Mac and Linux as well as perhaps Cygwin / MinGW
 
-CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99
-# -O3 -m64
+CFLAGS_ALL = -g -Wall -ansi -pedantic -std=gnu99 -O3 -m64
 # -DJX_64_BIT
 
-LDFLAGS = -lm
+LDFLAGS = -lm 
+# -m64
 # -pthread
-#-m64
+
+
 
 # include file list for manual Makefile dependencies
 # (replace this with something automatic in the future...)

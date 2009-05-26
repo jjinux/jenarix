@@ -44,7 +44,6 @@
 
 #define noJX_HEAP_GRINDER
 
-
 /* should we avoid re-using memory? */
 
 #define noJX_HEAP_SINGLE_USE

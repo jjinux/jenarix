@@ -120,6 +120,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
         jx_vla *new_ptr = jx_realloc(vla->ptr, sizeof(jx_vla) +
                                      padding + vla->rec_size * new_alloc);
         if(!new_ptr) {
+          printf("ERROR!\n");
           return JX_FAILURE;
         } else {
           vla = (jx_vla *) (((char *) new_ptr) + padding);
@@ -254,7 +255,8 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
     jx_int old_size = vla->size;
     jx_bool front_half = (index < (old_size >> 1));
-    if(front_half) {            /* optimize insertion in front half if space available */
+    if(front_half) {            
+      /* optimize insertion in front half if space available */
       jx_int padding = (((char *) vla) - ((char *) vla->ptr));
       if(padding >= (count * vla->rec_size)) {
         register jx_int new_alloc = vla->alloc + count;
@@ -271,10 +273,10 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
           jx_char *base = (jx_char *) (vla + 1);
           (*ref) = base;
           if(!index) {
-            memset(base, 0, rec_size * count);
+            jx_os_memset(base, 0, rec_size * count);
           } else {
             jx_os_memmove(base, base + count * rec_size, index * rec_size);
-            memset(base + index * rec_size, 0, rec_size * count);
+            jx_os_memset(base + index * rec_size, 0, rec_size * count);
           }
         }
         return JX_SUCCESS;
@@ -288,7 +290,7 @@ jx_status jx__vla_insert(void **ref, jx_int index, jx_int count)
         (*ref) = base;
         jx_os_memmove(base + (index + count) * vla->rec_size,
                 base + index * vla->rec_size, (old_size - index) * vla->rec_size);
-        memset(base + index * vla->rec_size, 0, vla->rec_size * count);
+        jx_os_memset(base + index * vla->rec_size, 0, vla->rec_size * count);
       }
       return status;
     }
@@ -1280,7 +1282,6 @@ jx_int jx__list_index(jx_list * I,jx_ob ob)
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
-
     jx_int I_size = jx__list_size(I);
     if(I_size) {
       if(I->packed_meta_bits) {
@@ -1343,10 +1344,10 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * I)
           jx_ob_free_tls(tls,*(ob++));
         }
       }      
+      jx_tls_vla_free(tls,&I->data.vla);
       if(I->synchronized) {
         jx_os_spinlock_release(&I->lock);
       }
-      jx_tls_vla_free(tls,&I->data.vla);
       jx_tls_list_free(tls,I);
     }
   }
@@ -1515,7 +1516,8 @@ jx_bool jx__list_identical(jx_list * left, jx_list * right)
             /* rare circumstance  -- one packed, but not other */
             int i;
             for(i = 0; i < left_size; i++) {
-              if(!jx_ob_identical(jx__list_borrow_locked(left, i), jx__list_borrow_locked(right, i)))
+              if(!jx_ob_identical(jx__list_borrow_locked(left, i), 
+                                  jx__list_borrow_locked(right, i)))
                 goto unlock_both;
             }
             result = JX_TRUE;
@@ -1569,8 +1571,7 @@ jx_bool jx__list_identical(jx_list * left, jx_list * right)
   return result;
 }
 
-/* WARNING: NOT SYNCHRONIZED! */
-jx_status jx__list_repack_data(jx_list * I) 
+jx_status jx__list_repack_data_locked(jx_list * I) 
 {
   /* re-homogenize (if possible) */
   register jx_int size = jx_vla_size(&I->data.vla);
@@ -1645,8 +1646,7 @@ jx_status jx__list_repack_data(jx_list * I)
   return JX_FAILURE;
 }
 
-/* WARNING: NOT SYNCHRONIZED! */
-jx_status jx__list_unpack_data(jx_list * I)
+jx_status jx__list_unpack_data_locked(jx_list * I)
 {
   /* homogenous list becoming hetergeneous */
   jx_int size = jx_vla_size(&I->data.vla);
@@ -1859,7 +1859,7 @@ jx_status jx__list_append(jx_list * I, jx_ob ob)
       goto unlock;
     }
     if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
-      if(!jx_ok(jx__list_unpack_data(I))) {
+      if(!jx_ok(jx__list_unpack_data_locked(I))) {
         goto unlock;
       }
     }
@@ -1912,7 +1912,7 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
       goto unlock;
     }
     if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
-      if(!jx_ok(jx__list_unpack_data(I)))
+      if(!jx_ok(jx__list_unpack_data_locked(I)))
         goto unlock;
     }
     if(I->data.vla) {
@@ -1995,11 +1995,11 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
           if(list1_size && list2_size) {
             if(list1->packed_meta_bits != list2->packed_meta_bits) {
               if(list1->packed_meta_bits) {
-                if(!jx_ok(jx__list_unpack_data(list1)))
+                if(!jx_ok(jx__list_unpack_data_locked(list1)))
                   goto unlock_both;
               }
               if(list2->packed_meta_bits) {
-                if(!jx_ok(jx__list_unpack_data(list2)))
+                if(!jx_ok(jx__list_unpack_data_locked(list2)))
                   goto unlock_both;
               }
             }
@@ -2168,51 +2168,77 @@ jx_status jx__list_delete(jx_list * I, jx_int index)
 
 jx_int *jx_list_as_int_vla(jx_ob ob)
 {
-  if(ob.meta.bits & JX_META_BIT_LIST) {
-    jx_list *list = ob.data.io.list;
-    if(list->packed_meta_bits & JX_META_BIT_INT) {
-      return list->data.int_vla;
-    } else if(jx__list_repack_data(list)) {
-      if(list->packed_meta_bits & JX_META_BIT_INT) {
-        return list->data.int_vla;
-      } else if(!list->data.vla) {
-        list->packed_meta_bits = JX_META_BIT_INT;
-        list->data.int_vla = (jx_int *) jx_vla_new(sizeof(jx_int), 0);
-        return list->data.int_vla;
+  jx_list *I = ob.data.io.list;
+  jx_int *result = JX_NULL;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    if(ob.meta.bits & JX_META_BIT_LIST) {
+      if(I->packed_meta_bits & JX_META_BIT_INT) {
+        result = I->data.int_vla;
+      } else if(jx_ok(jx__list_repack_data_locked(I))) {
+        if(I->packed_meta_bits & JX_META_BIT_INT) {
+          result = I->data.int_vla;
+        } else if(!I->data.vla) {
+          I->packed_meta_bits = JX_META_BIT_INT;
+          I->data.int_vla = (jx_int *) jx_vla_new(sizeof(jx_int), 0);
+          result = I->data.int_vla;
+        }
       }
     }
+    if(I->synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
   }
-  return NULL;
+  return result;
 }
 
 jx_status jx__list_set_int_vla(jx_list * I, jx_int ** ref)
 {
-  if(I->gc.shared)
-    return JX_FAILURE;
-  if(I->packed_meta_bits & JX_META_BIT_INT) {
-    I->data.int_vla = *ref;
-    return JX_SUCCESS;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    status = JX_FAILURE;
+    if(I->gc.shared)
+      status = JX_STATUS_PERMISSION_DENIED;
+    else {
+      if(I->packed_meta_bits & JX_META_BIT_INT) {
+        I->data.int_vla = *ref;
+        status = JX_SUCCESS;
+      }
+    }
+    if(I->synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
   }
-  return JX_FAILURE;
+  return status;
 }
 
 jx_float *jx_list_as_float_vla(jx_ob ob)
 {
-  if(ob.meta.bits & JX_META_BIT_LIST) {
-    jx_list *list = ob.data.io.list;
-    if(list->packed_meta_bits & JX_META_BIT_FLOAT) {
-      return list->data.float_vla;
-    } else if(jx__list_repack_data(list)) {
-      if(list->packed_meta_bits & JX_META_BIT_FLOAT) {
-        return list->data.float_vla;
-      } else if(!list->data.vla) {
-        list->packed_meta_bits = JX_META_BIT_FLOAT;
-        list->data.float_vla = (jx_float *) jx_vla_new(sizeof(jx_float), 0);
-        return list->data.float_vla;
+  jx_list *I = ob.data.io.list;
+  jx_float *result = JX_NULL;
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    if(ob.meta.bits & JX_META_BIT_LIST) {
+      if(I->packed_meta_bits & JX_META_BIT_FLOAT) {
+        result = I->data.float_vla;
+      } else if(jx__list_repack_data_locked(I)) {
+        if(I->packed_meta_bits & JX_META_BIT_FLOAT) {
+          result = I->data.float_vla;
+        } else if(!I->data.vla) {
+          I->packed_meta_bits = JX_META_BIT_FLOAT;
+          I->data.float_vla = (jx_float *) jx_vla_new(sizeof(jx_float), 0);
+          result = I->data.float_vla;
+        }
       }
     }
+    if(I->synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
   }
-  return NULL;
+  return result;
 }
 
 jx_status jx__list_set_float_vla(jx_list * I, jx_float ** ref)

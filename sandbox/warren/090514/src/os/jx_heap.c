@@ -42,11 +42,51 @@ static jx_word jx_atExitFlag = JX_FALSE;
 
 #define JX__HEAP_PTR_TO_HASH_CODE(x) ((((jx_int32)((jx_int)x))>>11)&(JX__HEAP_HASH_SIZE-1))
 
+static void Jx__heapInitialize(void);
+static void (*Jx_heapInitialize)(void) = Jx__heapInitialize;
+
+static jx_bool Jx__heapInitialized = JX_FALSE;
+
+static void Jx__heapBlockOthersUntilReady(void)
+{
+  while(!Jx__heapInitialized);
+}
+
+static void Jx__atExit(void)
+{
+  jx_atExitFlag = JX_TRUE;
+  jx_heap_dump(0);
+}
+
+extern jx_os_process *jx_os_Process;
+
+static void Jx__heapInitialize(void)
+{
+  /* bogus attempt to prevent race on multi-threaded startup scenario */
+
+  Jx_heapInitialize = Jx__heapBlockOthersUntilReady;
+
+  jx_os_memset(jx_heap_Hash,0,sizeof(Jx_heapTrackerEntry*)*JX__HEAP_HASH_SIZE);
+
+#ifdef JX_HEAP_TRACKER_MUTEX
+  jx__os_process_init(0,NULL); 
+#endif
+
+  if(Jx__heapInitialized) /* uh oh, race on startup...so kill process */
+    exit(EXIT_FAILURE);
+  else { /* no race detected, so let 'er rip! */
+    atexit(Jx__atExit);
+    Jx__heapInitialized = JX_TRUE;
+  }
+}
+
 JX_INLINE jx_status Jx_heapTrack(Jx_heapTrackerEntry *entry,
-                                     char *file,int line,int type,jx_os_size_t size)
+                                 char *file,int line,int type,jx_os_size_t size)
 {
   register jx_status status = JX_STATUS_NULL_PTR;
+  if(Jx_heapInitialize) Jx_heapInitialize();
   if(entry) {
+
 #ifdef JX_HEAP_TRACKER_MUTEX
     if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
 #endif
@@ -65,8 +105,8 @@ JX_INLINE jx_status Jx_heapTrack(Jx_heapTrackerEntry *entry,
           old_head->prev = entry;
         if( (++jx_heap_Count) > jx_heap_MaxCount) {
           jx_heap_MaxCount = jx_heap_Count;
-	}
-	jx_heap_TotalCount++;
+        }
+        jx_heap_TotalCount++;
 #ifdef JX_HEAP_TRACKER_MUTEX
         jx_os_mutex_unlock(&jx_os_Process->heap_mutex);
 #endif
@@ -76,41 +116,12 @@ JX_INLINE jx_status Jx_heapTrack(Jx_heapTrackerEntry *entry,
   return status;
 }
 
-static void Jx__heapInitialize(void);
-static void (*Jx_heapInitialize)(void) = Jx__heapInitialize;
-
-static jx_bool Jx__heapInitialized = JX_FALSE;
-
-static void Jx__heapBlockOthersUntilReady(void)
-{
-  while(!Jx__heapInitialized);
-}
-
-static void Jx__atExit(void)
-{
-  jx_atExitFlag = JX_TRUE;
-  jx_heap_dump(0);
-}
-
-static void Jx__heapInitialize(void)
-{
-  /* bogus attempt to prevent race on multi-threaded startup scenario */
-
-  Jx_heapInitialize = Jx__heapBlockOthersUntilReady;
-  // jx_os_memset(jx_heap_Hash,0,sizeof(Jx_heapTrackerEntry*)*JX__HEAP_HASH_SIZE);
-
-  if(Jx__heapInitialized) /* uh oh, race on startup...so kill process */
-    exit(EXIT_FAILURE);
-  else { /* no race detected, so let 'er rip! */
-    atexit(Jx__atExit);
-    Jx__heapInitialized = JX_TRUE;
-  }
-}
 
 JX_INLINE jx_status Jx_heapEntryFromPtr(Jx_heapTrackerEntry **result, 
                                             void *ptr,int expected_type)
 {
   register jx_status status = JX_SUCCESS;
+  if(Jx_heapInitialize) Jx_heapInitialize();
 #ifdef JX_HEAP_TRACKER_MUTEX
   if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
 #endif
@@ -118,7 +129,6 @@ JX_INLINE jx_status Jx_heapEntryFromPtr(Jx_heapTrackerEntry **result,
       register Jx_heapTrackerEntry *cur,*entry = ((Jx_heapTrackerEntry *)ptr)-1;
       register jx_int32 hash_code = JX__HEAP_PTR_TO_HASH_CODE(entry);
       /* make sure we're initialized */
-      if(Jx_heapInitialize) Jx_heapInitialize();
       /* see if we can find this pointer in the hash table */
       cur=jx_heap_Hash[hash_code]; 
       while(cur) {
@@ -276,7 +286,7 @@ jx_status jx_heap_dump(jx_int32 flags)
       for(a=0;a<JX__HEAP_HASH_SIZE;a++) {
         rec=jx_heap_Hash[a];
         while(rec) {
-          tot+=rec->size;
+          tot += rec->size;
 
           if(!(flags & JX_HEAP_DUMP_SUMMARY_ONLY)) {
             if(flags & JX_HEAP_DUMP_NO_ADDRESSES) {
@@ -347,11 +357,15 @@ jx_status jx_heap_dump(jx_int32 flags)
       jx_os_free(index);
 #endif
       jx_os_fprintf(jx_os_stderr,
-		    "Heap: Blocks: Expected %d, found %d, peaked at %d, total %d.\n",
-		    (jx_int32)jx_heap_Count,(jx_uint32)cnt,
-		    (jx_uint32)jx_heap_MaxCount,(jx_uint32)jx_heap_TotalCount);
+                    "Heap: Blocks: tracked %d, expected %d, found %d, peak at %d.\n",
+                    (jx_uint32)jx_heap_TotalCount, 
+                    (jx_int32)jx_heap_Count,
+                    (jx_uint32)cnt,
+                    (jx_uint32)jx_heap_MaxCount);
       jx_os_fprintf(jx_os_stderr,
-		    "Heap: Summary: Max bytes allocated 0x%x (%0.3f MB).\n",(unsigned int)tot,tot/(1024.0*1024));
+		    "Heap: Summary: remaining memory allocated 0x%x (%0.3f MB).\n",
+                    (unsigned int)tot,
+                    tot/(1024.0*1024));
       jx_os_fprintf(jx_os_stderr,
 		    "Heap: ==============================================================\n");
       jx_os_fflush(jx_os_stderr);
@@ -465,16 +479,17 @@ JX_INLINE jx_status Jx_realloc(void **result, jx_size size
    }
 #endif /* #ifndef JX_HEAP_TRACKER */
   }
+  
   return status;
 }
 
 JX_INLINE jx_status Jx_realloc_recopy(void **result, 
-                                             jx_size new_size, 
-                                             jx_size cur_size
+                                      jx_size new_size, 
+                                      jx_size cur_size
 #ifdef JX_HEAP_TRACKER
-                                             ,char *file, int line, int type
+                                      ,char *file, int line, int type
 #endif
-                                             )
+                                      )
 {
   register jx_status status = JX_SUCCESS;
   if(!*result) {  /* we don't allow null pointers as input to our internal realloc */
@@ -615,14 +630,7 @@ void *jx_heap_CallocRaw(jx_size size
 #ifndef JX_HEAP_TRACKER
   result = jx_os_calloc(size,1);
 #else 
-  {
-    register Jx_heapTrackerEntry *entry;
-    if( (entry = (Jx_heapTrackerEntry*)
-         jx_os_calloc(sizeof(Jx_heapTrackerEntry) + size,1)) ) {
-      Jx_heapTrack(entry,file,line,JX__HEAP_TYPE_BLOCK,size);
-      result = (entry+1);
-    }
-  }
+  Jx_calloc(&result, size, file,line,JX__HEAP_TYPE_BLOCK);
 #endif /* #ifndef JX_HEAP_TRACKER */
   return result;
 }

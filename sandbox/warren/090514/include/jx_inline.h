@@ -968,7 +968,7 @@ JX_INLINE jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob)
     JX_FAILURE;
 }
 
-JX_INLINE void jx__list_set_packed_data(jx_list * list, jx_int index, jx_ob ob)
+JX_INLINE void jx__list_set_packed_data_locked(jx_list * list, jx_int index, jx_ob ob)
 {
   switch (list->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_INT:
@@ -980,7 +980,35 @@ JX_INLINE void jx__list_set_packed_data(jx_list * list, jx_int index, jx_ob ob)
   }
 }
 
-jx_status jx__list_repack_data(jx_list * list);
+void jx__list_set_packed_data_locked(jx_list * I, jx_int index, jx_ob ob);
+JX_INLINE void jx__list_set_packed_data(jx_list * I, jx_int index, jx_ob ob)
+{
+  jx_bool synchronized = I->synchronized;
+  jx_status status = synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    jx__list_set_packed_data_locked(I,index,ob);
+    if(synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+}
+
+jx_status jx__list_repack_data_locked(jx_list * list);
+JX_INLINE jx_status jx__list_repack_data(jx_list * I)
+{
+  jx_bool synchronized = I->synchronized;
+  jx_status status = synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    status = jx__list_repack_data_locked(I);
+    if(synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return status;
+}
+
 JX_INLINE jx_status jx_list_repack(jx_ob list)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
@@ -988,29 +1016,53 @@ JX_INLINE jx_status jx_list_repack(jx_ob list)
     JX_FAILURE;
 }
 
-jx_status jx__list_unpack_data(jx_list * list);
-JX_INLINE jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
+jx_status jx__list_unpack_data_locked(jx_list * I);
+JX_INLINE jx_status jx__list_unpack_data(jx_list * I)
 {
-  if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
-    if(!I->packed_meta_bits) {
-      jx_ob_replace(I->data.ob_vla + index, ob);
-      return JX_SUCCESS;
-    } else {
-      if(I->data.vla && (I->packed_meta_bits != ob.meta.bits)) {
-        if(!jx_ok(jx__list_unpack_data(I)))
-          return JX_FAILURE;
-      }
-      if(I->data.vla) {
-        if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
-          jx__list_set_packed_data(I, index, ob);
-        } else if(!I->packed_meta_bits) {
-          jx_ob_replace(I->data.ob_vla + index, ob);
-        }
-        return JX_SUCCESS;
-      }
+  jx_bool synchronized = I->synchronized;
+  jx_status status = synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    status = jx__list_unpack_data_locked(I);
+    if(synchronized) {
+      jx_os_spinlock_release(&I->lock);
     }
   }
-  return JX_FAILURE;
+  return status;
+}
+
+JX_INLINE jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
+{
+  jx_bool synchronized = I->synchronized;
+  jx_status status = synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    status = JX_FAILURE;
+    if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
+      if(!I->packed_meta_bits) {
+        jx_ob_replace(I->data.ob_vla + index, ob);
+        status = JX_SUCCESS;
+      } else {
+        if(I->data.vla && (I->packed_meta_bits != ob.meta.bits)) {
+          if(!jx_ok(jx__list_unpack_data(I)))
+            goto unlock;
+        }
+        if(I->data.vla) {
+          if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
+            jx__list_set_packed_data(I, index, ob);
+          } else if(!I->packed_meta_bits) {
+            jx_ob_replace(I->data.ob_vla + index, ob);
+          }
+          status = JX_SUCCESS;
+        }
+      }
+    }
+  unlock:
+    if(synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return status;
 }
 
 JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)

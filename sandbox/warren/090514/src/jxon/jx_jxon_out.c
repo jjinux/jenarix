@@ -637,7 +637,7 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
                                           JX_JXON_FLAG_APPROX_FLOAT |
                                           JX_JXON_FLAG_SHOW_WEAK | 
                                           JX_JXON_FLAG_NOT_NEWLINE,
-                                          0,width,left);
+                                          4,width,left);
     
     if(jx_list_check(ob)||jx_hash_check(ob)) {
       fprintf(f,"%s:%s\n",prefix, jx_ob_as_str(&jxon));

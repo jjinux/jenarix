@@ -106,7 +106,7 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
 #define JX_HEAP_REALLOC_RECOPY(result, type, new_size, cur_size) \
   jx_heap_ReallocRecopy((void**)result,sizeof(type)*(new_size),sizeof(type)*(cur_size) _JX_HEAP_TRACKER_CALL)
 
-#define JX_HEAP_REALLOC_RAW(ptr,type, size) \
+#define JX_HEAP_REALLOC_RAW(ptr, type, size) \
   ((type*)jx_heap_ReallocRaw((void*)ptr,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL))
 
 #define JX_HEAP_REALLOC_RAW_RECOPY(ptr, type, new_size, cur_size) \

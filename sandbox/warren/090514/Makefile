@@ -38,6 +38,9 @@ test201: libjx.a
 test202: libjx.a
 	cd src/test;$(MAKE) test202
 
+test203: libjx.a
+	cd src/test;$(MAKE) test203
+
 tests: libjx.a
 	cd src/test;$(MAKE)
 
