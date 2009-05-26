@@ -47,26 +47,32 @@ void *thread_fn(void *id_ptr)
   printf("thread %d started\n",info->id);
 
   {
-    jx_int i,j;
-    for(i=0;i<10;i++) {
-      for(j=0;j<10;j++) {
-        if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
-
-          jx_os_usleep(1);
-          jx_os_spinlock_acquire(&lock,JX_TRUE);
-          jx_os_spinlock_release(&lock);
-
-          jx_os_spinlock_acquire(&lock,JX_TRUE);
-          jx_os_spinlock_release(&lock);
-
-          jx_os_spinlock_acquire(&lock,JX_TRUE);
-          jx_os_spinlock_release(&lock);
-
-          jx_os_spinlock_acquire(&lock,JX_TRUE);
-          jx_os_spinlock_release(&lock);
-
-          jx_os_spinlock_release(&lock);
-        }
+    jx_int i;
+    for(i=0;i<100000;i++) {
+      if(jx_os_spinlock_acquire(&lock,JX_TRUE)) {
+	
+	printf("got it as %d %d\n",info->id,i);
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_release(&lock);
+	
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_release(&lock);
+	jx_os_spinlock_release(&lock);
+	jx_os_spinlock_release(&lock);
+	jx_os_spinlock_release(&lock);
+	jx_os_spinlock_release(&lock);
+	
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_release(&lock);
+	
+	jx_os_spinlock_acquire(&lock,JX_TRUE);
+	jx_os_spinlock_release(&lock);
+	
+	jx_os_spinlock_release(&lock);
       }
     }
   }
