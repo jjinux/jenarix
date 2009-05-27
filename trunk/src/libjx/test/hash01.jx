@@ -14,8 +14,8 @@
     (set X {})
     (map (lambda null (set X [str _] _)) [range 1 [add n 1]])
     (set c 0)
-    (map (lambda null (set c [add [get c] [has X [str _]]])) [range [get n] 0 -1])
-    (c)
+    (map (lambda null (set c [add c [has X [str _]]])) [range n 0 -1])
+    c
     ]
 );
 
@@ -23,12 +23,15 @@
     (set X {})
     (for [set i 0] [lt i 1000000] [set i (add i 1)] (set X [str i] i))
     (set c 0)
-    (for [set i 1000000] [ge i 0] [set i (sub i 1)] (set c [add [get c] [has X [str i]]]))
-    (c)
+    (for [set i 1000000] [ge i 0] [set i (sub i 1)] (set c [add c [has X [str i]]]))
+    c
     ]
 );
 
 [del main2];
+
+# main1 is faster
+
 [main1];
 
 

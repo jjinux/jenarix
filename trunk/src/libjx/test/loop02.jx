@@ -13,9 +13,9 @@
 #   a = a - 1
 
 
-( while (get a) 
-  [ (set b (get a) 1)
-    (set a (sub (get a) 1))
+( while a
+  [ (set b a 1)
+    (set a (sub a 1))
     ]
   );
 
