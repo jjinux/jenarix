@@ -120,7 +120,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
         jx_vla *new_ptr = jx_realloc(vla->ptr, sizeof(jx_vla) +
                                      padding + vla->rec_size * new_alloc);
         if(!new_ptr) {
-          printf("ERROR!\n");
+          printf("MEMORY REALLOCATION ERROR -- are you being too greedy?\n");
           return JX_FAILURE;
         } else {
           vla = (jx_vla *) (((char *) new_ptr) + padding);

@@ -97,7 +97,14 @@ typedef struct { /* for fast initialization / comparison */
 
 typedef jx_status (*jx_opaque_free_fn)(jx_opaque_ob*); 
 
+
+/* unfortunately, older compilers will warn on the type-checked
+   form of the following typedef... */
+#ifndef __GCC4___
+typedef jx_ob (*jx_native_fn)(); /* o{e}, [ma] */
+#else
 typedef jx_ob (*jx_native_fn)(jx_ob, jx_ob); /* o{e}, [ma] */
+#endif
 
 typedef union {
   jx_bool bool_;
