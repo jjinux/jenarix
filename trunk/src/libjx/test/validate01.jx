@@ -110,13 +110,13 @@
 
 [eq null [del fn]];
 
-
-# functions with ident args use their own private namespace 
+# functions with single ident args use their own private namespace 
 # but receive the entire payload in one symbol
 
 # functions with [ident ...] args have only positional arguments
 
-# functions with [[ident ...],{ident:default,...}] take both keyword and positional args.
+# functions with [[ident ...],{ident:default,...}] have both a keyword
+# -based default (namespace) and take optional positional args.
 
 
 

@@ -29,9 +29,9 @@ ov:
 	make -f rules/srclink.mk remap 
 
 .config: 
-	echo # "To configure the build, issue:    make jx"
-	echo # "Thereafter, you can simply issue: make"
-	echo # "and after an svn update:          make restart"
+	sleep 0 # "To configure the build, issue:    make jx"
+	sleep 0 # "Thereafter, you can simply issue: make"
+	sleep 0 # "and after file / svn updates:     make restart"
 	exit 1
 
 # dependency-aware build 

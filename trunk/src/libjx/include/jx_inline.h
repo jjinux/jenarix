@@ -1897,12 +1897,13 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
   if(jx_function_check(function)) {
     jx_function *fn = function.data.io.function;
     jx_ob args = fn->args;
-    if(jx_null_check(args)) { /* inner functions run within the host node namespace */
-
+    if(jx_null_check(args)) {
+      /* inner functions run within the host node namespace */
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob saved_payload = JX_OB_NULL;
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
+        /* call */
         jx_ob result = fn->block ? jx_code_exec_tls(tls, 0, node,fn->body) :
           jx_code_eval_tls(tls, 0, node,fn->body);
         if(saved) 
@@ -1926,7 +1927,10 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob inv_node = jx_ob_copy(args);
       jx_ob result = JX_OB_NULL;
+      /* expose fn to itself */
+      jx_hash_set(inv_node,fn->name,jx_ob_take_weak_ref(function));
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
+      /* call */
         result = fn->block ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
           jx_code_eval_tls(tls, 0, inv_node,fn->body);
       }
@@ -1994,6 +1998,9 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         }
         jx_ob_free_tls(tls,kwd_list);
       }
+      /* expose function to itself */
+      jx_hash_set(inv_node,fn->name,jx_ob_take_weak_ref(function)); 
+      /* call */
       result = fn->block ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
         jx_code_eval_tls(tls, 0, inv_node,fn->body);
       jx_ob_free_tls(tls,payload);
@@ -2005,6 +2012,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
       jx_ob result;
       //      jx_jxon_dump(stdout,"args",args);
+      jx_hash_set(inv_node,fn->name,jx_ob_take_weak_ref(function)); /* expose function to itself */
       result = fn->block ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
         jx_code_eval_tls(tls, 0, inv_node,fn->body);
       jx_ob_free_tls(tls,inv_node);

@@ -24,7 +24,12 @@ tests: \
 	test007.a \
 	test008.a \
     test009.a \
-	test010.a
+	test010.a \
+	test200.a \
+	test201.a \
+	test202.a \
+	test203.a \
+	test204.a 
 
 libjx: libjx.a
 

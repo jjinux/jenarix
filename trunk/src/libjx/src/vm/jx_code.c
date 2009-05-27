@@ -532,8 +532,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, jx_ob callable,
 
 static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
 {
+
   //  jx_jxon_dump(stdout,"eval entered with",expr);
-  //  printf("   and flags %d\n",flags);
+  //  printf("                and flags %d\n",flags);
   switch (expr.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_LIST:
     {
@@ -551,7 +552,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
            ((!(flags & JX_EVAL_DEFER_INVOCATION)) || 
             (expr_vla->data.io.int_ == JX_BUILTIN_RESOLVE))) {
           jx_int size = jx_vla_size(&expr_vla);
-          //                   printf("found special form %d\n",expr_vla->data.io.int_);
+          //          printf("found special form %d\n",expr_vla->data.io.int_);
           switch (expr_vla->data.io.int_) {
           case JX_BUILTIN_QUOTE:
           case JX_BUILTIN_RAW:
@@ -906,6 +907,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
         } else { /* not a special form, so continue...*/
           jx_int i,size = jx__list_size(expr_list);
           jx_ob result = jx_tls_list_new_with_size(tls,size);
+          //jx_jxon_dump(stdout,"not special",expr);
           if(!result.meta.bits & JX_META_BIT_LIST) {
             /* memory exhausted? */
             return result;
@@ -1070,15 +1072,17 @@ jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
 
 jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
 { 
-  //jx_jxon_dump(stdout,"jx__code_exec entered",code);
+  //  jx_jxon_dump(stdout,"jx__code_exec entered with code",code);
+  //  jx_jxon_dump(stdout,"                       and node",node);
+  jx_ob result;
   if(tls) {
-    return jx_ob_not_weak_with_ob(jx__code_exec_allow_weak(tls,flags,node,code));
+    result = jx_ob_not_weak_with_ob(jx__code_exec_allow_weak(tls,flags,node,code));
   } else {
-    jx_ob result;
     jx_tls *tls = jx_tls_new();
     result = jx_ob_not_weak_with_ob(jx__code_exec_allow_weak(tls,flags,node,code));
     jx_tls_free(tls);
-    return result;
   }
+  //  jx_jxon_dump(stdout,"jx__code_exec existing with result",result);
+  return result;
 }
                   

@@ -14,10 +14,11 @@ lib: depbuild
 	cd $(JX_BUILD)/src;make -f ../../../rules/link.mk libjx
 
 mains: 
-	cd $(JX_BUILD)/src;make -f ../../../rules/link.mk mains
+	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk mains
+	exit 0 # "Executables built! ./jxl, etc."
 
 tests: 
-	cd $(JX_BUILD)/src;make -f ../../../rules/link.mk tests
+	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk tests
 
 runtests: tests
 	cd $(JX_BASE)/bin;make -f $(JX_BASE)/rules/test.mk

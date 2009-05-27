@@ -181,8 +181,6 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     (["] (ESC|any\[\n\\"])* ["]) { RET(JX_JXON_SCON); }
 
-    (['] (ESC|any\[\n\\'])* [']) { RET(JX_JXON_SCON); }
-
     "`" (L|D|":")+  { RET(JX_JXON_BUILTIN); }
     
     "["         { RET(JX_JXON_OPEN_RECT_BRACE); }
@@ -250,6 +248,8 @@ comment:
   /* not used:
     "."         { RET(JX_JXON_DOT); }
     "`"         { RET(JX_JXON_BACKAPOSTROPHE); }
+    (['] (ESC|any\[\n\\'])* [']) { RET(JX_JXON_SCON); }
+
 
     "<"         { RET(JX_JXON_LESS_THAN); }
     "<="        { RET(JX_JXON_LESS_THAN_OR_EQ); }

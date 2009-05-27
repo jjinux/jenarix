@@ -101,9 +101,11 @@ int main(int argc, char *argv[])
         case JX_STATUS_SYNTAX_ERROR: /* catch this error */
           {
             jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-            printf("Error: invalid syntax\n");
             if(jx_str_check(message)) 
               printf("%s\n",jx_ob_as_str(&message));
+            else
+              printf("Error: invalid syntax\n");
+
             if(!console)
               done = JX_TRUE;
             else
