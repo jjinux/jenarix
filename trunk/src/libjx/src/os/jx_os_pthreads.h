@@ -131,7 +131,6 @@ JX_INLINE jx_int32 jx_os_atomic32_increment(jx_os_atomic32 *atomic)
 #else
 #ifdef JX_GCC_ATOMIC_BUILTINS
   return __sync_add_and_fetch(atomic,1);
-  return new_value;
 #else
   int result;
   jx_os_mutex_lock(&jx_os_AtomicityMutex);

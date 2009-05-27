@@ -4357,7 +4357,7 @@ jx_ob jx__builtin_copy(jx_ob ob)
     return jx_function_new_with_def(jx_ob_copy(fn->name), 
                                     jx_ob_copy(fn->args), 
                                     jx_ob_copy(fn->body),
-                                    fn->block);
+                                    fn->mode);
   } else if(bits & JX_META_BIT_BUILTIN_MACRO) {
     jx_function *fn = ob.data.io.function;
     return jx_macro_new_with_def(jx_ob_copy(fn->name), 
@@ -4529,7 +4529,7 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 
 /* functions */
 
-jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block)
+jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode)
 {
   jx_ob result = JX_OB_NULL;
   jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
@@ -4537,7 +4537,7 @@ jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_bool block
     fn->name = name;
     fn->args = args;
     fn->body = body;
-    fn->block = block;
+    fn->mode = mode;
 
     //jx_jxon_dump(stdout,"new function name",name);
     //jx_jxon_dump(stdout,"new function args",args);
@@ -4561,7 +4561,7 @@ jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body)
     fn->name = name;
     fn->args = args;
     fn->body = body;
-    fn->block = JX_FALSE;
+    fn->mode = JX_FUNCTION_MODE_EVAL;
 
     //jx_jxon_dump(stdout,"new function name",name);
     //jx_jxon_dump(stdout,"new function args",args);
@@ -4585,7 +4585,7 @@ jx_ob jx_function_to_impl(jx_ob ob)
     jx_list_replace(result, 0, jx_ob_copy(fn->name));
     jx_list_replace(result, 1, jx_ob_copy(fn->args));
     jx_list_replace(result, 2, jx_ob_copy(fn->body));
-    jx_list_replace(result, 3, jx_ob_from_bool(fn->block));
+    jx_list_replace(result, 3, jx_ob_from_bool(fn->mode));
     return result;
   }
   return jx_ob_from_null();

@@ -553,7 +553,7 @@ jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob)
       jx_ob list = jx_list_new();
       {
         jx_char buffer[50];
-        sprintf(buffer,"Error: invalid syntax on line %d\n",state->line+1);
+        sprintf(buffer,"Error: invalid syntax on line %d\n",(int)state->line+1);
         jx_list_append(list, jx_ob_from_str(buffer));
       }
       if(state->bot != state->lim) {

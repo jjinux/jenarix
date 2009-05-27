@@ -395,10 +395,10 @@ jx_ob jx_macro_to_impl(jx_ob ob);
 
 /* JXON-based functions */
 
-#define JX_FUNCTION_MODE_EVAL            1
-#define JX_FUNCTION_MODE_EXEC            2
-#define JX_FUNCTION_MODE_PARALLEL_EVAL   3
-#define JX_FUNCTION_MODE_ASYNC_EXEC      4
+#define JX_FUNCTION_MODE_EVAL            0
+#define JX_FUNCTION_MODE_EXEC            1
+#define JX_FUNCTION_MODE_PARALLEL_EVAL   2
+#define JX_FUNCTION_MODE_ASYNC_EXEC      3
 
 jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode);
 jx_ob jx_function_to_impl(jx_ob ob);
