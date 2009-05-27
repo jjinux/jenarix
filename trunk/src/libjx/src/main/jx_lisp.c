@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     jx_code_expose_secure_builtins(namespace);
 
-    printf("Jenarix JXON Parser (LISP-like syntax):\n");
+    printf("Jenarix JXON (semicolon-delimited pseudo-LISP syntax):\n");
     {
       jx_ob source = JX_OB_NULL;
       jx_status status;

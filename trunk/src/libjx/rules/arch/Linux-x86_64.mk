@@ -5,6 +5,6 @@ ARCH_CXXFLAGS = -ansi -DJX_64_BIT
 
 JX_SRC_QUASH = 
 
-LDFLAGS = -lpthread 
+LDFLAGS = -lpthread  -lm
 
 

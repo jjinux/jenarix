@@ -58,7 +58,8 @@ cleaner: .config
 	make -f rules/main.mk $@
 
 distclean: 
-	/bin/rm -rf build .config jxl jxs jxp jxj libjx.a
+	/bin/rm -rf build
+	/bin/rm -f .config jxl jxs jxp jxj libjx.a bin
 
 restart: .config
 	make -f rules/main.mk restart mains
