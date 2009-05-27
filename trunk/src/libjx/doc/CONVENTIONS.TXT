@@ -1,0 +1,33 @@
+
+# [] and () are equivalent in JXON
+
+# (provided that they are matched pairwise)
+
+# However, for clarity and aesthetics, please
+# adhere to the following conventions and formatting style
+# in your JXON input source code:
+
+# evaluations
+
+(a b c);
+
+# code blocks
+
+[ (a b c),
+  (d e f)
+  ];
+
+# plain old data (just JSON)
+
+[1,2,3];
+
+# generalized objects [identifier, content, attributes]
+
+[ matrix,
+  [ 0 0 0
+    0 0 0
+    0 0 0
+    ],
+  { dim: [3,3] } 
+  ];
+
