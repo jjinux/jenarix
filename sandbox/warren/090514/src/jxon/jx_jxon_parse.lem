@@ -170,14 +170,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*** The grammer itself ***/
 
-statement ::= SOI EOI. 
+statement ::= EOI. 
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = EOI\n"); 
 #endif
 }
 
-statement ::= SOI stop_expression(B). 
+statement ::= stop_expression(B). 
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(B) EOI\n"); 
@@ -186,7 +186,7 @@ statement ::= SOI stop_expression(B).
   context->result = B; /* save the result */
 }
 
-statement ::= SOI implicit_list(B).
+statement ::= implicit_list(B).
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(B) SEMICOLON\n"); 
@@ -258,7 +258,7 @@ implicit_list(A) ::= primitive(B) expression(C).
   jx_list_append(A,B);
   jx_list_append(A,C);
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("implicit_list(A) ::= SOI primitive(B) expression(C).\n");
+  printf("implicit_list(A) ::= primitive(B) expression(C).\n");
 #endif
 }
 

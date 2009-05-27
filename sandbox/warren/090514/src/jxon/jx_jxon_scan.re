@@ -278,8 +278,6 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
   jx_char stack_buffer[SSCANF_BUFSIZE];
   
   state->context.status = 0;
-
-  jx_jxon_(jx_Parser, JX_JXON_SOI, jx_ob_from_null(), &state->context);
   state->n_tok_parsed = 0;
 
   while(!state->context.exhausted) {

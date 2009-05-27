@@ -233,6 +233,11 @@ int main(int argc, char **argv)
     //    jx_ob_dump(stderr,"ob2",ob2);
     printf("# complexity = %d, JXON string length = %d\n",complexity, len1);
     P2("%d == %d",len1,len2);
+    if(len1!=len2) {
+      jx_jxon_dump(stdout,"1",jxon1);
+      jx_jxon_dump(stdout,"2",jxon2);
+      exit(1);
+    }
     P2("%d == %d",sum1,sum2);
     P1("1 == %d",jx_ob_equal(ob1,ob2));
 

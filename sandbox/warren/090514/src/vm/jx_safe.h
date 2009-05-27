@@ -115,45 +115,83 @@ JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
 
 jx_status jx_safe_expose_all_builtins(jx_ob namespace);
 
+JX_INLINE jx_status jx__resolve(jx_ob *container,jx_ob *ident)
+{
+  if(jx_list_check(*ident)) { /* compound indentifier */
+    jx_int i,path_size = jx_list_size(*ident);
+    jx_ob path = *ident;
+    if(!path_size) /* empty list implies fully-computed set operation */
+      return JX_NO;
+    for(i=0;i<path_size;i++) {
+      *ident = jx_list_borrow(path,i);
+      if((1+i)<path_size) {
+        switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
+        case JX_META_BIT_LIST:
+          *container = jx_list_borrow(*container,jx_ob_as_int(*ident));
+          break;
+        case JX_META_BIT_HASH:
+          *container = jx_hash_borrow(*container,*ident);
+          break;
+        default:
+          *container = jx_ob_from_null();
+          break;
+        }
+      }
+    }
+  }
+  return JX_YES;
+}
+
 JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
 {
   //  jx_jxon_dump(stdout,"safe set payload",payload);
   //  jx_jxon_dump(stdout,"safe set node",node);
   jx_int size = jx_list_size(payload);
+  jx_ob container = node;
+  jx_ob target =  jx_list_borrow(payload,0);
+  jx_status resolved = jx__resolve(&container,&target);
   switch(size) {
-  case 2:
-    {
-      return jx_ob_from_status
-        ( jx_hash_set
-          (node, 
-           jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,0)),
-           jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1))));
-    }
+  case 2: /* (set literal-path value) */
+    return jx_ob_from_status
+      ( jx_hash_set
+        (container, 
+         target,
+         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1))));
     break;
-  case 3:
-    {
-      jx_ob container = jx_list_borrow(payload,0);
-      if(jx_ident_check(container))
-        container = jx_hash_borrow(node,container);
+  case 3: /* ( set literal-path computed-path value ) */
+    if(JX_POS(resolved)) {
       switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_LIST:
-        return jx_ob_from_status
-          ( jx_list_replace
-            (container, 
-             jx_ob_as_int( jx_list_borrow(payload,1)),
-             jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2))));
+        container = jx_list_borrow(container,jx_ob_as_int(target));
         break;
       case JX_META_BIT_HASH:
-        return jx_ob_from_status
-          ( jx_hash_set
-            (container, 
-             jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1)), 
-             jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2))));
+        container = jx_hash_borrow(container,target);
         break;
       default:
-        return jx_ob_from_null();
+        container = jx_ob_from_null();
         break;
       }
+    }
+    target = jx_list_borrow(payload,1);
+    resolved = jx__resolve(&container,&target);
+    switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_LIST:
+      return jx_ob_from_status
+        ( jx_list_replace
+          (container, 
+           jx_ob_as_int(target),
+           jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2))));
+      break;
+    case JX_META_BIT_HASH:
+      return jx_ob_from_status
+        ( jx_hash_set
+          (container, 
+           jx_ob_not_weak_with_ob(target),
+           jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2))));
+      break;
+    default:
+      return jx_ob_from_null();
+      break;
     }
     break;
   default:
@@ -161,6 +199,47 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
     break;
   }
 }
+
+ /* "deep" sets proof of concept.  
+
+    # Python: a.b.c.d = value becomes JXON:  (`set (`path a b c d) value)
+
+    Where b is resolved within a, c within b, and then d is set to
+    value in scope c.
+
+    a,b,c,d could of course be expressions too, and for lists, they'll need to be numeric indices. 0-N, -1 -> -N
+
+    Could this work for all our container access methods?
+
+    Also consider permitting the user to alias portions of a path (in lieu of taking an actual reference):
+
+    g = path(a.b.c)
+
+    g.d = value  ->  (set (`path (`resolve g) d) value)
+
+    g.d.e = value -> (set (`path (`resolve g) d 3) value)
+
+    another option:
+
+    g = take(a.b.c) (take g (`path a b c));
+
+    g.d = value
+
+    g.d.e = value
+
+    a.b.c = g
+
+    could do this automatically using "with"
+
+    with g = a.b.c:
+        g.d = value
+        
+        g.d.e = value
+
+        # exiting scope automatically restores a.b.c = g and destroys g 
+
+ */
+
 
 JX_INLINE jx_ob jx_safe_get(jx_ob node, jx_ob payload)
 {

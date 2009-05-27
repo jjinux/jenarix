@@ -167,13 +167,13 @@ struct jx__ob {
 
 /* object initializers */
 
-#define JX_OB_NULL     { JX_DATA_INIT, {0                    }}
-#define JX_OB_INT      { JX_DATA_INIT, {JX_META_BIT_INT      }}
-#define JX_OB_FLOAT    { JX_DATA_INIT, {JX_META_BIT_FLOAT    }}
-#define JX_OB_BOOL     { JX_DATA_INIT, {JX_META_BIT_BOOL     }}
+#define JX_OB_NULL      { JX_DATA_INIT, {0                    }}
+#define JX_OB_INT       { JX_DATA_INIT, {JX_META_BIT_INT      }}
+#define JX_OB_FLOAT     { JX_DATA_INIT, {JX_META_BIT_FLOAT    }}
+#define JX_OB_BOOL      { JX_DATA_INIT, {JX_META_BIT_BOOL     }} 
 
-#define JX_OB_LIST     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
-#define JX_OB_HASH     { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
+#define JX_OB_LIST      { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
+#define JX_OB_HASH      { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
 
 struct jx__list {

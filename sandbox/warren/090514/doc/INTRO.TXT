@@ -2,11 +2,25 @@
 # (pronounced "jackson") which is a derivative of JSON (pronounced
 # "jason").
 
-# NOTE: the following examples are intended to be run through ./jxeval
+# NOTE: the following examples are intended to be run through ./jxl
 # interactively.  Please try them for yourself!
 
-# Also note that ./jxeval currently requires that each JXON phrase be
-# terminated with a semicolon;
+# By the way, "jxl" exposes read-eval-print for the low-level
+# LISP-like JXON syntax. Also note that ./jxl currently requires that
+# each JXON phrase be terminated with a semicolon, and currently
+# accepts an implicit list of two or more elements without a
+# surrounding parens at the top level.
+
+# Other, much more human-friendly syntaxes will come, and will be
+# handled by some additional executables, including perhaps:
+
+# jxp : Python-like syntax (block indentation, no scoping braces)
+
+# jxj : Java/Javascript/C/Perl-like syntax (braces define scopes)
+
+# jxs : Shell-like syntax (based on PyMOL: keyword arg1, arg3=value)
+
+# jxn : declarative network-specification language.
 
 # JXON draws from LISP, JSON, functional, and data-flow architecture.
 
@@ -15,13 +29,11 @@
 
 # - JXON adds two new primitive types (identifiers and builtins),
 
-# - JXON allows for single-quoted as well as double-quoted strings
-
 # - JXON permits all primitive types to serve as hash keys
 
-# - Commas as optional in JSON -- whitespace is sufficient
+# - Commas are optional in JSON -- whitespace is sufficient
 
-# - JXON accepts either parentheses and square braces
+# - JXON accepts either parentheses and square braces as input.
 
 # - JXON supports #-delimited single-line comments.
 
@@ -36,7 +48,7 @@
 # evaluation (EVAL behavior), and code blocks: where only the last
 # item of the evaluated list body is returned (EXEC behavior).  As a
 # performance optimization, JXON function bodies are flagged
-# internally as being destined for EVAL or EXEC, and we expect to add
+# internally as being destined for EVAL or EXEC, and we may add
 # some additional flags in the future to reflect parallel EVAL
 # (expression returned) and asynchronous EXEC (no return).
 
@@ -50,10 +62,11 @@
 # 'defun').  
 
 # Likewise, "code" is used to create anonymous lambda functions
-# containing code blocks and "lambda" is used to create anonymous lambda
-# functions containing expressions.
+# containing code blocks and "lambda" is used to create anonymous
+# lambda functions containing expressions.
 
-# Expressions can of course contains code blocks which 
+# Expressions can of course contains code blocks surrounding by
+# (exec [exp1, expr2, expr3])
 
 # JXON primitives include:
 
