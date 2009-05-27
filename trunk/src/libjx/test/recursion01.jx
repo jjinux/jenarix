@@ -7,7 +7,7 @@
 (def recfn null [
     (output i)
     (decr i)
-    (test [ne i 0] 
+    (test (ne i 0)
         (recfn)
         "done!"
         )
@@ -21,7 +21,7 @@
 (def recfn [fn i] [
     (output i)
     (decr i)
-    (test [ne i 0] 
+    (test (ne i 0)
         (recfn fn i)
         "done!"
         )
@@ -36,8 +36,8 @@
 (def recfn [i] [
     (output i)
     (decr i)
-    (test [ne i 0] 
-        [recfn i] 
+    (test (ne i 0)
+        (recfn i)
         "done!"
         )
     ]
