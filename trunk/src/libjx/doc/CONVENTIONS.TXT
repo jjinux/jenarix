@@ -21,7 +21,11 @@
 
 [1,2,3];
 
-# generalized objects [identifier, content, attributes]
+# Jeneralized objects, which have the form:
+#
+#    [identifier, content, attributes]
+#
+# where content and attributes are optional
 
 [ matrix,
   [ 0 0 0
@@ -30,4 +34,8 @@
     ],
   { dim: [3,3] } 
   ];
+
+[ vector, [ 0 0 0 ] ]
+
+[ some_object ]
 
