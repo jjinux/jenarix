@@ -197,14 +197,18 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
       for(i = 0; i < size; i++) {
         jx_ob_free( jx__ob_to_jxon_with_flags(*(ob++), ref, flags, space_left) );
         if(i<(size-1)) {
-          if((sep[0]!=' ') || (!jx_list_check(*ob))) {
+          if((sep[0]!=' ') || (!(jx_list_check(*ob)||(jx_hash_check(*ob))))) {
             flags = autowrap(ref,flags,space_left,1);
             jx_vla_append_c_str(ref, sep);
           }
           if(i && (flags & JX_JXON_FLAG_PRETTY) && jx_list_check(*ob)) {
             flags = newline(ref,flags,space_left);
             flags = prefix(ref,flags,space_left);
-          } else if((flags & JX_JXON_FLAG_PRETTY) && (sep[0]!=' ') && !jx_list_check(*ob)) {
+
+          } else if(JX_JXON_FLAG_PRETTY && 
+                    (sep[0]!=' ') && !(jx_list_check(*ob)||jx_hash_check(*ob))) {
+          } else if((flags & JX_JXON_FLAG_PRETTY) && (sep[0]!=' ') && 
+                    !(jx_list_check(*ob)||jx_hash_check(*ob))) {
             flags = autowrap(ref,flags,space_left,1);
             jx_vla_append_c_str(ref, " ");
           }
@@ -225,8 +229,8 @@ static jx_status jx__hash_to_jxon(jx_hash * I, jx_char **ref, jx_int flags, jx_i
 {
   jx_int size = jx_vla_size(&I->key_value);
   jx_bool comma = JX_FALSE;
-  flags = autowrap(ref,flags,space_left,1);
-  jx_vla_append_c_str(ref, "{"); 
+  flags = autowrap(ref,flags,space_left,2);
+  jx_vla_append_c_str(ref, " {"); 
   if(size) {
     jx_hash_info *info = (jx_hash_info *) I->info;
     if((!info) || (info->mode == JX_HASH_LINEAR)) {
@@ -638,7 +642,6 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
                                           JX_JXON_FLAG_SHOW_WEAK | 
                                           JX_JXON_FLAG_NOT_NEWLINE,
                                           4,width,left);
-    
     if(jx_list_check(ob)||jx_hash_check(ob)) {
       fprintf(f,"%s:%s\n",prefix, jx_ob_as_str(&jxon));
     } else {

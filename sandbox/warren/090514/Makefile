@@ -24,7 +24,7 @@ vm:
 
 main: libjx.a
 	cd src/main; $(MAKE)
-	mv src/main/main_jx jx
+	mv src/main/main_jxl jxl
 
 test203: libjx.a
 	cd src/test;$(MAKE) test203
@@ -50,3 +50,4 @@ test: tests
 	src/test/test008 | perl
 	src/test/test009 | perl
 	src/test/test010 | perl
+

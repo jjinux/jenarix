@@ -40,11 +40,9 @@
 # some additional flags in the future to reflect parallel EVAL
 # (expression returned) and asynchronous EXEC (no return).
 
-
-
-#  JXON lists are slow
-# and expensive "heap" objects whereas all JXON primitives (except for
-# non-tiny strings) are self-contined stack objects (like registers).
+# JXON lists are slow and expensive "heap" objects whereas all JXON
+# primitives (except for non-tiny strings) are self-contined stack
+# objects (like registers).
 
 # Accordingly JXON 'def' is used to create a named functions
 # containing code blocks (like Python 'def') and JXON 'defun'is used
@@ -135,11 +133,11 @@ a.compound.identifier;
 
 a;
 
-# result: a
+# re: a
 
 a b;
 
-# result: (a b)
+# re: (a b)
 
 
 # JXON containers can be nested to arbitrary levels of complexity,
@@ -156,7 +154,7 @@ a b;
 
 [get x];  
 
-# result: 100
+# re: 100
 
 # or simply enter the symbol literally
 
@@ -171,7 +169,7 @@ x;
 
 x;
 
-# result: 100
+# re: 100
 
 # You can of course store containers as well:
 
@@ -179,7 +177,7 @@ x;
 
 y;
 
-# result: [0,0,0]
+# re: [0,0,0]
 
 # And modify them
 
@@ -187,13 +185,13 @@ y;
 
 y;
 
-# result: [0,0,0,1]
+# re: [0,0,0,1]
 
 [extend y [get y]];
 
 y;
 
-# result: [0,0,0,1,0,0,0,1]
+# re: [0,0,0,1,0,0,0,1]
 
 # Control flow
 
@@ -203,13 +201,13 @@ y;
 
 x;
 
-# result: 1
+# re: 1
 
 (if false [set x 1] [set x 0]);
 
 x;
 
-# result: 0
+# re: 0
 
 # Loops
 
@@ -231,7 +229,7 @@ x;
 5;
 8;
 10;
-# result: null
+# re: null
 
 [for [set x 1] [le x 5] [set x [add x 1]] [output x]];
 # output:
@@ -240,18 +238,25 @@ x;
 3;
 4;
 5;
-# result: null
-
+# re: null
 
 # Lambda and Apply
 
-[apply [code null _] 1.50];
+[apply [lambda null _] 1.50];
 
-# result: 1.5
+# re: 1.5
 
-[apply [code {a:4} [_,a]] 3];
+[apply [lambda {a:4} [_,a]] 3];
 
-# result: [3,4]
+# re: [3,4]
+
+[apply [lambda [[x],{y:3}] [x,y]] [1]];
+
+# re: [1,3]
+
+[apply [lambda [[x y],{y:3}] [x,y]] [1,2]];
+
+# re: [1,2]
 
 # Functions. 
 
@@ -259,11 +264,11 @@ x;
 
 [fn1];
 
-# result: 9
+# re: 9
 
 [impl fn1];
 
-# result: [fn1,null,9]
+# re: [fn1,null,9]
 
 # Note that invoked functions are currently given the entire
 # invocation list as the payload, including the unresolved function
@@ -275,23 +280,24 @@ x;
 
 [fn2 arg1 'arg2' {arg3:0}];  
 
-# result: [fn2,arg1,"arg2",{arg3:0}]
+# re: [fn2,arg1,"arg2",{arg3:0}]
 
-[def fn3 null [add 4 [take _ 1]] ];
+[def fn3 null [add 4 [take _ 0]] ];
 
 [fn3 5];
 
-# result: 9
+# re: 9
 
 # Usable built-in capabilities at present:
 
-# if (conditional) (then-body) (else-body)
-
-# while (conditional)
+# while (conditional) (body)
 
 # do (body) (conditional)
 
 # for (init) (step) (conditional) (body)
+
+# if (conditional) (then-code) (else-code)
+# test (conditional) (then-expr) (else-expr)
 
 # def (name) (namespace) (code)
 
@@ -302,7 +308,7 @@ x;
 
 # call (function) (arg1) (arg2) (arg2)
 
-# map (function) (list)  # process each member using a length-1 argument list (SLOW!)
+# map (function) (list)  # process each member of list as payload to function
 
 # impl (function)
 
@@ -369,6 +375,7 @@ x;
 
 # symbols
 
+# str
 
 
 

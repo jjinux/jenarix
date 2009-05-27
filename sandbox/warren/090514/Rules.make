@@ -10,8 +10,6 @@ LDFLAGS = -lm
 # -m64
 # -pthread
 
-
-
 # include file list for manual Makefile dependencies
 # (replace this with something automatic in the future...)
 
