@@ -1,0 +1,22 @@
+# a = 1000000
+
+[set a 1000000];
+
+# b = []
+
+[set b []];
+
+# while a:
+#    b.append(a)
+#    a = a - 1
+
+[ while a
+  [ [append b a]
+    [set a [sub a 1]] ]
+];
+
+# print len(b)
+
+[size b];
+
+

@@ -1,0 +1,34 @@
+
+#def main():
+#    n = 1000000
+#    X = {}
+#    for i in xrange(1,n+1):
+#        X[str(i)] = i
+#    c = 0
+#    for i in xrange(n, 0, -1):
+#        c += X.has_key(str(i))
+#    print c
+
+(def main1 {} [
+    (set n 1000000)
+    (set X {})
+    (map (lambda null (set X [str _] _)) [range 1 [add n 1]])
+    (set c 0)
+    (map (lambda null (set c [add [get c] [has X [str _]]])) [range [get n] 0 -1])
+    (c)
+    ]
+);
+
+(def main2 {} [
+    (set X {})
+    (for [set i 0] [lt i 1000000] [set i (add i 1)] (set X [str i] i))
+    (set c 0)
+    (for [set i 1000000] [ge i 0] [set i (sub i 1)] (set c [add [get c] [has X [str i]]]))
+    (c)
+    ]
+);
+
+[del main2];
+[main1];
+
+

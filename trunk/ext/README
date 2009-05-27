@@ -1,0 +1,12 @@
+
+The ./build.sh script builds the lemon parser and the re2c scanner
+which Jenarix currently relies upon for automatic code generation.
+
+Relative to ../src/libjx, Jenarix expects re2c and lemon to be in:
+
+     ../../ext/bin
+
+The ./distclean.sh script cleans up the installed ext executables.
+
+Note that there are some worthwhile lemon example files in src/tgz.
+

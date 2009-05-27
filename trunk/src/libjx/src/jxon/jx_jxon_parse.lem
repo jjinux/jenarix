@@ -1,0 +1,475 @@
+/* 
+Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+
+* Neither the name of the DeLano Scientific LLC nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/* NOTE: This is the Jenarix Executable Object Notation (JXON) parser.
+
+   JXON is a strict forward-compatible superset of JSON than can be
+   encoded and passaged through JSON as needed for transport purposes.
+
+   JXON supports the following extensions on top of JSON:
+
+   * commas are optional on input and are used for aesthetics and
+     clarity only
+
+   * numbers are assumed to be integers unless they have a decimal or
+     exponent in which case they are considered to be floating point
+
+   * arbitrary text identifiers are supported (beyond null, true, false):
+     they are a new kind of primitive which behaves much like a string
+
+     my_ident
+     my_ident.sub
+     my_indet.sub.subsub
+
+     REGEXP used to parse identifiers: 
+
+     [a-zA-Z_] ([a-zA-Z0-9_])* ("." [a-zA-Z_] ([a-zA-Z0-9_]))*
+
+   * single-quoted as well as double-quoted strings are supported
+ 
+   * null, true, false, int, float, and identifiers are allowed to be
+     hash keys (in addition to ordinary strings)
+
+   * comments are permitted (starting with #)
+
+   * semicolons delimit JXON blocks and signal the parser to either
+     accept the input or throw an error
+
+ PLANNED:
+ 
+   * JSON ecoding of JXON executable notation through use of prefixes:
+
+     "jxD_0" "jxF_0.12" "jxS_anystring" "jxI_hello.warren"
+
+   * operators (automatically translated into identifiers): 
+        + - * / ! && || ^ etc.
+
+   * an explicit concatenation operator in the parser for string
+     literals ("a" . "b"?)
+
+ CONSIDERED:
+
+   * multi-line strings wrapped inside triple-quotes """ and '''
+
+*/
+
+%nonassoc ERROR. 
+
+%include {
+
+#include <stdio.h>
+
+#include "jx_jxon_private.h"
+
+}
+
+/*** Declare (parser) token_type. ***/
+
+%token_type{jx_ob}
+
+/*** parser functions begin with "jx_jxon_" ***/
+
+%name jx_jxon_
+
+/*** token symbols begin with "JX_JXON_" ***/
+
+%token_prefix JX_JXON_
+
+/*** for now, malloc'ing non-terminals. ***/
+
+%destructor implicit_list        { jx_ob_free($$); }
+%destructor expression           { jx_ob_free($$); }
+%destructor stop_expression      { jx_ob_free($$); }
+%destructor primitive            { jx_ob_free($$); }
+%destructor container            { jx_ob_free($$); }
+%destructor list                 { jx_ob_free($$); }
+%destructor list_of_expressions  { jx_ob_free($$); }
+%destructor hash                 { jx_ob_free($$); }
+%destructor association          { jx_ob_free($$); }
+%destructor list_of_associations { jx_ob_free($$); }
+
+/*** for now, mallocing tokens **/
+
+%token_destructor { jx_ob_free($$);}
+
+/*** 4th jx_jxon_Parse() argument is not currently used. ***/
+
+%extra_argument{jx_jxon_parse_context *context}
+
+/*** Accept action is done in start symbol action. ***/
+
+%parse_accept{
+    context->status = 1;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("accept called\n");
+#endif
+} 
+
+/* failure action */
+
+%parse_failure{
+  context->status = JX_STATUS_SYNTAX_ERROR;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("parse failed.\n");
+#endif
+}
+
+/*** Syntax error action ***/
+
+%syntax_error {  
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("jx_jxon_parse-error: syntax error.\n");
+#endif
+}
+
+/*** Declare parser token types ***/
+
+%type implicit_list          { jx_ob }
+%type stop_expression        { jx_ob }
+%type expression             { jx_ob }
+%type primitive              { jx_ob }
+%type container              { jx_ob }
+%type list                   { jx_ob }
+%type list_of_expressions    { jx_ob }
+%type hash                   { jx_ob }
+%type association            { jx_ob }
+%type list_of_associations   { jx_ob }
+
+/*** Start symbol ***/
+
+%start_symbol statement
+
+/*** The grammer itself ***/
+
+statement ::= EOI. 
+{  
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("statement = EOI\n"); 
+#endif
+}
+
+statement ::= stop_expression(B). 
+{  
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("statement = expression(B) EOI\n"); 
+#endif
+  jx_ob_free(context->result); /* free previous result (if any) */ 
+  context->result = B; /* save the result */
+}
+
+statement ::= implicit_list(B).
+{  
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("statement = expression(B) SEMICOLON\n"); 
+#endif
+  jx_ob_free(context->result); /* free previous result (if any) */ 
+  context->result = B; /* save the result */
+}
+
+stop_expression(A) ::= primitive(B) EOI.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) EOI\n");
+#endif
+}
+
+stop_expression(A) ::= primitive(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) EOI\n");
+#endif
+}
+
+stop_expression(A) ::= container(B) EOI.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) EOI\n");
+#endif
+}
+
+stop_expression(A) ::= container(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) SEMICOLON\n");
+#endif
+}
+
+implicit_list(A) ::= implicit_list(B) EOI.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= implicit_list(B) EOI.\n");
+#endif
+}
+
+implicit_list(A) ::= implicit_list(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= implicit_list(B) SEMICOLON.\n");
+#endif
+}
+
+implicit_list(A) ::= implicit_list(B) expression(C).
+{  
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= implicit_list(B) expression(C) EOI.\n");
+#endif
+}
+
+implicit_list(A) ::= primitive(B) expression(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("implicit_list(A) ::= primitive(B) expression(C).\n");
+#endif
+}
+
+expression(A) ::= primitive(B). 
+{  
+   A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("expression(A) = primitive(B)\n");
+#endif
+}
+
+expression(A) ::= container(B). 
+{  
+   A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("expression(A) = list(B)\n");
+#endif
+}
+
+container(A) ::= list(B). 
+{  
+   A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("expression(A) = list(B)\n");
+#endif
+}
+
+container(A) ::= hash(B). 
+{  
+   A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("expression(A) = hash(B)\n");
+#endif
+}
+
+hash(A) ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE.
+{ 
+  A = jx_hash_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("hash(A) = {}\n");
+#endif
+}
+
+hash(A) ::= OPEN_CURLY_BRACE list_of_associations(B) CLOSE_CURLY_BRACE.
+{ 
+  A = B; 
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("hash(A) = { B }\n");
+#endif
+}
+
+list_of_associations(A) ::= list_of_associations(B) primitive(C) COLON expression(D).
+{ 
+  A = B;
+  jx_hash_set(A,C,D);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_associations(A) = list_of_associations(B), primitive(C) : expression(D)\n");
+#endif
+}
+
+list_of_associations(A) ::= list_of_associations(B) COMMA primitive(C) COLON expression(D).
+{ 
+  A = B;
+  jx_hash_set(A,C,D);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_associations(A) = list_of_associations(B), primitive(C) : expression(D)\n");
+#endif
+}
+
+list_of_associations(A) ::= association(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_associations(A) = association(B)\n");
+#endif
+}
+
+association(A) ::= primitive(B) COLON expression(C).
+{ 
+  A = jx_hash_new();
+  jx_hash_set(A,B,C); /* takes ownership of B & C */
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_associations(A) = primitive(B) : expression(C)\n");
+#endif
+}
+
+list(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
+{ 
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list(A) = []\n");
+#endif
+}
+
+list(A) ::= OPEN_PAR CLOSE_PAR.
+{ 
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list(A) = []\n");
+#endif
+}
+
+list(A) ::= OPEN_RECT_BRACE list_of_expressions(B) CLOSE_RECT_BRACE.
+{ 
+  A = B; 
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list(A) = [ B ]\n");
+#endif
+}
+
+list(A) ::= OPEN_PAR list_of_expressions(B) CLOSE_PAR.
+{ 
+  A = B; 
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list(A) = [ B ]\n");
+#endif
+}
+
+list_of_expressions(A) ::= expression(B). 
+{ 
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_expressions(A) = expression(B)\n");
+#endif
+}
+
+list_of_expressions(A) ::= list_of_expressions(B) expression(C). 
+{ 
+  jx_list_append(B,C); /* takes ownership of C */
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_expressions(A) = list_of_expressions(B) , expression(C)\n");
+#endif
+}
+
+list_of_expressions(A) ::= list_of_expressions(B) COMMA expression(C). 
+{ 
+  jx_list_append(B,C); /* takes ownership of C */
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("list_of_expressions(A) = list_of_expressions(B) , expression(C)\n");
+#endif
+}
+
+primitive(A) ::= BUILTIN(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = BUILTIN\n"); 
+#endif
+}
+
+primitive(A) ::= ICON(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = ICON\n"); 
+#endif
+}
+
+primitive(A) ::= FCON(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = FCON\n"); 
+#endif
+}
+
+primitive(A) ::= SCON(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = SCON\n"); 
+#endif
+}
+
+primitive(A) ::= IDENT(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = IDENT\n"); 
+#endif
+}
+
+primitive(A) ::= TRUE(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = TRUE\n"); 
+#endif
+}
+
+primitive(A) ::= FALSE(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = FALSE\n"); 
+#endif
+}
+
+primitive(A) ::= NULL(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = NULL\n"); 
+#endif
+}
+
+
+
+
+
+

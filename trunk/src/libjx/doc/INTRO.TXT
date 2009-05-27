@@ -1,0 +1,395 @@
+# This is an introduction to the Jenarix intermediate language JXON
+# (pronounced "jackson") which is a derivative of JSON (pronounced
+# "jason").
+
+# NOTE: the following examples are intended to be run through ./jxl
+# interactively.  Please try them for yourself!
+
+# By the way, "jxl" exposes read-eval-print for the low-level
+# LISP-like JXON syntax. Also note that ./jxl currently requires that
+# each JXON phrase be terminated with a semicolon, and currently
+# accepts an implicit list of two or more elements without a
+# surrounding parens at the top level.
+
+# Other, much more human-friendly syntaxes will come, and will be
+# handled by some additional executables, including perhaps:
+
+# jxp : Python-like syntax (block indentation, no scoping braces)
+
+# jxj : Java/Javascript/C/Perl-like syntax (braces define scopes)
+
+# jxs : Shell-like syntax (based on PyMOL: keyword arg1, arg3=value)
+
+# jxn : declarative network-specification language.
+
+# JXON draws from LISP, JSON, functional, and data-flow architecture.
+
+# JXON is a strict super-set of JSON syntax and can be encoded in JSON
+# through escaping system without loss of structure or fidelity. 
+
+# - JXON adds two new primitive types (identifiers and builtins),
+
+# - JXON permits all primitive types to serve as hash keys
+
+# - Commas are optional in JSON -- whitespace is sufficient
+
+# - JXON accepts either parentheses and square braces as input.
+
+# - JXON supports #-delimited single-line comments.
+
+# With respect to LISP, JXON phrases are LISP-inspired symbolic-
+# expressions (S-expressions) which the Jenarix runtime is capable of
+# creating, transforming, binding, and executing.
+
+# JXON also includes a LISP-like macro facility with a simpler syntax.
+
+# Compared to LISP, JXON draws a distinction between functional
+# expressions: where the full list body is returned following
+# evaluation (EVAL behavior), and code blocks: where only the last
+# item of the evaluated list body is returned (EXEC behavior).  As a
+# performance optimization, JXON function bodies are flagged
+# internally as being destined for EVAL or EXEC, and we may add
+# some additional flags in the future to reflect parallel EVAL
+# (expression returned) and asynchronous EXEC (no return).
+
+# JXON lists are slow and expensive "heap" objects whereas all JXON
+# primitives (except for non-tiny strings) are self-contined stack
+# objects (like registers).
+
+# Accordingly JXON 'def' is used to create a named functions
+# containing code blocks (like Python 'def') and JXON 'defun'is used
+# to create a named functions containing expressions (like LISP
+# 'defun').  
+
+# Likewise, "code" is used to create anonymous lambda functions
+# containing code blocks and "lambda" is used to create anonymous
+# lambda functions containing expressions.
+
+# Expressions can of course contains code blocks surrounding by
+# (exec [exp1, expr2, expr3])
+
+# JXON primitives include:
+
+# - the basics: nonexistence, truth, and falsehood.
+
+null;
+true;
+false;
+
+# - integers
+
+1;
+2;
+-1;
+
+# - floats
+
+1.0;
+-0.25;
+
+# - strings
+
+"double quoted string";
+'single quoted string';
+
+# - identifiers
+
+a_simple_identifier;
+
+a.compound.identifier;
+
+# - and builtins (which represent bound entities that cannot be
+#   directly input, and are instead created and used at runtime)
+
+# NOTE: Builtins can be recognized in JXON output by their leading
+# back-quote (which by the way has nothing to do with LISP's
+# backquote)
+
+`add;
+
+`fn:my_custom_fn;
+
+`native_fn_0x00123456;  
+
+# JXON containers include:
+
+# - lists (but with optional commas)
+
+[1,2,3];
+
+(a b c);
+
+[true,2.0,'a'];
+
+[1 0 0
+ 0 1 0
+ 0 0 1];
+
+(my_fn arg1 arg2);
+
+[[][][]];
+
+# - and hashes (also with optional commas)
+
+{'a':'b',45:23,x:9};
+
+{true:false false:true};
+
+{
+ a:b
+ b:c
+ c:a
+};
+
+# NOTE the the default JXON parser accepts implicit lists at the top level
+# consisting of two or more elements:
+
+a;
+
+# re: a
+
+a b;
+
+# re: (a b)
+
+
+# JXON containers can be nested to arbitrary levels of complexity,
+# just like with JSON
+
+[{'a':1},[{ x:10,y:9}],[[{true:3}[[6],{}](a b c)]  ]];
+
+# So what about programming?  Well, first note that all executing code
+# has an associated namespace.  You can set values using set:
+
+[set x,100];
+
+# and recall them using get:
+
+[get x];  
+
+# re: 100
+
+# or simply enter the symbol literally
+
+x;
+
+# note that you can use either square or curly braces, and commas as
+# you see fit
+
+(set x 100);
+
+# or merely the symbol itself
+
+x;
+
+# re: 100
+
+# You can of course store containers as well:
+
+(set y [0,0,0]);
+
+y;
+
+# re: [0,0,0]
+
+# And modify them
+
+(append y 1);
+
+y;
+
+# re: [0,0,0,1]
+
+[extend y [get y]];
+
+y;
+
+# re: [0,0,0,1,0,0,0,1]
+
+# Control flow
+
+[set x 0];
+
+[if true [set x 1]];
+
+x;
+
+# re: 1
+
+(if false [set x 1] [set x 0]);
+
+x;
+
+# re: 0
+
+# Loops
+
+[set x 10];
+
+(do 
+  (
+    [output x]
+    [set x [sub x 1]]
+  )
+  [gt x 5]
+);
+
+[set y [2,5,8,10]];
+
+[while y [output [take y 0]]];
+# output:
+2;
+5;
+8;
+10;
+# re: null
+
+[for [set x 1] [le x 5] [set x [add x 1]] [output x]];
+# output:
+1;
+2;
+3;
+4;
+5;
+# re: null
+
+# Lambda and Apply
+
+[apply [lambda null _] 1.50];
+
+# re: 1.5
+
+[apply [lambda {a:4} [_,a]] 3];
+
+# re: [3,4]
+
+[apply [lambda [[x],{y:3}] [x,y]] [1]];
+
+# re: [1,3]
+
+[apply [lambda [[x y],{y:3}] [x,y]] [1,2]];
+
+# re: [1,2]
+
+# Functions. 
+
+[def fn1 null 9];
+
+[fn1];
+
+# re: 9
+
+[impl fn1];
+
+# re: [fn1,null,9]
+
+# Note that invoked functions are currently given the entire
+# invocation list as the payload, including the unresolved function
+# identifier.  We don't yet have a system for describing parameters
+# and matching up arguments (though we may not need one at this low
+# level)
+
+[def fn2 {a:2} _ ];  
+
+[fn2 arg1 'arg2' {arg3:0}];  
+
+# re: [fn2,arg1,"arg2",{arg3:0}]
+
+[def fn3 null [add 4 [take _ 0]] ];
+
+[fn3 5];
+
+# re: 9
+
+# Usable built-in capabilities at present:
+
+# while (conditional) (body)
+
+# do (body) (conditional)
+
+# for (init) (step) (conditional) (body)
+
+# if (conditional) (then-code) (else-code)
+# test (conditional) (then-expr) (else-expr)
+
+# def (name) (namespace) (code)
+
+# code (namespace) (code)
+# expr (namespace) (expr)
+
+# apply (function) (payload)
+
+# call (function) (arg1) (arg2) (arg2)
+
+# map (function) (list)  # process each member of list as payload to function
+
+# impl (function)
+
+# set (ident) (value)
+# set (hash) (key) (value)
+# set (list) (index) (value)
+
+# get (ident) 
+# get (list) (index)
+# get (hash) (key)
+
+# take (ident)
+# take (list) (index)
+# take (hash) (key)
+
+# has (ident)
+# has (hash) (key)
+
+# del (ident)
+# del (list) (index)
+# del (hash) (key)
+
+# decr (ident)
+# incr (ident)
+
+# append (list-ident) (expr)
+# pop (list-ident) (expr)
+
+# shift (list-ident) (expr)
+# unshift (list-ident) (expr)
+
+# extend (list-ident) (list)
+# insert (list-ident) (index) (value)
+# resize (list-ident) (size) (fill)
+# slice (list-ident) (size) (fill)
+# cutout (list-ident) (size) (fill)
+
+# identical (expr) (expr)
+# eq (expr) (expr)
+# gt (expr) (expr)
+# lt (expr) (expr)
+# ge (expr) (expr)
+# le (expr) (expr)
+
+# output (expr)
+# error (expr)
+
+# add (expr) (expr)
+# sub (expr) (expr)
+# mul (expr) (expr)
+# div (expr) (expr)
+# mod (expr) (expr)
+
+# and (expr) (expr)
+# or  (expr) (expr)
+
+# neg (expr)
+# not (expr)
+
+# size (expr)
+
+# range (start) (stop) (step)
+# fill (count) (withwhat)
+
+# symbols
+
+# str
+
+
+
+

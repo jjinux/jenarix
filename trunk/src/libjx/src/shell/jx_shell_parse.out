@@ -1,0 +1,923 @@
+State 0:
+          statement ::= * EOI
+          statement ::= * SEMICOLON
+          statement ::= * EOL
+          statement ::= * shell_expression EOI
+          statement ::= * shell_expression EOL
+          statement ::= * shell_expression SEMICOLON
+          shell_expression ::= * IDENT
+          shell_expression ::= * IDENT argument_list_of_lists
+
+                           EOI shift  35
+                     SEMICOLON shift  37
+                           EOL shift  38
+                         IDENT shift  1
+                     statement accept
+              shell_expression shift  18
+
+State 1:
+      (6) shell_expression ::= IDENT *
+          shell_expression ::= IDENT * argument_list_of_lists
+          argument_list_of_lists ::= * expression_list
+          argument_list_of_lists ::= * keyed_expression_list
+          argument_list_of_lists ::= * argument_list_of_lists COMMA expression_list
+          argument_list_of_lists ::= * argument_list_of_lists COMMA keyed_expression_list
+          keyed_expression_list ::= * primitive EQUALS expression_list
+          expression_list ::= * expression
+          expression_list ::= * expression_list expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+        argument_list_of_lists shift  22
+               expression_list shift  14
+         keyed_expression_list shift  36
+                     primitive shift  19
+                    expression shift  34
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+                     {default} reduce 6
+
+State 2:
+          argument_list_of_lists ::= argument_list_of_lists COMMA * expression_list
+          argument_list_of_lists ::= argument_list_of_lists COMMA * keyed_expression_list
+          keyed_expression_list ::= * primitive EQUALS expression_list
+          expression_list ::= * expression
+          expression_list ::= * expression_list expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+               expression_list shift  8
+         keyed_expression_list shift  33
+                     primitive shift  19
+                    expression shift  34
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 3:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= OPEN_RECT_BRACE * CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= OPEN_RECT_BRACE * inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          inner_expression_list ::= * expression
+          inner_expression_list ::= * inner_expression_list expression
+          inner_expression_list ::= * inner_expression_list COMMA expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+              CLOSE_RECT_BRACE shift  50
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  28
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+         inner_expression_list shift  7
+
+State 4:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= OPEN_PAR * CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          list ::= OPEN_PAR * inner_expression_list CLOSE_PAR
+          inner_expression_list ::= * expression
+          inner_expression_list ::= * inner_expression_list expression
+          inner_expression_list ::= * inner_expression_list COMMA expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                     CLOSE_PAR shift  51
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  28
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+         inner_expression_list shift  6
+
+State 5:
+          keyed_expression_list ::= primitive EQUALS * expression_list
+          expression_list ::= * expression
+          expression_list ::= * expression_list expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+               expression_list shift  10
+                     primitive shift  43
+                    expression shift  34
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 6:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          list ::= OPEN_PAR inner_expression_list * CLOSE_PAR
+          inner_expression_list ::= inner_expression_list * expression
+          inner_expression_list ::= inner_expression_list * COMMA expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+                         COMMA shift  9
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                     CLOSE_PAR shift  52
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  53
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 7:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= OPEN_RECT_BRACE inner_expression_list * CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          inner_expression_list ::= inner_expression_list * expression
+          inner_expression_list ::= inner_expression_list * COMMA expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+                         COMMA shift  9
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+              CLOSE_RECT_BRACE shift  29
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  53
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 8:
+     (10) argument_list_of_lists ::= argument_list_of_lists COMMA expression_list *
+          expression_list ::= expression_list * expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  42
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+                     {default} reduce 10
+
+State 9:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          inner_expression_list ::= inner_expression_list COMMA * expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  54
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 10:
+     (12) keyed_expression_list ::= primitive EQUALS expression_list *
+          expression_list ::= expression_list * expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  42
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+                     {default} reduce 12
+
+State 11:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          association ::= primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  32
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 12:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  49
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 13:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations COMMA primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  30
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+
+State 14:
+      (8) argument_list_of_lists ::= expression_list *
+          expression_list ::= expression_list * expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR inner_expression_list CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+              OPEN_CURLY_BRACE shift  15
+               OPEN_RECT_BRACE shift  3
+                      OPEN_PAR shift  4
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  43
+                    expression shift  42
+                     container shift  44
+                          list shift  45
+                          hash shift  46
+                     {default} reduce 8
+
+State 15:
+          hash ::= OPEN_CURLY_BRACE * CLOSE_CURLY_BRACE
+          hash ::= OPEN_CURLY_BRACE * list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= * list_of_associations primitive COLON expression
+          list_of_associations ::= * list_of_associations COMMA primitive COLON expression
+          list_of_associations ::= * association
+          association ::= * primitive COLON expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+             CLOSE_CURLY_BRACE shift  47
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  20
+          list_of_associations shift  16
+                   association shift  31
+
+State 16:
+          hash ::= OPEN_CURLY_BRACE list_of_associations * CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations * primitive COLON expression
+          list_of_associations ::= list_of_associations * COMMA primitive COLON expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+                         COMMA shift  17
+             CLOSE_CURLY_BRACE shift  48
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  21
+
+State 17:
+          list_of_associations ::= list_of_associations COMMA * primitive COLON expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+
+                         IDENT shift  24
+                       BUILTIN shift  55
+                          ICON shift  56
+                          FCON shift  57
+                          SCON shift  58
+                          TRUE shift  25
+                         FALSE shift  26
+                          NULL shift  27
+                     primitive shift  23
+
+State 18:
+          statement ::= shell_expression * EOI
+          statement ::= shell_expression * EOL
+          statement ::= shell_expression * SEMICOLON
+
+                           EOI shift  39
+                     SEMICOLON shift  41
+                           EOL shift  40
+
+State 19:
+          keyed_expression_list ::= primitive * EQUALS expression_list
+     (15) expression ::= primitive *
+
+                        EQUALS shift  5
+                     {default} reduce 15
+
+State 20:
+          association ::= primitive * COLON expression
+
+                         COLON shift  11
+
+State 21:
+          list_of_associations ::= list_of_associations primitive * COLON expression
+
+                         COLON shift  12
+
+State 22:
+      (7) shell_expression ::= IDENT argument_list_of_lists *
+          argument_list_of_lists ::= argument_list_of_lists * COMMA expression_list
+          argument_list_of_lists ::= argument_list_of_lists * COMMA keyed_expression_list
+
+                         COMMA shift  2
+                     {default} reduce 7
+
+State 23:
+          list_of_associations ::= list_of_associations COMMA primitive * COLON expression
+
+                         COLON shift  13
+
+State 24:
+     (36) primitive ::= IDENT *
+
+                     {default} reduce 36
+
+State 25:
+     (37) primitive ::= TRUE *
+
+                     {default} reduce 37
+
+State 26:
+     (38) primitive ::= FALSE *
+
+                     {default} reduce 38
+
+State 27:
+     (39) primitive ::= NULL *
+
+                     {default} reduce 39
+
+State 28:
+     (29) inner_expression_list ::= expression *
+
+                     {default} reduce 29
+
+State 29:
+     (27) list ::= OPEN_RECT_BRACE inner_expression_list CLOSE_RECT_BRACE *
+
+                     {default} reduce 27
+
+State 30:
+     (22) list_of_associations ::= list_of_associations COMMA primitive COLON expression *
+
+                     {default} reduce 22
+
+State 31:
+     (23) list_of_associations ::= association *
+
+                     {default} reduce 23
+
+State 32:
+     (24) association ::= primitive COLON expression *
+
+                     {default} reduce 24
+
+State 33:
+     (11) argument_list_of_lists ::= argument_list_of_lists COMMA keyed_expression_list *
+
+                     {default} reduce 11
+
+State 34:
+     (13) expression_list ::= expression *
+
+                     {default} reduce 13
+
+State 35:
+      (0) statement ::= EOI *
+
+                     {default} reduce 0
+
+State 36:
+      (9) argument_list_of_lists ::= keyed_expression_list *
+
+                     {default} reduce 9
+
+State 37:
+      (1) statement ::= SEMICOLON *
+
+                     {default} reduce 1
+
+State 38:
+      (2) statement ::= EOL *
+
+                     {default} reduce 2
+
+State 39:
+      (3) statement ::= shell_expression EOI *
+
+                     {default} reduce 3
+
+State 40:
+      (4) statement ::= shell_expression EOL *
+
+                     {default} reduce 4
+
+State 41:
+      (5) statement ::= shell_expression SEMICOLON *
+
+                     {default} reduce 5
+
+State 42:
+     (14) expression_list ::= expression_list expression *
+
+                     {default} reduce 14
+
+State 43:
+     (15) expression ::= primitive *
+
+                     {default} reduce 15
+
+State 44:
+     (16) expression ::= container *
+
+                     {default} reduce 16
+
+State 45:
+     (17) container ::= list *
+
+                     {default} reduce 17
+
+State 46:
+     (18) container ::= hash *
+
+                     {default} reduce 18
+
+State 47:
+     (19) hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
+
+                     {default} reduce 19
+
+State 48:
+     (20) hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE *
+
+                     {default} reduce 20
+
+State 49:
+     (21) list_of_associations ::= list_of_associations primitive COLON expression *
+
+                     {default} reduce 21
+
+State 50:
+     (25) list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
+
+                     {default} reduce 25
+
+State 51:
+     (26) list ::= OPEN_PAR CLOSE_PAR *
+
+                     {default} reduce 26
+
+State 52:
+     (28) list ::= OPEN_PAR inner_expression_list CLOSE_PAR *
+
+                     {default} reduce 28
+
+State 53:
+     (30) inner_expression_list ::= inner_expression_list expression *
+
+                     {default} reduce 30
+
+State 54:
+     (31) inner_expression_list ::= inner_expression_list COMMA expression *
+
+                     {default} reduce 31
+
+State 55:
+     (32) primitive ::= BUILTIN *
+
+                     {default} reduce 32
+
+State 56:
+     (33) primitive ::= ICON *
+
+                     {default} reduce 33
+
+State 57:
+     (34) primitive ::= FCON *
+
+                     {default} reduce 34
+
+State 58:
+     (35) primitive ::= SCON *
+
+                     {default} reduce 35
+
+----------------------------------------------------
+Symbols:
+    0: $:
+    1: ERROR
+    2: EOI
+    3: SEMICOLON
+    4: EOL
+    5: IDENT
+    6: COMMA
+    7: EQUALS
+    8: OPEN_CURLY_BRACE
+    9: CLOSE_CURLY_BRACE
+   10: COLON
+   11: OPEN_RECT_BRACE
+   12: CLOSE_RECT_BRACE
+   13: OPEN_PAR
+   14: CLOSE_PAR
+   15: BUILTIN
+   16: ICON
+   17: FCON
+   18: SCON
+   19: TRUE
+   20: FALSE
+   21: NULL
+   22: error:
+   23: statement: EOI SEMICOLON EOL IDENT
+   24: shell_expression: IDENT
+   25: argument_list_of_lists: IDENT OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON TRUE FALSE NULL
+   26: expression_list: IDENT OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON TRUE FALSE NULL
+   27: keyed_expression_list: IDENT BUILTIN ICON FCON SCON TRUE FALSE NULL
+   28: primitive: IDENT BUILTIN ICON FCON SCON TRUE FALSE NULL
+   29: expression: IDENT OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON TRUE FALSE NULL
+   30: container: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR
+   31: list: OPEN_RECT_BRACE OPEN_PAR
+   32: hash: OPEN_CURLY_BRACE
+   33: list_of_associations: IDENT BUILTIN ICON FCON SCON TRUE FALSE NULL
+   34: association: IDENT BUILTIN ICON FCON SCON TRUE FALSE NULL
+   35: inner_expression_list: IDENT OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON TRUE FALSE NULL

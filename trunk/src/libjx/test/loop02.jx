@@ -1,0 +1,23 @@
+# a = 2000000
+
+[set a 2000000];
+
+# b = {}
+
+[set b {}];
+
+#while a:
+#   b[a] = 1
+#   a = a - 1
+
+
+[ while [get a] 
+  [ [set b [get a] 1]
+    [set a [sub [get a] 1]] ]
+];
+
+# print len(b)
+
+[size b];
+
+
