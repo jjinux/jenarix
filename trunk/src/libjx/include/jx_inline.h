@@ -437,7 +437,7 @@ jx_status jx__vla_free(void **ref);
 
 JX_INLINE jx_int *jx_int_vla_new(jx_int size)
 {
-  return jx_vla_new(sizeof(jx_int), size);
+  return (jx_int*)jx_vla_new(sizeof(jx_int), size);
 }
 
 JX_INLINE jx_status jx_int_vla_resize(jx_int ** ref, jx_int size)
@@ -452,7 +452,7 @@ JX_INLINE jx_status jx_int_vla_free(jx_int ** ref)
 
 JX_INLINE jx_float *jx_float_vla_new(jx_float size)
 {
-  return jx_vla_new(sizeof(jx_float), size);
+  return (jx_float*)jx_vla_new(sizeof(jx_float), size);
 }
 
 JX_INLINE jx_status jx_float_vla_resize(jx_float ** ref, jx_int size)
@@ -1259,6 +1259,19 @@ JX_INLINE jx_ob jx_list_new_with_cutout(jx_ob list, jx_int start,jx_int stop)
     jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx_list_shift(jx_ob list)
+{
+  return jx_list_remove(list,0);
+}
+JX_INLINE jx_status jx_list_unshift(jx_ob list, jx_ob ob)
+{
+  return jx_list_insert(list,0,ob);
+}
+JX_INLINE jx_status jx_list_push(jx_ob list, jx_ob ob)
+{
+  return jx_list_append(list,ob);
+}
+
 JX_INLINE jx_ob jx_list_pop(jx_ob list)
 {
   jx_int size = jx_list_size(list);
@@ -1846,6 +1859,39 @@ JX_INLINE jx_bool jx_ob_ge(jx_ob left, jx_ob right)
     }
   } 
   return jx__ob_ge(left,right);
+}
+
+JX_INLINE jx_status jx_ob_type(jx_ob ob)
+{
+  switch(ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case 0:
+    return JX_OB_TYPE_NULL;
+    break;
+  case JX_META_BIT_BOOL:
+    return JX_OB_TYPE_BOOL;
+    break;
+  case JX_META_BIT_INT:
+    return JX_OB_TYPE_INT;
+    break;
+  case JX_META_BIT_FLOAT:
+    return JX_OB_TYPE_FLOAT;
+    break;
+  case JX_META_BIT_LIST:
+    return JX_OB_TYPE_LIST;
+    break;
+  case JX_META_BIT_HASH:
+    return JX_OB_TYPE_HASH;
+    break;
+  case JX_META_BIT_STR:
+    return JX_OB_TYPE_STR;
+    break;
+  case JX_META_BIT_IDENT:
+    return JX_OB_TYPE_IDENT;
+    break;
+  default:
+    return 0;
+    break;
+  }
 }
 
 /* size measurement */

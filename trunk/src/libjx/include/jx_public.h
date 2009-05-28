@@ -95,6 +95,15 @@ typedef struct jx__ob jx_ob;
 #define JX_YES     JX_STATUS_YES
 #define JX_NO      JX_STATUS_NO
 
+#define JX_OB_TYPE_NULL               2
+#define JX_OB_TYPE_BOOL               3
+#define JX_OB_TYPE_INT                4
+#define JX_OB_TYPE_FLOAT              5
+#define JX_OB_TYPE_STR                6
+#define JX_OB_TYPE_LIST               7
+#define JX_OB_TYPE_HASH               8
+#define JX_OB_TYPE_IDENT              9
+
 /* enable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -209,9 +218,11 @@ jx_bool jx_ob_identical(jx_ob left, jx_ob right); /* bitwise identical (1 != 1.0
 
 jx_bool jx_ob_equal(jx_ob left, jx_ob right); /* conceptually equal (1 == 1.0)*/
 
-/* sizing objects */
+/* querying objects */
 
 jx_ob jx_ob_size(jx_ob ob);
+
+jx_status jx_ob_type(jx_ob ob);
 
 /* common operations */
 
@@ -295,8 +306,12 @@ jx_status jx_list_append(jx_ob list, jx_ob ob); /* takes ownership of ob */
 jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob);   /* takes ownership of ob */
 jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob);  /* takes ownership of ob */
 
+jx_status jx_list_unshift(jx_ob list, jx_ob ob); /* takes ownership of ob */
+jx_status jx_list_push(jx_ob list, jx_ob ob);  /* takes ownership of ob */
+
 jx_status jx_list_combine(jx_ob list1, jx_ob list2);    /* takes ownership of and consume list2 */
 
+jx_ob jx_list_shift(jx_ob list); /* returns ownership of removed entry */
 jx_ob jx_list_borrow(jx_ob list, jx_int index); /* borrows list entry */
 jx_ob jx_list_get(jx_ob list, jx_int index); /* copies list entry (returns ownership) */
 jx_ob jx_list_pop(jx_ob list); /* returns ownership of removed entry */

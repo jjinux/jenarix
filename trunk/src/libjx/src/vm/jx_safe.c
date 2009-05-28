@@ -87,6 +87,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob namespace)
   ok = jx_declare(ok,namespace,"extend", JX_BUILTIN_EXTEND);
   ok = jx_declare(ok,namespace,"insert", JX_BUILTIN_INSERT);
   ok = jx_declare(ok,namespace,"resize", JX_BUILTIN_RESIZE);
+  ok = jx_declare(ok,namespace,"push", JX_BUILTIN_PUSH);
   ok = jx_declare(ok,namespace,"pop", JX_BUILTIN_POP);
   ok = jx_declare(ok,namespace,"shift", JX_BUILTIN_SHIFT);
   ok = jx_declare(ok,namespace,"unshift", JX_BUILTIN_UNSHIFT);

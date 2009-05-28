@@ -257,6 +257,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
           case JX_BUILTIN_INSERT:
           case JX_BUILTIN_RESIZE:
           case JX_BUILTIN_POP:
+          case JX_BUILTIN_PUSH:
           case JX_BUILTIN_SHIFT:
           case JX_BUILTIN_UNSHIFT:
           case JX_BUILTIN_SLICE:
@@ -368,7 +369,8 @@ static void jx__code_make_strong(jx_ob *ob,jx_int size)
   }
 }
 
-JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, jx_ob callable, jx_ob payload)
+JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, 
+                                        jx_ob callable, jx_ob payload)
 { /* frees callable; payload is consumed */
   //    jx_jxon_dump(stdout,"apply callable",callable);
   //    jx_jxon_dump(stdout,"       payload",payload);
@@ -483,6 +485,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, jx_ob callable,
         break;
       case JX_BUILTIN_POP:
         jx_tls_ob_replace(tls, &payload, jx_safe_pop(node, payload));
+        break;
+      case JX_BUILTIN_PUSH:
+        jx_tls_ob_replace(tls, &payload, jx_safe_append(node, payload));
         break;
       case JX_BUILTIN_SHIFT:
         jx_tls_ob_replace(tls, &payload, jx_safe_shift(node, payload));

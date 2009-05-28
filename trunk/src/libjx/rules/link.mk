@@ -42,7 +42,7 @@ tests: \
 libjx: libjx.a
 
 libjx.a: $(OOO_LIB)
-	ar -cr ../$@ $(OOO_LIB) $(LDFLAGS) $(LDFLAGS_ARCH)
+	ar -cr ../$@ $(OOO_LIB) 
 	/bin/mv -f ../$@  $(JX_BASE)/$@
 
 .o.a:
