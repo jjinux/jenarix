@@ -1772,8 +1772,8 @@ JX_INLINE jx_bool jx_ob_lt(jx_ob left, jx_ob right)
       return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right)) < 0;
       break;
     }
-  } 
-return JX_FALSE;
+  }
+  return jx__ob_lt(left,right);
 }
 
 jx_bool jx__ob_gt(jx_ob left, jx_ob right);

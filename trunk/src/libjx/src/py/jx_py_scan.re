@@ -185,12 +185,18 @@ static int jx_scan(jx_py_scanner_state *s)
     IS   = [uUlL]*;
     ESC  = [\\] ([abfnrtv?'"\\] | "x" H+ | O+);
 
+    "if"     { RET(JX_PY_IF); }
+    "elif"   { RET(JX_PY_ELIF); }
+    "else"   { RET(JX_PY_ELSE); }
+    "in"     { RET(JX_PY_IN);}
     "not"    { RET(JX_PY_NOT);}
     "print"  { RET(JX_PY_PRINT); }
     "for"    { RET(JX_PY_FOR); }
     "while"  { RET(JX_PY_WHILE); }
     "del"    { RET(JX_PY_DEL); }
-    "pass"    { RET(JX_PY_PASS); }
+    "pass"   { RET(JX_PY_PASS); }
+    "def"    { RET(JX_PY_DEF); }
+    "lambda" { RET(JX_PY_LAMBDA);}
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | (D+ IS?) { RET(JX_PY_ICON); }
     
@@ -201,6 +207,15 @@ static int jx_scan(jx_py_scanner_state *s)
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_PY_SCON); }
 
     LD ("." LD)* { RET(JX_PY_NAME); }
+
+    "["         { RET(JX_PY_OPEN_RECT_BRACE); }
+    "]"         { RET(JX_PY_CLOSE_RECT_BRACE); }
+
+    "("         { RET(JX_PY_OPEN_PAR); }
+    ")"         { RET(JX_PY_CLOSE_PAR); }
+
+    "{"         { RET(JX_PY_OPEN_CURLY_BRACE); }
+    "}"         { RET(JX_PY_CLOSE_CURLY_BRACE); }
 
     "~"         { RET(JX_PY_TILDE); }
     "+"         { RET(JX_PY_PLUS); }
@@ -253,7 +268,6 @@ static int jx_scan(jx_py_scanner_state *s)
     s->line++;
     s->pos = cursor;
     s->eof = NULL;
-    printf("newline scanned\n");
     if(ded_new && s->indent_level) {
       s->indent_level = 0;
       RET(JX_PY_DEDENT_NEWLINE);
@@ -294,23 +308,19 @@ comment:
 
   /* not used:
 
+
 #if 0
     "and"    { RET(JX_PY_AND); }
     "break"  { RET(JX_PY_BREAK); }
     "class"  { RET(JX_PY_CLASS); }
-    "def"    { RET(JX_DEF); }
-    "elif"   { RET(JX_ELIF); }
-    "else"   { RET(JX_ELSE); }
-    "exec"   { RET(JX_EXEC); }
-    "from"   { RET(JX_FROM); }
-    "if"     { RET(JX_IF); }
-    "import" { RET(JX_IMPORT); }
-    "in"     { RET(JX_IN);}
-    "is"     { RET(JX_IS);}
-    "lambda" { RET(JX_LAMBDA);}
-    "or"     { RET(JX_OR);}
-    "pass"   { RET(JX_PASS);}
-    "return" { RET(JX_RETURN); }
+
+    "exec"   { RET(JX_PY_EXEC); }
+    "from"   { RET(JX_PY_FROM); }
+    "import" { RET(JX_PY_IMPORT); }
+    "is"     { RET(JX_PY_IS);}
+    "or"     { RET(JX_PY_OR);}
+    "pass"   { RET(JX_PY_PASS);}
+    "return" { RET(JX_PY_RETURN); }
 #endif
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_PY_ICON); }
@@ -319,11 +329,6 @@ comment:
 
     "`" (L|D|":")+  { RET(JX_PY_BUILTIN); }
     
-    "["         { RET(JX_PY_OPEN_RECT_BRACE); }
-    "]"         { RET(JX_PY_CLOSE_RECT_BRACE); }
-
-    "{"         { RET(JX_PY_OPEN_CURLY_BRACE); }
-    "}"         { RET(JX_PY_CLOSE_CURLY_BRACE); }
 
     "-="        { RET(JX_PY_MINUS_EQUALS); }
     "*="        { RET(JX_PY_ASTERISK_EQUALS); }
@@ -337,8 +342,6 @@ comment:
     "**="       { RET(JX_PY_STARSTAR_EQUALS); } 
     "//="       { RET(JX_PY_SLASHSLASH_EQUALS); } 
 
-    "("         { RET(JX_PY_OPEN_PAR); }
-    ")"         { RET(JX_PY_CLOSE_PAR); }
 
     "true"      { RET(JX_PY_TRUE); }
     "false"     { RET(JX_PY_FALSE); }
@@ -371,6 +374,7 @@ static void jx_py_scan_input(jx_py_scanner_state *state)
   jx_int tok_type = 0;
   jx_char stack_buffer[SSCANF_BUFSIZE];
   jx_int colon_seen = JX_FALSE;
+  jx_int newline_seen = JX_FALSE;
   state->context.status = 0;
   state->n_tok_parsed = 0;
 
@@ -382,7 +386,7 @@ static void jx_py_scan_input(jx_py_scanner_state *state)
       jx_bool skip = JX_FALSE;
       
 #ifdef JX_PY_PARSER_DEBUG
-
+      
       if(1) {
         jx_size i;
         jx_char *c = state->tok;
@@ -397,7 +401,24 @@ static void jx_py_scan_input(jx_py_scanner_state *state)
         }
       }
 #endif
-      
+
+      switch(tok_type) {
+      case JX_PY_INDENT:
+      case JX_PY_DEDENT:
+      case JX_PY_NEWLINE:
+        break;
+      default:
+        if(newline_seen && 
+           (state->indent_level)) {
+          int new_indent = (state->tok - state->pos);
+          if(new_indent != state->indent_level) {
+            jx_ob ob = jx_ob_from_null();
+            jx_py_(jx_Parser, JX_PY_DEDENT, ob, &state->context);        
+            state->indent_level = new_indent;
+          }
+        }
+      }
+
       switch(tok_type) {
       case JX_PY_ICON:
       case JX_PY_FCON:
@@ -491,30 +512,27 @@ static void jx_py_scan_input(jx_py_scanner_state *state)
       case JX_PY_ERROR:
         state->context.status = JX_STATUS_SYNTAX_ERROR;
         break;
+      case JX_PY_EOI:
+        skip = JX_TRUE;
+        break;
       }
+      
+      newline_seen = (tok_type == JX_PY_NEWLINE);
+
       if(!skip) {
         colon_seen = (tok_type == JX_PY_COLON);
         jx_py_(jx_Parser, (int)tok_type, token, &state->context);
         
         if(!jx_ok(state->context.status)) /* something bad happened */
           break;
-        
-        switch(tok_type) {
-        case JX_PY_EOI:
-          {/* parse a null token to enable acceptance */
-            jx_ob ob = JX_OB_NULL;
-            jx_py_(jx_Parser, 0, ob, &state->context);
-          }
-          break;
-#if 0
-        case JX_PY_NEWLINE:
-          {/* parse a second copy to enable acceptance */
-            jx_ob ob = JX_OB_NULL;
-            jx_py_(jx_Parser, tok_type, ob, &state->context);
-          }
-          break;
-#endif
+      }
+      switch(tok_type) {
+      case JX_PY_EOI:
+        {/* parse a null token to enable acceptance */
+          jx_ob ob = JX_OB_NULL;
+          jx_py_(jx_Parser, 0, ob, &state->context);
         }
+        break;
       }
       
       if(state->context.status) /* accepted or complete */
@@ -522,10 +540,10 @@ static void jx_py_scan_input(jx_py_scanner_state *state)
       else
         state->n_tok_parsed++;
     }
-  }
   
-  if(tok_type == JX_PY_EOI) {
-    state->context.exhausted = JX_TRUE;
+    if(tok_type == JX_PY_EOI) {
+      state->context.exhausted = JX_TRUE;
+    }
   }
   
   /* free the parser instance */

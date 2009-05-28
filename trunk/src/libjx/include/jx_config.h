@@ -29,7 +29,6 @@
 
 #define noJX_OS_FAKE_THREADS 
 
-
 /* DEBUG SETTINGS */
 
 /* wrap malloc, calloc, realloc, and free? (print atexit) */

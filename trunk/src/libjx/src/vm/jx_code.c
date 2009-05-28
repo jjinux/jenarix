@@ -64,8 +64,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_BUILTIN_LAMBDA    21
 #define JX_BUILTIN_DEFMAC    22
 #define JX_BUILTIN_REDUCE    23
+#define JX_BUILTIN_FOREACH   24
 
-#define JX_BUILTIN_SPECIAL_FORMS_LIMIT 24
+#define JX_BUILTIN_SPECIAL_FORMS_LIMIT 25
 
 static jx_bool jx_declare(jx_bool ok, jx_ob namespace, jx_char * ident, jx_int selector)
 {
@@ -85,6 +86,7 @@ jx_status jx_code_expose_special_forms(jx_ob namespace)
   ok = jx_declare(ok, namespace, "while", JX_BUILTIN_WHILE);
   ok = jx_declare(ok, namespace, "do", JX_BUILTIN_DO);
   ok = jx_declare(ok, namespace, "for", JX_BUILTIN_FOR);
+  ok = jx_declare(ok, namespace, "foreach", JX_BUILTIN_FOREACH);
   ok = jx_declare(ok, namespace, "test", JX_BUILTIN_TEST);
 
   ok = jx_declare(ok, namespace, "quote", JX_BUILTIN_QUOTE);
@@ -261,6 +263,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
           case JX_BUILTIN_CUTOUT:
           case JX_BUILTIN_CODE:
           case JX_BUILTIN_LAMBDA:
+          case JX_BUILTIN_FOREACH:
           case JX_BUILTIN_HAS:
             unresolved = 2;
             break;
@@ -868,19 +871,25 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
             return  ((size>1) ? jx_code_exec_tls(tls, flags, node, expr_vla[1]) : 
                      jx_ob_from_null());
             break;
-          case JX_BUILTIN_IF: /* [*if* expr code code] */
+          case JX_BUILTIN_IF: /* [*if* expr code expr code ... code] */
             {
-              jx_ob cond = ((size>1) ? jx_code_eval_tls(tls, flags, node, expr_vla[1]) : 
-                            jx_ob_from_null());
-              jx_bool cond_bool = jx_ob_as_bool(cond);
-              jx_ob_free(cond);
-              if(cond_bool) {
-                return ((size>2) ? jx_code_exec_tls(tls,flags, node, expr_vla[2]) :
-                        jx_ob_from_null());
-              } else {
-                return ((size>3) ? jx_code_exec_tls(tls,flags, node, expr_vla[3]) :
-                        jx_ob_from_null());
+              int i = 1;
+              while(i<size) {
+                jx_ob cond = ((size>1) ? jx_code_eval_tls(tls, flags, node, expr_vla[i]) : 
+                              jx_ob_from_null());
+                jx_bool cond_bool = jx_ob_as_bool(cond);
+                jx_ob_free(cond);
+                i+=2;
+                if(cond_bool) {
+                  return ((size>2) ? jx_code_exec_tls(tls,flags, node, expr_vla[i-1]) :
+                          jx_ob_from_null());
+                } else if(size == i) {
+                  break;
+                } else if(size == i+1) {
+                  return jx_code_exec_tls(tls,flags, node, expr_vla[i]);
+                }
               }
+              return jx_ob_from_null();
             }
             break;
           case JX_BUILTIN_TEST: /* [*test* expr expr expr] */
@@ -1048,6 +1057,47 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                   jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node, body));
                 }
                 jx_ob_free(jx_code_eval_tls(tls, flags, node, step));
+              }
+              return result;
+            }
+            break;
+          case JX_BUILTIN_FOREACH:
+            {
+              jx_ob expr = (size>1) ? expr_vla[1] : jx_ob_from_null();
+              jx_ob list = (size>2) ? 
+                jx_code_eval_allow_weak(tls,flags,node, expr_vla[2]) :
+                jx_ob_from_null();
+              jx_ob body = (size>3) ? expr_vla[3] : jx_ob_from_null();
+              jx_ob result = JX_OB_NULL;
+              jx_list *inp_list = list.data.io.list;
+              jx_int i,size = jx_list_size(list);
+              if(size) {
+                if(!inp_list->packed_meta_bits) { /* normal object input */
+                  jx_ob *ob = inp_list->data.ob_vla;
+                  for(i=0;i<size;i++) {
+                    jx_hash_set(node, expr, *(ob++));
+                    jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node,body));
+                  } 
+                } else if(inp_list->packed_meta_bits == JX_META_BIT_INT) { 
+                    /* packed integer input */
+                  jx_ob ob = JX_OB_INT;
+                  jx_int *inp_int = inp_list->data.int_vla;
+                  for(i=0;i<size;i++) {
+                    ob.data.io.int_ = *(inp_int++);
+                    jx_hash_set(node, expr, ob);
+                    jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node,body));
+                  }
+                } else if(inp_list->packed_meta_bits == JX_META_BIT_FLOAT) { 
+                  jx_ob ob = JX_OB_FLOAT;
+                  jx_float *inp_float = inp_list->data.float_vla;
+                  for(i=0;i<size;i++) {
+                    ob.data.io.float_ = *(inp_float++);
+                    jx_hash_set(node, expr, ob);
+                    jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node,body));
+                  }
+                }
+                jx_vla_reset(&inp_list->data.ob_vla);
+                jx_tls_ob_free(tls,list);
               }
               return result;
             }

@@ -44,61 +44,61 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* symbols */
 
-#define JX_BUILTIN_FILL        69
-#define JX_BUILTIN_RANGE       71
-#define JX_BUILTIN_SET         24
-#define JX_BUILTIN_GET         25
-#define JX_BUILTIN_BORROW      26
-#define JX_BUILTIN_TAKE        27
-#define JX_BUILTIN_DEL         28
+#define JX_BUILTIN_FILL        30
+#define JX_BUILTIN_RANGE       31
+#define JX_BUILTIN_SET         32
+#define JX_BUILTIN_GET         33
+#define JX_BUILTIN_BORROW      34
+#define JX_BUILTIN_TAKE        35
+#define JX_BUILTIN_DEL         36
 
-#define JX_BUILTIN_IDENTICAL   29
-#define JX_BUILTIN_EQ          30
-#define JX_BUILTIN_LT          31
-#define JX_BUILTIN_GT          32
-#define JX_BUILTIN_LE          33
-#define JX_BUILTIN_GE          34
-#define JX_BUILTIN_NE          35
-#define JX_BUILTIN_AND         36      
-#define JX_BUILTIN_OR          37
-#define JX_BUILTIN_BIT_AND     38 
-#define JX_BUILTIN_BIT_OR      39
-#define JX_BUILTIN_BIT_XOR     40
-#define JX_BUILTIN_BIT_SHL     41
-#define JX_BUILTIN_BIT_SHR     42
+#define JX_BUILTIN_IDENTICAL   37
+#define JX_BUILTIN_EQ          38
+#define JX_BUILTIN_LT          39
+#define JX_BUILTIN_GT          40
+#define JX_BUILTIN_LE          41
+#define JX_BUILTIN_GE          42
+#define JX_BUILTIN_NE          43
+#define JX_BUILTIN_AND         44    
+#define JX_BUILTIN_OR          45
+#define JX_BUILTIN_BIT_AND     46 
+#define JX_BUILTIN_BIT_OR      47
+#define JX_BUILTIN_BIT_XOR     48
+#define JX_BUILTIN_BIT_SHL     49
+#define JX_BUILTIN_BIT_SHR     50
 
-#define JX_BUILTIN_ADD         43
-#define JX_BUILTIN_SUB         44
-#define JX_BUILTIN_MUL         45
-#define JX_BUILTIN_DIV         46
-#define JX_BUILTIN_MOD         47
+#define JX_BUILTIN_ADD         51
+#define JX_BUILTIN_SUB         52
+#define JX_BUILTIN_MUL         53
+#define JX_BUILTIN_DIV         54
+#define JX_BUILTIN_MOD         55
 
-#define JX_BUILTIN_BIT_NOT     48
-#define JX_BUILTIN_NOT         49
-#define JX_BUILTIN_NEG         50
+#define JX_BUILTIN_BIT_NOT     56
+#define JX_BUILTIN_NOT         57
+#define JX_BUILTIN_NEG         58
 
-#define JX_BUILTIN_OUTPUT      51
-#define JX_BUILTIN_ERROR       52
+#define JX_BUILTIN_OUTPUT      59
+#define JX_BUILTIN_ERROR       60
 
-#define JX_BUILTIN_SIZE        53
-#define JX_BUILTIN_APPEND      54
-#define JX_BUILTIN_POP         55
-#define JX_BUILTIN_SHIFT       56
-#define JX_BUILTIN_UNSHIFT     57
-#define JX_BUILTIN_INSERT      58
-#define JX_BUILTIN_RESIZE      59
-#define JX_BUILTIN_EXTEND      60
-#define JX_BUILTIN_SLICE       61
-#define JX_BUILTIN_CUTOUT      62
-#define JX_BUILTIN_IMPL        63
+#define JX_BUILTIN_SIZE        61
+#define JX_BUILTIN_APPEND      62
+#define JX_BUILTIN_POP         63
+#define JX_BUILTIN_SHIFT       64
+#define JX_BUILTIN_UNSHIFT     65
+#define JX_BUILTIN_INSERT      66
+#define JX_BUILTIN_RESIZE      67
+#define JX_BUILTIN_EXTEND      68
+#define JX_BUILTIN_SLICE       69
+#define JX_BUILTIN_CUTOUT      70
+#define JX_BUILTIN_IMPL        71
 
-#define JX_BUILTIN_INCR        64
-#define JX_BUILTIN_DECR        65
-#define JX_BUILTIN_SYMBOLS     66
-#define JX_BUILTIN_HAS         67
-#define JX_BUILTIN_SAME        68
+#define JX_BUILTIN_INCR        72
+#define JX_BUILTIN_DECR        73
+#define JX_BUILTIN_SYMBOLS     74
+#define JX_BUILTIN_HAS         75
+#define JX_BUILTIN_SAME        76
 
-#define JX_BUILTIN_STR         70
+#define JX_BUILTIN_STR         77
 
 #define JX_BIN_OP(SUFFIX) \
 JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
@@ -174,6 +174,8 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
     }
     target = jx_list_borrow(payload,1);
     jx__resolve(&container,&target);
+    jx_jxon_dump(stdout,"container",container);
+    jx_jxon_dump(stdout,"target",target);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
       return jx_ob_from_status
@@ -388,17 +390,25 @@ JX_INLINE jx_ob jx_safe_range(jx_ob node, jx_ob payload)
   case 1:
     return jx_list_new_with_range(0,
                                   jx_ob_as_int(jx_list_borrow(payload,0)),
-                                  1);
+                                  1, JX_FLOAT_ZERO);
     break;
   case 2:
     return jx_list_new_with_range(jx_ob_as_int(jx_list_borrow(payload,0)),
                                   jx_ob_as_int(jx_list_borrow(payload,1)),
-                                  1);
+                                  1, JX_FLOAT_ZERO);
+
+    break;
+  case 3:
+    return jx_list_new_with_range(jx_ob_as_int(jx_list_borrow(payload,0)),
+                                  jx_ob_as_int(jx_list_borrow(payload,1)),
+                                  jx_ob_as_int(jx_list_borrow(payload,2)),
+                                  JX_FLOAT_ZERO);
     break;
   default:
     return jx_list_new_with_range(jx_ob_as_int(jx_list_borrow(payload,0)),
                                   jx_ob_as_int(jx_list_borrow(payload,1)),
-                                  jx_ob_as_int(jx_list_borrow(payload,2)));
+                                  jx_ob_as_int(jx_list_borrow(payload,2)),
+                                  jx_ob_as_float(jx_list_borrow(payload,3)));
     break;
   }
 }

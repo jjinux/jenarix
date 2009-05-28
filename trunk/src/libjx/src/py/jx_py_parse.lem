@@ -137,9 +137,70 @@ single_input ::= compound_stmt(A) NEWLINE.
   context->result = A; 
 }
 
+/* funcdef: 'def' NAME parameters ':' suite */
+
+funcdef(A) ::= DEF NAME(B) parameters(C) COLON suite(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("def"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+  jx_list_append(A,D);
+}
+
+/* parameters: '(' [varargslist] ')' */
+
+parameters(A) ::= OPEN_PAR varargslist(B) CLOSE_PAR.
+{
+  A=B;
+}
+
+
+/* varargslist: ((fpdef ['=' test] ',')*
+              ('*' NAME [',' '**' NAME] | '**' NAME) |
+              fpdef ['=' test] (',' fpdef ['=' test])* [',']) */
+
+varargslist(A) ::= fpdefs(B).
+{
+  A=B;
+}
+
+/* fpdef: NAME | '(' fplist ')' */
+
+fpdefs(A) ::= NAME(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+fpdefs(A) ::= fpdefs(B) COMMA NAME(C).
+{
+  B= A;
+  jx_list_append(A,C);
+}
+
+/* fplist: fpdef (',' fpdef)* [','] */
+
+
 /* simple_stmt: small_stmt (';' small_stmt)* [';'] NEWLINE */
 
 simple_stmt(A) ::= small_stmt(B) NEWLINE.
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("simple_stmt(A) ::= small_stmt(B) NEWLINE.\n");
+#endif
+}
+
+simple_stmt(A) ::= testlist(B) NEWLINE.
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("simple_stmt(A) ::= small_stmt(B) NEWLINE.\n");
+#endif
+}
+
+simple_stmt(A) ::= testlist(B) SEMICOLON NEWLINE.
 {  
   A = B;
 #ifdef JX_PY_PARSER_DEBUG
@@ -295,7 +356,16 @@ print_stmt(A) ::= print_stmt(B) COMMA test(C).
 #endif
 }
 
+
 /* compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated */
+
+compound_stmt(A) ::= if_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("compound_stmt(A) ::= while_stmt(B).\n");
+#endif
+}
 
 compound_stmt(A) ::= while_stmt(B).
 {  
@@ -304,6 +374,54 @@ compound_stmt(A) ::= while_stmt(B).
   printf("compound_stmt(A) ::= while_stmt(B).\n");
 #endif
 }
+
+compound_stmt(A) ::= for_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("compound_stmt(A) ::= while_stmt(B).\n");
+#endif
+}
+
+compound_stmt(A) ::= funcdef(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("compound_stmt(A) ::= while_stmt(B).\n");
+#endif
+}
+
+/* if_stmt: 'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite] */
+
+if_stmt(A) ::= if_head(B).
+{
+  A = B;
+}
+
+if_stmt(A) ::= if_head(B) ELSE COLON suite(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
+
+if_head(A) ::= if_head(B) ELIF test(C) COLON suite(D).
+{
+  A = B;
+   jx_list_append(A,C);
+   jx_list_append(A,D);
+}
+
+if_head(A) ::= IF test(B) COLON suite(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("if"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("if_head(A) ::= IF test(B) COLON suite(C).\n");
+#endif
+}
+
 
 /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
 
@@ -320,7 +438,7 @@ while_stmt(A) ::= WHILE test(B) COLON suite(C).
 
 /* for_stmt: 'for' exprlist 'in' testlist ':' suite ['else' ':' suite] */
 
-while_stmt(A) ::= FOR exprlist(B) IN testlist(C) COLON suite(D).
+for_stmt(A) ::= FOR exprlist(B) IN testlist(C) COLON suite(D).
 {
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("foreach"));
@@ -386,6 +504,14 @@ test(A) ::= or_test(B).
   A = B;
 #ifdef JX_PY_PARSER_DEBUG
   printf("test(A) ::= or_test(B).\n");
+#endif
+}
+
+test(A) ::= lambdef(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf(".\n");
 #endif
 }
 
@@ -669,7 +795,35 @@ factor(A) ::= TILDE factor(B).
 #endif
 }
 
+/* testlist_gexp: test ( gen_for | (',' test)* [','] ) */
+
+/*
+testlist_gexp(A) ::= test(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= test(B).\n"); 
+#endif
+}
+*/
+
 /* power: atom trailer* ['**' factor] */
+
+power(A) ::= atom(B) trailer(C).
+{
+  A = C;
+    /*    
+          if(jx_ob_identical(tmp,jx_ob_from_ident("get")))
+    jx_ob tmp = jx_list_get(A,0);
+      jx_list_insert(A,1,B);
+    else
+  jx_ob_free(tmp);
+    */
+  jx_list_insert(A,0,B);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("power(A) ::= atom(B) trailer(C).\n");
+#endif
+}
 
 power(A) ::= atom(B).
 {
@@ -679,6 +833,7 @@ power(A) ::= atom(B).
 #endif
 }
 
+
 /* atom: ('(' [yield_expr|testlist_gexp] ')' |
        '[' [listmaker] ']' |
        '{' [dictmaker] '}' |
@@ -686,6 +841,50 @@ power(A) ::= atom(B).
        NAME | NUMBER | STRING+) */
 
 /* we parse numbers as FCON / ICON */
+
+/*
+atom(A) ::= testlist_gexp(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom(A) ::= testlist_gexp(B). \n");
+#endif
+}
+*/
+
+atom(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
+{ 
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf(".\n"); 
+#endif
+}
+
+atom(A) ::= OPEN_RECT_BRACE listmaker(B) CLOSE_RECT_BRACE.
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf(".\n"); 
+#endif
+}
+
+atom(A) ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE.
+{ 
+  A = jx_hash_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf(".\n"); 
+#endif
+}
+
+
+atom(A) ::= OPEN_CURLY_BRACE dictmaker(B) CLOSE_CURLY_BRACE.
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf(".\n"); 
+#endif
+}
+
 
 atom(A) ::= ICON(B). 
 { 
@@ -711,6 +910,115 @@ atom(A) ::= string(B).
 #endif
 }
 
+/* listmaker: test ( list_for | (',' test)* [','] ) */
+
+listmaker(A) ::= test(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+listmaker(A) ::= listmaker(B) COMMA test(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
+
+/* lambdef: 'lambda' [varargslist] ':' test */
+
+lambdef(A) ::= LAMBDA varargslist(B) COLON test(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("lambda"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+}
+
+/* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME */
+
+trailer(A) ::= OPEN_PAR CLOSE_PAR.
+{
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("trailer(A) ::= OPEN_PAR CLOSE_PAR.\n"); 
+#endif
+}
+
+trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.\n"); 
+#endif
+}
+
+trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("trailer(A) ::= OPEN_RECT_BRACKET subscriptlist(B) CLOSE_RECT_BRACKET.\n"); 
+#endif
+}
+
+/* subscriptlist: subscript (',' subscript)* [','] */
+
+subscriptlist(A) ::= subscript(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("get"));
+  jx_list_append(A,B);
+}
+
+subscriptlist(A) ::= subscriptlist(B) COMMA subscript(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
+
+/* subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop] */
+
+subscript(A) ::= test(B).
+{
+  A = B;
+}
+
+/* dictmaker: test ':' test (',' test ':' test)* [','] */
+
+dictmaker(A) ::= test(B) COLON test(C).
+{
+  A = jx_hash_new();
+  jx_hash_set(A,B,C);  
+}
+
+dictmaker(A) ::= dictmaker(B) COMMA test(C) COLON test(D).
+{
+  A = B;
+  jx_hash_set(A,C,D);  
+}
+
+/* arglist: (argument ',')* (argument [',']
+                         |'*' test (',' argument)* [',' '**' test] 
+                         |'**' test) */
+
+arglist(A) ::= argument(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+arglist(A) ::= arglist(B) COMMA argument(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
+
+argument(A) ::= test(B).
+{
+  A = B;
+}
+
+/* argument: test [gen_for] | test '=' test  # Really [keyword '='] test */
+
 string(A) ::= SCON(B). 
 {
   A = B;
@@ -723,7 +1031,7 @@ string(A) ::= SCON(B).
 
 string(A) ::= string(B) SCON(C).
 {
-  A = jx_ob_add(B,B);
+  A = jx_ob_add(B,C);
   jx_ob_free(B);
   jx_ob_free(C);
 #ifdef JX_JXON_PARSER_DEBUG
@@ -848,3 +1156,22 @@ exprlist(A) ::= exprlist_3(B).
   printf("exprlist(A) ::= exprlist_3(B).\n"); 
 #endif
 }
+
+/* testlist1: test (',' test)* */
+/*
+testlist1(A) ::= test(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= test(B).\n"); 
+#endif
+}
+
+testlist1(A) ::= testlist_2(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= testlist_2(B).\n"); 
+#endif
+}
+*/

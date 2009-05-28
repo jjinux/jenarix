@@ -1,0 +1,94 @@
+
+# we have variables
+
+a = 1
+
+print a
+
+# we have literals 
+
+b = {"some key":[1,2,3], 3:"some value", "another key":"another value",8.4:0}
+
+print b, size(b)
+
+# REMEMBER, Jenarix uses copy semantics, not reference-taking semantics, so
+
+d = {"some key":"value"}
+
+c = {}
+
+set(c,"another key","value")
+
+print c
+
+print b
+
+# is NOT how Python works.
+
+
+
+# we have print
+
+print "hello Python world!!!" " Can you hear me now?"
+
+# we have for loops (simple iterator)
+
+for b in range(3,8):
+    print b
+
+
+# we have while loops
+
+x=1.3
+
+while x<9:
+    x=x+1.1
+    print x
+
+
+# we have cascading IF statements
+
+if 0:
+    print "hi"
+elif 0:
+    print "who"
+elif 1:
+    print "wow"
+else:
+    print 1234
+
+# we have functions
+
+def fn(a,b):
+    print "The sum of",a,"and",b,"is",a+b
+
+fn(1,2)
+
+fn(3,6)
+
+# we have map / lambda
+
+print map(lambda x:x*x, range(10))
+
+
+# but we're still missing a lot of stuff...
+
+# in particular...
+
+# stability!  segfaults are a problem.
+
+# array notation, a[4] etc.
+
+# dot notation for names
+
+# keyword arguments
+
+# all the fancy 2.4+ stuff I never use anyway
+
+
+
+
+
+
+
+

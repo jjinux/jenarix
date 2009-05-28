@@ -129,8 +129,9 @@ int main(int argc, char *argv[])
             jx_ob_free(message);
           }
           break;
-        default: /* about on all other errors */
-          done = JX_TRUE;
+        default: 
+          if(!jx_ok(status)) 
+            done = JX_TRUE;
           break;
         }
       }

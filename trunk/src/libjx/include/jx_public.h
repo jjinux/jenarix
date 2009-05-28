@@ -283,7 +283,7 @@ jx_ob jx_list_new_from_int_array(jx_int * array, jx_int size);  /* copies array 
 jx_ob jx_list_new_from_float_array(jx_float * array, jx_float size);    /* copies array */
 jx_ob jx_list_new_with_size(jx_int size); /* creates a null-filled list */
 jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill); /* takes ownership of fill */
-jx_ob jx_list_new_with_range(jx_int start, jx_int stop, jx_int step);
+jx_ob jx_list_new_with_range(jx_int start, jx_int stop, jx_int step, jx_float scale);
 
 jx_ob jx_list_new_from_hash(jx_ob hash); /* returns owned list of copied keys & values (interleaved) */
 jx_ob jx_list_new_with_hash(jx_ob hash); /* frees hash and converts content to interleaved list */

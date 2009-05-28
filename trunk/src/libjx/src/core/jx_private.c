@@ -885,7 +885,7 @@ jx_ob jx_list_new_with_size(jx_int size)
   return result;
 }
 
-jx_ob jx_list_new_with_range(jx_int start, jx_int stop, jx_int step)
+jx_ob jx_list_new_with_range(jx_int start, jx_int stop, jx_int step,jx_float scale)
 {
   jx_ob result = jx_list_new();
   jx_int delta = stop - start;
@@ -893,12 +893,23 @@ jx_ob jx_list_new_with_range(jx_int start, jx_int stop, jx_int step)
     jx_int steps = (delta / step);
     if(delta % step) steps++;
     if(steps) {
-      jx_int *ptr = jx_list_as_int_vla(result);
-      if(jx_ok(jx_vla_resize(&ptr,steps))) {
-        jx_list_set_int_vla(result,&ptr);
-        while(steps--) {
-          *(ptr++) = start;
+      if(scale == JX_FLOAT_ZERO) {
+        jx_int *ptr = jx_list_as_int_vla(result);
+        if(jx_ok(jx_vla_resize(&ptr,steps))) {
+          jx_list_set_int_vla(result,&ptr);
+          while(steps--) {
+            *(ptr++) = start;
             start += step;
+          }
+        }
+      } else {
+        jx_float *ptr = jx_list_as_float_vla(result);
+        if(jx_ok(jx_vla_resize(&ptr,steps))) {
+          jx_list_set_float_vla(result,&ptr);
+          while(steps--) {
+            *(ptr++) = start * scale;
+            start += step;
+          }
         }
       }
     }
