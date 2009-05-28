@@ -283,7 +283,7 @@ JX_INLINE jx_status jx_ob_free(jx_ob ob)
   return JX_SUCCESS;
 }
 
-JX_INLINE jx_status jx_ob_free_tls(jx_tls *tls,jx_ob ob)
+JX_INLINE jx_status jx_tls_ob_free(jx_tls *tls,jx_ob ob)
 {
   register jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_GC) {
@@ -747,9 +747,9 @@ JX_INLINE jx_status jx_ob_replace(jx_ob *ob_ptr, jx_ob ob)
   return status;
 }
 
-JX_INLINE jx_status jx_ob_replace_tls(jx_tls *tls, jx_ob *ob_ptr, jx_ob ob)
+JX_INLINE jx_status jx_tls_ob_replace(jx_tls *tls, jx_ob *ob_ptr, jx_ob ob)
 {
-  jx_status status = jx_ob_free_tls(tls,*ob_ptr);
+  jx_status status = jx_tls_ob_free(tls,*ob_ptr);
   *ob_ptr = ob;
   return status;
 }
@@ -1931,7 +1931,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
           jx_hash_set(node, payload_ident, saved_payload);
         else
           jx_hash_delete(node, payload_ident);
-        jx_ob_free_tls(tls,payload);
+        jx_tls_ob_free(tls,payload);
         jx_ob_free(function);
         return jx_ob_from_null();
       }
@@ -1948,7 +1948,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         result = fn->mode ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
           jx_code_eval_tls(tls, 0, inv_node,fn->body);
       }
-      jx_ob_free_tls(tls,inv_node);
+      jx_tls_ob_free(tls,inv_node);
       jx_ob_free(function);
       return result;
     } else if(jx_list_check(args)) { /* parameter list exists */
@@ -2010,15 +2010,15 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
                         jx__list_swap(args_list3,i+1, ob_null));
           }
         }
-        jx_ob_free_tls(tls,kwd_list);
+        jx_tls_ob_free(tls,kwd_list);
       }
       /* expose function to itself */
       jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
       /* call */
       result = fn->mode ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
         jx_code_eval_tls(tls, 0, inv_node,fn->body);
-      jx_ob_free_tls(tls,payload);
-      jx_ob_free_tls(tls, inv_node);
+      jx_tls_ob_free(tls,payload);
+      jx_tls_ob_free(tls, inv_node);
       jx_ob_free(function);
       return result;
     } else {
@@ -2029,12 +2029,12 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
       result = fn->mode ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
         jx_code_eval_tls(tls, 0, inv_node,fn->body);
-      jx_ob_free_tls(tls,inv_node);
+      jx_tls_ob_free(tls,inv_node);
       jx_ob_free(function);
       return result;
     }
   } else {
-    jx_ob_free_tls(tls,payload);
+    jx_tls_ob_free(tls,payload);
     jx_ob_free(function);
     return jx_ob_from_null();
   }
@@ -2069,8 +2069,8 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
           jx_hash_delete(node, payload_ident);
         {
           jx_ob result = jx_code_eval_tls(tls, 0, node, ob);
-          jx_ob_free_tls(tls,ob);
-          jx_ob_free_tls(tls,payload);
+          jx_tls_ob_free(tls,ob);
+          jx_tls_ob_free(tls,payload);
           jx_ob_free(macro);
           return result;
         }
@@ -2079,7 +2079,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
           jx_hash_set(node, payload_ident, saved_payload);
         else
           jx_hash_delete(node, payload_ident);
-        jx_ob_free_tls(tls,payload);
+        jx_tls_ob_free(tls,payload);
         jx_ob_free(macro);
         return jx_ob_from_null();
       }
@@ -2092,12 +2092,12 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
         jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
-        jx_ob_free_tls(tls,payload);
-        jx_ob_free_tls(tls, inv_node);
+        jx_tls_ob_free(tls,payload);
+        jx_tls_ob_free(tls, inv_node);
         jx_ob_free(macro);
         {
           jx_ob result = jx_code_eval_tls(tls, 0, node, ob);
-          jx_ob_free_tls(tls, ob);
+          jx_tls_ob_free(tls, ob);
           return result;
         }
       }
@@ -2161,7 +2161,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
                         jx__list_swap(args_list3,i+1, ob_null));
           }
         }
-        jx_ob_free_tls(tls,kwd_list);
+        jx_tls_ob_free(tls,kwd_list);
       }
       //      jx_jxon_dump(stdout,"inv_node",inv_node);
       //      jx_jxon_dump(stdout,"body",fn->body);
@@ -2170,9 +2170,9 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
         //        jx_jxon_dump(stdout,"node",node);
         //        jx_jxon_dump(stdout,"ob",ob);
         result = jx_code_eval_tls(tls, 0, node, ob);
-        jx_ob_free_tls(tls, ob);
-        jx_ob_free_tls(tls, payload);
-        jx_ob_free_tls(tls, inv_node);
+        jx_tls_ob_free(tls, ob);
+        jx_tls_ob_free(tls, payload);
+        jx_tls_ob_free(tls, inv_node);
         jx_ob_free(macro);
         return result;
       }
@@ -2184,14 +2184,14 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
         jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         jx_ob_free(macro);
         result = jx_code_eval_tls(tls, 0, node, ob);
-        jx_ob_free_tls(tls,inv_node);
-        jx_ob_free_tls(tls,ob);
-        jx_ob_free_tls(tls,payload);
+        jx_tls_ob_free(tls,inv_node);
+        jx_tls_ob_free(tls,ob);
+        jx_tls_ob_free(tls,payload);
         return result;
       }
     }
   } else {
-    jx_ob_free_tls(tls,payload);
+    jx_tls_ob_free(tls,payload);
     jx_ob_free(macro);
     return jx_ob_from_null();
   }

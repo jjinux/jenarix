@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* symbols */
 
 #define JX_BUILTIN_FILL        69
-#define JX_BUILTIN_RANGE       23
+#define JX_BUILTIN_RANGE       71
 #define JX_BUILTIN_SET         24
 #define JX_BUILTIN_GET         25
 #define JX_BUILTIN_BORROW      26

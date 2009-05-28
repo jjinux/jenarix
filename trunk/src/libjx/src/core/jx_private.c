@@ -1144,7 +1144,7 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * I)
         jx_int i, size = jx_vla_size(&I->data.vla);
         jx_ob *ob = I->data.ob_vla;
         for(i = 0; i < size; i++) {
-          jx_ob_free_tls(tls,*(ob++));
+          jx_tls_ob_free(tls,*(ob++));
         }
       }      
       jx_tls_vla_free(tls,&I->data.vla);
@@ -4738,9 +4738,9 @@ jx_status jx__ob_free(jx_tls *tls, jx_ob ob)
       }
     } else if(bits & (JX_META_BIT_BUILTIN_FUNCTION|JX_META_BIT_BUILTIN_MACRO)) {
       jx_function *fn = ob.data.io.function;
-      jx_ob_free_tls(tls,fn->name);
-      jx_ob_free_tls(tls,fn->args);
-      jx_ob_free_tls(tls,fn->body);
+      jx_tls_ob_free(tls,fn->name);
+      jx_tls_ob_free(tls,fn->args);
+      jx_tls_ob_free(tls,fn->body);
       jx_free(fn);
     }
     break;
