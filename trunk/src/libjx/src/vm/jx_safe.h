@@ -174,8 +174,8 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
     }
     target = jx_list_borrow(payload,1);
     jx__resolve(&container,&target);
-    jx_jxon_dump(stdout,"container",container);
-    jx_jxon_dump(stdout,"target",target);
+    //    jx_jxon_dump(stdout,"container",container);
+    //    jx_jxon_dump(stdout,"target",target);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
       return jx_ob_from_status
