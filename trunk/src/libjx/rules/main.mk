@@ -8,6 +8,7 @@ JX_BUILD=build/$(JX_PREFIX1)-$(JX_ARCH)
 depbuild: 
 	cd src/jxon; make -f ../../rules/codegen.mk jxon
 	cd src/shell; make -f ../../rules/codegen.mk shell
+	cd src/py; make -f ../../rules/codegen.mk py
 	cd $(JX_BUILD); make -f ../../rules/depbuild.mk
 
 lib: depbuild

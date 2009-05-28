@@ -30,57 +30,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* NOTE: This is the Jenarix Executable Object Notation (SHELL) parser.
-
-   SHELL is a strict forward-compatible superset of JSON than can be
-   encoded and passaged through JSON as needed for transport purposes.
-
-   SHELL supports the following extensions on top of JSON:
-
-   * commas are optional on input and are used for aesthetics and
-     clarity only
-
-   * numbers are assumed to be integers unless they have a decimal or
-     exponent in which case they are considered to be floating point
-
-   * arbitrary text identifiers are supported (beyond null, true, false):
-     they are a new kind of primitive which behaves much like a string
-
-     my_ident
-     my_ident.sub
-     my_indet.sub.subsub
-
-     REGEXP used to parse identifiers: 
-
-     [a-zA-Z_] ([a-zA-Z0-9_])* ("." [a-zA-Z_] ([a-zA-Z0-9_]))*
-
-   * single-quoted as well as double-quoted strings are supported
- 
-   * null, true, false, int, float, and identifiers are allowed to be
-     hash keys (in addition to ordinary strings)
-
-   * comments are permitted (starting with #)
-
-   * semicolons delimit SHELL blocks and signal the parser to either
-     accept the input or throw an error
-
- PLANNED:
- 
-   * JSON ecoding of SHELL executable notation through use of prefixes:
-
-     "jxD_0" "jxF_0.12" "jxS_anystring" "jxI_hello.warren"
-
-   * operators (automatically translated into identifiers): 
-        + - * / ! && || ^ etc.
-
-   * an explicit concatenation operator in the parser for string
-     literals ("a" . "b"?)
-
- CONSIDERED:
-
-   * multi-line strings wrapped inside triple-quotes """ and '''
-
-*/
+/* shell-like parser for the Jenarix runtime */
 
 %nonassoc ERROR. 
 

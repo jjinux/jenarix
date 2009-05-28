@@ -8,9 +8,10 @@ include ../../../rules/objects.mk
 
 JX_BUILD=build/$(JX_PREFIX1)-$(JX_ARCH)
 
-mains: $(JX_PREFIX1)_lisp.a $(JX_PREFIX1)_shell.a 
+mains: $(JX_PREFIX1)_lisp.a $(JX_PREFIX1)_shell.a $(JX_PREFIX1)_py.a
 	/bin/mv -f ../$(JX_PREFIX1)_lisp $(JX_BASE)/$(JX_PREFIX1)
 	/bin/mv -f ../$(JX_PREFIX1)_shell $(JX_BASE)/$(JX_PREFIX1)s
+	/bin/mv -f ../$(JX_PREFIX1)_py $(JX_BASE)/$(JX_PREFIX1)p
 
 # jx_python.a jx_java.a jx_network.a
 

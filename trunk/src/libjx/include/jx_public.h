@@ -390,6 +390,13 @@ jx_ob jx_shell_scanner_get_error_message(jx_ob scanner);
 jx_status jx_shell_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_status jx_shell_scanner_purge_input(jx_ob scanner);
 
+jx_ob jx_py_scanner_new_with_file(FILE *file);
+jx_ob jx_py_scanner_get_error_message(jx_ob scanner);
+jx_ob jx_py_translate_with_tree(jx_ob tree);
+jx_status jx_py_expose_python_builtins(jx_ob namespace);
+jx_status jx_py_scanner_next_ob(jx_ob *result, jx_ob scanner);
+jx_status jx_py_scanner_purge_input(jx_ob scanner);
+
 /* macros */
 
 jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body);

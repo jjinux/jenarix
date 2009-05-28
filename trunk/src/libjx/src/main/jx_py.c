@@ -66,47 +66,58 @@ int main(int argc, char *argv[])
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
     
     jx_ob namespace = jx_hash_new();
-    jx_ob scanner = jx_shell_scanner_new_with_file(input);
+    jx_ob scanner = jx_py_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
     jx_bool console = jx_adapt_for_console(input);
 
     jx_code_expose_secure_builtins(namespace);
-    
-    printf("Jenarix shell syntax: keyword arg1, arg2, kw_arg1=value1, kwd_arg2=value2\n");
 
-    printf("(this doesn't do anything yet!)\n");
+    jx_py_expose_python_builtins(namespace);
+
+    printf("Jenarix Python-like syntax:\n");
+
     {
-      jx_ob source = JX_OB_NULL;
+      jx_ob tree = JX_OB_NULL;
       jx_status status;
       jx_bool done = JX_FALSE;
       while( !done ) {
-        status = jx_shell_scanner_next_ob(&source, scanner);
+        status = jx_py_scanner_next_ob(&tree, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# in", source);
+          if(console) jx_jxon_dump(stdout, "# tree", tree);
           {
-            jx_ob code = jx_code_bind_with_source(namespace, source);
-            source = jx_ob_from_null();
-                      
-            jx_jxon_dump(stdout, "# vm", code);
-            {
-              jx_ob result = jx_code_eval(node,code);
+            jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
             
-              if(console) {
-                jx_jxon_dump(stdout, "# ->", result);
-              } else {
-                jx_ob jxon = jx_ob_to_jxon(result);
-                printf("%s;\n",jx_ob_as_str(&jxon));
-                jx_ob_free(jxon);
+            if(console) jx_jxon_dump(stdout, "# tran", source);
+            {
+              jx_ob code = jx_code_bind_with_source(namespace, source);
+              source = jx_ob_from_null();
+                      
+              jx_jxon_dump(stdout, "# code", code);
+              {
+                jx_ob result = jx_code_eval(node,code);
+
+                if(!jx_null_check(result)) {
+                  /* swallow null values just like Python does */
+
+                  if(console) {
+                    jx_jxon_dump(stdout, "# eval", result);
+                  } else {
+                    jx_ob jxon = jx_ob_to_jxon(result);
+                    printf("%s;\n",jx_ob_as_str(&jxon));
+                    jx_ob_free(jxon);
+                  }
+                }
+                jx_ob_free(result);
               }
-              jx_ob_free(result);
+              jx_ob_free(code);
             }
-            jx_ob_free(code);
+            jx_ob_free(source);
           }
           break;
         case JX_STATUS_SYNTAX_ERROR: /* catch this error */
           {
-            jx_ob message = jx_shell_scanner_get_error_message(scanner);
+            jx_ob message = jx_py_scanner_get_error_message(scanner);
             if(jx_str_check(message)) 
               printf("%s\n",jx_ob_as_str(&message));
             else
@@ -114,7 +125,7 @@ int main(int argc, char *argv[])
             if(!console)
               done = JX_TRUE;
             else
-              jx_shell_scanner_purge_input(scanner);
+              jx_py_scanner_purge_input(scanner);
             jx_ob_free(message);
           }
           break;
@@ -123,7 +134,7 @@ int main(int argc, char *argv[])
           break;
         }
       }
-      jx_ob_free(source);
+      jx_ob_free(tree);
     }
     jx_ob_free(node);
     jx_ob_free(scanner);

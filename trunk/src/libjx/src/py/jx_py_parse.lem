@@ -1,0 +1,850 @@
+/* 
+Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+
+* Neither the name of the DeLano Scientific LLC nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/* Python-like parser for Jenarix runtime */
+
+%nonassoc ERROR. 
+
+%include {
+
+#include <stdio.h>
+
+#include "jx_py_private.h"
+
+}
+
+/*** Declare (parser) token_type. ***/
+
+%token_type{jx_ob}
+
+/*** parser functions begin with "jx_py_" ***/
+
+%name jx_py_
+
+/*** token symbols begin with "JX_PY_" ***/
+
+%token_prefix JX_PY_
+
+/*** for now, malloc'ing non-terminals. ***/
+
+%destructor simple_stmt          { jx_ob_free($$); }
+%destructor small_stmt           { jx_ob_free($$); }
+%destructor print_stmt           { jx_ob_free($$); }
+%destructor string               { jx_ob_free($$); }
+%destructor atom                 { jx_ob_free($$); }
+
+/*** for now, mallocing tokens **/
+
+%token_destructor { jx_ob_free($$);}
+
+/*** 4th jx_py_Parse() argument is not currently used. ***/
+
+%extra_argument{jx_py_parse_context *context}
+
+/*** Accept action is done in start symbol action. ***/
+
+%parse_accept{
+    context->status = 1;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("accept called\n");
+#endif
+} 
+
+/* failure action */
+
+%parse_failure{
+  context->status = JX_STATUS_SYNTAX_ERROR;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("parse failed.\n");
+#endif
+}
+
+/*** Syntax error action ***/
+
+%syntax_error {  
+#ifdef JX_PY_PARSER_DEBUG
+  printf("jx_py_parse-error: syntax error.\n");
+#endif
+}
+
+/*** Declare parser token types ***/
+
+%type simple_stmt            { jx_ob }
+%type small_stmt             { jx_ob }
+%type print_stmt             { jx_ob }
+%type atom                   { jx_ob }
+%type string                 { jx_ob }
+
+/*** Start symbol ***/
+
+%start_symbol single_input
+
+/*** The grammer itself ***/
+
+/* single_input: NEWLINE | simple_stmt | compound_stmt NEWLINE */
+
+single_input ::= NEWLINE.
+{  
+#ifdef JX_PY_PARSER_DEBUG
+  printf("single_input ::= NEWLINE ");
+#endif
+}
+
+single_input ::= simple_stmt(A).
+{  
+#ifdef JX_PY_PARSER_DEBUG
+  printf("single_input ::= simple_stmt(A).\n");
+#endif
+  jx_ob_free(context->result); /* free previous result (if any) */ 
+  context->result = A; /* save the result */
+}
+
+single_input ::= compound_stmt(A) NEWLINE.
+{  
+#ifdef JX_PY_PARSER_DEBUG
+  printf("single_input ::= compound_stmt(A) NEWLINE.\n");
+#endif
+  jx_ob_free(context->result); 
+  context->result = A; 
+}
+
+/* simple_stmt: small_stmt (';' small_stmt)* [';'] NEWLINE */
+
+simple_stmt(A) ::= small_stmt(B) NEWLINE.
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("simple_stmt(A) ::= small_stmt(B) NEWLINE.\n");
+#endif
+}
+
+simple_stmt(A) ::= small_stmt(B) SEMICOLON NEWLINE.
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("simple_stmt(A) ::= small_stmt(B) SEMICOLON NEWLINE.\n");
+#endif
+}
+
+simple_stmt(A) ::= small_stmt(B) SEMICOLON small_stmt(C) NEWLINE.
+{  
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("single_stmt(A) ::= small_stmt(B) SEMICOLON small_stmt(C).\n");
+#endif
+}
+
+/* small_stmt: (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
+             import_stmt | global_stmt | exec_stmt | assert_stmt) */
+
+small_stmt(A) ::= expr_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("small_stmt(A) ::= expr_stmt(B).\n");
+#endif
+}
+
+small_stmt(A) ::= print_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("small_stmt(A) ::= print_stmt(B).\n");
+#endif
+}
+
+small_stmt(A) ::= del_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("small_stmt(A) ::= del_stmt(B).\n");
+#endif
+}
+
+small_stmt(A) ::= pass_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("small_stmt(A) ::= pass_stmt(B).\n");
+#endif
+}
+
+/* del_stmt: 'del' exprlist */
+
+del_stmt(A) ::= DEL exprlist(B).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("del"));
+  jx_list_append(A,B);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("del_stmt(A) ::= DEL exprlist(B).\n");
+#endif
+}
+
+/* pass_stmt: 'pass' */
+
+pass_stmt(A) ::= PASS.
+{  
+  A = jx_list_new();
+#ifdef JX_PY_PARSER_DEBUG
+  printf("pass_stmt(A) ::= PASS.\n");
+#endif
+}
+
+/* flow_stmt: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt */
+
+
+/* expr_stmt: testlist ( augassign (yield_expr|testlist) |  ('=' (yield_expr|testlist))* )
+augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
+'<<=' | '>>=' | '**=' | '//=') 
+
+*/
+
+expr_stmt(A) ::= testlist(B) PLUS_EQUALS testlist(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("incr"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("expr_stmt(A) ::= testlist(B) PLUS_EQUALS testlist(C).\n");
+#endif
+}
+
+expr_stmt(A) ::= testlist(B) MINUS_EQUALS testlist(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("decr"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("print_stmt(A) ::= PRINT.\n");
+#endif
+}
+
+expr_stmt(A) ::= testlist(B) EQUALS testlist(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("set"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("expr_stmt(A) ::= testlist(B) EQUALS testlist(C).\n");
+#endif
+}
+
+/* print_stmt: 'print' ( [ test (',' test)* [','] ] |
+                      '>>' test [ (',' test)+ [','] ] ) */
+
+print_stmt(A) ::= PRINT.
+{  
+   A = jx_list_new();
+   jx_list_append(A,jx_ob_from_ident("print"));
+#ifdef JX_PY_PARSER_DEBUG
+  printf("print_stmt(A) ::= PRINT..\n");
+#endif
+}
+
+print_stmt(A) ::= PRINT test(B).
+{  
+   A = jx_list_new();
+   jx_list_append(A,jx_ob_from_ident("print"));
+   jx_list_append(A,B);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("print_stmt(A) ::= PRINT test(B).\n");
+#endif
+}
+
+print_stmt(A) ::= print_stmt(B) COMMA test(C).
+{  
+   A=B;
+   jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("print_stmt(A) ::= print_stmt(B) COMMA test(C).\n");
+#endif
+}
+
+/* compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated */
+
+compound_stmt(A) ::= while_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("compound_stmt(A) ::= while_stmt(B).\n");
+#endif
+}
+
+/* while_stmt: 'while' test ':' suite ['else' ':' suite] */
+
+while_stmt(A) ::= WHILE test(B) COLON suite(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("while"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("while_stmt(A) ::= test(C) COLON suite(C).\n");
+#endif
+}
+
+/* for_stmt: 'for' exprlist 'in' testlist ':' suite ['else' ':' suite] */
+
+while_stmt(A) ::= FOR exprlist(B) IN testlist(C) COLON suite(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("foreach"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+  jx_list_append(A,D);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("while_stmt(A) ::= FOR exprlist(B) IN testlist(C) COLON suite(D).\n");
+#endif
+}
+
+/* suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT */
+
+suite(A) ::= simple_stmt(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("suite(A) ::= simple_stmt(B).\n");
+#endif
+}
+
+suite(A) ::= NEWLINE INDENT stmts(B) DEDENT.
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("suite(A) ::= simple_stmt(B).\n");
+#endif
+}
+
+/* stmt: simple_stmt | compound_stmt */
+
+
+stmts(A) ::= stmts(B) simple_stmt(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
+
+
+stmts(A) ::= stmts(B) compound_stmt(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
+
+
+stmts(A) ::= simple_stmt(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+stmts(A) ::= compound_stmt(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+/* test: or_test ['if' or_test 'else' test] | lambdef */
+
+test(A) ::= or_test(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("test(A) ::= or_test(B).\n");
+#endif
+}
+
+/* or_test: and_test ('or' and_test)* */
+
+or_test(A) ::= and_test(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("or_test(A) ::= and_test(B).\n");
+#endif
+}
+
+/* and_test: not_test ('and' not_test)* */
+
+and_test(A) ::= not_test(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("and_test(A) ::= not_test(B).\n");
+#endif
+}
+
+/* not_test: 'not' not_test | comparison */
+
+not_test(A) ::= NOT not_test(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("not_test(A) ::= NOT not_test(B).\n");
+#endif
+}
+
+not_test(A) ::= comparison(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("not_test(A) ::= comparison(B).\n");
+#endif
+}
+
+/* comparison: expr (comp_op expr)* */
+  
+comparison(A) ::= expr(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B).\n");
+#endif
+}
+
+comparison(A) ::= expr(B) LESS_THAN expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("lt"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B) COMP expr(C).\n");
+#endif
+}
+
+comparison(A) ::= expr(B) LESS_THAN_OR_EQ expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("le"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B) COMP expr(C).\n");
+#endif
+}
+
+comparison(A) ::= expr(B) EQ_EQ expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("eq"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B) COMP expr(C).\n");
+#endif
+}
+
+comparison(A) ::= expr(B) NOT_EQ expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("eq"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B) COMP expr(C).\n");
+#endif
+}
+
+comparison(A) ::= expr(B) GREATER_THAN expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("gt"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B) COMP expr(C).\n");
+#endif
+}
+
+comparison(A) ::= expr(B) GREATER_THAN_OR_EQ expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("ge"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+
+#ifdef JX_PY_PARSER_DEBUG
+  printf("comparion(A) ::= expr(B) COMP expr(C).\n");
+#endif
+}
+
+/* expr: xor_expr ('|' xor_expr)*  */
+
+expr(A) ::= xor_expr(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("expr(A) ::= xor_expr(B).\n");
+#endif
+}
+
+/* xor_expr: and_expr ('^' and_expr)*   */
+
+xor_expr(A) ::= and_expr(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("xor_expr(A) ::= and_expr(B).\n");
+#endif
+}
+
+/* and_expr: shift_expr ('&' shift_expr)*   */
+
+and_expr(A) ::= shift_expr(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("and_expr(A) ::= shift_expr(B).\n");
+#endif
+}
+
+/* shift_expr: arith_expr (('<<'|'>>') arith_expr)*   */
+
+shift_expr(A) ::= arith_expr(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("shirt_exp(A) ::= arith_expr(B).\n");
+#endif
+}
+
+/* arith_expr: term (('+'|'-') term)*   */
+
+arith_expr(A) ::= term(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("arith_expr(A) ::= term(B)\n");
+#endif
+}
+
+arith_expr(A) ::= term(B) PLUS term(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("add"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("arith_expr(A) ::= term(B) PLUS term(C).\n");
+#endif
+}
+
+arith_expr(A) ::= term(B) MINUS term(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("sub"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("arith_expr(A) ::= term(B) MINUS term(C).\n");
+#endif
+}
+
+/* term: factor (('*'|'/'|'%'|'//') factor)*   */
+
+term(A) ::= factor(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("term(A) ::= factor(B).\n");
+#endif
+}
+
+term(A) ::= factor(B) ASTERISK factor(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("mul"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("term(A) ::= factor(B).\n");
+#endif
+}
+
+term(A) ::= factor(B) SLASH factor(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("div"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("term(A) ::= factor(B).\n");
+#endif
+}
+
+term(A) ::= factor(B) SLASHSLASH factor(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("div"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("term(A) ::= factor(B).\n");
+#endif
+}
+
+term(A) ::= factor(B) PERCENT factor(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("mod"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("term(A) ::= factor(B).\n");
+#endif
+}
+
+/* factor: ('+'|'-'|'~') factor | power */
+
+factor(A) ::= power(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("factor(A) ::= power(B).\n");
+#endif
+}
+
+factor(A) ::= PLUS factor(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("factor(A) ::= PLUS factor(B).\n");
+#endif
+}
+
+factor(A) ::= MINUS factor(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("factor(A) ::= PLUS factor(B).\n");
+#endif
+}
+
+factor(A) ::= TILDE factor(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("factor(A) ::= TILDE factor(B).\n");
+#endif
+}
+
+/* power: atom trailer* ['**' factor] */
+
+power(A) ::= atom(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("power(A) ::= atom(B).\n");
+#endif
+}
+
+/* atom: ('(' [yield_expr|testlist_gexp] ')' |
+       '[' [listmaker] ']' |
+       '{' [dictmaker] '}' |
+       '`' testlist1 '`' |
+       NAME | NUMBER | STRING+) */
+
+/* we parse numbers as FCON / ICON */
+
+atom(A) ::= ICON(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = ICON\n"); 
+#endif
+}
+
+atom(A) ::= FCON(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = FCON\n"); 
+#endif
+}
+
+atom(A) ::= string(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = string\n"); 
+#endif
+}
+
+string(A) ::= SCON(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("string = SCON\n"); 
+#endif
+}
+
+/* implicit string concat */
+
+string(A) ::= string(B) SCON(C).
+{
+  A = jx_ob_add(B,B);
+  jx_ob_free(B);
+  jx_ob_free(C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = SCON\n"); 
+#endif
+}
+
+atom(A) ::= NAME(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = NAME\n"); 
+#endif
+}
+
+/* testlist: test (',' test)* [',']  */
+
+testlist_2(A) ::= testlist_2(B) COMMA test(C).
+{
+  A = B;
+  jx_list_append(A,C);
+
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_2(A) ::= testlist_2(B) COMMA test(C).\n"); 
+#endif
+}
+
+testlist_2(A) ::= test(B) COMMA test(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_2(A) ::= test(B) COMMA test(C).\n"); 
+#endif
+}
+
+testlist_3(A) ::= test(B) COMMA.
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_3(A) ::= test(B) COMMA.\n"); 
+#endif
+}
+
+testlist(A) ::= test(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= test(B).\n"); 
+#endif
+}
+
+testlist(A) ::= testlist_2(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= testlist_2(B).\n"); 
+#endif
+}
+
+testlist(A) ::= testlist_3(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= testlist_3(B).\n"); 
+#endif
+}
+
+/* exprlist: expr (',' expr)* [','] */
+
+exprlist_2(A) ::= exprlist_2(B) COMMA expr(C).
+{
+  A = B;
+  jx_list_append(A,C);
+
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist_2(A) ::= exprlist_2(B) COMMA expr(C).\n"); 
+#endif
+}
+
+exprlist_2(A) ::= expr(B) COMMA expr(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist_2(A) ::= expr(B) COMMA expr(C).\n"); 
+#endif
+}
+
+exprlist_3(A) ::= expr(B) COMMA.
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist_3(A) ::= expr(B) COMMA.\n"); 
+#endif
+}
+
+exprlist(A) ::= expr(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist(A) ::= expr(B).\n"); 
+#endif
+}
+
+exprlist(A) ::= exprlist_2(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist(A) ::= exprlist_2(B).\n"); 
+#endif
+}
+
+exprlist(A) ::= exprlist_3(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist(A) ::= exprlist_3(B).\n"); 
+#endif
+}

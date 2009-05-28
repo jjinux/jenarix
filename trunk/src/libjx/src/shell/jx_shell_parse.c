@@ -4,7 +4,7 @@
 /* First off, code is include which follows the "include" declaration
 ** in the input file. */
 #include <stdio.h>
-#line 87 "jx_shell_parse.lem"
+#line 37 "jx_shell_parse.lem"
 
 
 #include <stdio.h>
@@ -413,7 +413,7 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
     case 19:
     case 20:
     case 21:
-#line 113 "jx_shell_parse.lem"
+#line 63 "jx_shell_parse.lem"
 { jx_ob_free((yypminor->yy0));}
 #line 420 "jx_shell_parse.c"
       break;
@@ -668,7 +668,7 @@ static void yy_reduce(
   **     break;
   */
       case 0:
-#line 156 "jx_shell_parse.lem"
+#line 106 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("statement = EOI\n"); 
@@ -678,7 +678,7 @@ static void yy_reduce(
 #line 680 "jx_shell_parse.c"
         break;
       case 1:
-#line 162 "jx_shell_parse.lem"
+#line 112 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("statement = SEMICOLON\n"); 
@@ -688,7 +688,7 @@ static void yy_reduce(
 #line 690 "jx_shell_parse.c"
         break;
       case 2:
-#line 169 "jx_shell_parse.lem"
+#line 119 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("statement = EOL\n"); 
@@ -698,7 +698,7 @@ static void yy_reduce(
 #line 700 "jx_shell_parse.c"
         break;
       case 3:
-#line 176 "jx_shell_parse.lem"
+#line 126 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("statement ::= shell_expression(yymsp[-1].minor.yy0) EOI.\n"); 
@@ -710,7 +710,7 @@ static void yy_reduce(
 #line 712 "jx_shell_parse.c"
         break;
       case 4:
-#line 185 "jx_shell_parse.lem"
+#line 135 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("statement = expression(yymsp[-1].minor.yy0) EOL.\n"); 
@@ -722,7 +722,7 @@ static void yy_reduce(
 #line 724 "jx_shell_parse.c"
         break;
       case 5:
-#line 194 "jx_shell_parse.lem"
+#line 144 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("statement = expression(yymsp[-1].minor.yy0) SEMICOLON.\n"); 
@@ -734,7 +734,7 @@ static void yy_reduce(
 #line 736 "jx_shell_parse.c"
         break;
       case 6:
-#line 203 "jx_shell_parse.lem"
+#line 153 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("shell_expression(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0).\n"); 
@@ -745,7 +745,7 @@ static void yy_reduce(
 #line 747 "jx_shell_parse.c"
         break;
       case 7:
-#line 212 "jx_shell_parse.lem"
+#line 162 "jx_shell_parse.lem"
 {  
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("shell_expression ::= keyword(yymsp[-1].minor.yy0) argument_list(yymsp[0].minor.yy0)\n"); 
@@ -758,7 +758,7 @@ static void yy_reduce(
         break;
       case 8:
       case 9:
-#line 222 "jx_shell_parse.lem"
+#line 172 "jx_shell_parse.lem"
 { 
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("pos_arg_list(yygotominor.yy0) = expression(yymsp[0].minor.yy0)\n");
@@ -770,7 +770,7 @@ static void yy_reduce(
         break;
       case 10:
       case 11:
-#line 240 "jx_shell_parse.lem"
+#line 190 "jx_shell_parse.lem"
 { 
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("pos_arg_list(yygotominor.yy0) = expression(yymsp[-2].minor.yy0)\n");
@@ -782,7 +782,7 @@ static void yy_reduce(
 #line 784 "jx_shell_parse.c"
         break;
       case 12:
-#line 258 "jx_shell_parse.lem"
+#line 208 "jx_shell_parse.lem"
 {  
   yygotominor.yy0 = jx_hash_new();
   jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0);
@@ -795,7 +795,7 @@ static void yy_reduce(
 #line 797 "jx_shell_parse.c"
         break;
       case 13:
-#line 268 "jx_shell_parse.lem"
+#line 218 "jx_shell_parse.lem"
 {  
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -806,7 +806,7 @@ static void yy_reduce(
 #line 808 "jx_shell_parse.c"
         break;
       case 14:
-#line 277 "jx_shell_parse.lem"
+#line 227 "jx_shell_parse.lem"
 {  
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -817,7 +817,7 @@ static void yy_reduce(
 #line 819 "jx_shell_parse.c"
         break;
       case 15:
-#line 287 "jx_shell_parse.lem"
+#line 237 "jx_shell_parse.lem"
 {  
    yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -829,7 +829,7 @@ static void yy_reduce(
       case 16:
       case 17:
       case 18:
-#line 295 "jx_shell_parse.lem"
+#line 245 "jx_shell_parse.lem"
 {  
    yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -839,7 +839,7 @@ static void yy_reduce(
 #line 841 "jx_shell_parse.c"
         break;
       case 19:
-#line 319 "jx_shell_parse.lem"
+#line 269 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = jx_hash_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -851,7 +851,7 @@ static void yy_reduce(
 #line 853 "jx_shell_parse.c"
         break;
       case 20:
-#line 327 "jx_shell_parse.lem"
+#line 277 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[-1].minor.yy0; 
 #ifdef JX_JXON_PARSER_DEBUG
@@ -863,7 +863,7 @@ static void yy_reduce(
 #line 865 "jx_shell_parse.c"
         break;
       case 21:
-#line 335 "jx_shell_parse.lem"
+#line 285 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[-3].minor.yy0;
   jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0);
@@ -875,7 +875,7 @@ static void yy_reduce(
 #line 877 "jx_shell_parse.c"
         break;
       case 22:
-#line 344 "jx_shell_parse.lem"
+#line 294 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[-4].minor.yy0;
   jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0);
@@ -888,7 +888,7 @@ static void yy_reduce(
 #line 890 "jx_shell_parse.c"
         break;
       case 23:
-#line 353 "jx_shell_parse.lem"
+#line 303 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -898,7 +898,7 @@ static void yy_reduce(
 #line 900 "jx_shell_parse.c"
         break;
       case 24:
-#line 361 "jx_shell_parse.lem"
+#line 311 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = jx_hash_new();
   jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0); /* takes ownership of yymsp[-2].minor.yy0 & yymsp[0].minor.yy0 */
@@ -910,7 +910,7 @@ static void yy_reduce(
 #line 912 "jx_shell_parse.c"
         break;
       case 25:
-#line 370 "jx_shell_parse.lem"
+#line 320 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = jx_list_new();
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -922,7 +922,7 @@ static void yy_reduce(
 #line 924 "jx_shell_parse.c"
         break;
       case 26:
-#line 378 "jx_shell_parse.lem"
+#line 328 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = jx_list_new();
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -934,7 +934,7 @@ static void yy_reduce(
 #line 936 "jx_shell_parse.c"
         break;
       case 27:
-#line 386 "jx_shell_parse.lem"
+#line 336 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[-1].minor.yy0; 
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -946,7 +946,7 @@ static void yy_reduce(
 #line 948 "jx_shell_parse.c"
         break;
       case 28:
-#line 394 "jx_shell_parse.lem"
+#line 344 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[-1].minor.yy0; 
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -958,7 +958,7 @@ static void yy_reduce(
 #line 960 "jx_shell_parse.c"
         break;
       case 29:
-#line 402 "jx_shell_parse.lem"
+#line 352 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -969,7 +969,7 @@ static void yy_reduce(
 #line 971 "jx_shell_parse.c"
         break;
       case 30:
-#line 411 "jx_shell_parse.lem"
+#line 361 "jx_shell_parse.lem"
 { 
   jx_list_append(yymsp[-1].minor.yy0,yymsp[0].minor.yy0); /* takes ownership of yymsp[0].minor.yy0 */
   yygotominor.yy0 = yymsp[-1].minor.yy0;
@@ -980,7 +980,7 @@ static void yy_reduce(
 #line 982 "jx_shell_parse.c"
         break;
       case 31:
-#line 420 "jx_shell_parse.lem"
+#line 370 "jx_shell_parse.lem"
 { 
   jx_list_append(yymsp[-2].minor.yy0,yymsp[0].minor.yy0); /* takes ownership of yymsp[0].minor.yy0 */
   yygotominor.yy0 = yymsp[-2].minor.yy0;
@@ -992,7 +992,7 @@ static void yy_reduce(
 #line 994 "jx_shell_parse.c"
         break;
       case 32:
-#line 429 "jx_shell_parse.lem"
+#line 379 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1002,7 +1002,7 @@ static void yy_reduce(
 #line 1004 "jx_shell_parse.c"
         break;
       case 33:
-#line 437 "jx_shell_parse.lem"
+#line 387 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1012,7 +1012,7 @@ static void yy_reduce(
 #line 1014 "jx_shell_parse.c"
         break;
       case 34:
-#line 445 "jx_shell_parse.lem"
+#line 395 "jx_shell_parse.lem"
 { 
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1022,7 +1022,7 @@ static void yy_reduce(
 #line 1024 "jx_shell_parse.c"
         break;
       case 35:
-#line 453 "jx_shell_parse.lem"
+#line 403 "jx_shell_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1032,7 +1032,7 @@ static void yy_reduce(
 #line 1034 "jx_shell_parse.c"
         break;
       case 36:
-#line 461 "jx_shell_parse.lem"
+#line 411 "jx_shell_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1042,7 +1042,7 @@ static void yy_reduce(
 #line 1044 "jx_shell_parse.c"
         break;
       case 37:
-#line 469 "jx_shell_parse.lem"
+#line 419 "jx_shell_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1052,7 +1052,7 @@ static void yy_reduce(
 #line 1054 "jx_shell_parse.c"
         break;
       case 38:
-#line 477 "jx_shell_parse.lem"
+#line 427 "jx_shell_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1062,7 +1062,7 @@ static void yy_reduce(
 #line 1064 "jx_shell_parse.c"
         break;
       case 39:
-#line 485 "jx_shell_parse.lem"
+#line 435 "jx_shell_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1098,7 +1098,7 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 130 "jx_shell_parse.lem"
+#line 80 "jx_shell_parse.lem"
 
   context->status = JX_STATUS_SYNTAX_ERROR;
 #ifdef JX_SHELL_PARSER_DEBUG
@@ -1118,7 +1118,7 @@ static void yy_syntax_error(
 ){
   jx_shell_ARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 139 "jx_shell_parse.lem"
+#line 89 "jx_shell_parse.lem"
   
 #ifdef JX_SHELL_PARSER_DEBUG
   printf("jx_shell_parse-error: syntax error.\n");
@@ -1142,7 +1142,7 @@ static void yy_accept(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser accepts */
-#line 121 "jx_shell_parse.lem"
+#line 71 "jx_shell_parse.lem"
 
     context->status = 1;
 #ifdef JX_SHELL_PARSER_DEBUG

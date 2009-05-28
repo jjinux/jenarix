@@ -1,0 +1,2479 @@
+State 0:
+          single_input ::= * NEWLINE
+          single_input ::= * simple_stmt
+          single_input ::= * compound_stmt NEWLINE
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          compound_stmt ::= * while_stmt
+          while_stmt ::= * WHILE test COLON suite
+          while_stmt ::= * FOR exprlist IN testlist COLON suite
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  62
+                           DEL shift  16
+                          PASS shift  108
+                         PRINT shift  11
+                         WHILE shift  14
+                           FOR shift  15
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                   simple_stmt shift  64
+                    small_stmt shift  38
+                    print_stmt shift  41
+                        string shift  43
+                          atom shift  87
+                  single_input accept
+                 compound_stmt shift  48
+                     expr_stmt shift  69
+                      del_stmt shift  102
+                     pass_stmt shift  103
+                      testlist shift  37
+                          test shift  51
+                    while_stmt shift  54
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 1:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          compound_stmt ::= * while_stmt
+          while_stmt ::= * WHILE test COLON suite
+          while_stmt ::= * FOR exprlist IN testlist COLON suite
+          suite ::= NEWLINE INDENT * stmts DEDENT
+          stmts ::= * stmts simple_stmt
+          stmts ::= * stmts compound_stmt
+          stmts ::= * simple_stmt
+          stmts ::= * compound_stmt
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                           DEL shift  16
+                          PASS shift  108
+                         PRINT shift  11
+                         WHILE shift  14
+                           FOR shift  15
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                   simple_stmt shift  61
+                    small_stmt shift  38
+                    print_stmt shift  41
+                        string shift  43
+                          atom shift  87
+                 compound_stmt shift  63
+                     expr_stmt shift  69
+                      del_stmt shift  102
+                     pass_stmt shift  103
+                      testlist shift  37
+                          test shift  51
+                    while_stmt shift  54
+                         stmts shift  2
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 2:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          compound_stmt ::= * while_stmt
+          while_stmt ::= * WHILE test COLON suite
+          while_stmt ::= * FOR exprlist IN testlist COLON suite
+          suite ::= NEWLINE INDENT stmts * DEDENT
+          stmts ::= stmts * simple_stmt
+          stmts ::= stmts * compound_stmt
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                           DEL shift  16
+                          PASS shift  108
+                         PRINT shift  11
+                         WHILE shift  14
+                           FOR shift  15
+                        DEDENT shift  58
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                   simple_stmt shift  59
+                    small_stmt shift  38
+                    print_stmt shift  41
+                        string shift  43
+                          atom shift  87
+                 compound_stmt shift  60
+                     expr_stmt shift  69
+                      del_stmt shift  102
+                     pass_stmt shift  103
+                      testlist shift  37
+                          test shift  51
+                    while_stmt shift  54
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 3:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          while_stmt ::= FOR exprlist IN testlist COLON * suite
+          suite ::= * simple_stmt
+          suite ::= * NEWLINE INDENT stmts DEDENT
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  44
+                           DEL shift  16
+                          PASS shift  108
+                         PRINT shift  11
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                   simple_stmt shift  56
+                    small_stmt shift  38
+                    print_stmt shift  41
+                        string shift  43
+                          atom shift  87
+                     expr_stmt shift  69
+                      del_stmt shift  102
+                     pass_stmt shift  103
+                      testlist shift  37
+                          test shift  51
+                         suite shift  57
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 4:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          while_stmt ::= WHILE test COLON * suite
+          suite ::= * simple_stmt
+          suite ::= * NEWLINE INDENT stmts DEDENT
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  44
+                           DEL shift  16
+                          PASS shift  108
+                         PRINT shift  11
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                   simple_stmt shift  56
+                    small_stmt shift  38
+                    print_stmt shift  41
+                        string shift  43
+                          atom shift  87
+                     expr_stmt shift  69
+                      del_stmt shift  102
+                     pass_stmt shift  103
+                      testlist shift  37
+                          test shift  51
+                         suite shift  55
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 5:
+          simple_stmt ::= small_stmt SEMICOLON * NEWLINE
+          simple_stmt ::= small_stmt SEMICOLON * small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  67
+                           DEL shift  16
+                          PASS shift  108
+                         PRINT shift  11
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                    small_stmt shift  50
+                    print_stmt shift  41
+                        string shift  43
+                          atom shift  87
+                     expr_stmt shift  69
+                      del_stmt shift  102
+                     pass_stmt shift  103
+                      testlist shift  37
+                          test shift  51
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 6:
+          expr_stmt ::= testlist PLUS_EQUALS * testlist
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      testlist shift  109
+                          test shift  51
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 7:
+          expr_stmt ::= testlist MINUS_EQUALS * testlist
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      testlist shift  113
+                          test shift  51
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 8:
+          while_stmt ::= FOR exprlist IN * testlist COLON suite
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      testlist shift  49
+                          test shift  51
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 9:
+          expr_stmt ::= testlist EQUALS * testlist
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      testlist shift  52
+                          test shift  51
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    testlist_2 shift  45
+                    testlist_3 shift  112
+
+State 10:
+          print_stmt ::= print_stmt COMMA * test
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          test shift  70
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 11:
+     (15) print_stmt ::= PRINT *
+          print_stmt ::= PRINT * test
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          test shift  53
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                     {default} reduce 15
+
+State 12:
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= test COMMA * test
+     (64) testlist_3 ::= test COMMA *
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          test shift  111
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                     {default} reduce 64
+
+State 13:
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= testlist_2 COMMA * test
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          test shift  110
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 14:
+          while_stmt ::= WHILE * test COLON suite
+          test ::= * or_test
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          test shift  42
+                       or_test shift  71
+                      and_test shift  72
+                      not_test shift  73
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 15:
+          while_stmt ::= FOR * exprlist IN testlist COLON suite
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          exprlist_2 ::= * exprlist_2 COMMA expr
+          exprlist_2 ::= * expr COMMA expr
+          exprlist_3 ::= * expr COMMA
+          exprlist ::= * expr
+          exprlist ::= * exprlist_2
+          exprlist ::= * exprlist_3
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      exprlist shift  47
+                          expr shift  40
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    exprlist_2 shift  46
+                    exprlist_3 shift  107
+
+State 16:
+          del_stmt ::= DEL * exprlist
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          exprlist_2 ::= * exprlist_2 COMMA expr
+          exprlist_2 ::= * expr COMMA expr
+          exprlist_3 ::= * expr COMMA
+          exprlist ::= * expr
+          exprlist ::= * exprlist_2
+          exprlist ::= * exprlist_3
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      exprlist shift  104
+                          expr shift  40
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                    exprlist_2 shift  46
+                    exprlist_3 shift  107
+
+State 17:
+          not_test ::= * NOT not_test
+          not_test ::= NOT * not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                           NOT shift  17
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                      not_test shift  74
+                    comparison shift  75
+                          expr shift  35
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 18:
+          comparison ::= expr GREATER_THAN * expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  100
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 19:
+          comparison ::= expr GREATER_THAN_OR_EQ * expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  101
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 20:
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          exprlist_2 ::= exprlist_2 COMMA * expr
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  105
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 21:
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          exprlist_2 ::= expr COMMA * expr
+     (70) exprlist_3 ::= expr COMMA *
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  106
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+                     {default} reduce 70
+
+State 22:
+          comparison ::= expr LESS_THAN_OR_EQ * expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  97
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 23:
+          comparison ::= expr EQ_EQ * expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  98
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 24:
+          comparison ::= expr LESS_THAN * expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  76
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 25:
+          comparison ::= expr NOT_EQ * expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          expr shift  99
+                      xor_expr shift  77
+                      and_expr shift  78
+                    shift_expr shift  79
+                    arith_expr shift  80
+                          term shift  39
+                        factor shift  36
+                         power shift  83
+
+State 26:
+          arith_expr ::= term MINUS * term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          term shift  96
+                        factor shift  36
+                         power shift  83
+
+State 27:
+          arith_expr ::= term PLUS * term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                          term shift  81
+                        factor shift  36
+                         power shift  83
+
+State 28:
+          term ::= factor ASTERISK * factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  82
+                         power shift  83
+
+State 29:
+          term ::= factor PERCENT * factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  95
+                         power shift  83
+
+State 30:
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= PLUS * factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  84
+                         power shift  83
+
+State 31:
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          factor ::= TILDE * factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  86
+                         power shift  83
+
+State 32:
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= MINUS * factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  85
+                         power shift  83
+
+State 33:
+          term ::= factor SLASH * factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  93
+                         power shift  83
+
+State 34:
+          term ::= factor SLASHSLASH * factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          PLUS shift  30
+                         MINUS shift  32
+                         TILDE shift  31
+                          ICON shift  88
+                          FCON shift  89
+                          SCON shift  91
+                          NAME shift  92
+                        string shift  43
+                          atom shift  87
+                        factor shift  94
+                         power shift  83
+
+State 35:
+     (32) comparison ::= expr *
+          comparison ::= expr * LESS_THAN expr
+          comparison ::= expr * LESS_THAN_OR_EQ expr
+          comparison ::= expr * EQ_EQ expr
+          comparison ::= expr * NOT_EQ expr
+          comparison ::= expr * GREATER_THAN expr
+          comparison ::= expr * GREATER_THAN_OR_EQ expr
+
+                     LESS_THAN shift  24
+               LESS_THAN_OR_EQ shift  22
+                         EQ_EQ shift  23
+                        NOT_EQ shift  25
+                  GREATER_THAN shift  18
+            GREATER_THAN_OR_EQ shift  19
+                     {default} reduce 32
+
+State 36:
+     (46) term ::= factor *
+          term ::= factor * ASTERISK factor
+          term ::= factor * SLASH factor
+          term ::= factor * SLASHSLASH factor
+          term ::= factor * PERCENT factor
+
+                      ASTERISK shift  28
+                         SLASH shift  33
+                    SLASHSLASH shift  34
+                       PERCENT shift  29
+                     {default} reduce 46
+
+State 37:
+          expr_stmt ::= testlist * PLUS_EQUALS testlist
+          expr_stmt ::= testlist * MINUS_EQUALS testlist
+          expr_stmt ::= testlist * EQUALS testlist
+
+                   PLUS_EQUALS shift  6
+                  MINUS_EQUALS shift  7
+                        EQUALS shift  9
+
+State 38:
+          simple_stmt ::= small_stmt * NEWLINE
+          simple_stmt ::= small_stmt * SEMICOLON NEWLINE
+          simple_stmt ::= small_stmt * SEMICOLON small_stmt NEWLINE
+
+                       NEWLINE shift  66
+                     SEMICOLON shift  5
+
+State 39:
+     (43) arith_expr ::= term *
+          arith_expr ::= term * PLUS term
+          arith_expr ::= term * MINUS term
+
+                          PLUS shift  27
+                         MINUS shift  26
+                     {default} reduce 43
+
+State 40:
+          exprlist_2 ::= expr * COMMA expr
+          exprlist_3 ::= expr * COMMA
+     (71) exprlist ::= expr *
+
+                         COMMA shift  21
+                     {default} reduce 71
+
+State 41:
+      (7) small_stmt ::= print_stmt *
+          print_stmt ::= print_stmt * COMMA test
+
+                         COMMA shift  10
+                     {default} reduce 7
+
+State 42:
+          while_stmt ::= WHILE test * COLON suite
+
+                         COLON shift  4
+
+State 43:
+     (58) atom ::= string *
+          string ::= string * SCON
+
+                          SCON shift  90
+                     {default} reduce 58
+
+State 44:
+          suite ::= NEWLINE * INDENT stmts DEDENT
+
+                        INDENT shift  1
+
+State 45:
+          testlist_2 ::= testlist_2 * COMMA test
+     (66) testlist ::= testlist_2 *
+
+                         COMMA shift  13
+                     {default} reduce 66
+
+State 46:
+          exprlist_2 ::= exprlist_2 * COMMA expr
+     (72) exprlist ::= exprlist_2 *
+
+                         COMMA shift  20
+                     {default} reduce 72
+
+State 47:
+          while_stmt ::= FOR exprlist * IN testlist COLON suite
+
+                            IN shift  8
+
+State 48:
+          single_input ::= compound_stmt * NEWLINE
+
+                       NEWLINE shift  65
+
+State 49:
+          while_stmt ::= FOR exprlist IN testlist * COLON suite
+
+                         COLON shift  3
+
+State 50:
+          simple_stmt ::= small_stmt SEMICOLON small_stmt * NEWLINE
+
+                       NEWLINE shift  68
+
+State 51:
+          testlist_2 ::= test * COMMA test
+          testlist_3 ::= test * COMMA
+     (65) testlist ::= test *
+
+                         COMMA shift  12
+                     {default} reduce 65
+
+State 52:
+     (14) expr_stmt ::= testlist EQUALS testlist *
+
+                     {default} reduce 14
+
+State 53:
+     (16) print_stmt ::= PRINT test *
+
+                     {default} reduce 16
+
+State 54:
+     (18) compound_stmt ::= while_stmt *
+
+                     {default} reduce 18
+
+State 55:
+     (19) while_stmt ::= WHILE test COLON suite *
+
+                     {default} reduce 19
+
+State 56:
+     (21) suite ::= simple_stmt *
+
+                     {default} reduce 21
+
+State 57:
+     (20) while_stmt ::= FOR exprlist IN testlist COLON suite *
+
+                     {default} reduce 20
+
+State 58:
+     (22) suite ::= NEWLINE INDENT stmts DEDENT *
+
+                     {default} reduce 22
+
+State 59:
+     (23) stmts ::= stmts simple_stmt *
+
+                     {default} reduce 23
+
+State 60:
+     (24) stmts ::= stmts compound_stmt *
+
+                     {default} reduce 24
+
+State 61:
+     (25) stmts ::= simple_stmt *
+
+                     {default} reduce 25
+
+State 62:
+      (0) single_input ::= NEWLINE *
+
+                     {default} reduce 0
+
+State 63:
+     (26) stmts ::= compound_stmt *
+
+                     {default} reduce 26
+
+State 64:
+      (1) single_input ::= simple_stmt *
+
+                     {default} reduce 1
+
+State 65:
+      (2) single_input ::= compound_stmt NEWLINE *
+
+                     {default} reduce 2
+
+State 66:
+      (3) simple_stmt ::= small_stmt NEWLINE *
+
+                     {default} reduce 3
+
+State 67:
+      (4) simple_stmt ::= small_stmt SEMICOLON NEWLINE *
+
+                     {default} reduce 4
+
+State 68:
+      (5) simple_stmt ::= small_stmt SEMICOLON small_stmt NEWLINE *
+
+                     {default} reduce 5
+
+State 69:
+      (6) small_stmt ::= expr_stmt *
+
+                     {default} reduce 6
+
+State 70:
+     (17) print_stmt ::= print_stmt COMMA test *
+
+                     {default} reduce 17
+
+State 71:
+     (27) test ::= or_test *
+
+                     {default} reduce 27
+
+State 72:
+     (28) or_test ::= and_test *
+
+                     {default} reduce 28
+
+State 73:
+     (29) and_test ::= not_test *
+
+                     {default} reduce 29
+
+State 74:
+     (30) not_test ::= NOT not_test *
+
+                     {default} reduce 30
+
+State 75:
+     (31) not_test ::= comparison *
+
+                     {default} reduce 31
+
+State 76:
+     (33) comparison ::= expr LESS_THAN expr *
+
+                     {default} reduce 33
+
+State 77:
+     (39) expr ::= xor_expr *
+
+                     {default} reduce 39
+
+State 78:
+     (40) xor_expr ::= and_expr *
+
+                     {default} reduce 40
+
+State 79:
+     (41) and_expr ::= shift_expr *
+
+                     {default} reduce 41
+
+State 80:
+     (42) shift_expr ::= arith_expr *
+
+                     {default} reduce 42
+
+State 81:
+     (44) arith_expr ::= term PLUS term *
+
+                     {default} reduce 44
+
+State 82:
+     (47) term ::= factor ASTERISK factor *
+
+                     {default} reduce 47
+
+State 83:
+     (51) factor ::= power *
+
+                     {default} reduce 51
+
+State 84:
+     (52) factor ::= PLUS factor *
+
+                     {default} reduce 52
+
+State 85:
+     (53) factor ::= MINUS factor *
+
+                     {default} reduce 53
+
+State 86:
+     (54) factor ::= TILDE factor *
+
+                     {default} reduce 54
+
+State 87:
+     (55) power ::= atom *
+
+                     {default} reduce 55
+
+State 88:
+     (56) atom ::= ICON *
+
+                     {default} reduce 56
+
+State 89:
+     (57) atom ::= FCON *
+
+                     {default} reduce 57
+
+State 90:
+     (60) string ::= string SCON *
+
+                     {default} reduce 60
+
+State 91:
+     (59) string ::= SCON *
+
+                     {default} reduce 59
+
+State 92:
+     (61) atom ::= NAME *
+
+                     {default} reduce 61
+
+State 93:
+     (48) term ::= factor SLASH factor *
+
+                     {default} reduce 48
+
+State 94:
+     (49) term ::= factor SLASHSLASH factor *
+
+                     {default} reduce 49
+
+State 95:
+     (50) term ::= factor PERCENT factor *
+
+                     {default} reduce 50
+
+State 96:
+     (45) arith_expr ::= term MINUS term *
+
+                     {default} reduce 45
+
+State 97:
+     (34) comparison ::= expr LESS_THAN_OR_EQ expr *
+
+                     {default} reduce 34
+
+State 98:
+     (35) comparison ::= expr EQ_EQ expr *
+
+                     {default} reduce 35
+
+State 99:
+     (36) comparison ::= expr NOT_EQ expr *
+
+                     {default} reduce 36
+
+State 100:
+     (37) comparison ::= expr GREATER_THAN expr *
+
+                     {default} reduce 37
+
+State 101:
+     (38) comparison ::= expr GREATER_THAN_OR_EQ expr *
+
+                     {default} reduce 38
+
+State 102:
+      (8) small_stmt ::= del_stmt *
+
+                     {default} reduce 8
+
+State 103:
+      (9) small_stmt ::= pass_stmt *
+
+                     {default} reduce 9
+
+State 104:
+     (10) del_stmt ::= DEL exprlist *
+
+                     {default} reduce 10
+
+State 105:
+     (68) exprlist_2 ::= exprlist_2 COMMA expr *
+
+                     {default} reduce 68
+
+State 106:
+     (69) exprlist_2 ::= expr COMMA expr *
+
+                     {default} reduce 69
+
+State 107:
+     (73) exprlist ::= exprlist_3 *
+
+                     {default} reduce 73
+
+State 108:
+     (11) pass_stmt ::= PASS *
+
+                     {default} reduce 11
+
+State 109:
+     (12) expr_stmt ::= testlist PLUS_EQUALS testlist *
+
+                     {default} reduce 12
+
+State 110:
+     (62) testlist_2 ::= testlist_2 COMMA test *
+
+                     {default} reduce 62
+
+State 111:
+     (63) testlist_2 ::= test COMMA test *
+
+                     {default} reduce 63
+
+State 112:
+     (67) testlist ::= testlist_3 *
+
+                     {default} reduce 67
+
+State 113:
+     (13) expr_stmt ::= testlist MINUS_EQUALS testlist *
+
+                     {default} reduce 13
+
+----------------------------------------------------
+Symbols:
+    0: $:
+    1: ERROR
+    2: NEWLINE
+    3: SEMICOLON
+    4: DEL
+    5: PASS
+    6: PLUS_EQUALS
+    7: MINUS_EQUALS
+    8: EQUALS
+    9: PRINT
+   10: COMMA
+   11: WHILE
+   12: COLON
+   13: FOR
+   14: IN
+   15: INDENT
+   16: DEDENT
+   17: NOT
+   18: LESS_THAN
+   19: LESS_THAN_OR_EQ
+   20: EQ_EQ
+   21: NOT_EQ
+   22: GREATER_THAN
+   23: GREATER_THAN_OR_EQ
+   24: PLUS
+   25: MINUS
+   26: ASTERISK
+   27: SLASH
+   28: SLASHSLASH
+   29: PERCENT
+   30: TILDE
+   31: ICON
+   32: FCON
+   33: SCON
+   34: NAME
+   35: error:
+   36: simple_stmt: DEL PASS PRINT NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   37: small_stmt: DEL PASS PRINT NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   38: print_stmt: PRINT
+   39: string: SCON
+   40: atom: ICON FCON SCON NAME
+   41: single_input: NEWLINE DEL PASS PRINT WHILE FOR NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   42: compound_stmt: WHILE FOR
+   43: expr_stmt: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   44: del_stmt: DEL
+   45: pass_stmt: PASS
+   46: exprlist: PLUS MINUS TILDE ICON FCON SCON NAME
+   47: testlist: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   48: test: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   49: while_stmt: WHILE FOR
+   50: suite: NEWLINE DEL PASS PRINT NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   51: stmts: DEL PASS PRINT WHILE FOR NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   52: or_test: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   53: and_test: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   54: not_test: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   55: comparison: PLUS MINUS TILDE ICON FCON SCON NAME
+   56: expr: PLUS MINUS TILDE ICON FCON SCON NAME
+   57: xor_expr: PLUS MINUS TILDE ICON FCON SCON NAME
+   58: and_expr: PLUS MINUS TILDE ICON FCON SCON NAME
+   59: shift_expr: PLUS MINUS TILDE ICON FCON SCON NAME
+   60: arith_expr: PLUS MINUS TILDE ICON FCON SCON NAME
+   61: term: PLUS MINUS TILDE ICON FCON SCON NAME
+   62: factor: PLUS MINUS TILDE ICON FCON SCON NAME
+   63: power: ICON FCON SCON NAME
+   64: testlist_2: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   65: testlist_3: NOT PLUS MINUS TILDE ICON FCON SCON NAME
+   66: exprlist_2: PLUS MINUS TILDE ICON FCON SCON NAME
+   67: exprlist_3: PLUS MINUS TILDE ICON FCON SCON NAME
