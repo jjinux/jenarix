@@ -1,0 +1,25 @@
+#
+# factorial function using recursion
+#
+(def fact null
+[
+     (set x (take _ 0))
+     (if (lt x 1) (null)
+       (if (eq x 1) (1)
+       (
+	mul x (fact (sub x 1))
+       )
+     ))
+]
+);
+
+
+#
+# test it
+#
+(def testfact null
+[
+  (for (set i -3) (lt i 35) (incr i)
+       (output ["The factorial of" i "is" (fact i)])
+  )
+]);
