@@ -107,6 +107,12 @@ jx_status run_test(void)
         JX_OK_DO( jx_os_thread_join(thread) );
       }
     }
+    {
+      jx_int i;
+      for(i=0; i<N_THREAD; i++) {
+        jx_ob_free(thread_info[i].list);
+      }
+    }
     JX_OK_DO( jx_os_thread_array_free( &thread_array ));
   }
   return status;
