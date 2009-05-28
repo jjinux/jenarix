@@ -1,0 +1,25 @@
+
+# this implementation below is slower than it should be because four
+# symbols v0, r, v0 and v1 need to be resolved each pass through the
+# loop
+
+(def vector_add [v0 v1] [
+  (if (ne (size v0) (size v1))
+    [ (output "Vector size mismatch") ]
+    [ (set r [])
+      (while v0 (append r (addl (shift v0) (shift v1))))
+      r
+      ]
+    )
+  ]);
+
+(vector_add [1,2,3], [2,3,4]);
+
+(size (vector_add (range 1000000) (range 1000000)));
+
+# a good compiler could eliminate these lookups, however it would be
+# easier to simply adopt map...
+
+
+
+

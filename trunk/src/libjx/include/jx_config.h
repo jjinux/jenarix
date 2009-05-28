@@ -34,7 +34,7 @@
 
 /* wrap malloc, calloc, realloc, and free? (print atexit) */
 
-#define noJX_MEM_WRAP
+#define JX_MEM_WRAP
 
 /* track heap objects in depth? (print atexit) */
 

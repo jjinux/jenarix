@@ -198,6 +198,7 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
     return jx_ob_from_null();
     break;
   }
+  return jx_ob_from_null();
 }
 
  /* "deep" sets proof of concept.  
@@ -245,7 +246,6 @@ JX_INLINE jx_ob jx_safe_get(jx_ob node, jx_ob payload)
 {
   //  jx_jxon_dump(stdout,"safe get payload",payload);
   //  jx_jxon_dump(stdout,"safe get node",node);
-
   jx_int size = jx_list_size(payload);
   jx_ob container = node;
   jx_ob target =  jx_list_borrow(payload,0);
@@ -286,6 +286,7 @@ JX_INLINE jx_ob jx_safe_get(jx_ob node, jx_ob payload)
     return jx_ob_from_null();
     break;
   }
+  return jx_ob_from_null();
 }
 
 JX_INLINE jx_ob jx_safe_has(jx_ob node, jx_ob payload)
@@ -330,6 +331,7 @@ JX_INLINE jx_ob jx_safe_has(jx_ob node, jx_ob payload)
     return jx_ob_from_null();
     break;
   }
+  return jx_ob_from_null();
 }
 
 #if 0
@@ -555,7 +557,7 @@ JX_UNI_OP(not)
 
 JX_INLINE jx_ob jx_safe_size(jx_ob node, jx_ob payload)
 {
-  return jx_ob_size( jx_list_borrow(payload,0) );
+  return jx_ob_size(jx_list_borrow(payload,0));
 }
 
 JX_INLINE jx_ob jx_safe_append(jx_ob node, jx_ob payload)

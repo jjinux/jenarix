@@ -1,0 +1,19 @@
+
+# here we use map with two lists to speed things up
+
+(def vector_add [v0 v1] [
+  (if (ne (size v0) (size v1))
+    [ (output "Vector size mismatch") ]
+    (map (lamdba [x y] (add x y)) v0 v1)
+    )
+  ]);
+
+(vector_add [1,2,3], [2,3,4]);
+
+(size (vector_add (range 1000000) (range 1000000)));
+
+
+
+
+
+

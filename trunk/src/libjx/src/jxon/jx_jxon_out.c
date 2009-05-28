@@ -325,7 +325,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
   jx_bits bits = ob.meta.bits;
   if(ref && flags & JX_JXON_FLAG_SHOW_WEAK) {
     if(ob.meta.bits & JX_META_BIT_WEAK_REF) {
-      jx_vla_append_c_str(ref,">-WEAK->");
+      jx_vla_append_c_str(ref," >--WEAK!-->");
     }
   }
   switch (bits & JX_META_MASK_TYPE_BITS) {
