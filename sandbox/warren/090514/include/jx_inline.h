@@ -423,7 +423,7 @@ jx_status jx__vla_free(void **ref);
 
 JX_INLINE jx_int *jx_int_vla_new(jx_int size)
 {
-  return jx_vla_new(sizeof(jx_int), size);
+  return (jx_int *) jx_vla_new(sizeof(jx_int), size);
 }
 
 JX_INLINE jx_status jx_int_vla_resize(jx_int ** ref, jx_int size)
@@ -438,7 +438,7 @@ JX_INLINE jx_status jx_int_vla_free(jx_int ** ref)
 
 JX_INLINE jx_float *jx_float_vla_new(jx_float size)
 {
-  return jx_vla_new(sizeof(jx_float), size);
+  return (jx_float *) jx_vla_new(sizeof(jx_float), size);
 }
 
 JX_INLINE jx_status jx_float_vla_resize(jx_float ** ref, jx_int size)
@@ -2177,11 +2177,10 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
 
 /* enable C++ mangling */
 #ifdef __cplusplus
-extern "C" {
 #if 0
+{
+#endif
 }
 #endif
-#endif
-
 
 #endif

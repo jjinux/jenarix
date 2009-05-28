@@ -97,6 +97,10 @@ typedef struct jx__ob jx_ob;
 
 /* enable C++ mangling */
 #ifdef __cplusplus
+#if 0
+{
+#endif
+}
 extern "C" {
 #if 0
 }
@@ -110,6 +114,10 @@ extern "C" {
 
 /* disable C++ mangling */
 #ifdef __cplusplus
+#if 0
+{
+#endif
+}
 extern "C" {
 #if 0
 }
@@ -401,10 +409,10 @@ jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
 /* code execution engine */
 
-jx_status jx_code_expose_secure_builtins(jx_ob namespace);
-jx_status jx_code_expose_special_forms(jx_ob namespace);
+jx_status jx_code_expose_secure_builtins(jx_ob anamespace);
+jx_status jx_code_expose_special_forms(jx_ob anamespace);
 
-jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source);
+jx_ob jx_code_bind_with_source(jx_ob anamespace, jx_ob source);
 
 jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);
@@ -420,10 +428,10 @@ jx_status jx_ob_free(jx_ob ob);
 
 /* enable C++ mangling */
 #ifdef __cplusplus
-extern "C" {
 #if 0
-}
+{
 #endif
+}
 #endif
 
 #endif
