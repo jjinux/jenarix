@@ -941,7 +941,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                 } else { 
                   /* zipping while mapping -- slower */
                   jx_int i,n = size - 2;
-                  jx_ob src_list = jx_list_new_with_size(n);
+                  jx_ob src_list = jx_tls_list_new_with_size(tls,n);
                   for(i=0;i<n;i++) {
                     jx_list_replace(src_list, i, jx_code_eval_allow_weak(tls, flags, node, expr_vla[i+2]));
                   }
@@ -949,6 +949,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                 }
               }
             }
+            return jx_ob_from_null();
             break;
           }
           return jx_ob_from_null();
