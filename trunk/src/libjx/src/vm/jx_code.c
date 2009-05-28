@@ -366,8 +366,8 @@ static void jx__code_make_strong(jx_ob *ob,jx_int size)
 
 JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, jx_ob callable, jx_ob payload)
 { /* frees callable; payload is consumed */
-  //  jx_jxon_dump(stdout,"apply callable",callable);
-  //  jx_jxon_dump(stdout,"       payload",payload);
+  //    jx_jxon_dump(stdout,"apply callable",callable);
+  //    jx_jxon_dump(stdout,"       payload",payload);
   switch(callable.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
   case JX_META_BIT_BUILTIN_NATIVE_FN:
     {
@@ -671,11 +671,14 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
     
     for(i=0;i<max_size;i++) {
       for(j=0;j<n_src;j++) {
-        jx_list_replace(arg_ob, j, jx_ob_take_weak_ref(jx_list_borrow(src_list,i)));
+        jx_list_replace(arg_ob, j, jx_ob_take_weak_ref(jx_list_borrow(jx_list_borrow(src_list,j),i)));
       }
-      jx_list_replace(out, i, jx__code_apply_callable
-                      (tls, node, callable_weak_ref, jx_ob_copy(arg_ob)));
+      jx_list_replace(out,i,jx__code_apply_callable(tls, node, callable_weak_ref, 
+                                                    jx_ob_copy(arg_ob)));
     }
+    jx_ob_free(arg_ob);
+    jx_ob_free(src_list);
+    jx_ob_free(callable);
     return out;
   }
 }
@@ -931,7 +934,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                 if(size == 3) {
                   jx_ob src_list = (size>2) ? jx_code_eval_allow_weak(tls, flags, node, expr_vla[2]) : 
                     jx_ob_from_null();
-                  return jx__code_map1(tls,flags,node, callable,src_list);
+                  return jx__code_map1(tls,flags,node,callable,src_list);
                 } else { 
                   /* zipping while mapping -- slower */
                   jx_int i,n = size - 2;
@@ -939,11 +942,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                   for(i=0;i<n;i++) {
                     jx_list_replace(src_list, i, jx_code_eval_allow_weak(tls, flags, node, expr_vla[i+2]));
                   }
-                  {
-                    jx_ob result = jx__code_mapN(tls,flags,node,callable,src_list);
-                    jx_ob_free(src_list);
-                    return result;
-                  }
+                  return jx__code_mapN(tls,flags,node,callable,src_list);
                 }
               }
             }

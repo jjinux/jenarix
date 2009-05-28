@@ -103,6 +103,8 @@ extern "C" {
 #endif
 #endif
 
+void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);
+
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by API-users as private */
 
@@ -174,7 +176,7 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
 #define JX_JXON_FLAG_INDENT_MASK    0x000000FF
 
 jx_ob jx_ob_to_jxon(jx_ob ob);
-void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);
+
 jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags, jx_int indent, 
                                jx_int width, jx_int space_left);
 

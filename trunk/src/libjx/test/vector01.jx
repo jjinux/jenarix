@@ -18,7 +18,8 @@
 (size (vector_add (range 1000000) (range 1000000)));
 
 # a good compiler could eliminate these lookups, however it would be
-# easier to simply adopt map...
+# easier to simply adopt map...as is done in the next example.
+
 
 
 

@@ -4,7 +4,7 @@
 (def vector_add [v0 v1] [
   (if (ne (size v0) (size v1))
     [ (output "Vector size mismatch") ]
-    [ (map (lamdba [x y] (add x y)) v0 v1) ]
+    [ (map (lambda [x y] (add x y)) v0 v1) ]
     )
   ]);
 
