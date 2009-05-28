@@ -188,7 +188,7 @@ JX_INLINE jx_ob jx_safe_set(jx_ob node, jx_ob payload)
       return jx_ob_from_status
         ( jx_hash_set
           (container, 
-           jx_ob_not_weak_with_ob(target),
+           jx_ob_copy(target),
            jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2))));
       break;
     default:
