@@ -408,7 +408,7 @@ jx_status jx_shell_scanner_purge_input(jx_ob scanner);
 jx_ob jx_py_scanner_new_with_file(FILE *file);
 jx_ob jx_py_scanner_get_error_message(jx_ob scanner);
 jx_ob jx_py_translate_with_tree(jx_ob tree);
-jx_status jx_py_expose_python_builtins(jx_ob namespace);
+jx_status jx_py_expose_python_builtins(jx_ob names);
 jx_status jx_py_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_status jx_py_scanner_purge_input(jx_ob scanner);
 
@@ -430,10 +430,10 @@ jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
 /* code execution engine */
 
-jx_status jx_code_expose_secure_builtins(jx_ob namespace);
-jx_status jx_code_expose_special_forms(jx_ob namespace);
+jx_status jx_code_expose_secure_builtins(jx_ob names);
+jx_status jx_code_expose_special_forms(jx_ob names);
 
-jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source);
+jx_ob jx_code_bind_with_source(jx_ob names, jx_ob source);
 
 jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);

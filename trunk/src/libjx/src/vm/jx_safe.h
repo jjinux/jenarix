@@ -114,7 +114,7 @@ JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
 }
 
 
-jx_status jx_safe_expose_all_builtins(jx_ob namespace);
+jx_status jx_safe_expose_all_builtins(jx_ob names);
 
 JX_INLINE jx_status jx__resolve(jx_ob *container,jx_ob *ident)
 {

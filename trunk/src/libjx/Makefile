@@ -11,6 +11,7 @@ jx:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
+	exit 0 # Jenarix configured -- you can now run 'make'
 
 xx:
 	echo "JX_ARCH="`uname`-`uname -m` | sed 's/ /_/g' > .config
@@ -19,6 +20,7 @@ xx:
 	echo "JX_PREFIX2=XX" >> .config
 	echo "JX_PREFIX3=xx" >> .config
 	make -f rules/srclink.mk remap 
+	exit 0 # Jenarix configured -- you can now run 'make'
 
 ov:
 	echo "JX_ARCH="`uname`-`uname -m` | sed 's/ /_/g' > .config
@@ -27,6 +29,7 @@ ov:
 	echo "JX_PREFIX2=OV" >> .config
 	echo "JX_PREFIX3=Ov" >> .config
 	make -f rules/srclink.mk remap 
+	exit 0 # Jenarix configured -- you can now run 'make'
 
 .config: 
 	sleep 0 # "To configure the build, issue:    make jx"

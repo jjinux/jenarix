@@ -15,13 +15,13 @@ print b, size(b)
 
 d = {"some key":"value"}
 
-c = {}
+c = d
 
 set(c,"another key","value")
 
 print c
 
-print b
+print d
 
 # is NOT how Python works.
 

@@ -63,20 +63,20 @@ jx_ob jx_py_print(jx_ob node, jx_ob payload)
   return jx_ob_from_null();
 }
 
-static jx_bool jx_declare(jx_bool ok, jx_ob namespace, jx_char * ident, jx_native_fn fn)
+static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_native_fn fn)
 {
   if(ok)
-    ok = jx_ok(jx_hash_set(namespace, jx_ob_from_ident(ident),
+    ok = jx_ok(jx_hash_set(names, jx_ob_from_ident(ident),
                            jx_builtin_new_from_native_fn(fn)));
   return ok;
 }
 
-jx_status jx_py_expose_python_builtins(jx_ob namespace)
+jx_status jx_py_expose_python_builtins(jx_ob names)
 {
 
   jx_bool ok = JX_TRUE;
 
-  ok = jx_declare(ok, namespace, "print", jx_py_print);
+  ok = jx_declare(ok, names, "print", jx_py_print);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

@@ -68,61 +68,61 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define JX_BUILTIN_SPECIAL_FORMS_LIMIT 25
 
-static jx_bool jx_declare(jx_bool ok, jx_ob namespace, jx_char * ident, jx_int selector)
+static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_int selector)
 {
   if(ok)
-    ok = jx_ok(jx_hash_set(namespace, jx_ob_from_ident(ident),
+    ok = jx_ok(jx_hash_set(names, jx_ob_from_ident(ident),
                            jx_builtin_new_from_selector(selector)));
   return ok;
 }
 
-jx_status jx_code_expose_special_forms(jx_ob namespace)
+jx_status jx_code_expose_special_forms(jx_ob names)
 {
   jx_bool ok = JX_TRUE;
 
-  ok = jx_declare(ok, namespace, "nop", JX_BUILTIN_NOP);
+  ok = jx_declare(ok, names, "nop", JX_BUILTIN_NOP);
 
-  ok = jx_declare(ok, namespace, "if", JX_BUILTIN_IF);
-  ok = jx_declare(ok, namespace, "while", JX_BUILTIN_WHILE);
-  ok = jx_declare(ok, namespace, "do", JX_BUILTIN_DO);
-  ok = jx_declare(ok, namespace, "for", JX_BUILTIN_FOR);
-  ok = jx_declare(ok, namespace, "foreach", JX_BUILTIN_FOREACH);
-  ok = jx_declare(ok, namespace, "test", JX_BUILTIN_TEST);
+  ok = jx_declare(ok, names, "if", JX_BUILTIN_IF);
+  ok = jx_declare(ok, names, "while", JX_BUILTIN_WHILE);
+  ok = jx_declare(ok, names, "do", JX_BUILTIN_DO);
+  ok = jx_declare(ok, names, "for", JX_BUILTIN_FOR);
+  ok = jx_declare(ok, names, "foreach", JX_BUILTIN_FOREACH);
+  ok = jx_declare(ok, names, "test", JX_BUILTIN_TEST);
 
-  ok = jx_declare(ok, namespace, "quote", JX_BUILTIN_QUOTE);
-  ok = jx_declare(ok, namespace, "raw", JX_BUILTIN_RAW);
+  ok = jx_declare(ok, names, "quote", JX_BUILTIN_QUOTE);
+  ok = jx_declare(ok, names, "raw", JX_BUILTIN_RAW);
 
-  ok = jx_declare(ok, namespace, "def", JX_BUILTIN_DEF);
+  ok = jx_declare(ok, names, "def", JX_BUILTIN_DEF);
 
-  ok = jx_declare(ok, namespace, "defun", JX_BUILTIN_DEFUN);
+  ok = jx_declare(ok, names, "defun", JX_BUILTIN_DEFUN);
 
-  ok = jx_declare(ok, namespace, "defmac", JX_BUILTIN_DEFMAC);
+  ok = jx_declare(ok, names, "defmac", JX_BUILTIN_DEFMAC);
 
-  ok = jx_declare(ok, namespace, "code", JX_BUILTIN_CODE);
-  ok = jx_declare(ok, namespace, "lambda", JX_BUILTIN_LAMBDA);
+  ok = jx_declare(ok, names, "code", JX_BUILTIN_CODE);
+  ok = jx_declare(ok, names, "lambda", JX_BUILTIN_LAMBDA);
 
-  ok = jx_declare(ok, namespace, "apply", JX_BUILTIN_APPLY);
-  ok = jx_declare(ok, namespace, "map", JX_BUILTIN_MAP);
-  ok = jx_declare(ok, namespace, "reduce", JX_BUILTIN_REDUCE);
+  ok = jx_declare(ok, names, "apply", JX_BUILTIN_APPLY);
+  ok = jx_declare(ok, names, "map", JX_BUILTIN_MAP);
+  ok = jx_declare(ok, names, "reduce", JX_BUILTIN_REDUCE);
 
-  ok = jx_declare(ok, namespace, "resolve", JX_BUILTIN_RESOLVE);
+  ok = jx_declare(ok, names, "resolve", JX_BUILTIN_RESOLVE);
 
-  ok = jx_declare(ok, namespace, "eval", JX_BUILTIN_EVAL);
-  ok = jx_declare(ok, namespace, "exec", JX_BUILTIN_EXEC);
+  ok = jx_declare(ok, names, "eval", JX_BUILTIN_EVAL);
+  ok = jx_declare(ok, names, "exec", JX_BUILTIN_EXEC);
 
-  ok = jx_declare(ok, namespace, "dispatch", JX_BUILTIN_DISPATCH);
-  ok = jx_declare(ok, namespace, "switch", JX_BUILTIN_SWITCH);
-  ok = jx_declare(ok, namespace, "select", JX_BUILTIN_SELECT);
+  ok = jx_declare(ok, names, "dispatch", JX_BUILTIN_DISPATCH);
+  ok = jx_declare(ok, names, "switch", JX_BUILTIN_SWITCH);
+  ok = jx_declare(ok, names, "select", JX_BUILTIN_SELECT);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 
-jx_status jx_code_expose_secure_builtins(jx_ob namespace)
+jx_status jx_code_expose_secure_builtins(jx_ob names)
 {
   jx_bool ok = JX_TRUE;
 
-  ok = ok && jx_ok(jx_safe_expose_all_builtins(namespace));
-  ok = ok && jx_ok(jx_code_expose_special_forms(namespace));
+  ok = ok && jx_ok(jx_safe_expose_all_builtins(names));
+  ok = ok && jx_ok(jx_code_expose_special_forms(names));
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
@@ -215,7 +215,7 @@ static jx_ob jx__code_secure_with_source(jx_ob source,jx_int level)
 #endif
 
 /* consume source & return builtin-bound executable */
-static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
+static jx_ob jx__code_bind_with_source(jx_ob names, jx_ob source)
 {
   switch (JX_META_MASK_TYPE_BITS & source.meta.bits) {
   case JX_META_BIT_LIST:
@@ -228,14 +228,14 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       jx_ob ident = jx_list_borrow(source, 0);
       jx_int unresolved = 0;
       if(jx_ident_check(ident)) {
-        jx_ob builtin = jx_hash_borrow(namespace, ident);
+        jx_ob builtin = jx_hash_borrow(names, ident);
         if(jx_builtin_check(builtin)) { 
           /* known builtin function (early / fixed binding) */
           unresolved = 1;
           switch(builtin.data.io.int_) {
           case JX_BUILTIN_NOP: /* [nop # ...] -> bind(#) */
             jx_ob_replace(&source, jx_list_remove(source,1));
-            return jx__code_bind_with_source(namespace,source);
+            return jx__code_bind_with_source(names,source);
             break;
           case JX_BUILTIN_RAW: /* [raw # ...] -> [*raw* # ...] */
             jx_list_replace(source, 0, builtin);
@@ -243,7 +243,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
             break;
           case JX_BUILTIN_QUOTE: /* [quote # ...] -> [*quote* bind(#) ...] */
             jx_list_replace(source, 0, builtin);
-            return jx__code_bind_with_source(namespace,source);
+            return jx__code_bind_with_source(names,source);
             break;
           case JX_BUILTIN_GET:
           case JX_BUILTIN_SET:
@@ -279,7 +279,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
       } else if(jx_builtin_check(ident) && ident.data.io.int_ == JX_BUILTIN_NOP) {
         /* [*nop* # ...] -> bind(#) */
         jx_ob_replace(&source, jx_list_remove(source,1));
-        return jx__code_bind_with_source(namespace,source);
+        return jx__code_bind_with_source(names,source);
       }
       //      jx_jxon_dump(stdout,"post-sub",source);
       /* now process the source list, introducing symbol resolution where needed */
@@ -291,7 +291,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
           jx_list_replace(new_entry, 1, entry); 
           entry = new_entry;
         } else if(entry.meta.bits & JX_META_BIT_GC) {
-          entry = jx__code_bind_with_source(namespace,entry);
+          entry = jx__code_bind_with_source(names,entry);
         }
         jx__list_replace(source_list, size, entry);
       }
@@ -308,7 +308,7 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
         jx_ob key = jx_list_remove(list, 0);
         jx_ob value = jx_list_remove(list, 0);
         size = size - 2;
-        jx_hash_set(result, key, jx__code_bind_with_source(namespace, value));
+        jx_hash_set(result, key, jx__code_bind_with_source(names, value));
       }
       jx_ob_free(list);
       return result;
@@ -328,10 +328,10 @@ static jx_ob jx__code_bind_with_source(jx_ob namespace, jx_ob source)
   }
 }
 
-jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
+jx_ob jx_code_bind_with_source(jx_ob names, jx_ob source)
 {
   if(jx_ident_check(source)) {  /* if code consists solely of a top-level identifier */
-    jx_ob builtin = jx_hash_borrow(namespace, source);
+    jx_ob builtin = jx_hash_borrow(names, source);
     jx_ob result;
     if(jx_builtin_check(builtin)) { /* known builtin function (early / fixed binding) */
       result = jx_list_new_with_size(1);
@@ -343,7 +343,7 @@ jx_ob jx_code_bind_with_source(jx_ob namespace, jx_ob source)
     }
     return result;
   } else
-    return jx__code_bind_with_source(namespace, source);
+    return jx__code_bind_with_source(names, source);
 }
 
 static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr);
@@ -797,7 +797,8 @@ JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
   }
 }
 
-JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob src_list)
+JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node, 
+                              jx_ob callable, jx_ob src_list)
 {
   jx_size max_size = 0;
   jx_int n_src = jx_list_size(src_list);
@@ -1128,7 +1129,8 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                 (tls, flags, node, expr_vla[1]) : jx_ob_from_null();
               if(size > 2) {
                 if(size == 3) {
-                  jx_ob src_list = (size>2) ? jx_code_eval_allow_weak(tls, flags, node, expr_vla[2]) : 
+                  jx_ob src_list = (size>2) ? jx_code_eval_allow_weak
+                    (tls, flags, node, expr_vla[2]) : 
                     jx_ob_from_null();
                   return jx__code_map1(tls,flags,node,callable,src_list);
                 } else { 
@@ -1136,7 +1138,8 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                   jx_int i,n = size - 2;
                   jx_ob src_list = jx_tls_list_new_with_size(tls,n);
                   for(i=0;i<n;i++) {
-                    jx_list_replace(src_list, i, jx_code_eval_allow_weak(tls, flags, node, expr_vla[i+2]));
+                    jx_list_replace(src_list, i, jx_code_eval_allow_weak
+                                    (tls, flags, node, expr_vla[i+2]));
                   }
                   return jx__code_mapN(tls,flags,node,callable,src_list);
                 }
@@ -1150,7 +1153,8 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                 (tls, flags, node, expr_vla[1]) : jx_ob_from_null();
               if(size > 2) {
                 if(size == 3) {
-                  jx_ob src_list = (size>2) ? jx_code_eval_allow_weak(tls, flags, node, expr_vla[2]) : 
+                  jx_ob src_list = (size>2) ? jx_code_eval_allow_weak
+                    (tls, flags, node, expr_vla[2]) : 
                     jx_ob_from_null();
                   return jx__code_reduce(tls,flags,node,callable,src_list);
                 }

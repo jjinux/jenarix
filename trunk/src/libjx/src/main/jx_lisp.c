@@ -65,11 +65,11 @@ int main(int argc, char *argv[])
   }
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
     jx_bool console = jx_adapt_for_console(input);
-    jx_ob namespace = jx_hash_new();
+    jx_ob names = jx_hash_new();
     jx_ob scanner = jx_jxon_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
 
-    jx_code_expose_secure_builtins(namespace);
+    jx_code_expose_secure_builtins(names);
 
     if(console) 
       printf("Jenarix JXON (semicolon-delimited pseudo-LISP syntax):\n");
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
         case JX_YES:
           if(console) jx_jxon_dump(stdout, "# tree", source);
           {
-            jx_ob code = jx_code_bind_with_source(namespace, source);
+            jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
                       
             jx_jxon_dump(stdout, "# comp", code);
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     }
     jx_ob_free(node);
     jx_ob_free(scanner);
-    jx_ob_free(namespace);
+    jx_ob_free(names);
 
     jx_os_process_complete();
     return EXIT_SUCCESS;

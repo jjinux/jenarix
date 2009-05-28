@@ -145,7 +145,8 @@ struct jx__ob {
 #define JX_META_BIT_LIST               0x0200
 #define JX_META_BIT_HASH               0x0100
 
-/* identifiers (for use in JSON-based code) */
+/* JXON identifiers */
+
 #define JX_META_BIT_IDENT              0x0080
 
 /* pointers to built-in entities (runtime-only, not serializable) */
@@ -161,9 +162,11 @@ struct jx__ob {
 /* this bit is set in weak references */
 #define JX_META_BIT_WEAK_REF           0x0020
 
-/* tiny_str size bits are used by builtins */
-
+/* tiny_str size bits are re-used by builtins*/
 #define JX_META_MASK_BUILTIN_TYPE      0x001F
+
+/* note: we made need more builtins and will need to switch
+   from-bit masked to indexed builtin types */
 
 #define JX_META_BIT_BUILTIN_VLA        0x0000
 #define JX_META_BIT_BUILTIN_OPAQUE_OB  0x0001
@@ -171,6 +174,8 @@ struct jx__ob {
 #define JX_META_BIT_BUILTIN_MACRO      0x0004
 #define JX_META_BIT_BUILTIN_NATIVE_FN  0x0008
 #define JX_META_BIT_BUILTIN_FUNCTION   0x0010
+
+/* future builtins may include tuples, Nx32bit vectors, etc. */
 
 /* object initializers */
 
