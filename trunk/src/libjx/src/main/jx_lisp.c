@@ -40,16 +40,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif
 
-static jx_bool jx_adapt_for_console(void)
+static jx_bool jx_adapt_for_console(FILE *input)
 {
-  if (isatty((int)fileno(stdin))) {
+  if (isatty((int)fileno(input))) {
 #if defined(MS_WINDOWS) || defined(__CYGWIN__)
-    _setmode(fileno(stdin), O_BINARY);
+    _setmode(fileno(input), O_BINARY);
     _setmode(fileno(stdout), O_BINARY);
 #endif
 #ifdef WIN32
 #endif
-    setvbuf(stdin,  (char *)NULL, _IONBF, BUFSIZ);
+    setvbuf(input,  (char *)NULL, _IONBF, BUFSIZ);
     setvbuf(stdout, (char *)NULL, _IONBF, BUFSIZ);
     setvbuf(stderr, (char *)NULL, _IONBF, BUFSIZ);
     return JX_TRUE;
@@ -59,16 +59,20 @@ static jx_bool jx_adapt_for_console(void)
 
 int main(int argc, char *argv[])
 {
-  if(jx_ok(jx_os_process_init(argc, argv))) {
-    
+  FILE *input = stdin;
+  if(argc>1) {
+    input = fopen(argv[1],"rb");
+  }
+  if(input && jx_ok(jx_os_process_init(argc, argv))) {
+    jx_bool console = jx_adapt_for_console(input);
     jx_ob namespace = jx_hash_new();
-    jx_ob scanner = jx_jxon_scanner_new_with_file(stdin);
+    jx_ob scanner = jx_jxon_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
-    jx_bool console = jx_adapt_for_console();
 
     jx_code_expose_secure_builtins(namespace);
 
-    printf("Jenarix JXON (semicolon-delimited pseudo-LISP syntax):\n");
+    if(console) 
+      printf("Jenarix JXON (semicolon-delimited pseudo-LISP syntax):\n");
     {
       jx_ob source = JX_OB_NULL;
       jx_status status;

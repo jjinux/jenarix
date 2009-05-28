@@ -85,10 +85,10 @@ static jx_size jx_read_file(FILE *file, jx_char *buf, jx_size buf_size, jx_int m
 {
   switch(mode) {
   case JX_SHELL_SCANNER_MODE_FILE:
-    return fread((char*)buf, 1, buf_size, stdin);
+    return fread((char*)buf, 1, buf_size, file);
     break;
   case JX_SHELL_SCANNER_MODE_CONSOLE:
-    if(fgets((char*)buf, buf_size, stdin)) {
+    if(fgets((char*)buf, buf_size, file)) {
       return jx_strlen(buf);
     } else 
       return 0;
