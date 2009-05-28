@@ -33,11 +33,11 @@
 
 /* wrap malloc, calloc, realloc, and free? (print atexit) */
 
-#define JX_MEM_WRAP
+#define noJX_MEM_WRAP
 
 /* track heap objects in depth? (print atexit) */
 
-#define JX_HEAP_TRACKER
+#define noJX_HEAP_TRACKER
 
 /* should we scramble released memory whenever possible? */
 
