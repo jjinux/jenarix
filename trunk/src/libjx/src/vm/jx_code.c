@@ -667,14 +667,17 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
     jx_ob out = jx_tls_list_new_with_size(tls, max_size);
     jx_ob arg_ob = jx_tls_list_new_with_size(tls, n_src);
     jx_ob callable_weak_ref = jx_ob_take_weak_ref(callable);
-    jx_int i,j;
-    
-    for(i=0;i<max_size;i++) {
-      for(j=0;j<n_src;j++) {
-        jx_list_replace(arg_ob, j, jx_ob_take_weak_ref(jx_list_borrow(jx_list_borrow(src_list,j),i)));
+    if(jx_list_size(out)) {
+      jx_int i,j;
+      
+      for(i=0;i<max_size;i++) {
+        for(j=0;j<n_src;j++) {
+          jx_list_replace(arg_ob, j, jx_ob_take_weak_ref(jx_list_borrow(jx_list_borrow(src_list,j),i)));
+        }
+        jx_list_replace(out,i,jx__code_apply_callable(tls, node, callable_weak_ref, 
+                                                      jx_ob_copy(arg_ob)));
       }
-      jx_list_replace(out,i,jx__code_apply_callable(tls, node, callable_weak_ref, 
-                                                    jx_ob_copy(arg_ob)));
+      jx_list_repack(out);
     }
     jx_ob_free(arg_ob);
     jx_ob_free(src_list);
