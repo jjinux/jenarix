@@ -106,10 +106,10 @@ typedef struct jx__ob jx_ob;
 
 /* enable C++ mangling */
 #ifdef __cplusplus
-extern "C" {
 #if 0
-}
+{
 #endif
+}
 #endif
 
 void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);
@@ -449,10 +449,10 @@ jx_status jx_ob_free(jx_ob ob);
 
 /* enable C++ mangling */
 #ifdef __cplusplus
-extern "C" {
 #if 0
-}
+{
 #endif
+}
 #endif
 
 #endif

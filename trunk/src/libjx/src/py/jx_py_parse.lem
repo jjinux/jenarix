@@ -315,10 +315,19 @@ expr_stmt(A) ::= testlist(B) MINUS_EQUALS testlist(C).
 
 expr_stmt(A) ::= testlist(B) EQUALS testlist(C).
 {  
-  A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("set"));
-  jx_list_append(A,B);
-  jx_list_append(A,C);
+  if(jx_list_size(B) &&
+     (jx_ob_identical(jx_list_borrow(B,0),
+                      jx_ob_from_ident("get")))) {
+    A = B;
+    /* lvalue transformation */
+    jx_list_replace(A,0,jx_ob_from_ident("set"));
+    jx_list_append(A,C);
+  } else {
+    A = jx_list_new();
+    jx_list_append(A,jx_ob_from_ident("set"));
+    jx_list_append(A,B);
+    jx_list_append(A,C);
+  }
 
 #ifdef JX_PY_PARSER_DEBUG
   printf("expr_stmt(A) ::= testlist(B) EQUALS testlist(C).\n");
@@ -809,17 +818,20 @@ testlist_gexp(A) ::= test(B).
 
 /* power: atom trailer* ['**' factor] */
 
-power(A) ::= atom(B) trailer(C).
+power(A) ::= atom(B) call_trailer(C).
 {
   A = C;
-    /*    
-          if(jx_ob_identical(tmp,jx_ob_from_ident("get")))
-    jx_ob tmp = jx_list_get(A,0);
-      jx_list_insert(A,1,B);
-    else
-  jx_ob_free(tmp);
-    */
-  jx_list_insert(A,0,B);
+  jx_list_unshift(A,B);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("power(A) ::= atom(B) trailer(C).\n");
+#endif
+}
+
+power(A) ::= atom(B) access_trailer(C).
+{
+  /* B[C ...] becomes (B C ...) */
+  A = C;
+  jx_list_insert(A,1,B);
 #ifdef JX_PY_PARSER_DEBUG
   printf("power(A) ::= atom(B) trailer(C).\n");
 #endif
@@ -832,7 +844,6 @@ power(A) ::= atom(B).
   printf("power(A) ::= atom(B).\n");
 #endif
 }
-
 
 /* atom: ('(' [yield_expr|testlist_gexp] ')' |
        '[' [listmaker] ']' |
@@ -936,27 +947,27 @@ lambdef(A) ::= LAMBDA varargslist(B) COLON test(C).
 
 /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME */
 
-trailer(A) ::= OPEN_PAR CLOSE_PAR.
+call_trailer(A) ::= OPEN_PAR CLOSE_PAR.
 {
   A = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("trailer(A) ::= OPEN_PAR CLOSE_PAR.\n"); 
+  printf("call_trailer(A) ::= OPEN_PAR CLOSE_PAR.\n"); 
 #endif
 }
 
-trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.
+call_trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.
 {
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.\n"); 
+  printf("call_trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.\n"); 
 #endif
 }
 
-trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
+access_trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
 {
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("trailer(A) ::= OPEN_RECT_BRACKET subscriptlist(B) CLOSE_RECT_BRACKET.\n"); 
+  printf("access_trailer(A) ::= OPEN_RECT_BRACKET subscriptlist(B) CLOSE_RECT_BRACKET.\n"); 
 #endif
 }
 

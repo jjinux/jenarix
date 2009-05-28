@@ -2250,10 +2250,10 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
 
 /* enable C++ mangling */
 #ifdef __cplusplus
-extern "C" {
 #if 0
-}
+{
 #endif
+}
 #endif
 
 

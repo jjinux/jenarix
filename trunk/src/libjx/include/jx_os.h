@@ -178,6 +178,14 @@ typedef struct jx__os_tls jx_os_tls;
 typedef struct jx__os_rlock jx_os_rlock;
 typedef struct jx__os_spinlock jx_os_spinlock;
 
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
 jx_status jx_os_usleep(jx_size usec);
 
 jx_status jx_os_thread_array_new(jx_os_thread **result, jx_size count);
@@ -225,6 +233,14 @@ jx_status jx_os_rlock_destroy(jx_os_rlock *rlock);
 
 jx_status jx_os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin);
 jx_status jx_os_spinlock_release(jx_os_spinlock *spinlock);
+
+/* enable C++ mangling */
+#ifdef __cplusplus
+#if 0
+{
+#endif
+}
+#endif
 
 /* platform-specific time stuff */
 

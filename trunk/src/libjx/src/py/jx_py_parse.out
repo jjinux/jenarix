@@ -59,7 +59,8 @@ State 0:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -79,57 +80,57 @@ State 0:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                       NEWLINE shift  93
-                           DEF shift  81
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
-                            IF shift  29
+                       NEWLINE shift  91
+                           DEF shift  69
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
+                            IF shift  20
                          WHILE shift  28
-                           FOR shift  33
+                           FOR shift  32
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  95
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  172
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
                   single_input accept
-                 compound_stmt shift  76
-                       funcdef shift  175
+                 compound_stmt shift  68
+                       funcdef shift  153
                       testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       if_stmt shift  172
-                    while_stmt shift  173
-                      for_stmt shift  174
-                       if_head shift  61
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       if_stmt shift  150
+                    while_stmt shift  151
+                      for_stmt shift  152
+                       if_head shift  66
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 1:
           funcdef ::= * DEF NAME parameters COLON suite
@@ -194,7 +195,8 @@ State 1:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -214,56 +216,56 @@ State 1:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                           DEF shift  81
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
-                            IF shift  29
+                           DEF shift  69
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
+                            IF shift  20
                          WHILE shift  28
-                           FOR shift  33
+                           FOR shift  32
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  91
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                 compound_stmt shift  92
-                       funcdef shift  175
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  163
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                 compound_stmt shift  167
+                       funcdef shift  153
                       testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       if_stmt shift  172
-                    while_stmt shift  173
-                      for_stmt shift  174
-                       if_head shift  61
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       if_stmt shift  150
+                    while_stmt shift  151
+                      for_stmt shift  152
+                       if_head shift  66
                          stmts shift  2
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 2:
           funcdef ::= * DEF NAME parameters COLON suite
@@ -326,7 +328,8 @@ State 2:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -346,282 +349,58 @@ State 2:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                           DEF shift  81
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
-                            IF shift  29
+                           DEF shift  69
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
+                            IF shift  20
                          WHILE shift  28
-                           FOR shift  33
-                        DEDENT shift  181
+                           FOR shift  32
+                        DEDENT shift  148
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  182
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                 compound_stmt shift  183
-                       funcdef shift  175
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  155
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                 compound_stmt shift  159
+                       funcdef shift  153
                       testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       if_stmt shift  172
-                    while_stmt shift  173
-                      for_stmt shift  174
-                       if_head shift  61
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       if_stmt shift  150
+                    while_stmt shift  151
+                      for_stmt shift  152
+                       if_head shift  66
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 3:
-          simple_stmt ::= * small_stmt NEWLINE
-          simple_stmt ::= * testlist NEWLINE
-          simple_stmt ::= * testlist SEMICOLON NEWLINE
-          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
-          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
-          small_stmt ::= * expr_stmt
-          small_stmt ::= * print_stmt
-          small_stmt ::= * del_stmt
-          small_stmt ::= * pass_stmt
-          del_stmt ::= * DEL exprlist
-          pass_stmt ::= * PASS
-          expr_stmt ::= * testlist PLUS_EQUALS testlist
-          expr_stmt ::= * testlist MINUS_EQUALS testlist
-          expr_stmt ::= * testlist EQUALS testlist
-          print_stmt ::= * PRINT
-          print_stmt ::= * PRINT test
-          print_stmt ::= * print_stmt COMMA test
-          if_head ::= IF test COLON * suite
-          suite ::= * simple_stmt
-          suite ::= * NEWLINE INDENT stmts DEDENT
-          test ::= * or_test
-          test ::= * lambdef
-          or_test ::= * and_test
-          and_test ::= * not_test
-          not_test ::= * NOT not_test
-          not_test ::= * comparison
-          comparison ::= * expr
-          comparison ::= * expr LESS_THAN expr
-          comparison ::= * expr LESS_THAN_OR_EQ expr
-          comparison ::= * expr EQ_EQ expr
-          comparison ::= * expr NOT_EQ expr
-          comparison ::= * expr GREATER_THAN expr
-          comparison ::= * expr GREATER_THAN_OR_EQ expr
-          expr ::= * xor_expr
-          xor_expr ::= * and_expr
-          and_expr ::= * shift_expr
-          shift_expr ::= * arith_expr
-          arith_expr ::= * term
-          arith_expr ::= * term PLUS term
-          arith_expr ::= * term MINUS term
-          term ::= * factor
-          term ::= * factor ASTERISK factor
-          term ::= * factor SLASH factor
-          term ::= * factor SLASHSLASH factor
-          term ::= * factor PERCENT factor
-          factor ::= * power
-          factor ::= * PLUS factor
-          factor ::= * MINUS factor
-          factor ::= * TILDE factor
-          power ::= * atom trailer
-          power ::= * atom
-          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= * ICON
-          atom ::= * FCON
-          atom ::= * string
-          lambdef ::= * LAMBDA varargslist COLON test
-          string ::= * SCON
-          string ::= * string SCON
-          atom ::= * NAME
-          testlist_2 ::= * testlist_2 COMMA test
-          testlist_2 ::= * test COMMA test
-          testlist_3 ::= * test COMMA
-          testlist ::= * test
-          testlist ::= * testlist_2
-          testlist ::= * testlist_3
-
-                       NEWLINE shift  82
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
-                           NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
-                         TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  171
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                         suite shift  178
-                      testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
-                          expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
-                          term shift  63
-                        factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
-
-State 4:
-          simple_stmt ::= * small_stmt NEWLINE
-          simple_stmt ::= * testlist NEWLINE
-          simple_stmt ::= * testlist SEMICOLON NEWLINE
-          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
-          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
-          small_stmt ::= * expr_stmt
-          small_stmt ::= * print_stmt
-          small_stmt ::= * del_stmt
-          small_stmt ::= * pass_stmt
-          del_stmt ::= * DEL exprlist
-          pass_stmt ::= * PASS
-          expr_stmt ::= * testlist PLUS_EQUALS testlist
-          expr_stmt ::= * testlist MINUS_EQUALS testlist
-          expr_stmt ::= * testlist EQUALS testlist
-          print_stmt ::= * PRINT
-          print_stmt ::= * PRINT test
-          print_stmt ::= * print_stmt COMMA test
-          for_stmt ::= FOR exprlist IN testlist COLON * suite
-          suite ::= * simple_stmt
-          suite ::= * NEWLINE INDENT stmts DEDENT
-          test ::= * or_test
-          test ::= * lambdef
-          or_test ::= * and_test
-          and_test ::= * not_test
-          not_test ::= * NOT not_test
-          not_test ::= * comparison
-          comparison ::= * expr
-          comparison ::= * expr LESS_THAN expr
-          comparison ::= * expr LESS_THAN_OR_EQ expr
-          comparison ::= * expr EQ_EQ expr
-          comparison ::= * expr NOT_EQ expr
-          comparison ::= * expr GREATER_THAN expr
-          comparison ::= * expr GREATER_THAN_OR_EQ expr
-          expr ::= * xor_expr
-          xor_expr ::= * and_expr
-          and_expr ::= * shift_expr
-          shift_expr ::= * arith_expr
-          arith_expr ::= * term
-          arith_expr ::= * term PLUS term
-          arith_expr ::= * term MINUS term
-          term ::= * factor
-          term ::= * factor ASTERISK factor
-          term ::= * factor SLASH factor
-          term ::= * factor SLASHSLASH factor
-          term ::= * factor PERCENT factor
-          factor ::= * power
-          factor ::= * PLUS factor
-          factor ::= * MINUS factor
-          factor ::= * TILDE factor
-          power ::= * atom trailer
-          power ::= * atom
-          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= * ICON
-          atom ::= * FCON
-          atom ::= * string
-          lambdef ::= * LAMBDA varargslist COLON test
-          string ::= * SCON
-          string ::= * string SCON
-          atom ::= * NAME
-          testlist_2 ::= * testlist_2 COMMA test
-          testlist_2 ::= * test COMMA test
-          testlist_3 ::= * test COMMA
-          testlist ::= * test
-          testlist ::= * testlist_2
-          testlist ::= * testlist_3
-
-                       NEWLINE shift  82
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
-                           NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
-                         TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  171
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                         suite shift  180
-                      testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
-                          expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
-                          term shift  63
-                        factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
-
-State 5:
           funcdef ::= DEF NAME parameters COLON * suite
           simple_stmt ::= * small_stmt NEWLINE
           simple_stmt ::= * testlist NEWLINE
@@ -671,7 +450,8 @@ State 5:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -691,161 +471,49 @@ State 5:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                       NEWLINE shift  82
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
+                       NEWLINE shift  83
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  171
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                         suite shift  97
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  147
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                         suite shift  130
                       testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
-State 6:
-          simple_stmt ::= * small_stmt NEWLINE
-          simple_stmt ::= * testlist NEWLINE
-          simple_stmt ::= * testlist SEMICOLON NEWLINE
-          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
-          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
-          small_stmt ::= * expr_stmt
-          small_stmt ::= * print_stmt
-          small_stmt ::= * del_stmt
-          small_stmt ::= * pass_stmt
-          del_stmt ::= * DEL exprlist
-          pass_stmt ::= * PASS
-          expr_stmt ::= * testlist PLUS_EQUALS testlist
-          expr_stmt ::= * testlist MINUS_EQUALS testlist
-          expr_stmt ::= * testlist EQUALS testlist
-          print_stmt ::= * PRINT
-          print_stmt ::= * PRINT test
-          print_stmt ::= * print_stmt COMMA test
-          while_stmt ::= WHILE test COLON * suite
-          suite ::= * simple_stmt
-          suite ::= * NEWLINE INDENT stmts DEDENT
-          test ::= * or_test
-          test ::= * lambdef
-          or_test ::= * and_test
-          and_test ::= * not_test
-          not_test ::= * NOT not_test
-          not_test ::= * comparison
-          comparison ::= * expr
-          comparison ::= * expr LESS_THAN expr
-          comparison ::= * expr LESS_THAN_OR_EQ expr
-          comparison ::= * expr EQ_EQ expr
-          comparison ::= * expr NOT_EQ expr
-          comparison ::= * expr GREATER_THAN expr
-          comparison ::= * expr GREATER_THAN_OR_EQ expr
-          expr ::= * xor_expr
-          xor_expr ::= * and_expr
-          and_expr ::= * shift_expr
-          shift_expr ::= * arith_expr
-          arith_expr ::= * term
-          arith_expr ::= * term PLUS term
-          arith_expr ::= * term MINUS term
-          term ::= * factor
-          term ::= * factor ASTERISK factor
-          term ::= * factor SLASH factor
-          term ::= * factor SLASHSLASH factor
-          term ::= * factor PERCENT factor
-          factor ::= * power
-          factor ::= * PLUS factor
-          factor ::= * MINUS factor
-          factor ::= * TILDE factor
-          power ::= * atom trailer
-          power ::= * atom
-          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= * ICON
-          atom ::= * FCON
-          atom ::= * string
-          lambdef ::= * LAMBDA varargslist COLON test
-          string ::= * SCON
-          string ::= * string SCON
-          atom ::= * NAME
-          testlist_2 ::= * testlist_2 COMMA test
-          testlist_2 ::= * test COMMA test
-          testlist_3 ::= * test COMMA
-          testlist ::= * test
-          testlist ::= * testlist_2
-          testlist ::= * testlist_3
-
-                       NEWLINE shift  82
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
-                           NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
-                         TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  171
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                         suite shift  179
-                      testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
-                          expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
-                          term shift  63
-                        factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
-
-State 7:
+State 4:
           simple_stmt ::= * small_stmt NEWLINE
           simple_stmt ::= * testlist NEWLINE
           simple_stmt ::= * testlist SEMICOLON NEWLINE
@@ -895,7 +563,8 @@ State 7:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -915,49 +584,49 @@ State 7:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                       NEWLINE shift  82
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
+                       NEWLINE shift  83
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  171
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                         suite shift  176
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  147
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                         suite shift  157
                       testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
-State 8:
+State 5:
           simple_stmt ::= * small_stmt NEWLINE
           simple_stmt ::= * testlist NEWLINE
           simple_stmt ::= * testlist SEMICOLON NEWLINE
@@ -1007,7 +676,8 @@ State 8:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1027,47 +697,386 @@ State 8:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                       NEWLINE shift  82
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
+                       NEWLINE shift  83
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                   simple_stmt shift  171
-                    small_stmt shift  64
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
-                         suite shift  177
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  147
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                         suite shift  161
                       testlist shift  57
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
+
+State 6:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * testlist NEWLINE
+          simple_stmt ::= * testlist SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          if_head ::= IF test COLON * suite
+          suite ::= * simple_stmt
+          suite ::= * NEWLINE INDENT stmts DEDENT
+          test ::= * or_test
+          test ::= * lambdef
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
+          power ::= * atom
+          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          lambdef ::= * LAMBDA varargslist COLON test
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  83
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
+                           NOT shift  34
+                          PLUS shift  46
+                         MINUS shift  49
+                         TILDE shift  45
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  147
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                         suite shift  165
+                      testlist shift  57
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
+                          expr shift  56
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
+                          term shift  63
+                        factor shift  58
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
+
+State 7:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * testlist NEWLINE
+          simple_stmt ::= * testlist SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          while_stmt ::= WHILE test COLON * suite
+          suite ::= * simple_stmt
+          suite ::= * NEWLINE INDENT stmts DEDENT
+          test ::= * or_test
+          test ::= * lambdef
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
+          power ::= * atom
+          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          lambdef ::= * LAMBDA varargslist COLON test
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  83
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
+                           NOT shift  34
+                          PLUS shift  46
+                         MINUS shift  49
+                         TILDE shift  45
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  147
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                         suite shift  169
+                      testlist shift  57
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
+                          expr shift  56
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
+                          term shift  63
+                        factor shift  58
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
+
+State 8:
+          simple_stmt ::= * small_stmt NEWLINE
+          simple_stmt ::= * testlist NEWLINE
+          simple_stmt ::= * testlist SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON NEWLINE
+          simple_stmt ::= * small_stmt SEMICOLON small_stmt NEWLINE
+          small_stmt ::= * expr_stmt
+          small_stmt ::= * print_stmt
+          small_stmt ::= * del_stmt
+          small_stmt ::= * pass_stmt
+          del_stmt ::= * DEL exprlist
+          pass_stmt ::= * PASS
+          expr_stmt ::= * testlist PLUS_EQUALS testlist
+          expr_stmt ::= * testlist MINUS_EQUALS testlist
+          expr_stmt ::= * testlist EQUALS testlist
+          print_stmt ::= * PRINT
+          print_stmt ::= * PRINT test
+          print_stmt ::= * print_stmt COMMA test
+          for_stmt ::= FOR exprlist IN testlist COLON * suite
+          suite ::= * simple_stmt
+          suite ::= * NEWLINE INDENT stmts DEDENT
+          test ::= * or_test
+          test ::= * lambdef
+          or_test ::= * and_test
+          and_test ::= * not_test
+          not_test ::= * NOT not_test
+          not_test ::= * comparison
+          comparison ::= * expr
+          comparison ::= * expr LESS_THAN expr
+          comparison ::= * expr LESS_THAN_OR_EQ expr
+          comparison ::= * expr EQ_EQ expr
+          comparison ::= * expr NOT_EQ expr
+          comparison ::= * expr GREATER_THAN expr
+          comparison ::= * expr GREATER_THAN_OR_EQ expr
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
+          power ::= * atom
+          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          lambdef ::= * LAMBDA varargslist COLON test
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          testlist_2 ::= * testlist_2 COMMA test
+          testlist_2 ::= * test COMMA test
+          testlist_3 ::= * test COMMA
+          testlist ::= * test
+          testlist ::= * testlist_2
+          testlist ::= * testlist_3
+
+                       NEWLINE shift  83
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
+                           NOT shift  34
+                          PLUS shift  46
+                         MINUS shift  49
+                         TILDE shift  45
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                   simple_stmt shift  147
+                    small_stmt shift  60
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
+                         suite shift  133
+                      testlist shift  57
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
+                          expr shift  56
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
+                          term shift  63
+                        factor shift  58
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 9:
           simple_stmt ::= small_stmt SEMICOLON * NEWLINE
@@ -1113,7 +1122,8 @@ State 9:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1133,48 +1143,48 @@ State 9:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                       NEWLINE shift  99
-                          NAME shift  132
-                           DEL shift  32
-                          PASS shift  161
-                         PRINT shift  21
+                       NEWLINE shift  170
+                          NAME shift  173
+                           DEL shift  33
+                          PASS shift  126
+                         PRINT shift  24
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                    small_stmt shift  70
-                    print_stmt shift  80
-                        string shift  72
-                          atom shift  54
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                    small_stmt shift  71
+                    print_stmt shift  72
+                        string shift  73
+                          atom shift  52
                       testlist shift  59
-                     expr_stmt shift  101
-                      del_stmt shift  155
-                     pass_stmt shift  156
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+                     expr_stmt shift  166
+                      del_stmt shift  115
+                     pass_stmt shift  116
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 10:
-          expr_stmt ::= testlist MINUS_EQUALS * testlist
+          expr_stmt ::= testlist PLUS_EQUALS * testlist
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -1204,7 +1214,8 @@ State 10:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1224,36 +1235,36 @@ State 10:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      testlist shift  166
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      testlist shift  129
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 11:
           for_stmt ::= FOR exprlist IN * testlist COLON suite
@@ -1286,7 +1297,8 @@ State 11:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1306,36 +1318,36 @@ State 11:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      testlist shift  79
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      testlist shift  89
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 12:
           expr_stmt ::= testlist EQUALS * testlist
@@ -1368,7 +1380,8 @@ State 12:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1388,39 +1401,39 @@ State 12:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      testlist shift  167
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      testlist shift  140
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 13:
-          expr_stmt ::= testlist PLUS_EQUALS * testlist
+          expr_stmt ::= testlist MINUS_EQUALS * testlist
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -1450,7 +1463,8 @@ State 13:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1470,36 +1484,36 @@ State 13:
           testlist ::= * testlist_2
           testlist ::= * testlist_3
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      testlist shift  162
-                          test shift  85
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      testlist shift  138
+                          test shift  81
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    testlist_2 shift  71
-                    testlist_3 shift  165
+                         power shift  127
+                    testlist_2 shift  80
+                    testlist_3 shift  136
 
 State 14:
           test ::= * or_test
@@ -1531,7 +1545,8 @@ State 14:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1541,8 +1556,8 @@ State 14:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          trailer ::= OPEN_PAR * CLOSE_PAR
-          trailer ::= OPEN_PAR * arglist CLOSE_PAR
+          call_trailer ::= OPEN_PAR * CLOSE_PAR
+          call_trailer ::= OPEN_PAR * arglist CLOSE_PAR
           arglist ::= * argument
           arglist ::= * arglist COMMA argument
           argument ::= * test
@@ -1550,36 +1565,36 @@ State 14:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                     CLOSE_PAR shift  137
+                          NAME shift  173
+                     CLOSE_PAR shift  177
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  140
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  182
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                       arglist shift  62
-                      argument shift  141
+                         power shift  127
+                       arglist shift  61
+                      argument shift  183
 
 State 15:
           test ::= * or_test
@@ -1611,7 +1626,8 @@ State 15:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1621,7 +1637,7 @@ State 15:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          trailer ::= OPEN_RECT_BRACE * subscriptlist CLOSE_RECT_BRACE
+          access_trailer ::= OPEN_RECT_BRACE * subscriptlist CLOSE_RECT_BRACE
           subscriptlist ::= * subscript
           subscriptlist ::= * subscriptlist COMMA subscript
           subscript ::= * test
@@ -1629,35 +1645,35 @@ State 15:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  144
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  95
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                 subscriptlist shift  66
-                     subscript shift  145
+                         power shift  127
+                 subscriptlist shift  64
+                     subscript shift  96
 
 State 16:
           test ::= * or_test
@@ -1689,53 +1705,54 @@ State 16:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= OPEN_RECT_BRACE * CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= OPEN_RECT_BRACE * listmaker CLOSE_RECT_BRACE
           atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= OPEN_CURLY_BRACE * CLOSE_CURLY_BRACE
           atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= OPEN_CURLY_BRACE * dictmaker CLOSE_CURLY_BRACE
           atom ::= * ICON
           atom ::= * FCON
           atom ::= * string
-          listmaker ::= * test
-          listmaker ::= * listmaker COMMA test
           lambdef ::= * LAMBDA varargslist COLON test
+          dictmaker ::= * test COLON test
+          dictmaker ::= * dictmaker COMMA test COLON test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              CLOSE_RECT_BRACE shift  121
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  136
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+             CLOSE_CURLY_BRACE shift  105
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  77
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                     listmaker shift  60
+                         power shift  127
+                     dictmaker shift  65
 
 State 17:
           test ::= * or_test
@@ -1767,53 +1784,54 @@ State 17:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= OPEN_RECT_BRACE * CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= OPEN_RECT_BRACE * listmaker CLOSE_RECT_BRACE
           atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= OPEN_CURLY_BRACE * CLOSE_CURLY_BRACE
           atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= OPEN_CURLY_BRACE * dictmaker CLOSE_CURLY_BRACE
           atom ::= * ICON
           atom ::= * FCON
           atom ::= * string
+          listmaker ::= * test
+          listmaker ::= * listmaker COMMA test
           lambdef ::= * LAMBDA varargslist COLON test
-          dictmaker ::= * test COLON test
-          dictmaker ::= * dictmaker COMMA test COLON test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-             CLOSE_CURLY_BRACE shift  123
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  83
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              CLOSE_RECT_BRACE shift  109
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  176
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                     dictmaker shift  65
+                         power shift  127
+                     listmaker shift  62
 
 State 18:
           test ::= * or_test
@@ -1845,7 +1863,8 @@ State 18:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1855,40 +1874,40 @@ State 18:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          arglist ::= arglist COMMA * argument
-          argument ::= * test
+          subscriptlist ::= subscriptlist COMMA * subscript
+          subscript ::= * test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  140
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  95
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                      argument shift  139
+                         power shift  127
+                     subscript shift  94
 
 State 19:
           test ::= * or_test
@@ -1920,7 +1939,8 @@ State 19:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -1930,42 +1950,43 @@ State 19:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          subscriptlist ::= subscriptlist COMMA * subscript
-          subscript ::= * test
+          arglist ::= arglist COMMA * argument
+          argument ::= * test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  144
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  182
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                     subscript shift  143
+                         power shift  127
+                      argument shift  181
 
 State 20:
+          if_head ::= IF * test COLON suite
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -1995,7 +2016,8 @@ State 20:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2005,42 +2027,40 @@ State 20:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          dictmaker ::= dictmaker COMMA test COLON * test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  133
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  86
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 21:
-     (22) print_stmt ::= PRINT *
-          print_stmt ::= PRINT * test
+          if_head ::= if_head ELIF * test COLON suite
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -2070,7 +2090,8 @@ State 21:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2084,34 +2105,33 @@ State 21:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  168
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  85
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                     {default} reduce 22
+                         power shift  127
 
 State 22:
           test ::= * or_test
@@ -2143,7 +2163,8 @@ State 22:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2153,38 +2174,38 @@ State 22:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
+          lambdef ::= LAMBDA varargslist COLON * test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
-          testlist_2 ::= testlist_2 COMMA * test
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  163
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  180
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 23:
           test ::= * or_test
@@ -2216,7 +2237,8 @@ State 23:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2226,40 +2248,42 @@ State 23:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          lambdef ::= LAMBDA varargslist COLON * test
+          dictmaker ::= dictmaker COMMA * test COLON test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  130
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  76
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 24:
+     (22) print_stmt ::= PRINT *
+          print_stmt ::= PRINT * test
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -2289,7 +2313,8 @@ State 24:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2302,40 +2327,37 @@ State 24:
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
-          testlist_2 ::= test COMMA * test
-     (98) testlist_3 ::= test COMMA *
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  164
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  142
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                     {default} reduce 98
+                         power shift  127
+                     {default} reduce 22
 
 State 25:
-          print_stmt ::= print_stmt COMMA * test
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -2365,7 +2387,8 @@ State 25:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2378,34 +2401,35 @@ State 25:
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
+          testlist_2 ::= testlist_2 COMMA * test
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  102
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  132
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 26:
           test ::= * or_test
@@ -2437,7 +2461,8 @@ State 26:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2447,38 +2472,40 @@ State 26:
           atom ::= * FCON
           atom ::= * string
           lambdef ::= * LAMBDA varargslist COLON test
-          dictmaker ::= dictmaker COMMA * test COLON test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
+          testlist_2 ::= test COMMA * test
+     (99) testlist_3 ::= test COMMA *
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  74
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  135
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
+                     {default} reduce 99
 
 State 27:
           test ::= * or_test
@@ -2510,7 +2537,8 @@ State 27:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2519,39 +2547,39 @@ State 27:
           atom ::= * ICON
           atom ::= * FCON
           atom ::= * string
-          listmaker ::= listmaker COMMA * test
           lambdef ::= * LAMBDA varargslist COLON test
+          dictmaker ::= dictmaker COMMA test COLON * test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  135
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  171
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 28:
           while_stmt ::= WHILE * test COLON suite
@@ -2584,7 +2612,8 @@ State 28:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2598,36 +2627,35 @@ State 28:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  73
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  87
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 29:
-          if_head ::= IF * test COLON suite
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -2657,7 +2685,8 @@ State 29:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2666,41 +2695,42 @@ State 29:
           atom ::= * ICON
           atom ::= * FCON
           atom ::= * string
+          listmaker ::= listmaker COMMA * test
           lambdef ::= * LAMBDA varargslist COLON test
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  69
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  175
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 30:
-          if_head ::= if_head ELIF * test COLON suite
+          print_stmt ::= print_stmt COMMA * test
           test ::= * or_test
           test ::= * lambdef
           or_test ::= * and_test
@@ -2730,7 +2760,8 @@ State 30:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2744,33 +2775,33 @@ State 30:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  89
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  164
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 31:
           test ::= * or_test
@@ -2802,7 +2833,8 @@ State 31:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2817,95 +2849,35 @@ State 31:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                        LAMBDA shift  52
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          test shift  134
-                       or_test shift  103
-                       lambdef shift  104
-                      and_test shift  105
-                      not_test shift  106
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                        LAMBDA shift  53
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          test shift  174
+                       or_test shift  162
+                       lambdef shift  160
+                      and_test shift  158
+                      not_test shift  156
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 32:
-          del_stmt ::= DEL * exprlist
-          expr ::= * xor_expr
-          xor_expr ::= * and_expr
-          and_expr ::= * shift_expr
-          shift_expr ::= * arith_expr
-          arith_expr ::= * term
-          arith_expr ::= * term PLUS term
-          arith_expr ::= * term MINUS term
-          term ::= * factor
-          term ::= * factor ASTERISK factor
-          term ::= * factor SLASH factor
-          term ::= * factor SLASHSLASH factor
-          term ::= * factor PERCENT factor
-          factor ::= * power
-          factor ::= * PLUS factor
-          factor ::= * MINUS factor
-          factor ::= * TILDE factor
-          power ::= * atom trailer
-          power ::= * atom
-          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= * ICON
-          atom ::= * FCON
-          atom ::= * string
-          string ::= * SCON
-          string ::= * string SCON
-          atom ::= * NAME
-          exprlist_2 ::= * exprlist_2 COMMA expr
-          exprlist_2 ::= * expr COMMA expr
-          exprlist_3 ::= * expr COMMA
-          exprlist ::= * expr
-          exprlist ::= * exprlist_2
-          exprlist ::= * exprlist_3
-
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
-                         TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      exprlist shift  157
-                          expr shift  88
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
-                          term shift  63
-                        factor shift  58
-                         power shift  116
-                    exprlist_2 shift  68
-                    exprlist_3 shift  160
-
-State 33:
           for_stmt ::= FOR * exprlist IN testlist COLON suite
           expr ::= * xor_expr
           xor_expr ::= * and_expr
@@ -2923,7 +2895,8 @@ State 33:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -2942,28 +2915,89 @@ State 33:
           exprlist ::= * exprlist_2
           exprlist ::= * exprlist_3
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      exprlist shift  77
-                          expr shift  88
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      exprlist shift  88
+                          expr shift  79
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                    exprlist_2 shift  68
-                    exprlist_3 shift  160
+                         power shift  127
+                    exprlist_2 shift  78
+                    exprlist_3 shift  125
+
+State 33:
+          del_stmt ::= DEL * exprlist
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
+          power ::= * atom
+          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          exprlist_2 ::= * exprlist_2 COMMA expr
+          exprlist_2 ::= * expr COMMA expr
+          exprlist_3 ::= * expr COMMA
+          exprlist ::= * expr
+          exprlist ::= * exprlist_2
+          exprlist ::= * exprlist_3
+
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
+                         TILDE shift  45
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      exprlist shift  118
+                          expr shift  79
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
+                          term shift  63
+                        factor shift  58
+                         power shift  127
+                    exprlist_2 shift  78
+                    exprlist_3 shift  125
 
 State 34:
           not_test ::= * NOT not_test
@@ -2992,7 +3026,8 @@ State 34:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3005,30 +3040,84 @@ State 34:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
+                          NAME shift  173
                            NOT shift  34
-                          PLUS shift  49
-                         MINUS shift  48
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                      not_test shift  107
-                    comparison shift  108
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                      not_test shift  154
+                    comparison shift  149
                           expr shift  56
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 35:
+          expr ::= * xor_expr
+          xor_expr ::= * and_expr
+          and_expr ::= * shift_expr
+          shift_expr ::= * arith_expr
+          arith_expr ::= * term
+          arith_expr ::= * term PLUS term
+          arith_expr ::= * term MINUS term
+          term ::= * factor
+          term ::= * factor ASTERISK factor
+          term ::= * factor SLASH factor
+          term ::= * factor SLASHSLASH factor
+          term ::= * factor PERCENT factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
+          power ::= * atom
+          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+          exprlist_2 ::= expr COMMA * expr
+    (105) exprlist_3 ::= expr COMMA *
+
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
+                         TILDE shift  45
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  124
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
+                          term shift  63
+                        factor shift  58
+                         power shift  127
+                     {default} reduce 105
+
+State 36:
           comparison ::= expr LESS_THAN * expr
           expr ::= * xor_expr
           xor_expr ::= * and_expr
@@ -3046,7 +3135,8 @@ State 35:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3059,79 +3149,27 @@ State 35:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  109
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  143
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-
-State 36:
-          comparison ::= expr LESS_THAN_OR_EQ * expr
-          expr ::= * xor_expr
-          xor_expr ::= * and_expr
-          and_expr ::= * shift_expr
-          shift_expr ::= * arith_expr
-          arith_expr ::= * term
-          arith_expr ::= * term PLUS term
-          arith_expr ::= * term MINUS term
-          term ::= * factor
-          term ::= * factor ASTERISK factor
-          term ::= * factor SLASH factor
-          term ::= * factor SLASHSLASH factor
-          term ::= * factor PERCENT factor
-          factor ::= * power
-          factor ::= * PLUS factor
-          factor ::= * MINUS factor
-          factor ::= * TILDE factor
-          power ::= * atom trailer
-          power ::= * atom
-          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= * ICON
-          atom ::= * FCON
-          atom ::= * string
-          string ::= * SCON
-          string ::= * string SCON
-          atom ::= * NAME
-
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
-                         TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  150
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
-                          term shift  63
-                        factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 37:
-          comparison ::= expr EQ_EQ * expr
           expr ::= * xor_expr
           xor_expr ::= * and_expr
           and_expr ::= * shift_expr
@@ -3148,7 +3186,8 @@ State 37:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3160,29 +3199,30 @@ State 37:
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
+          exprlist_2 ::= exprlist_2 COMMA * expr
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  151
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  121
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 38:
-          comparison ::= expr NOT_EQ * expr
+          comparison ::= expr GREATER_THAN_OR_EQ * expr
           expr ::= * xor_expr
           xor_expr ::= * and_expr
           and_expr ::= * shift_expr
@@ -3199,7 +3239,8 @@ State 38:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3212,25 +3253,25 @@ State 38:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  152
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  114
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 39:
           comparison ::= expr GREATER_THAN * expr
@@ -3250,7 +3291,8 @@ State 39:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3263,28 +3305,28 @@ State 39:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  153
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  112
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 40:
-          comparison ::= expr GREATER_THAN_OR_EQ * expr
+          comparison ::= expr NOT_EQ * expr
           expr ::= * xor_expr
           xor_expr ::= * and_expr
           and_expr ::= * shift_expr
@@ -3301,7 +3343,8 @@ State 40:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3314,27 +3357,28 @@ State 40:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  154
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  110
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 41:
+          comparison ::= expr EQ_EQ * expr
           expr ::= * xor_expr
           xor_expr ::= * and_expr
           and_expr ::= * shift_expr
@@ -3351,7 +3395,8 @@ State 41:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3363,29 +3408,29 @@ State 41:
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
-          exprlist_2 ::= exprlist_2 COMMA * expr
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  158
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  108
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 42:
+          comparison ::= expr LESS_THAN_OR_EQ * expr
           expr ::= * xor_expr
           xor_expr ::= * and_expr
           and_expr ::= * shift_expr
@@ -3402,7 +3447,8 @@ State 42:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3414,29 +3460,26 @@ State 42:
           string ::= * SCON
           string ::= * string SCON
           atom ::= * NAME
-          exprlist_2 ::= expr COMMA * expr
-    (104) exprlist_3 ::= expr COMMA *
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          expr shift  159
-                      xor_expr shift  110
-                      and_expr shift  111
-                    shift_expr shift  112
-                    arith_expr shift  113
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          expr shift  106
+                      xor_expr shift  141
+                      and_expr shift  139
+                    shift_expr shift  137
+                    arith_expr shift  134
                           term shift  63
                         factor shift  58
-                         power shift  116
-                     {default} reduce 104
+                         power shift  127
 
 State 43:
           arith_expr ::= term PLUS * term
@@ -3449,7 +3492,8 @@ State 43:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3462,20 +3506,20 @@ State 43:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          term shift  114
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          term shift  131
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 44:
           arith_expr ::= term MINUS * term
@@ -3488,7 +3532,8 @@ State 44:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3501,20 +3546,20 @@ State 44:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                          term shift  149
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                          term shift  104
                         factor shift  58
-                         power shift  116
+                         power shift  127
 
 State 45:
           factor ::= * power
@@ -3522,7 +3567,8 @@ State 45:
           factor ::= * MINUS factor
           factor ::= * TILDE factor
           factor ::= TILDE * factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3535,27 +3581,28 @@ State 45:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  119
-                         power shift  116
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  117
+                         power shift  127
 
 State 46:
-          term ::= factor SLASH * factor
           factor ::= * power
           factor ::= * PLUS factor
+          factor ::= PLUS * factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3568,19 +3615,19 @@ State 46:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  146
-                         power shift  116
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  123
+                         power shift  127
 
 State 47:
           term ::= factor SLASHSLASH * factor
@@ -3588,7 +3635,8 @@ State 47:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3601,27 +3649,62 @@ State 47:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  147
-                         power shift  116
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  100
+                         power shift  127
 
 State 48:
+          term ::= factor ASTERISK * factor
+          factor ::= * power
+          factor ::= * PLUS factor
+          factor ::= * MINUS factor
+          factor ::= * TILDE factor
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
+          power ::= * atom
+          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
+          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
+          atom ::= * ICON
+          atom ::= * FCON
+          atom ::= * string
+          string ::= * SCON
+          string ::= * string SCON
+          atom ::= * NAME
+
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
+                         TILDE shift  45
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  128
+                         power shift  127
+
+State 49:
           factor ::= * power
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= MINUS * factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3634,52 +3717,19 @@ State 48:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  118
-                         power shift  116
-
-State 49:
-          factor ::= * power
-          factor ::= * PLUS factor
-          factor ::= PLUS * factor
-          factor ::= * MINUS factor
-          factor ::= * TILDE factor
-          power ::= * atom trailer
-          power ::= * atom
-          atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
-          atom ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          atom ::= * OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE
-          atom ::= * ICON
-          atom ::= * FCON
-          atom ::= * string
-          string ::= * SCON
-          string ::= * string SCON
-          atom ::= * NAME
-
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
-                         TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  117
-                         power shift  116
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  120
+                         power shift  127
 
 State 50:
           term ::= factor PERCENT * factor
@@ -3687,7 +3737,8 @@ State 50:
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3700,27 +3751,28 @@ State 50:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  148
-                         power shift  116
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  102
+                         power shift  127
 
 State 51:
-          term ::= factor ASTERISK * factor
+          term ::= factor SLASH * factor
           factor ::= * power
           factor ::= * PLUS factor
           factor ::= * MINUS factor
           factor ::= * TILDE factor
-          power ::= * atom trailer
+          power ::= * atom call_trailer
+          power ::= * atom access_trailer
           power ::= * atom
           atom ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
           atom ::= * OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE
@@ -3733,58 +3785,60 @@ State 51:
           string ::= * string SCON
           atom ::= * NAME
 
-                          NAME shift  132
-                          PLUS shift  49
-                         MINUS shift  48
+                          NAME shift  173
+                          PLUS shift  46
+                         MINUS shift  49
                          TILDE shift  45
-               OPEN_RECT_BRACE shift  16
-              OPEN_CURLY_BRACE shift  17
-                          ICON shift  125
-                          FCON shift  126
-                          SCON shift  131
-                        string shift  72
-                          atom shift  54
-                        factor shift  115
-                         power shift  116
+               OPEN_RECT_BRACE shift  17
+              OPEN_CURLY_BRACE shift  16
+                          ICON shift  101
+                          FCON shift  99
+                          SCON shift  178
+                        string shift  73
+                          atom shift  52
+                        factor shift  98
+                         power shift  127
 
 State 52:
+          power ::= atom * call_trailer
+          power ::= atom * access_trailer
+     (72) power ::= atom *
+          call_trailer ::= * OPEN_PAR CLOSE_PAR
+          call_trailer ::= * OPEN_PAR arglist CLOSE_PAR
+          access_trailer ::= * OPEN_RECT_BRACE subscriptlist CLOSE_RECT_BRACE
+
+                      OPEN_PAR shift  14
+               OPEN_RECT_BRACE shift  15
+                  call_trailer shift  113
+                access_trailer shift  111
+                     {default} reduce 72
+
+State 53:
           varargslist ::= * fpdefs
           fpdefs ::= * NAME
           fpdefs ::= * fpdefs COMMA NAME
           lambdef ::= LAMBDA * varargslist COLON test
 
-                          NAME shift  129
-                   varargslist shift  87
-                        fpdefs shift  67
+                          NAME shift  184
+                   varargslist shift  67
+                        fpdefs shift  74
 
-State 53:
+State 54:
           parameters ::= OPEN_PAR * varargslist CLOSE_PAR
           varargslist ::= * fpdefs
           fpdefs ::= * NAME
           fpdefs ::= * fpdefs COMMA NAME
 
-                          NAME shift  129
-                   varargslist shift  78
-                        fpdefs shift  67
-
-State 54:
-          power ::= atom * trailer
-     (71) power ::= atom *
-          trailer ::= * OPEN_PAR CLOSE_PAR
-          trailer ::= * OPEN_PAR arglist CLOSE_PAR
-          trailer ::= * OPEN_RECT_BRACE subscriptlist CLOSE_RECT_BRACE
-
-                      OPEN_PAR shift  14
-               OPEN_RECT_BRACE shift  15
-                       trailer shift  120
-                     {default} reduce 71
+                          NAME shift  184
+                   varargslist shift  90
+                        fpdefs shift  74
 
 State 55:
           funcdef ::= DEF NAME * parameters COLON suite
           parameters ::= * OPEN_PAR varargslist CLOSE_PAR
 
-                      OPEN_PAR shift  53
-                    parameters shift  75
+                      OPEN_PAR shift  54
+                    parameters shift  70
 
 State 56:
      (47) comparison ::= expr *
@@ -3795,12 +3849,12 @@ State 56:
           comparison ::= expr * GREATER_THAN expr
           comparison ::= expr * GREATER_THAN_OR_EQ expr
 
-                     LESS_THAN shift  35
-               LESS_THAN_OR_EQ shift  36
-                         EQ_EQ shift  37
-                        NOT_EQ shift  38
+                     LESS_THAN shift  36
+               LESS_THAN_OR_EQ shift  42
+                         EQ_EQ shift  41
+                        NOT_EQ shift  40
                   GREATER_THAN shift  39
-            GREATER_THAN_OR_EQ shift  40
+            GREATER_THAN_OR_EQ shift  38
                      {default} reduce 47
 
 State 57:
@@ -3810,10 +3864,10 @@ State 57:
           expr_stmt ::= testlist * MINUS_EQUALS testlist
           expr_stmt ::= testlist * EQUALS testlist
 
-                       NEWLINE shift  169
-                     SEMICOLON shift  84
-                   PLUS_EQUALS shift  13
-                  MINUS_EQUALS shift  10
+                       NEWLINE shift  144
+                     SEMICOLON shift  82
+                   PLUS_EQUALS shift  10
+                  MINUS_EQUALS shift  13
                         EQUALS shift  12
 
 State 58:
@@ -3823,8 +3877,8 @@ State 58:
           term ::= factor * SLASHSLASH factor
           term ::= factor * PERCENT factor
 
-                      ASTERISK shift  51
-                         SLASH shift  46
+                      ASTERISK shift  48
+                         SLASH shift  51
                     SLASHSLASH shift  47
                        PERCENT shift  50
                      {default} reduce 61
@@ -3834,32 +3888,31 @@ State 59:
           expr_stmt ::= testlist * MINUS_EQUALS testlist
           expr_stmt ::= testlist * EQUALS testlist
 
-                   PLUS_EQUALS shift  13
-                  MINUS_EQUALS shift  10
+                   PLUS_EQUALS shift  10
+                  MINUS_EQUALS shift  13
                         EQUALS shift  12
 
 State 60:
+          simple_stmt ::= small_stmt * NEWLINE
+          simple_stmt ::= small_stmt * SEMICOLON NEWLINE
+          simple_stmt ::= small_stmt * SEMICOLON small_stmt NEWLINE
+
+                       NEWLINE shift  119
+                     SEMICOLON shift  9
+
+State 61:
+          call_trailer ::= OPEN_PAR arglist * CLOSE_PAR
+          arglist ::= arglist * COMMA argument
+
+                     CLOSE_PAR shift  179
+                         COMMA shift  19
+
+State 62:
           atom ::= OPEN_RECT_BRACE listmaker * CLOSE_RECT_BRACE
           listmaker ::= listmaker * COMMA test
 
-                         COMMA shift  27
-              CLOSE_RECT_BRACE shift  122
-
-State 61:
-     (29) if_stmt ::= if_head *
-          if_stmt ::= if_head * ELSE COLON suite
-          if_head ::= if_head * ELIF test COLON suite
-
-                          ELSE shift  90
-                          ELIF shift  30
-                     {default} reduce 29
-
-State 62:
-          trailer ::= OPEN_PAR arglist * CLOSE_PAR
-          arglist ::= arglist * COMMA argument
-
-                     CLOSE_PAR shift  138
-                         COMMA shift  18
+                         COMMA shift  29
+              CLOSE_RECT_BRACE shift  107
 
 State 63:
      (58) arith_expr ::= term *
@@ -3871,627 +3924,633 @@ State 63:
                      {default} reduce 58
 
 State 64:
-          simple_stmt ::= small_stmt * NEWLINE
-          simple_stmt ::= small_stmt * SEMICOLON NEWLINE
-          simple_stmt ::= small_stmt * SEMICOLON small_stmt NEWLINE
+          access_trailer ::= OPEN_RECT_BRACE subscriptlist * CLOSE_RECT_BRACE
+          subscriptlist ::= subscriptlist * COMMA subscript
 
-                       NEWLINE shift  98
-                     SEMICOLON shift  9
+                         COMMA shift  18
+              CLOSE_RECT_BRACE shift  92
 
 State 65:
           atom ::= OPEN_CURLY_BRACE dictmaker * CLOSE_CURLY_BRACE
           dictmaker ::= dictmaker * COMMA test COLON test
 
-                         COMMA shift  26
-             CLOSE_CURLY_BRACE shift  124
+                         COMMA shift  23
+             CLOSE_CURLY_BRACE shift  103
 
 State 66:
-          trailer ::= OPEN_RECT_BRACE subscriptlist * CLOSE_RECT_BRACE
-          subscriptlist ::= subscriptlist * COMMA subscript
+     (29) if_stmt ::= if_head *
+          if_stmt ::= if_head * ELSE COLON suite
+          if_head ::= if_head * ELIF test COLON suite
 
-                         COMMA shift  19
-              CLOSE_RECT_BRACE shift  142
+                          ELSE shift  84
+                          ELIF shift  21
+                     {default} reduce 29
 
 State 67:
-      (5) varargslist ::= fpdefs *
-          fpdefs ::= fpdefs * COMMA NAME
+          lambdef ::= LAMBDA varargslist * COLON test
 
-                         COMMA shift  86
-                     {default} reduce 5
+                         COLON shift  22
 
 State 68:
-          exprlist_2 ::= exprlist_2 * COMMA expr
-    (106) exprlist ::= exprlist_2 *
-
-                         COMMA shift  41
-                     {default} reduce 106
-
-State 69:
-          if_head ::= IF test * COLON suite
-
-                         COLON shift  3
-
-State 70:
-          simple_stmt ::= small_stmt SEMICOLON small_stmt * NEWLINE
-
-                       NEWLINE shift  100
-
-State 71:
-          testlist_2 ::= testlist_2 * COMMA test
-    (100) testlist ::= testlist_2 *
-
-                         COMMA shift  22
-                     {default} reduce 100
-
-State 72:
-     (78) atom ::= string *
-          string ::= string * SCON
-
-                          SCON shift  127
-                     {default} reduce 78
-
-State 73:
-          while_stmt ::= WHILE test * COLON suite
-
-                         COLON shift  6
-
-State 74:
-          dictmaker ::= dictmaker COMMA test * COLON test
-
-                         COLON shift  20
-
-State 75:
-          funcdef ::= DEF NAME parameters * COLON suite
-
-                         COLON shift  5
-
-State 76:
           single_input ::= compound_stmt * NEWLINE
 
-                       NEWLINE shift  96
+                       NEWLINE shift  145
 
-State 77:
-          for_stmt ::= FOR exprlist * IN testlist COLON suite
-
-                            IN shift  11
-
-State 78:
-          parameters ::= OPEN_PAR varargslist * CLOSE_PAR
-
-                     CLOSE_PAR shift  94
-
-State 79:
-          for_stmt ::= FOR exprlist IN testlist * COLON suite
-
-                         COLON shift  4
-
-State 80:
-     (14) small_stmt ::= print_stmt *
-          print_stmt ::= print_stmt * COMMA test
-
-                         COMMA shift  25
-                     {default} reduce 14
-
-State 81:
+State 69:
           funcdef ::= DEF * NAME parameters COLON suite
 
                           NAME shift  55
 
-State 82:
-          suite ::= NEWLINE * INDENT stmts DEDENT
+State 70:
+          funcdef ::= DEF NAME parameters * COLON suite
 
-                        INDENT shift  1
+                         COLON shift  3
 
-State 83:
+State 71:
+          simple_stmt ::= small_stmt SEMICOLON small_stmt * NEWLINE
+
+                       NEWLINE shift  168
+
+State 72:
+     (14) small_stmt ::= print_stmt *
+          print_stmt ::= print_stmt * COMMA test
+
+                         COMMA shift  30
+                     {default} reduce 14
+
+State 73:
+     (79) atom ::= string *
+          string ::= string * SCON
+
+                          SCON shift  97
+                     {default} reduce 79
+
+State 74:
+      (5) varargslist ::= fpdefs *
+          fpdefs ::= fpdefs * COMMA NAME
+
+                         COMMA shift  75
+                     {default} reduce 5
+
+State 75:
+          fpdefs ::= fpdefs COMMA * NAME
+
+                          NAME shift  93
+
+State 76:
+          dictmaker ::= dictmaker COMMA test * COLON test
+
+                         COLON shift  27
+
+State 77:
           dictmaker ::= test * COLON test
 
                          COLON shift  31
 
-State 84:
-          simple_stmt ::= testlist SEMICOLON * NEWLINE
+State 78:
+          exprlist_2 ::= exprlist_2 * COMMA expr
+    (107) exprlist ::= exprlist_2 *
 
-                       NEWLINE shift  170
+                         COMMA shift  37
+                     {default} reduce 107
 
-State 85:
-          testlist_2 ::= test * COMMA test
-          testlist_3 ::= test * COMMA
-     (99) testlist ::= test *
-
-                         COMMA shift  24
-                     {default} reduce 99
-
-State 86:
-          fpdefs ::= fpdefs COMMA * NAME
-
-                          NAME shift  128
-
-State 87:
-          lambdef ::= LAMBDA varargslist * COLON test
-
-                         COLON shift  23
-
-State 88:
+State 79:
           exprlist_2 ::= expr * COMMA expr
           exprlist_3 ::= expr * COMMA
-    (105) exprlist ::= expr *
+    (106) exprlist ::= expr *
 
-                         COMMA shift  42
-                     {default} reduce 105
+                         COMMA shift  35
+                     {default} reduce 106
+
+State 80:
+          testlist_2 ::= testlist_2 * COMMA test
+    (101) testlist ::= testlist_2 *
+
+                         COMMA shift  25
+                     {default} reduce 101
+
+State 81:
+          testlist_2 ::= test * COMMA test
+          testlist_3 ::= test * COMMA
+    (100) testlist ::= test *
+
+                         COMMA shift  26
+                     {default} reduce 100
+
+State 82:
+          simple_stmt ::= testlist SEMICOLON * NEWLINE
+
+                       NEWLINE shift  146
+
+State 83:
+          suite ::= NEWLINE * INDENT stmts DEDENT
+
+                        INDENT shift  1
+
+State 84:
+          if_stmt ::= if_head ELSE * COLON suite
+
+                         COLON shift  4
+
+State 85:
+          if_head ::= if_head ELIF test * COLON suite
+
+                         COLON shift  5
+
+State 86:
+          if_head ::= IF test * COLON suite
+
+                         COLON shift  6
+
+State 87:
+          while_stmt ::= WHILE test * COLON suite
+
+                         COLON shift  7
+
+State 88:
+          for_stmt ::= FOR exprlist * IN testlist COLON suite
+
+                            IN shift  11
 
 State 89:
-          if_head ::= if_head ELIF test * COLON suite
+          for_stmt ::= FOR exprlist IN testlist * COLON suite
 
                          COLON shift  8
 
 State 90:
-          if_stmt ::= if_head ELSE * COLON suite
+          parameters ::= OPEN_PAR varargslist * CLOSE_PAR
 
-                         COLON shift  7
+                     CLOSE_PAR shift  122
 
 State 91:
-     (39) stmts ::= simple_stmt *
-
-                     {default} reduce 39
-
-State 92:
-     (40) stmts ::= compound_stmt *
-
-                     {default} reduce 40
-
-State 93:
       (0) single_input ::= NEWLINE *
 
                      {default} reduce 0
 
-State 94:
-      (4) parameters ::= OPEN_PAR varargslist CLOSE_PAR *
+State 92:
+     (85) access_trailer ::= OPEN_RECT_BRACE subscriptlist CLOSE_RECT_BRACE *
 
-                     {default} reduce 4
+                     {default} reduce 85
 
-State 95:
-      (1) single_input ::= simple_stmt *
-
-                     {default} reduce 1
-
-State 96:
-      (2) single_input ::= compound_stmt NEWLINE *
-
-                     {default} reduce 2
-
-State 97:
-      (3) funcdef ::= DEF NAME parameters COLON suite *
-
-                     {default} reduce 3
-
-State 98:
-      (8) simple_stmt ::= small_stmt NEWLINE *
-
-                     {default} reduce 8
-
-State 99:
-     (11) simple_stmt ::= small_stmt SEMICOLON NEWLINE *
-
-                     {default} reduce 11
-
-State 100:
-     (12) simple_stmt ::= small_stmt SEMICOLON small_stmt NEWLINE *
-
-                     {default} reduce 12
-
-State 101:
-     (13) small_stmt ::= expr_stmt *
-
-                     {default} reduce 13
-
-State 102:
-     (24) print_stmt ::= print_stmt COMMA test *
-
-                     {default} reduce 24
-
-State 103:
-     (41) test ::= or_test *
-
-                     {default} reduce 41
-
-State 104:
-     (42) test ::= lambdef *
-
-                     {default} reduce 42
-
-State 105:
-     (43) or_test ::= and_test *
-
-                     {default} reduce 43
-
-State 106:
-     (44) and_test ::= not_test *
-
-                     {default} reduce 44
-
-State 107:
-     (45) not_test ::= NOT not_test *
-
-                     {default} reduce 45
-
-State 108:
-     (46) not_test ::= comparison *
-
-                     {default} reduce 46
-
-State 109:
-     (48) comparison ::= expr LESS_THAN expr *
-
-                     {default} reduce 48
-
-State 110:
-     (54) expr ::= xor_expr *
-
-                     {default} reduce 54
-
-State 111:
-     (55) xor_expr ::= and_expr *
-
-                     {default} reduce 55
-
-State 112:
-     (56) and_expr ::= shift_expr *
-
-                     {default} reduce 56
-
-State 113:
-     (57) shift_expr ::= arith_expr *
-
-                     {default} reduce 57
-
-State 114:
-     (59) arith_expr ::= term PLUS term *
-
-                     {default} reduce 59
-
-State 115:
-     (62) term ::= factor ASTERISK factor *
-
-                     {default} reduce 62
-
-State 116:
-     (66) factor ::= power *
-
-                     {default} reduce 66
-
-State 117:
-     (67) factor ::= PLUS factor *
-
-                     {default} reduce 67
-
-State 118:
-     (68) factor ::= MINUS factor *
-
-                     {default} reduce 68
-
-State 119:
-     (69) factor ::= TILDE factor *
-
-                     {default} reduce 69
-
-State 120:
-     (70) power ::= atom trailer *
-
-                     {default} reduce 70
-
-State 121:
-     (72) atom ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
-
-                     {default} reduce 72
-
-State 122:
-     (73) atom ::= OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE *
-
-                     {default} reduce 73
-
-State 123:
-     (74) atom ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
-
-                     {default} reduce 74
-
-State 124:
-     (75) atom ::= OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE *
-
-                     {default} reduce 75
-
-State 125:
-     (76) atom ::= ICON *
-
-                     {default} reduce 76
-
-State 126:
-     (77) atom ::= FCON *
-
-                     {default} reduce 77
-
-State 127:
-     (94) string ::= string SCON *
-
-                     {default} reduce 94
-
-State 128:
+State 93:
       (7) fpdefs ::= fpdefs COMMA NAME *
 
                      {default} reduce 7
 
-State 129:
-      (6) fpdefs ::= NAME *
-
-                     {default} reduce 6
-
-State 130:
-     (81) lambdef ::= LAMBDA varargslist COLON test *
-
-                     {default} reduce 81
-
-State 131:
-     (93) string ::= SCON *
-
-                     {default} reduce 93
-
-State 132:
-     (95) atom ::= NAME *
-
-                     {default} reduce 95
-
-State 133:
-     (89) dictmaker ::= dictmaker COMMA test COLON test *
-
-                     {default} reduce 89
-
-State 134:
-     (88) dictmaker ::= test COLON test *
-
-                     {default} reduce 88
-
-State 135:
-     (80) listmaker ::= listmaker COMMA test *
-
-                     {default} reduce 80
-
-State 136:
-     (79) listmaker ::= test *
-
-                     {default} reduce 79
-
-State 137:
-     (82) trailer ::= OPEN_PAR CLOSE_PAR *
-
-                     {default} reduce 82
-
-State 138:
-     (83) trailer ::= OPEN_PAR arglist CLOSE_PAR *
-
-                     {default} reduce 83
-
-State 139:
-     (91) arglist ::= arglist COMMA argument *
-
-                     {default} reduce 91
-
-State 140:
-     (92) argument ::= test *
-
-                     {default} reduce 92
-
-State 141:
-     (90) arglist ::= argument *
-
-                     {default} reduce 90
-
-State 142:
-     (84) trailer ::= OPEN_RECT_BRACE subscriptlist CLOSE_RECT_BRACE *
-
-                     {default} reduce 84
-
-State 143:
-     (86) subscriptlist ::= subscriptlist COMMA subscript *
-
-                     {default} reduce 86
-
-State 144:
-     (87) subscript ::= test *
+State 94:
+     (87) subscriptlist ::= subscriptlist COMMA subscript *
 
                      {default} reduce 87
 
-State 145:
-     (85) subscriptlist ::= subscript *
+State 95:
+     (88) subscript ::= test *
 
-                     {default} reduce 85
+                     {default} reduce 88
 
-State 146:
+State 96:
+     (86) subscriptlist ::= subscript *
+
+                     {default} reduce 86
+
+State 97:
+     (95) string ::= string SCON *
+
+                     {default} reduce 95
+
+State 98:
      (63) term ::= factor SLASH factor *
 
                      {default} reduce 63
 
-State 147:
+State 99:
+     (78) atom ::= FCON *
+
+                     {default} reduce 78
+
+State 100:
      (64) term ::= factor SLASHSLASH factor *
 
                      {default} reduce 64
 
-State 148:
+State 101:
+     (77) atom ::= ICON *
+
+                     {default} reduce 77
+
+State 102:
      (65) term ::= factor PERCENT factor *
 
                      {default} reduce 65
 
-State 149:
+State 103:
+     (76) atom ::= OPEN_CURLY_BRACE dictmaker CLOSE_CURLY_BRACE *
+
+                     {default} reduce 76
+
+State 104:
      (60) arith_expr ::= term MINUS term *
 
                      {default} reduce 60
 
-State 150:
+State 105:
+     (75) atom ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
+
+                     {default} reduce 75
+
+State 106:
      (49) comparison ::= expr LESS_THAN_OR_EQ expr *
 
                      {default} reduce 49
 
-State 151:
+State 107:
+     (74) atom ::= OPEN_RECT_BRACE listmaker CLOSE_RECT_BRACE *
+
+                     {default} reduce 74
+
+State 108:
      (50) comparison ::= expr EQ_EQ expr *
 
                      {default} reduce 50
 
-State 152:
+State 109:
+     (73) atom ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
+
+                     {default} reduce 73
+
+State 110:
      (51) comparison ::= expr NOT_EQ expr *
 
                      {default} reduce 51
 
-State 153:
+State 111:
+     (71) power ::= atom access_trailer *
+
+                     {default} reduce 71
+
+State 112:
      (52) comparison ::= expr GREATER_THAN expr *
 
                      {default} reduce 52
 
-State 154:
+State 113:
+     (70) power ::= atom call_trailer *
+
+                     {default} reduce 70
+
+State 114:
      (53) comparison ::= expr GREATER_THAN_OR_EQ expr *
 
                      {default} reduce 53
 
-State 155:
+State 115:
      (15) small_stmt ::= del_stmt *
 
                      {default} reduce 15
 
-State 156:
+State 116:
      (16) small_stmt ::= pass_stmt *
 
                      {default} reduce 16
 
-State 157:
+State 117:
+     (69) factor ::= TILDE factor *
+
+                     {default} reduce 69
+
+State 118:
      (17) del_stmt ::= DEL exprlist *
 
                      {default} reduce 17
 
-State 158:
-    (102) exprlist_2 ::= exprlist_2 COMMA expr *
+State 119:
+      (8) simple_stmt ::= small_stmt NEWLINE *
 
-                     {default} reduce 102
+                     {default} reduce 8
 
-State 159:
-    (103) exprlist_2 ::= expr COMMA expr *
+State 120:
+     (68) factor ::= MINUS factor *
+
+                     {default} reduce 68
+
+State 121:
+    (103) exprlist_2 ::= exprlist_2 COMMA expr *
 
                      {default} reduce 103
 
-State 160:
-    (107) exprlist ::= exprlist_3 *
+State 122:
+      (4) parameters ::= OPEN_PAR varargslist CLOSE_PAR *
 
-                     {default} reduce 107
+                     {default} reduce 4
 
-State 161:
+State 123:
+     (67) factor ::= PLUS factor *
+
+                     {default} reduce 67
+
+State 124:
+    (104) exprlist_2 ::= expr COMMA expr *
+
+                     {default} reduce 104
+
+State 125:
+    (108) exprlist ::= exprlist_3 *
+
+                     {default} reduce 108
+
+State 126:
      (18) pass_stmt ::= PASS *
 
                      {default} reduce 18
 
-State 162:
+State 127:
+     (66) factor ::= power *
+
+                     {default} reduce 66
+
+State 128:
+     (62) term ::= factor ASTERISK factor *
+
+                     {default} reduce 62
+
+State 129:
      (19) expr_stmt ::= testlist PLUS_EQUALS testlist *
 
                      {default} reduce 19
 
-State 163:
-     (96) testlist_2 ::= testlist_2 COMMA test *
+State 130:
+      (3) funcdef ::= DEF NAME parameters COLON suite *
 
-                     {default} reduce 96
+                     {default} reduce 3
 
-State 164:
-     (97) testlist_2 ::= test COMMA test *
+State 131:
+     (59) arith_expr ::= term PLUS term *
+
+                     {default} reduce 59
+
+State 132:
+     (97) testlist_2 ::= testlist_2 COMMA test *
 
                      {default} reduce 97
 
-State 165:
-    (101) testlist ::= testlist_3 *
-
-                     {default} reduce 101
-
-State 166:
-     (20) expr_stmt ::= testlist MINUS_EQUALS testlist *
-
-                     {default} reduce 20
-
-State 167:
-     (21) expr_stmt ::= testlist EQUALS testlist *
-
-                     {default} reduce 21
-
-State 168:
-     (23) print_stmt ::= PRINT test *
-
-                     {default} reduce 23
-
-State 169:
-      (9) simple_stmt ::= testlist NEWLINE *
-
-                     {default} reduce 9
-
-State 170:
-     (10) simple_stmt ::= testlist SEMICOLON NEWLINE *
-
-                     {default} reduce 10
-
-State 171:
-     (35) suite ::= simple_stmt *
-
-                     {default} reduce 35
-
-State 172:
-     (25) compound_stmt ::= if_stmt *
-
-                     {default} reduce 25
-
-State 173:
-     (26) compound_stmt ::= while_stmt *
-
-                     {default} reduce 26
-
-State 174:
-     (27) compound_stmt ::= for_stmt *
-
-                     {default} reduce 27
-
-State 175:
-     (28) compound_stmt ::= funcdef *
-
-                     {default} reduce 28
-
-State 176:
-     (30) if_stmt ::= if_head ELSE COLON suite *
-
-                     {default} reduce 30
-
-State 177:
-     (31) if_head ::= if_head ELIF test COLON suite *
-
-                     {default} reduce 31
-
-State 178:
-     (32) if_head ::= IF test COLON suite *
-
-                     {default} reduce 32
-
-State 179:
-     (33) while_stmt ::= WHILE test COLON suite *
-
-                     {default} reduce 33
-
-State 180:
+State 133:
      (34) for_stmt ::= FOR exprlist IN testlist COLON suite *
 
                      {default} reduce 34
 
-State 181:
+State 134:
+     (57) shift_expr ::= arith_expr *
+
+                     {default} reduce 57
+
+State 135:
+     (98) testlist_2 ::= test COMMA test *
+
+                     {default} reduce 98
+
+State 136:
+    (102) testlist ::= testlist_3 *
+
+                     {default} reduce 102
+
+State 137:
+     (56) and_expr ::= shift_expr *
+
+                     {default} reduce 56
+
+State 138:
+     (20) expr_stmt ::= testlist MINUS_EQUALS testlist *
+
+                     {default} reduce 20
+
+State 139:
+     (55) xor_expr ::= and_expr *
+
+                     {default} reduce 55
+
+State 140:
+     (21) expr_stmt ::= testlist EQUALS testlist *
+
+                     {default} reduce 21
+
+State 141:
+     (54) expr ::= xor_expr *
+
+                     {default} reduce 54
+
+State 142:
+     (23) print_stmt ::= PRINT test *
+
+                     {default} reduce 23
+
+State 143:
+     (48) comparison ::= expr LESS_THAN expr *
+
+                     {default} reduce 48
+
+State 144:
+      (9) simple_stmt ::= testlist NEWLINE *
+
+                     {default} reduce 9
+
+State 145:
+      (2) single_input ::= compound_stmt NEWLINE *
+
+                     {default} reduce 2
+
+State 146:
+     (10) simple_stmt ::= testlist SEMICOLON NEWLINE *
+
+                     {default} reduce 10
+
+State 147:
+     (35) suite ::= simple_stmt *
+
+                     {default} reduce 35
+
+State 148:
      (36) suite ::= NEWLINE INDENT stmts DEDENT *
 
                      {default} reduce 36
 
-State 182:
+State 149:
+     (46) not_test ::= comparison *
+
+                     {default} reduce 46
+
+State 150:
+     (25) compound_stmt ::= if_stmt *
+
+                     {default} reduce 25
+
+State 151:
+     (26) compound_stmt ::= while_stmt *
+
+                     {default} reduce 26
+
+State 152:
+     (27) compound_stmt ::= for_stmt *
+
+                     {default} reduce 27
+
+State 153:
+     (28) compound_stmt ::= funcdef *
+
+                     {default} reduce 28
+
+State 154:
+     (45) not_test ::= NOT not_test *
+
+                     {default} reduce 45
+
+State 155:
      (37) stmts ::= stmts simple_stmt *
 
                      {default} reduce 37
 
-State 183:
+State 156:
+     (44) and_test ::= not_test *
+
+                     {default} reduce 44
+
+State 157:
+     (30) if_stmt ::= if_head ELSE COLON suite *
+
+                     {default} reduce 30
+
+State 158:
+     (43) or_test ::= and_test *
+
+                     {default} reduce 43
+
+State 159:
      (38) stmts ::= stmts compound_stmt *
 
                      {default} reduce 38
+
+State 160:
+     (42) test ::= lambdef *
+
+                     {default} reduce 42
+
+State 161:
+     (31) if_head ::= if_head ELIF test COLON suite *
+
+                     {default} reduce 31
+
+State 162:
+     (41) test ::= or_test *
+
+                     {default} reduce 41
+
+State 163:
+     (39) stmts ::= simple_stmt *
+
+                     {default} reduce 39
+
+State 164:
+     (24) print_stmt ::= print_stmt COMMA test *
+
+                     {default} reduce 24
+
+State 165:
+     (32) if_head ::= IF test COLON suite *
+
+                     {default} reduce 32
+
+State 166:
+     (13) small_stmt ::= expr_stmt *
+
+                     {default} reduce 13
+
+State 167:
+     (40) stmts ::= compound_stmt *
+
+                     {default} reduce 40
+
+State 168:
+     (12) simple_stmt ::= small_stmt SEMICOLON small_stmt NEWLINE *
+
+                     {default} reduce 12
+
+State 169:
+     (33) while_stmt ::= WHILE test COLON suite *
+
+                     {default} reduce 33
+
+State 170:
+     (11) simple_stmt ::= small_stmt SEMICOLON NEWLINE *
+
+                     {default} reduce 11
+
+State 171:
+     (90) dictmaker ::= dictmaker COMMA test COLON test *
+
+                     {default} reduce 90
+
+State 172:
+      (1) single_input ::= simple_stmt *
+
+                     {default} reduce 1
+
+State 173:
+     (96) atom ::= NAME *
+
+                     {default} reduce 96
+
+State 174:
+     (89) dictmaker ::= test COLON test *
+
+                     {default} reduce 89
+
+State 175:
+     (81) listmaker ::= listmaker COMMA test *
+
+                     {default} reduce 81
+
+State 176:
+     (80) listmaker ::= test *
+
+                     {default} reduce 80
+
+State 177:
+     (83) call_trailer ::= OPEN_PAR CLOSE_PAR *
+
+                     {default} reduce 83
+
+State 178:
+     (94) string ::= SCON *
+
+                     {default} reduce 94
+
+State 179:
+     (84) call_trailer ::= OPEN_PAR arglist CLOSE_PAR *
+
+                     {default} reduce 84
+
+State 180:
+     (82) lambdef ::= LAMBDA varargslist COLON test *
+
+                     {default} reduce 82
+
+State 181:
+     (92) arglist ::= arglist COMMA argument *
+
+                     {default} reduce 92
+
+State 182:
+     (93) argument ::= test *
+
+                     {default} reduce 93
+
+State 183:
+     (91) arglist ::= argument *
+
+                     {default} reduce 91
+
+State 184:
+      (6) fpdefs ::= NAME *
+
+                     {default} reduce 6
 
 ----------------------------------------------------
 Symbols:
@@ -4578,14 +4637,15 @@ Symbols:
    80: term: NAME PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
    81: factor: NAME PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
    82: power: NAME OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
-   83: trailer: OPEN_PAR OPEN_RECT_BRACE
-   84: listmaker: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   85: dictmaker: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   86: arglist: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   87: subscriptlist: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   88: subscript: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   89: argument: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   90: testlist_2: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   91: testlist_3: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
-   92: exprlist_2: NAME PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
-   93: exprlist_3: NAME PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
+   83: call_trailer: OPEN_PAR
+   84: access_trailer: OPEN_RECT_BRACE
+   85: listmaker: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   86: dictmaker: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   87: arglist: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   88: subscriptlist: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   89: subscript: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   90: argument: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   91: testlist_2: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   92: testlist_3: NAME NOT PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON LAMBDA SCON
+   93: exprlist_2: NAME PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
+   94: exprlist_3: NAME PLUS MINUS TILDE OPEN_RECT_BRACE OPEN_CURLY_BRACE ICON FCON SCON
