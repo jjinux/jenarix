@@ -9,6 +9,7 @@ depbuild:
 	cd src/jxon; make -f ../../rules/codegen.mk jxon
 	cd src/shell; make -f ../../rules/codegen.mk shell
 	cd src/py; make -f ../../rules/codegen.mk py
+	cd src/net; make -f ../../rules/codegen.mk net
 	cd $(JX_BUILD); make -f ../../rules/depbuild.mk
 
 lib: depbuild

@@ -1,0 +1,477 @@
+/* 
+Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+
+* Neither the name of the DeLano Scientific LLC nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/* Python-like parser for Jenarix runtime */
+
+%nonassoc ERROR. 
+
+%include {
+
+#include <stdio.h>
+
+#include "jx_net_private.h"
+
+}
+
+/*** Declare (parser) token_type. ***/
+
+%token_type{jx_ob}
+
+/*** parser functions begin with "jx_net_" ***/
+
+%name jx_net_
+
+/*** token symbols begin with "JX_NET_" ***/
+
+%token_prefix JX_NET_
+
+/*** for now, malloc'ing non-terminals. ***/
+
+%destructor description          { jx_ob_free($$); }
+%destructor starter              { jx_ob_free($$); }
+
+/*** for now, mallocing tokens **/
+
+%token_destructor { jx_ob_free($$);}
+
+/*** 4th jx_net_Parse() argument is not currently used. ***/
+
+%extra_argument{jx_net_parse_context *context}
+
+/*** Accept action is done in start symbol action. ***/
+
+%parse_accept{
+    context->status = JX_YES;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("accept called\n");
+#endif
+} 
+
+/* failure action */
+
+%parse_failure{
+  context->status = JX_STATUS_SYNTAX_ERROR;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("parse failed.\n");
+#endif
+}
+
+/*** Syntax error action ***/
+
+%syntax_error {  
+#ifdef JX_NET_PARSER_DEBUG
+  printf("jx_net_parse-error: syntax error.\n");
+#endif
+}
+
+/*** Declare parser token types ***/
+
+%type network                { jx_ob }
+
+/*** Start symbol ***/
+
+%start_symbol module
+
+/*** The grammer itself ***/
+
+/* a module contains a single network deft */
+
+module ::= NEWLINE.
+{  
+#ifdef JX_PY_PARSER_DEBUG
+  printf("module ::= NEWLINE.%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+module ::= network(A) EOI.
+{
+  /* do nothing (other than call accept!) */
+  jx_ob_replace(&context->result, A);
+
+#ifdef JX_NET_PARSER_DEBUG
+  printf("module ::= network(A).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= wiring(B).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,B); 
+
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= wiring(B).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= wiring(B) body(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,B); 
+  jx_list_append(A,C); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= wiring(B) body(C).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= body(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,C); 
+  jx_list_append(A,jx_ob_from_ident("node")); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= body(C)..%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= wiring(B) starter(C).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,B); 
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,C); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= wiring(B) starter(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= wiring(B) body(C) starter(D).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,B); 
+  jx_list_append(A,C); 
+  jx_list_append(A,D); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= wiring(B) body(C) starter(D). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= body(C) starter(D).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_null()); 
+  jx_list_append(A,C); 
+  jx_list_append(A,D); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= body(C) starter(D). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+network(A) ::= starter(D).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,jx_ob_from_null()); 
+  jx_list_append(A,D); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("network(A) ::= starter(D).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+starter(A) ::= action(B).
+{
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("starter(A) ::= action(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+wiring(A) ::= entry(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("wiring(A) ::= entry(B).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+wiring(A) ::= wiring(B) entry(C).
+{
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("wiring(A) ::= wiring(B) entry(C).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+entry(A) ::= PORT port_name(B) NEWLINE.
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("port"));
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("entry(A) ::= PORT port_name(B).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+entry(A) ::= node_name(B) EQUALS node_name(C) NEWLINE.
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("copy"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("entry(A) ::= node_name(B) EQUALS node_name(C) NEWLINE. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+entry(A) ::= pipe_chain(B) NEWLINE.
+{
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("entry(A) ::= pipe_chain(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+pipe_chain(A) ::= node_or_port(B) PIPE node_or_port(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("pipe"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("pipe_chain(A) ::= node_or_port(B) PIPE node_or_port(C) NEWLINE.%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+pipe_chain(A) ::= pipe_chain(B) PIPE node_or_port(C).
+{
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("pipe_chain(A) ::= pipe_chain(B) PIPE node_or_port(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+/* inline subnode */
+
+entry(A) ::= NODE node_name(B) COLON NEWLINE node(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node_def"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("entry(A) ::= NODE node_name(B) COLON NEWLINE node(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+node(A) ::= INDENT PASS NEWLINE DEDENT NEWLINE.
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+#ifdef JX_NET_PARSER_DEBUG
+  printf("node(A) ::= INDENT wiring(C) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+node(A) ::= INDENT wiring(C) DEDENT NEWLINE.
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,C); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("node(A) ::= INDENT wiring(C) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+node(A) ::= INDENT wiring(C) body(D) DEDENT NEWLINE.
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,C); 
+  jx_list_append(A,D); 
+#ifdef JX_NET_PARSER_DEBUG
+  printf("node(A) ::= INDENT wiring(C) body(D) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+node_or_port(A) ::= node_name(B).
+{
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("node_or_port(A) ::= node_name(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+node_or_port(A) ::= node_name(B) DOT port_name(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("node_or_port(A) ::= node_name(B) DOT port_name(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+node_name(A) ::= IDENT(B).
+{
+    A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("node_name(A) ::= IDENT(B).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+port_name(A) ::= IDENT(B).
+{
+    A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("port_name(A) ::= IDENT(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+body(A) ::= start(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("body(A) ::= start(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+body(A) ::= start(B) run(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("body(A) ::= start(B) run(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+body(A) ::= start(B) run(C) stop(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+  jx_list_append(A,D);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("body(A) ::= start(B) run(C) stop(D). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+body(A) ::= run(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("body(A) ::= run(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+body(A) ::= run(B) stop(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("body(A) ::= run(B) stop(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+body(A) ::= stop(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("body(A) ::= stop(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+start(A) ::= START COLON NEWLINE INDENT code(B) DEDENT NEWLINE.
+{  
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("start(A) ::= START COLON INDENT code(B) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+run(A) ::= RUN COLON NEWLINE INDENT code(B) DEDENT NEWLINE.
+{  
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("run(A) ::= RUN COLON INDENT code(B) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+stop(A) ::= STOP COLON NEWLINE INDENT code(B) DEDENT NEWLINE.
+{  
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("stop(A) ::= STOP COLON INDENT code(B) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+code(A) ::= PASS.
+{
+  A = jx_list_new();
+#ifdef JX_NET_PARSER_DEBUG
+  printf("code(A) ::= PASS. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+code(A) ::= action(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("code(A) ::= action(B). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+code(A) ::= code(B) action(C).
+{
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("code(A) ::= code(B) action(C). %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+action(A) ::= node_or_port(B) OPEN_PAR CLOSE_PAR NEWLINE.
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("action(A) ::= node_or_port(B) OPEN_PAR CLOSE_PAR NEWLINE.%s:%d\n",__FILE__,__LINE__); 
+#endif
+}

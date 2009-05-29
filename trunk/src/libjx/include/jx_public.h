@@ -325,7 +325,7 @@ jx_ob jx_list_swap(jx_ob list, jx_int index, jx_ob ob); /* return ownership of s
 jx_int jx_list_index(jx_ob list, jx_ob ob); 
 
 jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
-
+jx_status jx_list_reset(jx_ob list);
 /* homogenous lists with variable length arrays (vla's)  */
 
 jx_int *jx_int_vla_new(jx_int size);
@@ -404,6 +404,11 @@ jx_ob jx_shell_scanner_new_with_file(FILE *file);
 jx_ob jx_shell_scanner_get_error_message(jx_ob scanner);
 jx_status jx_shell_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_status jx_shell_scanner_purge_input(jx_ob scanner);
+
+jx_ob jx_net_scanner_new_with_file(FILE *file);
+jx_ob jx_net_scanner_get_error_message(jx_ob scanner);
+jx_status jx_net_scanner_next_ob(jx_ob *result, jx_ob scanner);
+jx_status jx_net_scanner_purge_input(jx_ob scanner);
 
 jx_ob jx_py_scanner_new_with_file(FILE *file);
 jx_ob jx_py_scanner_get_error_message(jx_ob scanner);

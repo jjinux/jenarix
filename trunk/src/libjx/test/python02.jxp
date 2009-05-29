@@ -1,0 +1,39 @@
+a=5
+b=5
+c=5
+while a:
+    a = a - 1
+    b = a
+    while b:
+        c = b
+        b = b - 1
+        while c:
+            c = c - 1
+            print a,b,c
+        while c:
+            pass
+        a = 0
+    print b
+    if 1:
+        2
+print b
+
+c=2
+print c
+            
+for a in [1,2]:
+    for b in [5,6]:
+        for c in [7,6]:
+            print a,b,c
+
+a=0
+b=0
+c=0
+while a:
+    while b:
+        while c:
+            pass
+
+if 0:
+    pass
+

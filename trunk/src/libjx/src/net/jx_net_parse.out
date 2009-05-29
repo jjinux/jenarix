@@ -1,0 +1,733 @@
+State 0:
+          module ::= * NEWLINE
+          module ::= * network EOI
+          network ::= * wiring
+          network ::= * wiring body
+          network ::= * body
+          network ::= * wiring starter
+          network ::= * wiring body starter
+          network ::= * body starter
+          network ::= * starter
+          starter ::= * action
+          wiring ::= * entry
+          wiring ::= * wiring entry
+          entry ::= * PORT port_name NEWLINE
+          entry ::= * node_name EQUALS node_name NEWLINE
+          entry ::= * pipe_chain NEWLINE
+          pipe_chain ::= * node_or_port PIPE node_or_port
+          pipe_chain ::= * pipe_chain PIPE node_or_port
+          entry ::= * NODE node_name COLON NEWLINE node
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          body ::= * start
+          body ::= * start run
+          body ::= * start run stop
+          body ::= * run
+          body ::= * run stop
+          body ::= * stop
+          start ::= * START COLON NEWLINE INDENT code DEDENT NEWLINE
+          run ::= * RUN COLON NEWLINE INDENT code DEDENT NEWLINE
+          stop ::= * STOP COLON NEWLINE INDENT code DEDENT NEWLINE
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                       NEWLINE shift  53
+                          PORT shift  20
+                          NODE shift  18
+                         IDENT shift  63
+                         START shift  46
+                           RUN shift  42
+                          STOP shift  39
+                       starter shift  55
+                       network shift  26
+                        module accept
+                        wiring shift  1
+                          body shift  7
+                        action shift  60
+                         entry shift  70
+                     node_name shift  24
+                    pipe_chain shift  22
+                  node_or_port shift  23
+                         start shift  16
+                           run shift  15
+                          stop shift  76
+
+State 1:
+      (2) network ::= wiring *
+          network ::= wiring * body
+          network ::= wiring * starter
+          network ::= wiring * body starter
+          starter ::= * action
+          wiring ::= wiring * entry
+          entry ::= * PORT port_name NEWLINE
+          entry ::= * node_name EQUALS node_name NEWLINE
+          entry ::= * pipe_chain NEWLINE
+          pipe_chain ::= * node_or_port PIPE node_or_port
+          pipe_chain ::= * pipe_chain PIPE node_or_port
+          entry ::= * NODE node_name COLON NEWLINE node
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          body ::= * start
+          body ::= * start run
+          body ::= * start run stop
+          body ::= * run
+          body ::= * run stop
+          body ::= * stop
+          start ::= * START COLON NEWLINE INDENT code DEDENT NEWLINE
+          run ::= * RUN COLON NEWLINE INDENT code DEDENT NEWLINE
+          stop ::= * STOP COLON NEWLINE INDENT code DEDENT NEWLINE
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                          PORT shift  20
+                          NODE shift  18
+                         IDENT shift  63
+                         START shift  46
+                           RUN shift  42
+                          STOP shift  39
+                       starter shift  83
+                          body shift  8
+                        action shift  60
+                         entry shift  79
+                     node_name shift  24
+                    pipe_chain shift  22
+                  node_or_port shift  23
+                         start shift  16
+                           run shift  15
+                          stop shift  76
+                     {default} reduce 2
+
+State 2:
+          wiring ::= wiring * entry
+          entry ::= * PORT port_name NEWLINE
+          entry ::= * node_name EQUALS node_name NEWLINE
+          entry ::= * pipe_chain NEWLINE
+          pipe_chain ::= * node_or_port PIPE node_or_port
+          pipe_chain ::= * pipe_chain PIPE node_or_port
+          entry ::= * NODE node_name COLON NEWLINE node
+          node ::= INDENT wiring * DEDENT NEWLINE
+          node ::= INDENT wiring * body DEDENT NEWLINE
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          body ::= * start
+          body ::= * start run
+          body ::= * start run stop
+          body ::= * run
+          body ::= * run stop
+          body ::= * stop
+          start ::= * START COLON NEWLINE INDENT code DEDENT NEWLINE
+          run ::= * RUN COLON NEWLINE INDENT code DEDENT NEWLINE
+          stop ::= * STOP COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                          PORT shift  20
+                          NODE shift  18
+                        DEDENT shift  36
+                         IDENT shift  63
+                         START shift  46
+                           RUN shift  42
+                          STOP shift  39
+                          body shift  37
+                         entry shift  79
+                     node_name shift  24
+                    pipe_chain shift  22
+                  node_or_port shift  35
+                         start shift  16
+                           run shift  15
+                          stop shift  76
+
+State 3:
+          wiring ::= * entry
+          wiring ::= * wiring entry
+          entry ::= * PORT port_name NEWLINE
+          entry ::= * node_name EQUALS node_name NEWLINE
+          entry ::= * pipe_chain NEWLINE
+          pipe_chain ::= * node_or_port PIPE node_or_port
+          pipe_chain ::= * pipe_chain PIPE node_or_port
+          entry ::= * NODE node_name COLON NEWLINE node
+          node ::= INDENT * PASS NEWLINE DEDENT NEWLINE
+          node ::= INDENT * wiring DEDENT NEWLINE
+          node ::= INDENT * wiring body DEDENT NEWLINE
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+
+                          PORT shift  20
+                          NODE shift  18
+                          PASS shift  50
+                         IDENT shift  63
+                        wiring shift  2
+                         entry shift  70
+                     node_name shift  24
+                    pipe_chain shift  22
+                  node_or_port shift  35
+
+State 4:
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          run ::= RUN COLON NEWLINE INDENT * code DEDENT NEWLINE
+          code ::= * PASS
+          code ::= * action
+          code ::= * code action
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                          PASS shift  58
+                         IDENT shift  63
+                        action shift  59
+                     node_name shift  27
+                  node_or_port shift  28
+                          code shift  10
+
+State 5:
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          start ::= START COLON NEWLINE INDENT * code DEDENT NEWLINE
+          code ::= * PASS
+          code ::= * action
+          code ::= * code action
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                          PASS shift  58
+                         IDENT shift  63
+                        action shift  59
+                     node_name shift  27
+                  node_or_port shift  28
+                          code shift  9
+
+State 6:
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          stop ::= STOP COLON NEWLINE INDENT * code DEDENT NEWLINE
+          code ::= * PASS
+          code ::= * action
+          code ::= * code action
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                          PASS shift  58
+                         IDENT shift  63
+                        action shift  59
+                     node_name shift  27
+                  node_or_port shift  28
+                          code shift  11
+
+State 7:
+      (4) network ::= body *
+          network ::= body * starter
+          starter ::= * action
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                         IDENT shift  63
+                       starter shift  82
+                        action shift  60
+                     node_name shift  27
+                  node_or_port shift  28
+                     {default} reduce 4
+
+State 8:
+      (3) network ::= wiring body *
+          network ::= wiring body * starter
+          starter ::= * action
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                         IDENT shift  63
+                       starter shift  61
+                        action shift  60
+                     node_name shift  27
+                  node_or_port shift  28
+                     {default} reduce 3
+
+State 9:
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          start ::= START COLON NEWLINE INDENT code * DEDENT NEWLINE
+          code ::= code * action
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                        DEDENT shift  49
+                         IDENT shift  63
+                        action shift  57
+                     node_name shift  27
+                  node_or_port shift  28
+
+State 10:
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          run ::= RUN COLON NEWLINE INDENT code * DEDENT NEWLINE
+          code ::= code * action
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                        DEDENT shift  45
+                         IDENT shift  63
+                        action shift  57
+                     node_name shift  27
+                  node_or_port shift  28
+
+State 11:
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+          stop ::= STOP COLON NEWLINE INDENT code * DEDENT NEWLINE
+          code ::= code * action
+          action ::= * node_or_port OPEN_PAR CLOSE_PAR NEWLINE
+
+                        DEDENT shift  41
+                         IDENT shift  63
+                        action shift  57
+                     node_name shift  27
+                  node_or_port shift  28
+
+State 12:
+          pipe_chain ::= pipe_chain PIPE * node_or_port
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+
+                         IDENT shift  63
+                     node_name shift  27
+                  node_or_port shift  67
+
+State 13:
+          pipe_chain ::= node_or_port PIPE * node_or_port
+          node_or_port ::= * node_name
+          node_or_port ::= * node_name DOT port_name
+          node_name ::= * IDENT
+
+                         IDENT shift  63
+                     node_name shift  27
+                  node_or_port shift  64
+
+State 14:
+          node_or_port ::= node_name DOT * port_name
+          port_name ::= * IDENT
+
+                         IDENT shift  65
+                     port_name shift  73
+
+State 15:
+     (28) body ::= run *
+          body ::= run * stop
+          stop ::= * STOP COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                          STOP shift  39
+                          stop shift  75
+                     {default} reduce 28
+
+State 16:
+     (25) body ::= start *
+          body ::= start * run
+          body ::= start * run stop
+          run ::= * RUN COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                           RUN shift  42
+                           run shift  19
+                     {default} reduce 25
+
+State 17:
+          entry ::= node_name EQUALS * node_name NEWLINE
+          node_name ::= * IDENT
+
+                         IDENT shift  63
+                     node_name shift  32
+
+State 18:
+          entry ::= NODE * node_name COLON NEWLINE node
+          node_name ::= * IDENT
+
+                         IDENT shift  63
+                     node_name shift  33
+
+State 19:
+     (26) body ::= start run *
+          body ::= start run * stop
+          stop ::= * STOP COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                          STOP shift  39
+                          stop shift  80
+                     {default} reduce 26
+
+State 20:
+          entry ::= PORT * port_name NEWLINE
+          port_name ::= * IDENT
+
+                         IDENT shift  65
+                     port_name shift  31
+
+State 21:
+          entry ::= NODE node_name COLON NEWLINE * node
+          node ::= * INDENT PASS NEWLINE DEDENT NEWLINE
+          node ::= * INDENT wiring DEDENT NEWLINE
+          node ::= * INDENT wiring body DEDENT NEWLINE
+
+                        INDENT shift  3
+                          node shift  68
+
+State 22:
+          entry ::= pipe_chain * NEWLINE
+          pipe_chain ::= pipe_chain * PIPE node_or_port
+
+                       NEWLINE shift  69
+                          PIPE shift  12
+
+State 23:
+          pipe_chain ::= node_or_port * PIPE node_or_port
+          action ::= node_or_port * OPEN_PAR CLOSE_PAR NEWLINE
+
+                          PIPE shift  13
+                      OPEN_PAR shift  29
+
+State 24:
+          entry ::= node_name * EQUALS node_name NEWLINE
+     (21) node_or_port ::= node_name *
+          node_or_port ::= node_name * DOT port_name
+
+                        EQUALS shift  17
+                           DOT shift  14
+                     {default} reduce 21
+
+State 25:
+          stop ::= STOP COLON NEWLINE * INDENT code DEDENT NEWLINE
+
+                        INDENT shift  6
+
+State 26:
+          module ::= network * EOI
+
+                           EOI shift  81
+
+State 27:
+     (21) node_or_port ::= node_name *
+          node_or_port ::= node_name * DOT port_name
+
+                           DOT shift  14
+                     {default} reduce 21
+
+State 28:
+          action ::= node_or_port * OPEN_PAR CLOSE_PAR NEWLINE
+
+                      OPEN_PAR shift  29
+
+State 29:
+          action ::= node_or_port OPEN_PAR * CLOSE_PAR NEWLINE
+
+                     CLOSE_PAR shift  30
+
+State 30:
+          action ::= node_or_port OPEN_PAR CLOSE_PAR * NEWLINE
+
+                       NEWLINE shift  54
+
+State 31:
+          entry ::= PORT port_name * NEWLINE
+
+                       NEWLINE shift  78
+
+State 32:
+          entry ::= node_name EQUALS node_name * NEWLINE
+
+                       NEWLINE shift  71
+
+State 33:
+          entry ::= NODE node_name * COLON NEWLINE node
+
+                         COLON shift  34
+
+State 34:
+          entry ::= NODE node_name COLON * NEWLINE node
+
+                       NEWLINE shift  21
+
+State 35:
+          pipe_chain ::= node_or_port * PIPE node_or_port
+
+                          PIPE shift  13
+
+State 36:
+          node ::= INDENT wiring DEDENT * NEWLINE
+
+                       NEWLINE shift  74
+
+State 37:
+          node ::= INDENT wiring body * DEDENT NEWLINE
+
+                        DEDENT shift  38
+
+State 38:
+          node ::= INDENT wiring body DEDENT * NEWLINE
+
+                       NEWLINE shift  77
+
+State 39:
+          stop ::= STOP * COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                         COLON shift  40
+
+State 40:
+          stop ::= STOP COLON * NEWLINE INDENT code DEDENT NEWLINE
+
+                       NEWLINE shift  25
+
+State 41:
+          stop ::= STOP COLON NEWLINE INDENT code DEDENT * NEWLINE
+
+                       NEWLINE shift  56
+
+State 42:
+          run ::= RUN * COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                         COLON shift  43
+
+State 43:
+          run ::= RUN COLON * NEWLINE INDENT code DEDENT NEWLINE
+
+                       NEWLINE shift  44
+
+State 44:
+          run ::= RUN COLON NEWLINE * INDENT code DEDENT NEWLINE
+
+                        INDENT shift  4
+
+State 45:
+          run ::= RUN COLON NEWLINE INDENT code DEDENT * NEWLINE
+
+                       NEWLINE shift  72
+
+State 46:
+          start ::= START * COLON NEWLINE INDENT code DEDENT NEWLINE
+
+                         COLON shift  47
+
+State 47:
+          start ::= START COLON * NEWLINE INDENT code DEDENT NEWLINE
+
+                       NEWLINE shift  48
+
+State 48:
+          start ::= START COLON NEWLINE * INDENT code DEDENT NEWLINE
+
+                        INDENT shift  5
+
+State 49:
+          start ::= START COLON NEWLINE INDENT code DEDENT * NEWLINE
+
+                       NEWLINE shift  66
+
+State 50:
+          node ::= INDENT PASS * NEWLINE DEDENT NEWLINE
+
+                       NEWLINE shift  51
+
+State 51:
+          node ::= INDENT PASS NEWLINE * DEDENT NEWLINE
+
+                        DEDENT shift  52
+
+State 52:
+          node ::= INDENT PASS NEWLINE DEDENT * NEWLINE
+
+                       NEWLINE shift  62
+
+State 53:
+      (0) module ::= NEWLINE *
+
+                     {default} reduce 0
+
+State 54:
+     (37) action ::= node_or_port OPEN_PAR CLOSE_PAR NEWLINE *
+
+                     {default} reduce 37
+
+State 55:
+      (8) network ::= starter *
+
+                     {default} reduce 8
+
+State 56:
+     (33) stop ::= STOP COLON NEWLINE INDENT code DEDENT NEWLINE *
+
+                     {default} reduce 33
+
+State 57:
+     (36) code ::= code action *
+
+                     {default} reduce 36
+
+State 58:
+     (34) code ::= PASS *
+
+                     {default} reduce 34
+
+State 59:
+     (35) code ::= action *
+
+                     {default} reduce 35
+
+State 60:
+      (9) starter ::= action *
+
+                     {default} reduce 9
+
+State 61:
+      (6) network ::= wiring body starter *
+
+                     {default} reduce 6
+
+State 62:
+     (18) node ::= INDENT PASS NEWLINE DEDENT NEWLINE *
+
+                     {default} reduce 18
+
+State 63:
+     (23) node_name ::= IDENT *
+
+                     {default} reduce 23
+
+State 64:
+     (15) pipe_chain ::= node_or_port PIPE node_or_port *
+
+                     {default} reduce 15
+
+State 65:
+     (24) port_name ::= IDENT *
+
+                     {default} reduce 24
+
+State 66:
+     (31) start ::= START COLON NEWLINE INDENT code DEDENT NEWLINE *
+
+                     {default} reduce 31
+
+State 67:
+     (16) pipe_chain ::= pipe_chain PIPE node_or_port *
+
+                     {default} reduce 16
+
+State 68:
+     (17) entry ::= NODE node_name COLON NEWLINE node *
+
+                     {default} reduce 17
+
+State 69:
+     (14) entry ::= pipe_chain NEWLINE *
+
+                     {default} reduce 14
+
+State 70:
+     (10) wiring ::= entry *
+
+                     {default} reduce 10
+
+State 71:
+     (13) entry ::= node_name EQUALS node_name NEWLINE *
+
+                     {default} reduce 13
+
+State 72:
+     (32) run ::= RUN COLON NEWLINE INDENT code DEDENT NEWLINE *
+
+                     {default} reduce 32
+
+State 73:
+     (22) node_or_port ::= node_name DOT port_name *
+
+                     {default} reduce 22
+
+State 74:
+     (19) node ::= INDENT wiring DEDENT NEWLINE *
+
+                     {default} reduce 19
+
+State 75:
+     (29) body ::= run stop *
+
+                     {default} reduce 29
+
+State 76:
+     (30) body ::= stop *
+
+                     {default} reduce 30
+
+State 77:
+     (20) node ::= INDENT wiring body DEDENT NEWLINE *
+
+                     {default} reduce 20
+
+State 78:
+     (12) entry ::= PORT port_name NEWLINE *
+
+                     {default} reduce 12
+
+State 79:
+     (11) wiring ::= wiring entry *
+
+                     {default} reduce 11
+
+State 80:
+     (27) body ::= start run stop *
+
+                     {default} reduce 27
+
+State 81:
+      (1) module ::= network EOI *
+
+                     {default} reduce 1
+
+State 82:
+      (7) network ::= body starter *
+
+                     {default} reduce 7
+
+State 83:
+      (5) network ::= wiring starter *
+
+                     {default} reduce 5
+
+----------------------------------------------------
+Symbols:
+    0: $:
+    1: ERROR
+    2: NEWLINE
+    3: EOI
+    4: PORT
+    5: EQUALS
+    6: PIPE
+    7: NODE
+    8: COLON
+    9: INDENT
+   10: PASS
+   11: DEDENT
+   12: DOT
+   13: IDENT
+   14: START
+   15: RUN
+   16: STOP
+   17: OPEN_PAR
+   18: CLOSE_PAR
+   19: error:
+   20: description:
+   21: starter: IDENT
+   22: network: PORT NODE IDENT START RUN STOP
+   23: module: NEWLINE PORT NODE IDENT START RUN STOP
+   24: wiring: PORT NODE IDENT
+   25: body: START RUN STOP
+   26: action: IDENT
+   27: entry: PORT NODE IDENT
+   28: port_name: IDENT
+   29: node_name: IDENT
+   30: pipe_chain: IDENT
+   31: node_or_port: IDENT
+   32: node: INDENT
+   33: start: START
+   34: run: RUN
+   35: stop: STOP
+   36: code: PASS IDENT

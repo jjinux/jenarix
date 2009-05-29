@@ -112,6 +112,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* single_input: NEWLINE | simple_stmt | compound_stmt NEWLINE */
 
+single_input ::= EOI.
+{  
+#ifdef JX_PY_PARSER_DEBUG
+  printf("single_input ::= NEWLINE ");
+#endif
+}
+
 single_input ::= NEWLINE.
 {  
 #ifdef JX_PY_PARSER_DEBUG
@@ -402,35 +409,51 @@ compound_stmt(A) ::= funcdef(B).
 
 /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite] */
 
-if_stmt(A) ::= if_head(B).
-{
-  A = B;
-}
-
-if_stmt(A) ::= if_head(B) ELSE COLON suite(C).
-{
-  A = B;
-  jx_list_append(A,C);
-}
-
-if_head(A) ::= if_head(B) ELIF test(C) COLON suite(D).
-{
-  A = B;
-   jx_list_append(A,C);
-   jx_list_append(A,D);
-}
-
-if_head(A) ::= IF test(B) COLON suite(C).
+if_stmt(A) ::= IF test(B) COLON suite(C).
 {
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("if"));
   jx_list_append(A,B);
   jx_list_append(A,C);
-#ifdef JX_PY_PARSER_DEBUG
-  printf("if_head(A) ::= IF test(B) COLON suite(C).\n");
-#endif
 }
 
+if_stmt(A) ::= IF test(B) COLON suite(C) ELSE COLON suite(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("if"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+  jx_list_append(A,D);
+}
+
+if_head(A) ::= IF test(B) COLON suite(C) ELIF test(D) COLON suite(E).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("if"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+  jx_list_append(A,D);
+  jx_list_append(A,E);
+}
+
+
+if_head(A) ::= if_head(B) ELIF test(D) COLON suite(E).
+{
+  A = B;
+  jx_list_append(A,D);
+  jx_list_append(A,E);
+}
+
+if_stmt(A) ::= if_head(B) ELSE COLON suite(E).
+{
+  A = B;
+  jx_list_append(A,E);
+}
+
+if_stmt(A) ::= if_head(B).
+{
+  A = B;
+}
 
 /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
 
@@ -469,7 +492,25 @@ suite(A) ::= simple_stmt(B).
 #endif
 }
 
+suite(A) ::= NEWLINE simple_stmt(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("suite(A) ::= simple_stmt(B).\n");
+#endif
+}
+
 suite(A) ::= NEWLINE INDENT stmts(B) DEDENT.
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("suite(A) ::= simple_stmt(B).\n");
+#endif
+}
+
+/* critical addition: */
+
+suite(A) ::= NEWLINE INDENT stmts(B) NEWLINE DEDENT.
 {
   A = B;
 #ifdef JX_PY_PARSER_DEBUG
@@ -486,6 +527,11 @@ stmts(A) ::= stmts(B) simple_stmt(C).
   jx_list_append(A,C);
 }
 
+stmts(A) ::= stmts(B) NEWLINE simple_stmt(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
 
 stmts(A) ::= stmts(B) compound_stmt(C).
 {
@@ -493,6 +539,11 @@ stmts(A) ::= stmts(B) compound_stmt(C).
   jx_list_append(A,C);
 }
 
+stmts(A) ::= stmts(B) NEWLINE compound_stmt(C).
+{
+  A = B;
+  jx_list_append(A,C);
+}
 
 stmts(A) ::= simple_stmt(B).
 {
@@ -500,7 +551,19 @@ stmts(A) ::= simple_stmt(B).
   jx_list_append(A,B);
 }
 
+stmts(A) ::= NEWLINE simple_stmt(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
 stmts(A) ::= compound_stmt(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+stmts(A) ::= NEWLINE compound_stmt(B).
 {
   A = jx_list_new();
   jx_list_append(A,B);

@@ -32,7 +32,6 @@ jx_shell_scan.c: jx_shell_scan.re
 
 shell: jx_shell_parse.c jx_shell_scan.c
 
-
 jx_py_parse.c: jx_py_parse.lem
 	make -f ../../rules/codegen.mk ext_check
 	cp ../jxon/lempar-c lempar.c
@@ -44,3 +43,15 @@ jx_py_scan.c: jx_py_scan.re
 	../../../../ext/bin/re2c jx_py_scan.re > jx_py_scan.c
 
 py: jx_py_parse.c jx_py_scan.c
+
+jx_net_parse.c: jx_net_parse.lem
+	make -f ../../rules/codegen.mk ext_check
+	cp ../jxon/lempar-c lempar.c
+	../../../../ext/bin/lemon jx_net_parse.lem
+	/bin/rm lempar.c
+
+jx_net_scan.c: jx_net_scan.re
+	make -f ../../rules/codegen.mk ext_check
+	../../../../ext/bin/re2c jx_net_scan.re > jx_net_scan.c
+
+net: jx_net_parse.c jx_net_scan.c

@@ -68,14 +68,14 @@ typedef struct {
 
 /* parser allocator */
 
-static void *jx__jxon_alloc(jx_size bytes)
+static void *jx__shell_alloc(jx_size bytes)
 {
   jx_char *ptr = NULL;
   ptr = jx_calloc(1,bytes);
   return (void*)ptr;
 }
 
-static void jx__jxon_free(void *ptr)
+static void jx__shell_free(void *ptr)
 {
   if(ptr) 
     jx_free(ptr);
@@ -276,7 +276,7 @@ static void jx_shell_scan_input(jx_shell_scanner_state *state)
 {
   /* allocate parser */
 
-  void *jx_Parser = jx_shell_Alloc( (void *(*)(size_t))jx__jxon_alloc);
+  void *jx_Parser = jx_shell_Alloc( (void *(*)(size_t))jx__shell_alloc);
   jx_int tok_type = 0;
   jx_char stack_buffer[SSCANF_BUFSIZE];
   
@@ -428,7 +428,7 @@ static void jx_shell_scan_input(jx_shell_scanner_state *state)
   }
   
   /* free the parser instance */
-  jx_shell_Free(jx_Parser, jx__jxon_free);
+  jx_shell_Free(jx_Parser, jx__shell_free);
 }
 
 static jx_status jx_shell_scanner_state_init(jx_shell_scanner_state *state)
