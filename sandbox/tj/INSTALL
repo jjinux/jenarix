@@ -1,4 +1,4 @@
-This pre-alpha version can be made operational from the source by:
+The jxgl app can be made operational from the source by:
 
 1. cd jsoncpp
    make
@@ -15,3 +15,5 @@ Only the first molblock from the input sdf file is processed.
 No centering of the structure is done.  The display window
 is fixed at 16 Angstom wide (-8 to +8) and the depth is -20 to 20 in z.
 Some input sdf files may not be seen in this window.
+
+See also the jxongl app in ./jxongl and it's INSTALL file.

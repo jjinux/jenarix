@@ -1,4 +1,4 @@
-import simplejson
+import json
 import sys
 
 line = sys.stdin.readline()
@@ -29,4 +29,4 @@ for i in range(0,int(nbonds)):
 
 #primitives = [title,{"atoms":["sphere",sphere],"bonds":["cylinder",cylinder]}]
 primitives = ["cylinder",cylinder, "colorsphere",sphere]
-print simplejson.dumps(primitives)
+print json.dumps(primitives)
