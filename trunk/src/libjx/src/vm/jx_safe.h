@@ -34,72 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "jx_private.h"
-
-/* The first 512 selectors are reserved for "safe" functions which
-   only involve internal actions performed within the interpreter and
-   its container (no access to filesystem, network, memory,
-   etc.). Furthermore, these functions must carefully prevent the
-   propagation of weak references by making it impossible to store a weak
-   reference into a container */
-
-/* symbols */
-
-#define JX_BUILTIN_FILL        30
-#define JX_BUILTIN_RANGE       31
-#define JX_BUILTIN_SET         32
-#define JX_BUILTIN_GET         33
-#define JX_BUILTIN_BORROW      34
-#define JX_BUILTIN_TAKE        35
-#define JX_BUILTIN_DEL         36
-
-#define JX_BUILTIN_IDENTICAL   37
-#define JX_BUILTIN_EQ          38
-#define JX_BUILTIN_LT          39
-#define JX_BUILTIN_GT          40
-#define JX_BUILTIN_LE          41
-#define JX_BUILTIN_GE          42
-#define JX_BUILTIN_NE          43
-#define JX_BUILTIN_AND         44    
-#define JX_BUILTIN_OR          45
-#define JX_BUILTIN_BIT_AND     46 
-#define JX_BUILTIN_BIT_OR      47
-#define JX_BUILTIN_BIT_XOR     48
-#define JX_BUILTIN_BIT_SHL     49
-#define JX_BUILTIN_BIT_SHR     50
-
-#define JX_BUILTIN_ADD         51
-#define JX_BUILTIN_SUB         52
-#define JX_BUILTIN_MUL         53
-#define JX_BUILTIN_DIV         54
-#define JX_BUILTIN_MOD         55
-
-#define JX_BUILTIN_BIT_NOT     56
-#define JX_BUILTIN_NOT         57
-#define JX_BUILTIN_NEG         58
-
-#define JX_BUILTIN_OUTPUT      59
-#define JX_BUILTIN_ERROR       60
-
-#define JX_BUILTIN_SIZE        61
-#define JX_BUILTIN_APPEND      62
-#define JX_BUILTIN_POP         63
-#define JX_BUILTIN_SHIFT       64
-#define JX_BUILTIN_UNSHIFT     65
-#define JX_BUILTIN_INSERT      66
-#define JX_BUILTIN_RESIZE      67
-#define JX_BUILTIN_EXTEND      68
-#define JX_BUILTIN_SLICE       69
-#define JX_BUILTIN_CUTOUT      70
-#define JX_BUILTIN_IMPL        71
-
-#define JX_BUILTIN_INCR        72
-#define JX_BUILTIN_DECR        73
-#define JX_BUILTIN_SYMBOLS     74
-#define JX_BUILTIN_HAS         75
-#define JX_BUILTIN_SAME        76
-
-#define JX_BUILTIN_STR         77
-#define JX_BUILTIN_PUSH        78
+#include "jx_selectors.h"
 
 #define JX_BIN_OP(SUFFIX) \
 JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
@@ -112,7 +47,6 @@ JX_INLINE jx_ob jx_safe_ ## SUFFIX(jx_ob node, jx_ob payload) \
 { \
   return jx_ob_ ## SUFFIX ( jx_list_borrow(payload,0) );    \
 }
-
 
 jx_status jx_safe_expose_all_builtins(jx_ob names);
 

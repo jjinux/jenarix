@@ -38,35 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
+#include "jx_selectors.h"
+
 #include "jx_safe.h"
-
-#define JX_BUILTIN_NOP        0
-#define JX_BUILTIN_IF         1
-#define JX_BUILTIN_WHILE      2
-#define JX_BUILTIN_DO         3
-#define JX_BUILTIN_FOR        4
-#define JX_BUILTIN_QUOTE      5
-#define JX_BUILTIN_DEF        6
-#define JX_BUILTIN_CODE       7
-#define JX_BUILTIN_APPLY      8
-#define JX_BUILTIN_INVOKE     9
-
-#define JX_BUILTIN_RESOLVE   11
-#define JX_BUILTIN_MAP       12
-#define JX_BUILTIN_TEST      13
-#define JX_BUILTIN_SWITCH    14
-#define JX_BUILTIN_DISPATCH  15
-#define JX_BUILTIN_RAW       16
-#define JX_BUILTIN_EVAL      17
-#define JX_BUILTIN_EXEC      18
-#define JX_BUILTIN_SELECT    19
-#define JX_BUILTIN_DEFUN     20
-#define JX_BUILTIN_LAMBDA    21
-#define JX_BUILTIN_DEFMAC    22
-#define JX_BUILTIN_REDUCE    23
-#define JX_BUILTIN_FOREACH   24
-
-#define JX_BUILTIN_SPECIAL_FORMS_LIMIT 25
 
 static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_int selector)
 {
