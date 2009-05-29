@@ -31,31 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "jx_public.h"
-
-#ifndef WIN32
-#include<fcntl.h>
-#else
-#if defined(MS_WINDOWS) || defined(__CYGWIN__)
-#include <fcntl.h>
-#endif
-#endif
-
-static jx_bool jx_adapt_for_console(FILE *input)
-{
-  if (isatty((int)fileno(input))) {
-#if defined(MS_WINDOWS) || defined(__CYGWIN__)
-    _setmode(fileno(input), O_BINARY);
-    _setmode(fileno(stdout), O_BINARY);
-#endif
-#ifdef WIN32
-#endif
-    setvbuf(input,  (char *)NULL, _IONBF, BUFSIZ);
-    setvbuf(stdout, (char *)NULL, _IONBF, BUFSIZ);
-    setvbuf(stderr, (char *)NULL, _IONBF, BUFSIZ);
-    return JX_TRUE;
-  } else
-    return JX_FALSE;
-}
+#include "jx_main_tools.h"
 
 int main(int argc, char *argv[])
 {
