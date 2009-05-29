@@ -39,3 +39,5 @@
 [apply [lambda null [[set a 9] [get a]]]];
 
 [get a];
+
+[apply [lambda null [get _]] 1];
