@@ -1,0 +1,65 @@
+
+
+# predefined nodes (could be builtin C objects)
+
+# from library_A import node_type_A
+
+# import library_B
+
+# defining a non-builtin node
+
+node node_type_D:
+
+    # every node automatically has
+
+    port input
+
+    # output, error
+
+    # nodes can define additional ports
+
+    port named_port_1
+
+    #, named_port_2
+
+    local_symbol_A = node_type_A
+    local_symbol_B = library_B.node_type_B
+    local_symbol_C = node_type_A
+
+    # implicit use of input and output ports
+   
+    input | local_symbol_A | local_symbol_B | output
+    
+    # normal error handling implies the following
+
+    local_symbol_A.error | error
+    local_symbol_B.error | error
+    local_symbol_C.error | error
+
+    # 
+
+    named_port_1 | local_symbol_A
+
+    named_port_2 | local_symbol_C.named_port_3
+
+    # branching ideas...
+
+#    src_node.src_port | (dst_node_A.port_1, dst_node_B.port_2)
+
+#    src_node | (dst_node_A | output, dst_node_B)
+    
+#    src_node | (dst_node_A, dst_node_B) | output
+
+    # what about nested definitions?
+
+    node node_type_E:
+        
+        should = work
+
+    local_symbol_E = node_type_E
+
+node_type_D()
+
+
+
+
