@@ -1,0 +1,153 @@
+#
+# Jason's JXON Test Book
+#
+
+#
+# Instructions: execute this in jx and grep for "eval: false".  Everything
+#               here should evaluate to true.
+#
+# $ jx < ./jv_jx_test0001.jx | grep "^false;"
+# $
+#
+
+#############################################################################
+#
+# 1.0  Simple types: boolean & existance
+#
+##############################################################################
+true;
+(not false);
+(eq true true);
+(eq null null);
+(eq false false);
+(not (eq false true));
+(not (eq false null));
+(not (eq true null));
+(not (eq null ""));
+(not (eq true ""));
+(not (eq false ""));
+(not (eq null ()));
+(not (eq true ()));
+(not (eq false ()));
+(not (eq null -1));
+(not (eq null 0));
+(not (eq null 1));
+(not (eq null 1e5));
+
+
+##############################################################################
+#
+# 1.1 -- Simple Numeric Types
+#
+##############################################################################
+
+# 1.1.1 Numerical In/equality
+(eq 1 1);
+(not (eq 1 2));
+(not (eq -1 1));
+(eq 1.1 1.1);
+(not (eq 1.1 1.0));
+(not (eq 1.1 1));
+
+# 1.1.2 -- Numerical ordering
+# 1.1.2.1 -- less than or equal: le
+(le 1 2);
+(le 1.1 1.2);
+(le -1 10);
+
+# 1.1.2.2 -- gt
+(gt 2 1);
+(gt 2.2 1.1);
+(gt 1e4 1e3);
+
+# 1.1.2.3 -- lt
+(lt 1 2);
+(lt 1e4 1e5);
+(lt -1 1);
+(lt -1 0);
+
+# 1.1.2.4 -- ge
+(ge 3 1);
+(ge 3 -1);
+(ge 1.3 1.2);
+(ge 1e4 1e2);
+
+# 1.1.3 -- operations on numbers
+# 1.1.3.1 -- addition
+(eq (add 1 1) 2);
+(eq (add -1 1) 0);
+(eq (add 1.0 1.0) 2.0);
+(eq (add 1.0 1.0) 2);
+(eq (add 1e3 1e3) 2e3);
+(eq (add 100 -200) -100);
+
+# 1.1.3.2 -- subtraction
+(eq (sub 1 1) 0);
+(eq (sub 1 1) 0.0);
+(eq (sub 200 100) 100);
+(eq (sub -100 -200) 100);
+(eq (sub 100 -200) 300);
+(eq (sub 400 200) 200);
+(eq (sub 2e3 1e3) 1e3);
+
+# 1.1.3.3 -- mult
+(eq (mul 2 2) 4);
+(eq (mul -2 2) -4);
+(eq (mul 0.5 0.5) 0.25);
+(eq (mul 1 0) 0);
+(eq (mul 1 0) 0.0);
+(eq (mul 1 -0) 0);
+(eq (mul 1.0 -4) -4);
+(eq (mul 0 0) 0);
+(eq (mul 1e2 1e2) 1e4);
+
+# 1.1.3.4 -- div
+(eq (div 2 1) 2);
+(eq (div -100 2) -50);
+(eq (div -10 -2) 5);
+
+# 1.1.3.5 -- mod
+(eq (mod 4 2) 0);
+(eq (mod 3 2) 1);
+
+
+##############################################################################
+#
+# 1.2 Simple Strings
+#
+##############################################################################
+
+# 1.2.1 Single quoted
+(eq "A" "A");
+(not (eq "A" "a"));
+
+# 1.2.2 Case sensitivity
+(not (eq "Foo" "foo"));
+# true
+(eq "FoO" "FoO");
+
+
+
+##############################################################################
+#
+# 1.3 Containers
+#
+##############################################################################
+#
+# 1.3.1 -- lists
+(eq () ());
+(eq () []);
+(not (eq () [1]));
+(not (eq [-2] ()));
+(eq (range 10) (range 10));
+
+# 1.3.2 -- nested
+(eq ([][]) ([][]));
+(eq [()()] [()()]);
+(eq ([][]) [()()]);
+(not (eq [(1)()] ([][1])));
+
+
+
+
+
