@@ -1,0 +1,14 @@
+This app can be made operational from the source by:
+
+qmake
+make
+
+Then the following should work:
+ python ../sdf2json.py < ../drugs.sdf | ./jxongl
+ ./jxongl < ../drugs.sdf
+
+Notes:
+Only the first molblock from the input sdf file is processed.
+No centering of the structure is done.  The display window
+is fixed at 16 Angstom wide (-8 to +8) and the depth is -20 to 20 in z.
+Some input sdf files may not be seen in this window.
