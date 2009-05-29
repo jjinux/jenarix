@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     jx_code_expose_secure_builtins(names);
 
     if(console) 
-      printf("Jenarix JXON (semicolon-delimited pseudo-LISP syntax):\n");
+      printf("Jenarix LISP-like Syntax (JXON):\n");
     {
       jx_ob source = JX_OB_NULL;
       jx_status status;

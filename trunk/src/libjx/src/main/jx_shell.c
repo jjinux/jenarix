@@ -72,9 +72,12 @@ int main(int argc, char *argv[])
 
     jx_code_expose_secure_builtins(names);
     
-    printf("Jenarix shell syntax: keyword arg1, arg2, kw_arg1=value1, kwd_arg2=value2\n");
+    printf("Jenarix Shell-like Syntax (JXS):\n");
+    printf(" usage: keyword \n");
+    printf(" usage: keyword arg1, arg2, ... \n");
+    printf(" usage: keyword arg1, arg2, ..., kw_arg1=value1, kwd_arg2=value2, ... \n");
 
-    printf("(this doesn't do anything yet!)\n");
+    printf("NOTICE: this doesn't work yet!\n");
     {
       jx_ob source = JX_OB_NULL;
       jx_status status;

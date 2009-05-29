@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
     jx_py_expose_python_builtins(names);
 
-    printf("Jenarix Python-like syntax:\n");
+    printf("Jenarix Python-like Syntax (JXP):\n");
 
     {
       jx_ob tree = JX_OB_NULL;

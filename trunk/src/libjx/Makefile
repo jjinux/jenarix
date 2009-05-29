@@ -32,9 +32,10 @@ ov:
 	exit 0 # Jenarix configured -- you can now run 'make'
 
 .config: 
-	sleep 0 # "To configure the build, issue:    make jx"
-	sleep 0 # "Thereafter, you can simply issue: make"
-	sleep 0 # "and after file / svn updates:     make restart"
+	sleep 0 # "To configure the build, issue:     make jx"
+	sleep 0 # "Thereafter, you can simply issue:  make"
+	sleep 0 # "and after SVN updates always run:  make restart"
+	sleep 0 # " to recreate the build directory"
 	exit 1
 
 # dependency-aware build 
