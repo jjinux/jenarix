@@ -1208,14 +1208,15 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                         if(entity_size>1) {
                           jx_ob method_name = result_vla[1];
                           /* first we look in the member */
-                          jx_ob method = jx_hash_get(entity_ob[2],method_name);
+                          jx_ob method = jx_hash_borrow(entity_ob[2],method_name);
                           if(jx_null_check(method)) {
                             /* no luck? then we consult the node's
                                namespace table using the entity object
                                as the namespace key */
-                            method = jx_hash_get( jx_hash_borrow(node,entity_ob[0]),
+                            method = jx_hash_borrow( jx_hash_borrow(node,entity_ob[0]),
                                                   method_name );
                           }
+                          method = jx_ob_take_weak_ref(method);
                           if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */
                             jx__list_replace(result_list, 0, jx__list_remove(result_list, 0));
                             size--;
@@ -1244,7 +1245,8 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                               return jx__code_apply_callable(tls, node, method, result);
                               break;
                             }
-                          } 
+                          }
+                          jx_ob_free(method);
                         }
                         break;
                       case JX_META_BIT_INT: /* entity access (0=ident,1=content,2=attr) */

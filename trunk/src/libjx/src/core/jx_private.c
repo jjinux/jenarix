@@ -4495,6 +4495,7 @@ jx_ob jx__builtin_copy(jx_ob ob)
   case JX_META_BIT_BUILTIN_FUNCTION:
     {
       jx_function *fn = ob.data.io.function;
+      //      printf("NOTICE: copying a function!\n");
       return jx_function_new_with_def(jx_ob_copy(fn->name), 
                                       jx_ob_copy(fn->args), 
                                       jx_ob_copy(fn->body),

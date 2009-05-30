@@ -257,7 +257,7 @@ int main(int argc, char **argv)
     P1("2 == %d", jx_ob_free(hash3));    
   }
   {
-    jx_ob result = jx_list_new_with_range(1,10,2);
+    jx_ob result = jx_list_new_with_range(1,10,2,0.0);
     {
       jx_ob jxon = jx_ob_to_jxon(result);
       P1("'[1,3,5,7,9]' eq '%s'", jx_ob_as_str(&jxon));
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
     jx_ob_free(result);
   }
   {
-    jx_ob result = jx_list_new_with_range(5,-6,-3);
+    jx_ob result = jx_list_new_with_range(5,-6,-3,0.0);
     {
       jx_ob jxon = jx_ob_to_jxon(result);
       P1("'[5,2,-1,-4]' eq '%s'", jx_ob_as_str(&jxon));
