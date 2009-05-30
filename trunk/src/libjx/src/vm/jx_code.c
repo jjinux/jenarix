@@ -202,39 +202,41 @@ static jx_ob jx__code_bind_with_source(jx_ob names, jx_ob source)
       jx_int unresolved = 0;
       if(jx_ident_check(ident)) {
         jx_ob builtin = jx_hash_borrow(names, ident);
-        if(jx_builtin_selector_check(builtin)) { 
-          /* known builtin function (early / fixed binding) */
-          unresolved = 1;
-          switch(builtin.data.io.int_) {
-          case JX_SELECTOR_NOP: /* [nop # ...] -> bind(#) */
-            jx_ob_replace(&source, jx_list_remove(source,1));
-            return jx__code_bind_with_source(names,source);
-            break;
-          case JX_SELECTOR_RAW: /* [raw # ...] -> [*raw* # ...] */
-            jx_list_replace(source, 0, builtin);
-            return source;
-            break;
-          case JX_SELECTOR_QUOTE: /* [quote # ...] -> [*quote* bind(#) ...] */
-            jx_list_replace(source, 0, builtin);
-            return jx__code_bind_with_source(names,source);
-            break;
-          case JX_SELECTOR_ENTITY:
-          case JX_SELECTOR_GET:
-          case JX_SELECTOR_SET:
-          case JX_SELECTOR_HAS:
-          case JX_SELECTOR_DEL:
-          case JX_SELECTOR_FOREACH:
-          case JX_SELECTOR_LAMBDA:
-          case JX_SELECTOR_INCR:
-          case JX_SELECTOR_CODE:
-          case JX_SELECTOR_DECR:
-            unresolved = 2;
-            break;
-          case JX_SELECTOR_DEF:
-          case JX_SELECTOR_DEFUN:
-          case JX_SELECTOR_DEFMAC:
-            unresolved = 3;
-            break;
+        if(jx_builtin_callable_check(builtin)) { 
+          if(jx_builtin_selector_check(builtin)) { 
+            /* known builtin function (early / fixed binding) */
+            unresolved = 1;
+            switch(builtin.data.io.int_) {
+            case JX_SELECTOR_NOP: /* [nop # ...] -> bind(#) */
+              jx_ob_replace(&source, jx_list_remove(source,1));
+              return jx__code_bind_with_source(names,source);
+              break;
+            case JX_SELECTOR_RAW: /* [raw # ...] -> [*raw* # ...] */
+              jx_list_replace(source, 0, builtin);
+              return source;
+              break;
+            case JX_SELECTOR_QUOTE: /* [quote # ...] -> [*quote* bind(#) ...] */
+              jx_list_replace(source, 0, builtin);
+              return jx__code_bind_with_source(names,source);
+              break;
+            case JX_SELECTOR_ENTITY:
+            case JX_SELECTOR_GET:
+            case JX_SELECTOR_SET:
+            case JX_SELECTOR_HAS:
+            case JX_SELECTOR_DEL:
+            case JX_SELECTOR_FOREACH:
+            case JX_SELECTOR_LAMBDA:
+            case JX_SELECTOR_INCR:
+            case JX_SELECTOR_CODE:
+            case JX_SELECTOR_DECR:
+              unresolved = 2;
+              break;
+            case JX_SELECTOR_DEF:
+            case JX_SELECTOR_DEFUN:
+            case JX_SELECTOR_DEFMAC:
+              unresolved = 3;
+              break;
+            }
           }
           jx_list_replace(source, 0, builtin);
         }

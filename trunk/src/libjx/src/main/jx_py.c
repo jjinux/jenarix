@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 
     jx_py_expose_python_builtins(names);
 
+    jx_jxon_dump(stdout,"names",names);
     printf("Jenarix Python-like Syntax (JXP):\n");
 
     {
