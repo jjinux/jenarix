@@ -1,0 +1,46 @@
+
+# Jenarix functions statically close on free variables in the
+# surrounding scope by making deep copies 
+
+# Entities referenced in the function are closed upon as well.
+
+(def vector.add [v1 v2] [
+  [Vector
+    (map (lambda [x y] (add x y)) (v1 1) (v2 1))
+  ]]);
+
+(symbols);
+
+(entity Vector {add:vector.add} );
+
+(def myfn [a,b] ([Vector], (a add b)));
+
+(impl myfn);
+
+(set v1 [Vector, [1 2 3]]);
+
+(set v2 [Vector, [2,3,4]]);
+
+# at this point, both the function and the local entity definition
+
+(myfn v1 v2);
+
+(v1 add v2);
+
+# but if we obliterate vector addition from the local entity
+
+(entity Vector {add:null});
+
+# then now we can't do it
+
+(v1 add v2);
+
+# but the function with a closed entity copy still can!
+
+(myfn v1 v2);
+
+# cool.
+
+
+
+

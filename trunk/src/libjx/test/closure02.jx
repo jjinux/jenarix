@@ -1,0 +1,13 @@
+(set a [1,2,3]);
+
+(set myfn (lambda [[a,b],{b:[2,3,4]}] ((a,b))));
+
+(impl myfn);
+
+(myfn);
+
+(myfn 1);
+
+(myfn 1 2);
+
+

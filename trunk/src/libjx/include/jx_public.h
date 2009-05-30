@@ -451,6 +451,8 @@ jx_status jx_code_expose_special_forms(jx_ob names);
 
 jx_ob jx_code_bind_with_source(jx_ob names, jx_ob source);
 
+jx_ob jx_code_unbound_from_code(jx_ob code);
+
 jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);
 

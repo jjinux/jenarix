@@ -97,6 +97,7 @@ JX_INLINE jx_ob jx_safe_entity(jx_ob node, jx_ob payload)
         jx_hash_set(methods, jx_list_remove(method_list,i), 
                     jx_list_remove(method_list,i+1));;
       }
+      jx_ob_free(method_list);
     }
   }
   return entity;
