@@ -27,6 +27,9 @@
 (poly_fn a 1);
 (poly_fn b 2);
 
+symbols;
+
+
 
 
 
