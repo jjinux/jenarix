@@ -13,7 +13,12 @@
 
 (entity Vector {add:vector.add} );
 
+# defining a Vector inside the function is sufficient 
+# to create the closure
+
 (def myfn [a,b] ([Vector], (a add b)));
+
+# notice how the Vector definition is in the function's implementation
 
 (impl myfn);
 

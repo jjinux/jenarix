@@ -1154,7 +1154,7 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                 if(!inp_list->packed_meta_bits) { /* normal object input */
                   jx_ob *ob = inp_list->data.ob_vla;
                   for(i=0;i<size;i++) {
-                    jx_hash_set(node, expr, *(ob++));
+                    jx_hash_set(node, expr, jx_ob_copy(*(ob++)));
                     jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node,body));
                   } 
                 } else if(inp_list->packed_meta_bits == JX_META_BIT_INT) { 
@@ -1175,7 +1175,6 @@ static jx_ob jx__code_eval_allow_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_o
                     jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node,body));
                   }
                 }
-                jx_vla_reset(&inp_list->data.ob_vla);
                 jx_tls_ob_free(tls,list);
               }
               return result;

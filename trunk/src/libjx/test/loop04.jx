@@ -1,0 +1,12 @@
+
+(set x 0);
+(set i_r (range 13));
+(foreach a i_r
+   (foreach b i_r
+       (foreach c i_r
+           (foreach d i_r
+               (foreach e i_r
+                   (foreach f i_r
+                       (incr x)))))));
+x;
+

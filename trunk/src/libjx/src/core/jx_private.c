@@ -2554,9 +2554,9 @@ void jx__hash_dump(FILE *file,jx_hash *I)
           if(hash_entry[1]&JX_HASH_ENTRY_ACTIVE) {
             sprintf(buffer,"%3x hash %8x -> %8x kv ",i,hash_entry[0],hash_entry[1]>>1);            
           } else if(hash_entry[1]&JX_HASH_ENTRY_DELETED) {
-            sprintf(buffer,"%3x hash %8x ->     dele kv ",i,hash_entry[0],hash_entry[1]>>1);
+            sprintf(buffer,"%3x hash %8x ->     dele kv ",i,hash_entry[0]);
           } else {
-            sprintf(buffer,"%3x hash %8x ->          kv ",i,hash_entry[0],hash_entry[1]>>1);
+            sprintf(buffer,"%3x hash %8x ->          kv ",i,hash_entry[0]);
           }
           if(i<usage) {
             jx__pair_dump(file,buffer,ob[0],ob[1]);
@@ -2577,9 +2577,9 @@ void jx__hash_dump(FILE *file,jx_hash *I)
           if(hash_entry[1]&JX_HASH_ENTRY_ACTIVE) {
             sprintf(buffer,"%3x hash %8x -> %8x kv ",i,hash_entry[0],hash_entry[1]>>1);            
           } else if(hash_entry[1]&JX_HASH_ENTRY_DELETED) {
-            sprintf(buffer,"%3x hash %8x ->     dele kv ",i,hash_entry[0],hash_entry[1]>>1);
+            sprintf(buffer,"%3x hash %8x ->     dele kv ",i,hash_entry[0]);
           } else {
-            sprintf(buffer,"%3x hash %8x ->          kv ",i,hash_entry[0],hash_entry[1]>>1);
+            sprintf(buffer,"%3x hash %8x ->          kv ",i,hash_entry[0]);
           }
           if(i<usage) {
             jx__pair_dump(file,buffer,ob[0],ob[1]);
