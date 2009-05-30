@@ -1,0 +1,33 @@
+
+# polymorphic functions can be created as follows
+
+# first, we define two entity classes 
+
+(entity A);
+
+(entity B);
+
+# then we create and populate a hash that will act as a dispatch table
+
+(set poly_disp {});
+(set poly_disp A (lambda [self x] [("A called with",x)]));
+(set poly_disp B (lambda [self x] [("B called with",x)]));
+
+# now we define a scopeless function that can use the hash
+
+(def poly_fn null (apply (get poly_disp ((get _ 0) 0)) _));
+
+# finally, to show off, we create one entity of each type
+
+(set a [A]);
+(set b [B]);
+
+# and use the polymorphic function on those entities :)!
+
+(poly_fn a 1);
+(poly_fn b 2);
+
+
+
+
+
