@@ -1,0 +1,39 @@
+
+# polymorphic functions can be created as follows
+
+# first, we define two entity classes 
+
+entity(A)
+
+entity(B)
+
+# then we create and populate a hash that will act as a dispatch table
+
+poly_disp={}
+
+def A_fn(self,x):
+   "A called with",x
+
+def B_fn(self,x):
+   "B called with",x
+
+set(poly_disp, A, A_fn)
+set(poly_disp, B, B_fn)
+
+# now we define a scopeless function that can use the hash
+
+def poly_fn(): 
+    ent = _[0]
+    apply(get(poly_disp, ent(0)),_)
+
+print tst2([B],1)
+
+# finally, to show off, we create one entity of each type
+
+a=[A]
+b=[B]
+
+# and use the polymorphic function on those entities :)!
+
+print poly_fn(a,1)
+print poly_fn(b,2)

@@ -15,7 +15,10 @@
 
 # now we define a scopeless function that can use the hash
 
-(def poly_fn null (apply (get poly_disp ((get _ 0) 0)) _));
+(def poly_fn null
+ (apply (get poly_disp ((get _ 0) 0)) _));
+
+(impl poly_fn);
 
 # finally, to show off, we create one entity of each type
 

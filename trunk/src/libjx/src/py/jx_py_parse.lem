@@ -157,11 +157,15 @@ funcdef(A) ::= DEF NAME(B) parameters(C) COLON suite(D).
 
 /* parameters: '(' [varargslist] ')' */
 
+parameters(A) ::= OPEN_PAR CLOSE_PAR.
+{
+  A = jx_ob_from_null();
+}
+
 parameters(A) ::= OPEN_PAR varargslist(B) CLOSE_PAR.
 {
   A=B;
 }
-
 
 /* varargslist: ((fpdef ['=' test] ',')*
               ('*' NAME [',' '**' NAME] | '**' NAME) |
@@ -999,6 +1003,14 @@ listmaker(A) ::= listmaker(B) COMMA test(C).
 }
 
 /* lambdef: 'lambda' [varargslist] ':' test */
+
+lambdef(A) ::= LAMBDA COLON test(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("lambda"));
+  jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,C);
+}
 
 lambdef(A) ::= LAMBDA varargslist(B) COLON test(C).
 {
