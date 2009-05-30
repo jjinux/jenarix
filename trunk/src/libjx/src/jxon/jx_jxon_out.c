@@ -320,6 +320,8 @@ static void force_float(char *str)
   p[1] = 0;
 }
 
+#define JX_STR_TMP_BUF_SIZE 256
+
 jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *space_left)
 {
   jx_bits bits = ob.meta.bits;
@@ -355,12 +357,11 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         jx_vla_append_ob_str(ref, st);
         return jx_null_with_ob(st);
       }
-
     }
     break;
   case JX_META_BIT_INT:
     {
-      char buffer[50];
+      char buffer[JX_STR_TMP_BUF_SIZE];
 #ifdef JX_64_BIT
       snprintf(buffer, sizeof(buffer), "%lld", ob.data.io.int_);
 #else
@@ -380,7 +381,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
     break;
   case JX_META_BIT_FLOAT:
     {
-      char buffer[50];
+      char buffer[JX_STR_TMP_BUF_SIZE];
 #ifdef JX_64_BIT
       if(flags & JX_JXON_FLAG_APPROX_FLOAT) {
         snprintf(buffer, sizeof(buffer), 
@@ -430,11 +431,11 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
           jx_free(buffer);
           if(!ref) {
             return st;
-       } else {
-        flags = autowrap(ref,flags,space_left,jx_str_len(st));
-        jx_vla_append_ob_str(ref, st);
-        return jx_null_with_ob(st);
-         }
+          } else {
+            flags = autowrap(ref,flags,space_left,jx_str_len(st));
+            jx_vla_append_ob_str(ref, st);
+            return jx_null_with_ob(st);
+          }
           return st;
         }
       }
@@ -524,42 +525,44 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         jx_vla_append_ob_str(ref, st);
         return jx_null_with_ob(st);
       }
-    } else { /* for debugging and troublshooting only */
-      char buffer[50];
+    } else { /* for debugging and troubleshooting only */
+      char buffer[JX_STR_TMP_BUF_SIZE];
       buffer[0] = 0;
       switch(bits & JX_META_MASK_BUILTIN_TYPE) {
-      case JX_META_BIT_BUILTIN_VLA:
-        sprintf(buffer,"`vla:%p",(void*)ob.data.io.vla);
+      case JX_META_BIT_BUILTIN_ENTITY: /* 0 */
+        jx_ob_into_str(buffer, JX_STR_TMP_BUF_SIZE, ob);
         break;
       case JX_META_BIT_BUILTIN_SELECTOR:
         {
-          jx_ob builtins = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
-        if(jx_ok(jx_code_expose_secure_builtins(builtins))) {
-          jx_ob name = jx_hash_get_key(builtins,ob);
-          if(jx_ident_check(name)) {
-            sprintf(buffer,"`%s",jx_ob_as_ident(&name)); /* TO DO replace -- not range checked */
+          jx_ob operators = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
+          if(jx_ok(jx_code_expose_secure_builtins(operators))) {
+            jx_ob name = jx_hash_get_key(operators,ob);
+            if(jx_ident_check(name)) {
+              sprintf(buffer,"`");
+              jx_ob_into_str(buffer+1, JX_STR_TMP_BUF_SIZE-1, name);
+            }
+            jx_ob_free(name);
           }
-          jx_ob_free(name);
-        }
-        if(!buffer[0]) {
-          sprintf(buffer,"`op:%d",(int)ob.data.io.int_);
-        }
-        jx_ob_free(builtins);
+          if(!buffer[0]) {
+            sprintf(buffer,"op`%d",(int)ob.data.io.int_);
+          }
+          jx_ob_free(operators);
         }
         break;
       case JX_META_BIT_BUILTIN_OPAQUE_OB:
-        sprintf(buffer,"`opaque_ob:%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"opaque`%p",(void*)ob.data.io.vla); /* deliberate misread */
         break;
       case JX_META_BIT_BUILTIN_NATIVE_FN:
-        sprintf(buffer,"`native_fn:%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"native_fn`%p",(void*)ob.data.io.vla); /* deliberate misread */
         break;
       case JX_META_BIT_BUILTIN_FUNCTION:
         {
           jx_function *fn = ob.data.io.function;
           if(jx_ident_check(fn->name)) {
-            sprintf(buffer,"`function:%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
+            sprintf(buffer,"fn`");
+            jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
           } else {
-          sprintf(buffer,"`function:%p",(void*)ob.data.io.vla); /* deliberate misread */
+            sprintf(buffer,"fn`%p",(void*)ob.data.io.vla); /* deliberate misread */
           }
         }
         break;
@@ -567,9 +570,10 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         {
           jx_function *fn = ob.data.io.function;
           if(jx_ident_check(fn->name)) {
-            sprintf(buffer,"`macro:%s",jx_ob_as_ident(&fn->name)); /* deliberate misread */
+            sprintf(buffer,"macro`");
+            jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
           } else {
-            sprintf(buffer,"`macro:%p",(void*)ob.data.io.vla); /* deliberate misread */
+            sprintf(buffer,"macro`%p",(void*)ob.data.io.vla); /* deliberate misread */
           }
         }
         break;
@@ -624,7 +628,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags,
         jx_ob_free(jx__ob_to_jxon_with_flags(ob,&vla,flags,&space_left));
         return jx_ob_with_str_vla(&vla);
       }
-  }
+    }
     break;
   }
   return jx_ob_from_null();
@@ -634,6 +638,8 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
 {
   jx_int width = 0;
   jx_int left = width;
+
+
   if(width && prefix) {
     left -= jx_strlen(prefix) + 2;
   }

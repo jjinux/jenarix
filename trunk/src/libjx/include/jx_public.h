@@ -87,6 +87,7 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_OS_SPINLOCK_ERROR          -14
 #define JX_STATUS_PERMISSION_DENIED          -15
 #define JX_STATUS_OB_NOT_HASHABLE            -16
+#define JX_STATUS_OVERFLOW                   -17
 
 /* shortcuts */
 
@@ -149,7 +150,7 @@ jx_ob jx_ob_from_str(jx_char * str);    /* copies string into new storage */
 jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len); /* copies string into new storage */
 jx_ob jx_ob_from_ident(jx_char * ident);  /* copies identifier into new storage */
 
-/* unboxing / volatile casts for inline use */
+/* unboxing / volatile / not-gaureanteed casts for inline use */
 
 jx_bool jx_ob_as_bool(jx_ob ob);
 jx_int jx_ob_as_int(jx_ob ob);
@@ -197,6 +198,9 @@ jx_ob jx_ob_to_float(jx_ob ob);
 jx_ob jx_ob_to_str(jx_ob ob);
 jx_ob jx_ob_to_ident(jx_ob ob);
 
+jx_status jx_ob_into_str(jx_char *buf, jx_int buf_size, jx_ob ob);
+jx_status jx_ob_into_strcat(jx_char *buf, jx_int buf_size, jx_ob ob);
+
 /* determining object type */
 
 jx_bool jx_null_check(jx_ob ob);
@@ -207,8 +211,15 @@ jx_bool jx_str_check(jx_ob ob);
 jx_bool jx_list_check(jx_ob ob);
 jx_bool jx_hash_check(jx_ob ob);
 jx_bool jx_ident_check(jx_ob ob);
+
+/* builtin object types */
+
 jx_bool jx_builtin_check(jx_ob ob);
-jx_bool jx_builtin_fn_check(jx_ob o);
+jx_bool jx_builtin_entity_check(jx_ob ob);
+jx_bool jx_builtin_selector_check(jx_ob ob);
+jx_bool jx_builtin_opaque_ob_check(jx_ob ob);
+jx_bool jx_builtin_native_fn_check(jx_ob ob);
+jx_bool jx_builtin_callable_check(jx_ob ob);
 
 /* comparing objects */
 

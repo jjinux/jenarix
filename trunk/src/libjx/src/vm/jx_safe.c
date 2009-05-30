@@ -52,61 +52,61 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
 {
   jx_bool ok = JX_TRUE;
 
-  ok = jx_declare(ok,names,"set", JX_BUILTIN_SET);
-  ok = jx_declare(ok,names,"get", JX_BUILTIN_GET);
-  //  ok = jx_declare(ok,names,"borrow", JX_BUILTIN_BORROW);
-  ok = jx_declare(ok,names,"take", JX_BUILTIN_TAKE);
-  ok = jx_declare(ok,names,"del", JX_BUILTIN_DEL);
+  ok = jx_declare(ok,names,"entity", JX_SELECTOR_ENTITY);
+  ok = jx_declare(ok,names,"set", JX_SELECTOR_SET);
+  ok = jx_declare(ok,names,"get", JX_SELECTOR_GET);
+  //  ok = jx_declare(ok,names,"borrow", JX_SELECTOR_BORROW);
+  ok = jx_declare(ok,names,"take", JX_SELECTOR_TAKE);
+  ok = jx_declare(ok,names,"del", JX_SELECTOR_DEL);
 
-  ok = jx_declare(ok,names,"eq", JX_BUILTIN_EQ);
-  ok = jx_declare(ok,names,"gt", JX_BUILTIN_GT);
-  ok = jx_declare(ok,names,"lt", JX_BUILTIN_LT);
-  ok = jx_declare(ok,names,"ge", JX_BUILTIN_GE);
-  ok = jx_declare(ok,names,"le", JX_BUILTIN_LE);
-  ok = jx_declare(ok,names,"ne", JX_BUILTIN_NE);
-  ok = jx_declare(ok,names,"identical", JX_BUILTIN_IDENTICAL);
 
-  ok = jx_declare(ok,names,"output", JX_BUILTIN_OUTPUT);
-  ok = jx_declare(ok,names,"error", JX_BUILTIN_ERROR);
+  ok = jx_declare(ok,names,"eq", JX_SELECTOR_EQ);
+  ok = jx_declare(ok,names,"gt", JX_SELECTOR_GT);
+  ok = jx_declare(ok,names,"lt", JX_SELECTOR_LT);
+  ok = jx_declare(ok,names,"ge", JX_SELECTOR_GE);
+  ok = jx_declare(ok,names,"le", JX_SELECTOR_LE);
+  ok = jx_declare(ok,names,"ne", JX_SELECTOR_NE);
+  ok = jx_declare(ok,names,"identical", JX_SELECTOR_IDENTICAL);
 
-  ok = jx_declare(ok,names,"add", JX_BUILTIN_ADD);
-  ok = jx_declare(ok,names,"sub", JX_BUILTIN_SUB);
-  ok = jx_declare(ok,names,"mul", JX_BUILTIN_MUL);
-  ok = jx_declare(ok,names,"div", JX_BUILTIN_DIV);
-  ok = jx_declare(ok,names,"mod", JX_BUILTIN_MOD);
+  ok = jx_declare(ok,names,"output", JX_SELECTOR_OUTPUT);
+  ok = jx_declare(ok,names,"error", JX_SELECTOR_ERROR);
 
-  ok = jx_declare(ok,names,"and", JX_BUILTIN_AND);
-  ok = jx_declare(ok,names,"or",  JX_BUILTIN_OR);
+  ok = jx_declare(ok,names,"add", JX_SELECTOR_ADD);
+  ok = jx_declare(ok,names,"sub", JX_SELECTOR_SUB);
+  ok = jx_declare(ok,names,"mul", JX_SELECTOR_MUL);
+  ok = jx_declare(ok,names,"div", JX_SELECTOR_DIV);
+  ok = jx_declare(ok,names,"mod", JX_SELECTOR_MOD);
 
-  ok = jx_declare(ok,names,"neg", JX_BUILTIN_NEG);
-  ok = jx_declare(ok,names,"not", JX_BUILTIN_NOT);
+  ok = jx_declare(ok,names,"and", JX_SELECTOR_AND);
+  ok = jx_declare(ok,names,"or",  JX_SELECTOR_OR);
 
-  ok = jx_declare(ok,names,"size", JX_BUILTIN_SIZE);
+  ok = jx_declare(ok,names,"neg", JX_SELECTOR_NEG);
+  ok = jx_declare(ok,names,"not", JX_SELECTOR_NOT);
 
-  ok = jx_declare(ok,names,"append", JX_BUILTIN_APPEND);
-  ok = jx_declare(ok,names,"extend", JX_BUILTIN_EXTEND);
-  ok = jx_declare(ok,names,"insert", JX_BUILTIN_INSERT);
-  ok = jx_declare(ok,names,"resize", JX_BUILTIN_RESIZE);
-  ok = jx_declare(ok,names,"push", JX_BUILTIN_PUSH);
-  ok = jx_declare(ok,names,"pop", JX_BUILTIN_POP);
-  ok = jx_declare(ok,names,"shift", JX_BUILTIN_SHIFT);
-  ok = jx_declare(ok,names,"unshift", JX_BUILTIN_UNSHIFT);
-  ok = jx_declare(ok,names,"slice", JX_BUILTIN_SLICE);
-  ok = jx_declare(ok,names,"cutout", JX_BUILTIN_CUTOUT);
+  ok = jx_declare(ok,names,"size", JX_SELECTOR_SIZE);
+  ok = jx_declare(ok,names,"append", JX_SELECTOR_APPEND);
+  ok = jx_declare(ok,names,"extend", JX_SELECTOR_EXTEND);
+  ok = jx_declare(ok,names,"insert", JX_SELECTOR_INSERT);
+  ok = jx_declare(ok,names,"resize", JX_SELECTOR_RESIZE);
+  ok = jx_declare(ok,names,"push", JX_SELECTOR_PUSH);
+  ok = jx_declare(ok,names,"pop", JX_SELECTOR_POP);
+  ok = jx_declare(ok,names,"shift", JX_SELECTOR_SHIFT);
+  ok = jx_declare(ok,names,"unshift", JX_SELECTOR_UNSHIFT);
+  ok = jx_declare(ok,names,"slice", JX_SELECTOR_SLICE);
+  ok = jx_declare(ok,names,"cutout", JX_SELECTOR_CUTOUT);
   
-  ok = jx_declare(ok,names,"incr", JX_BUILTIN_INCR);
-  ok = jx_declare(ok,names,"decr", JX_BUILTIN_DECR);
-  ok = jx_declare(ok,names,"impl", JX_BUILTIN_IMPL);
+  ok = jx_declare(ok,names,"incr", JX_SELECTOR_INCR);
+  ok = jx_declare(ok,names,"decr", JX_SELECTOR_DECR);
+  ok = jx_declare(ok,names,"impl", JX_SELECTOR_IMPL);
 
-  ok = jx_declare(ok,names,"range", JX_BUILTIN_RANGE);
-  ok = jx_declare(ok,names,"fill", JX_BUILTIN_FILL);
+  ok = jx_declare(ok,names,"range", JX_SELECTOR_RANGE);
+  ok = jx_declare(ok,names,"fill", JX_SELECTOR_FILL);
 
-  ok = jx_declare(ok,names,"symbols", JX_BUILTIN_SYMBOLS);
-  ok = jx_declare(ok,names,"has", JX_BUILTIN_HAS);
+  ok = jx_declare(ok,names,"symbols", JX_SELECTOR_SYMBOLS);
+  ok = jx_declare(ok,names,"has", JX_SELECTOR_HAS);
 
-
-  ok = jx_declare(ok,names,"same", JX_BUILTIN_SAME);
-  ok = jx_declare(ok,names,"str",  JX_BUILTIN_STR);
+  ok = jx_declare(ok,names,"same", JX_SELECTOR_SAME);
+  ok = jx_declare(ok,names,"str",  JX_SELECTOR_STR);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

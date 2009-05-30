@@ -1,0 +1,25 @@
+
+# here's an example vector addition function
+
+(def vector.add [v1 v2] [
+  [Vector
+    (map (lambda [x y] (add x y)) (v1 1) (v2 1))
+  ]]);
+
+(symbols);
+
+(entity Vector {add:vector.add} );
+
+(symbols);
+
+(del vector.add);
+
+(symbols);
+
+(set v1 [Vector, [1 2 3]]);
+
+(set v2 [Vector, [2,3,4]]);
+
+(v1 add v2);
+
+([Vector, [0.3 4 "hi"]] add [Vector, [0.3 9 "you"]]);

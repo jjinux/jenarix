@@ -145,6 +145,9 @@ struct jx__ob {
 #define JX_META_BIT_LIST               0x0200
 #define JX_META_BIT_HASH               0x0100
 
+/* consider replacting NOT_AN_OB with a hashable TUPLE type that could be
+   used for various optimizations internally as well as externally */
+
 /* JXON identifiers */
 
 #define JX_META_BIT_IDENT              0x0080
@@ -168,14 +171,24 @@ struct jx__ob {
 /* note: we made need more builtins and will need to switch
    from-bit masked to indexed builtin types */
 
-#define JX_META_BIT_BUILTIN_VLA        0x0000
+#define JX_META_BIT_BUILTIN_ENTITY     0x0000
 #define JX_META_BIT_BUILTIN_OPAQUE_OB  0x0001
 #define JX_META_BIT_BUILTIN_SELECTOR   0x0002
 #define JX_META_BIT_BUILTIN_MACRO      0x0004
 #define JX_META_BIT_BUILTIN_NATIVE_FN  0x0008
 #define JX_META_BIT_BUILTIN_FUNCTION   0x0010
 
-/* future builtins may include tuples, Nx32bit vectors, etc. */
+/* tiny tuple idea...
+
+  jx_int  tiny_tuple_int[JX_TINY_LIST_SIZE];
+  jx_float tiny_tuple_float[JX_TINY_LIST_SIZE];
+
+#define JX_META_MASK_TINY_TUPLE_SIZE    0x0007
+
+#define JX_META_BIT_TINY_TUPLE_INT      0x0008
+#define JX_META_BIT_TINY_TUPLE_FLOAT    0x0010
+
+*/
 
 /* object initializers */
 
@@ -312,24 +325,30 @@ JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
 
 /* debugging */
 
+void jx__hash_dump(FILE *file,jx_hash *I);
+
 JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
 {
-#ifndef JX_64_BIT
 #if (JX_TINY_STR_SIZE == 6)
+#ifndef JX_64_BIT
+  /* jx_ob = 64 bits */
   fprintf(f,"%s: %08x%04x %04x\n",prefix, 
           (unsigned int)ob.data.raw.word,
           (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
 #else
+  /* jx_ob = 96 bits */
   fprintf(f,"%s: %08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word), (unsigned int)(ob.data.raw.word>>32),
           (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
 #endif
 #else
 #if (JX_TINY_STR_SIZE == 10)
+  /* jx_ob = 96 bits */
   fprintf(f,"%s: %08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word), (unsigned int)(ob.data.raw.word>>32),
           (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
 #else
+  /* jx_ob = 160 bits */
   fprintf(f,"%s: %08x%80x%08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word[0]), (unsigned int)(ob.data.raw.word[0]>>32),
           (unsigned int)(ob.data.raw.word[1]), (unsigned int)(ob.data.raw.word[1]>>32),
@@ -337,44 +356,10 @@ JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
 
 #endif
 #endif
-
 }
 
 
 
-/* builtin fn objects are a means through which jenarix can be extended */
-
-JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
-{
-  jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR;
-  result.data.io.int_ = selector;
-  return result;
-}
-
-JX_INLINE jx_ob jx_builtin_new_with_vla(void **ref)
-{
-  jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_VLA | JX_META_BIT_GC;
-  result.data.io.vla = (*ref);
-  return result;
-}
-
-JX_INLINE jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn)
-{
-  jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN | JX_META_BIT_WEAK_REF;
-  result.data.io.native_fn = fn;
-  return result;
-}
-
-JX_INLINE jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque_ob)
-{
-  jx_ob result = JX_OB_NULL;
-  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB | JX_META_BIT_GC;
-  result.data.io.opaque_ob = opaque_ob;
-  return result;
-}
 
 /* variable length array (vla) functions provide untyped, auto-zeroed,
    size and record-length aware variable length arrays NOTE: ALWAYS
@@ -667,16 +652,55 @@ JX_INLINE jx_bool jx_hash_check(jx_ob ob)
   return (ob.meta.bits & JX_META_BIT_HASH) && JX_TRUE;
 }
 
+/* builtin fn objects are a means through which jenarix can be extended */
+
+JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR;
+  result.data.io.int_ = selector;
+  return result;
+}
+
+JX_INLINE jx_ob jx_builtin_new_entity(jx_ob name)
+{
+  if(jx_ident_check(name)) { /* an entity is simply a cloaked identifier */
+    jx_ob result = jx_ob_copy(name);
+    result.meta.bits = (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_ENTITY |
+                        (JX_META_BIT_GC & result.meta.bits));
+    return result;
+  } else {
+    return jx_ob_from_null();
+  }
+}
+
+JX_INLINE jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN | JX_META_BIT_WEAK_REF;
+  result.data.io.native_fn = fn;
+  return result;
+}
+
+JX_INLINE jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque_ob)
+{
+  jx_ob result = JX_OB_NULL;
+  result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB | JX_META_BIT_GC;
+  result.data.io.opaque_ob = opaque_ob;
+  return result;
+}
+
 JX_INLINE jx_bool jx_builtin_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_BUILTIN) && JX_TRUE;
 }
 
-JX_INLINE jx_bool jx_builtin_vla_check(jx_ob ob)
+JX_INLINE jx_bool jx_builtin_entity_check(jx_ob ob)
 {
   register jx_bits bits = ob.meta.bits;
-  return (bits & JX_META_BIT_BUILTIN) && 
-    (bits & JX_META_BIT_BUILTIN_VLA);
+  return ((bits & JX_META_BIT_BUILTIN) &&
+          ((bits & JX_META_MASK_BUILTIN_TYPE)==
+           JX_META_BIT_BUILTIN_ENTITY));
 }
 
 JX_INLINE jx_bool jx_builtin_selector_check(jx_ob ob)
@@ -704,11 +728,15 @@ JX_INLINE jx_bool jx_builtin_callable_check(jx_ob ob)
 {
   register jx_bits bits = ob.meta.bits;
   return (bits & JX_META_BIT_BUILTIN) && 
-    (bits & 
-     (JX_META_BIT_BUILTIN_MACRO |      
-      JX_META_BIT_BUILTIN_SELECTOR |      
-      JX_META_BIT_BUILTIN_NATIVE_FN |      
-      JX_META_BIT_BUILTIN_FUNCTION));
+    ((bits & 
+      (JX_META_BIT_BUILTIN_MACRO |      
+       JX_META_BIT_BUILTIN_SELECTOR |      
+       JX_META_BIT_BUILTIN_NATIVE_FN |      
+       JX_META_BIT_BUILTIN_FUNCTION)));
+#if 0
+  ((JX_META_MASK_BUILTIN_TYPE & bits) ==  /* entities could be callable...*/
+   JX_META_BIT_BUILTIN_ENTITY);
+#endif
 }
 
 JX_INLINE jx_bool jx_function_check(jx_ob ob)
@@ -1974,11 +2002,12 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       /* inner functions run within the host node namespace */
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob saved_payload = JX_OB_NULL;
-      jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
-      if(jx_ok( jx_hash_set(node,payload_ident, payload) ) ) { 
+      jx_bool saved = jx_hash_take(&saved_payload, node, payload_ident);
+      if(jx_ok( jx_hash_set(node, payload_ident, payload) ) ) { 
         /* call */
-        jx_ob result = fn->mode ? jx_code_exec_tls(tls, 0, node,fn->body) :
+        jx_ob result = fn->mode ? jx_code_exec_tls(tls, 0, node, fn->body) :
           jx_code_eval_tls(tls, 0, node,fn->body);
+
         if(saved) 
           jx_hash_set(node, payload_ident, saved_payload);
         else
