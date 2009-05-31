@@ -6,4 +6,23 @@
 
 # - bitwise operators
 
-# 
+# - concurrency
+
+#   - shared objects: immutable and indestructable
+
+#   - synchronized objects: mutable, modifiable (atomically via
+#     spinlock mutexes), indestructable
+
+#   - what should the default copy behavior be for shared objects?
+#     regardless of the default, the developer needs to be able to
+#     force one before or the other:
+
+#   - jx_ob_copy_with_shared(jx_ob) would preserved shared objects
+#     within a hierarchy
+
+#   - jx_ob_copy_to_unshared(jx_ob) would make a copy of the shared object
+
+#   - for synchronized objects, the default jx_ob_copy behavior is
+#     fine, but the should the copy be synchronized or not?  I say
+#     not.
+
