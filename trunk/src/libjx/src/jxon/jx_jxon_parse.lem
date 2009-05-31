@@ -61,8 +61,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
    * comments are permitted (starting with #)
 
-   * semicolons delimit JXON blocks and signal the parser to either
-     accept the input or throw an error
+   * semicolons MAY (but are not required to) delimit JXON blocks and
+     signal the parser to either accept the input or throw an error
 
  PLANNED:
  
@@ -189,7 +189,7 @@ statement ::= stop_expression(B).
 statement ::= implicit_list(B).
 {  
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("statement = expression(B) SEMICOLON\n"); 
+  printf("statement ::= implicit_list(B).\n"); 
 #endif
   jx_ob_free(context->result); /* free previous result (if any) */ 
   context->result = B; /* save the result */
@@ -220,6 +220,14 @@ stop_expression(A) ::= container(B) EOI.
 }
 
 stop_expression(A) ::= container(B) SEMICOLON.
+{  
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(A) ::= expression(B) SEMICOLON\n");
+#endif
+}
+
+stop_expression(A) ::= container(B).
 {  
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG

@@ -470,6 +470,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
       case JX_SELECTOR_DIV:
         jx_tls_ob_replace(tls, &payload, jx_safe_div(node, payload));
         break;
+      case JX_SELECTOR_IDIV:
+        jx_tls_ob_replace(tls, &payload, jx_safe_idiv(node, payload));
+        break;
       case JX_SELECTOR_MOD:
         jx_tls_ob_replace(tls, &payload, jx_safe_mod(node, payload));
         break;
@@ -702,6 +705,142 @@ JX_INLINE jx_ob jx__code_reduce(jx_tls *tls, jx_int flags, jx_ob node, jx_ob cal
   }
   return out;
 }
+
+#if 0
+typedef struct {
+  jx_int id;
+  jx_ob list;
+} thread_info;
+
+void *thread_fn(void *id_ptr)
+{
+  thread_info *info = (thread_info*)id_ptr;
+
+  printf("thread %d started\n",info->id);
+
+  {
+    jx_int i;
+    if(!info->id) {
+      for(i=0;i<N_PACKETS;i++) {
+        jx_list_append(info->list, jx_ob_from_int(1));
+      }
+    } else {
+      int cnt = 0;
+      while(1) {
+        jx_ob ob = jx_list_remove(info[-1].list,0);
+        if(!jx_null_check(ob)) {
+          cnt++;
+          if(info->id!=(N_THREAD-1)) {
+            jx_ob new_ob = jx_ob_add(ob,ob);
+            jx_list_append(info->list, new_ob); 
+          } else {
+            printf("count: %d\n",cnt);
+            jx_jxon_dump(stdout, "output", ob);
+          }
+          if(cnt==N_PACKETS)
+            break;
+        }
+      }
+    }
+  }
+
+  printf("thread %d complete\n",info->id);
+  return NULL;
+}
+
+jx_status run_test(void)
+{
+  jx_os_thread *thread_array = NULL;
+  thread_info thread_info[N_THREAD];
+
+  jx_status status;
+
+  if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
+
+    {
+      jx_int i;
+      for(i=0; i<N_THREAD; i++) {
+        jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
+
+        thread_info[i].id = i;
+        thread_info[i].list = jx_list_new();
+
+        jx_ob_set_synchronized(thread_info[i].list,JX_TRUE,JX_TRUE);
+
+        JX_OK_DO( jx_os_thread_start(thread, thread_fn, thread_info + i));
+      }
+    }
+    {
+      jx_int i;
+      for(i=0; i<N_THREAD; i++) {
+        jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
+        
+        JX_OK_DO( jx_os_thread_join(thread) );
+      }
+    }
+    {
+      jx_int i;
+      for(i=0; i<N_THREAD; i++) {
+        jx_ob_free(thread_info[i].list);
+      }
+    }
+    JX_OK_DO( jx_os_thread_array_free( &thread_array ));
+  }
+  return status;
+}
+
+JX_INLINE jx_ob jx__code_parmap1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob inp) 
+{
+  if(jx_builtin_callable_check(callable) && jx_list_check(inp)) {
+    jx_int size = jx_list_size(inp);
+    jx_ob out = jx_tls_list_new_with_size(tls, size);
+    if(jx_list_check(out)) {
+      if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
+        
+        {
+          jx_int i;
+          for(i=0; i<size; i++) {
+            jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
+            
+            thread_info[i].id = i;
+            
+            jx_ob_set_synchronized(thread_info[i].list,JX_TRUE,JX_TRUE);
+            
+            JX_OK_DO( jx_os_thread_start(thread, thread_fn, thread_info + i));
+          }
+        }
+    {
+      jx_int i;
+      for(i=0; i<N_THREAD; i++) {
+        jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
+        
+        JX_OK_DO( jx_os_thread_join(thread) );
+      }
+    }
+    {
+      jx_int i;
+      for(i=0; i<N_THREAD; i++) {
+        jx_ob_free(thread_info[i].list);
+      }
+    }
+    JX_OK_DO( jx_os_thread_array_free( &thread_array ));
+
+      jx_ob *inp_ob = inp_list->data.ob_vla;
+      jx_ob *out_ob = out_list->data.ob_vla;
+      for(i=0;i<size;i++) {
+        *(out_ob++) = jx__code_apply_callable
+          (tls, node, callable_weak_ref, *(inp_ob++));
+      }
+    }
+
+
+  } else { /* trying to apply a non-function -- that just won't work */
+    jx_tls_ob_free(tls, inp);
+    jx_tls_ob_free(tls, callable);
+    return jx_ob_from_null();
+  }
+}
+#endif
 
 JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob inp) 
 {
@@ -1215,6 +1354,32 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
               }
             }
             break;
+#if 0
+          case JX_SELECTOR_PARMAP: /* [map callable list] */
+            {
+              jx_ob callable = (size>1) ? jx_code_eval_to_weak
+                (tls, flags, node, expr_vla[1]) : jx_ob_from_null();
+              if(size > 2) {
+                if(size == 3) {
+                  jx_ob src_list = (size>2) ? jx_code_eval_to_weak
+                    (tls, flags, node, expr_vla[2]) : 
+                    jx_ob_from_null();
+                  return jx__code_parmap1(tls,flags,node,callable,src_list);
+                } else if(0) { 
+                  /* zipping while mapping -- slower */
+                  jx_int i,n = size - 2;
+                  jx_ob src_list = jx_tls_list_new_with_size(tls,n);
+                  for(i=0;i<n;i++) {
+                    jx_list_replace(src_list, i, jx_code_eval_to_weak
+                                    (tls, flags, node, expr_vla[i+2]));
+                  }
+                  return jx__code_mapN(tls,flags,node,callable,src_list);
+                }
+              }
+            }
+            return jx_ob_from_null();
+            break;
+#endif
           case JX_SELECTOR_MAP: /* [map callable list] */
             {
               jx_ob callable = (size>1) ? jx_code_eval_to_weak

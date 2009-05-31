@@ -16,9 +16,9 @@ mains: $(JX_PREFIX1)_lisp.a $(JX_PREFIX1)_shell.a $(JX_PREFIX1)_py.a $(JX_PREFIX
 
 # jx_python.a jx_java.a jx_network.a
 
-CXXFLAGS=-g $(ARCH_CXXFLAGS) -Wall
-CFLAGS=-g $(ARCH_CFLAGS) -Wall
-#CFLAGS=-O3 -g $(ARCH_CFLAGS) -Wall
+CXXFLAGS=$(ARCH_CXXFLAGS)
+CFLAGS=$(ARCH_CFLAGS) 
+#CFLAGS=-O3 -g $(ARCH_CFLAGS)
 
 .p.o:
 	cc $*.m $(CFLAGS) -c -o $@
@@ -47,5 +47,5 @@ libjx.a: $(OOO_LIB)
 	/bin/mv -f ../$@  $(JX_BASE)/$@
 
 .o.a:
-	cc $< $(OOO_LIB) -o $@ $(LDFLAGS) $(LDFLAGS_ARCH)
+	cc $< $(OOO_LIB) -o $@ $(LDFLAGS) $(ARCH_LDFLAGS)
 	/bin/mv -f $@ ../$*

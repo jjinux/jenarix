@@ -6,6 +6,7 @@ State 0:
           stop_expression ::= * primitive SEMICOLON
           stop_expression ::= * container EOI
           stop_expression ::= * container SEMICOLON
+          stop_expression ::= * container
           implicit_list ::= * implicit_list EOI
           implicit_list ::= * implicit_list SEMICOLON
           implicit_list ::= * implicit_list expression
@@ -535,9 +536,11 @@ State 13:
 State 14:
           stop_expression ::= container * EOI
           stop_expression ::= container * SEMICOLON
+      (7) stop_expression ::= container *
 
                            EOI shift  34
                      SEMICOLON shift  35
+                     {default} reduce 7
 
 State 15:
           list_of_associations ::= list_of_associations primitive * COLON expression
@@ -555,34 +558,34 @@ State 17:
                          COLON shift  9
 
 State 18:
-     (28) primitive ::= BUILTIN *
-
-                     {default} reduce 28
-
-State 19:
-     (29) primitive ::= ICON *
+     (29) primitive ::= BUILTIN *
 
                      {default} reduce 29
 
-State 20:
-     (30) primitive ::= FCON *
+State 19:
+     (30) primitive ::= ICON *
 
                      {default} reduce 30
 
-State 21:
-     (31) primitive ::= SCON *
+State 20:
+     (31) primitive ::= FCON *
 
                      {default} reduce 31
 
-State 22:
-     (32) primitive ::= IDENT *
+State 21:
+     (32) primitive ::= SCON *
 
                      {default} reduce 32
 
-State 23:
-     (33) primitive ::= TRUE *
+State 22:
+     (33) primitive ::= IDENT *
 
                      {default} reduce 33
+
+State 23:
+     (34) primitive ::= TRUE *
+
+                     {default} reduce 34
 
 State 24:
       (0) statement ::= EOI *
@@ -590,34 +593,34 @@ State 24:
                      {default} reduce 0
 
 State 25:
-     (35) primitive ::= NULL *
+     (36) primitive ::= NULL *
 
-                     {default} reduce 35
+                     {default} reduce 36
 
 State 26:
-     (25) list_of_expressions ::= expression *
+     (26) list_of_expressions ::= expression *
 
-                     {default} reduce 25
+                     {default} reduce 26
 
 State 27:
-     (23) list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE *
+     (24) list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE *
 
-                     {default} reduce 23
+                     {default} reduce 24
 
 State 28:
-     (18) list_of_associations ::= list_of_associations COMMA primitive COLON expression *
-
-                     {default} reduce 18
-
-State 29:
-     (19) list_of_associations ::= association *
+     (19) list_of_associations ::= list_of_associations COMMA primitive COLON expression *
 
                      {default} reduce 19
 
-State 30:
-     (20) association ::= primitive COLON expression *
+State 29:
+     (20) list_of_associations ::= association *
 
                      {default} reduce 20
+
+State 30:
+     (21) association ::= primitive COLON expression *
+
+                     {default} reduce 21
 
 State 31:
       (3) stop_expression ::= primitive EOI *
@@ -630,9 +633,9 @@ State 32:
                      {default} reduce 4
 
 State 33:
-     (10) implicit_list ::= primitive expression *
+     (11) implicit_list ::= primitive expression *
 
-                     {default} reduce 10
+                     {default} reduce 11
 
 State 34:
       (5) stop_expression ::= container EOI *
@@ -645,9 +648,9 @@ State 35:
                      {default} reduce 6
 
 State 36:
-     (34) primitive ::= FALSE *
+     (35) primitive ::= FALSE *
 
-                     {default} reduce 34
+                     {default} reduce 35
 
 State 37:
       (1) statement ::= stop_expression *
@@ -655,79 +658,79 @@ State 37:
                      {default} reduce 1
 
 State 38:
-      (7) implicit_list ::= implicit_list EOI *
-
-                     {default} reduce 7
-
-State 39:
-      (8) implicit_list ::= implicit_list SEMICOLON *
+      (8) implicit_list ::= implicit_list EOI *
 
                      {default} reduce 8
 
-State 40:
-      (9) implicit_list ::= implicit_list expression *
+State 39:
+      (9) implicit_list ::= implicit_list SEMICOLON *
 
                      {default} reduce 9
 
+State 40:
+     (10) implicit_list ::= implicit_list expression *
+
+                     {default} reduce 10
+
 State 41:
-     (11) expression ::= primitive *
-
-                     {default} reduce 11
-
-State 42:
-     (12) expression ::= container *
+     (12) expression ::= primitive *
 
                      {default} reduce 12
 
-State 43:
-     (13) container ::= list *
+State 42:
+     (13) expression ::= container *
 
                      {default} reduce 13
 
-State 44:
-     (14) container ::= hash *
+State 43:
+     (14) container ::= list *
 
                      {default} reduce 14
 
-State 45:
-     (15) hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
+State 44:
+     (15) container ::= hash *
 
                      {default} reduce 15
 
-State 46:
-     (16) hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE *
+State 45:
+     (16) hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
 
                      {default} reduce 16
 
-State 47:
-     (17) list_of_associations ::= list_of_associations primitive COLON expression *
+State 46:
+     (17) hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE *
 
                      {default} reduce 17
 
+State 47:
+     (18) list_of_associations ::= list_of_associations primitive COLON expression *
+
+                     {default} reduce 18
+
 State 48:
-     (21) list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
-
-                     {default} reduce 21
-
-State 49:
-     (22) list ::= OPEN_PAR CLOSE_PAR *
+     (22) list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
 
                      {default} reduce 22
 
-State 50:
-     (24) list ::= OPEN_PAR list_of_expressions CLOSE_PAR *
+State 49:
+     (23) list ::= OPEN_PAR CLOSE_PAR *
 
-                     {default} reduce 24
+                     {default} reduce 23
+
+State 50:
+     (25) list ::= OPEN_PAR list_of_expressions CLOSE_PAR *
+
+                     {default} reduce 25
 
 State 51:
-     (26) list_of_expressions ::= list_of_expressions expression *
-
-                     {default} reduce 26
-
-State 52:
-     (27) list_of_expressions ::= list_of_expressions COMMA expression *
+     (27) list_of_expressions ::= list_of_expressions expression *
 
                      {default} reduce 27
+
+State 52:
+     (28) list_of_expressions ::= list_of_expressions COMMA expression *
+
+                     {default} reduce 28
 
 ----------------------------------------------------
 Symbols:

@@ -75,6 +75,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"sub", JX_SELECTOR_SUB);
   ok = jx_declare(ok,names,"mul", JX_SELECTOR_MUL);
   ok = jx_declare(ok,names,"div", JX_SELECTOR_DIV);
+  ok = jx_declare(ok,names,"idiv", JX_SELECTOR_IDIV);
   ok = jx_declare(ok,names,"mod", JX_SELECTOR_MOD);
 
   ok = jx_declare(ok,names,"and", JX_SELECTOR_AND);

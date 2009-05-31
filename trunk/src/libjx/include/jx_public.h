@@ -241,6 +241,7 @@ jx_ob jx_ob_add(jx_ob left, jx_ob right);
 jx_ob jx_ob_sub(jx_ob left, jx_ob right);
 jx_ob jx_ob_mul(jx_ob left, jx_ob right);
 jx_ob jx_ob_div(jx_ob left, jx_ob right);
+jx_ob jx_ob_idiv(jx_ob left, jx_ob right);
 jx_ob jx_ob_mod(jx_ob left, jx_ob right);
 jx_ob jx_ob_neg(jx_ob ob);
 

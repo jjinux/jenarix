@@ -1,25 +1,136 @@
 
-# Concrete: those aspects of Jenarix, JXON, JXP, the C-api, etc. which
-# are set in stone and can thus be safely built upon in development of
-# long-lived applications.
+# Concrete Foundations: 
 
+# Aspects of Jenarix, JXON, JXP, the C-api, etc. which are effectively
+# set in stone and can thus be immediately relied upon in development
+# of production applications.
+
+# ======================================================================
 # - Hash-based single-line comments.
 
 # - Pure JSON-based primitives, with rectangular bracket syntax.
+# Because these don't contain identifiers, the JXON VM never evaluates
+# them.
 
-[null,true,false,1,2.0,"astring"];
+[null,true,false,1,2.0,"astring"]
 
-# - Semicolon-delimited phrases: with the caveat that they may no
-# longer be required in the future the way they are today.  By making
-# them optional, developers could selectively rely upon them when
-# needed to troubleshoot complex code, but wouldn't be burdened with
-# them continuously.
+# - LISP/Scheme-like expressions provided using parentheses
+
+# - Semicolon-delimited phrases (either optional or mandatory) the
+# parser was recently modified to make semicolons optional, but it
+# probably makes sense to use them when writing code in order to
+# clearly delimit the intended scope of an expression (in case you
+# miscount parens, etc.)
 
 # - Explicit memory management at the C-programming level.  If you
 # create an object, then you have the responsibility for freeing it
 # or handing off ownership to a container that will do the job at
 # an appropriate time.
 
+# - The existence of polymorphic behavior for certain builtin methods
+# based on the number and nature of the arguments provided.  Examples
+# include get, set, has, take, del, ...
+
+# ======================================================================
+# - Automatic resolution and return of symbols provided a the top
+#   level
+
+(set x 1)
+
+x;
+
+# source: x
+#   eval: (`resolve x)
+# result: 1
+
+# ======================================================================
+# - No-risk stuff: things that have just got to be there regardless,
+# and resonably hard to screw up:
+
+#   - scalar operators when used with ordinary pairwise arguments:
+
+(oper arg1 arg2)
+
+#   - comparison: gt, lt, ge, le , eq, ne, identical
+
+#   - pairwise arthemetic on scalars: add, sub, mul, div, idiv
+
+#   - pairwise logical boolean operators: and, or
+
+#   - scalar one-argument operations: neg, not
+
+# - Basic symbol binding operations: set, get, has, take, del where
+# the name argument is a dot-free identifier and the value is ordinary
+# JSON-compatible data.  Take removes the item.
+
+(set name value)
+(get name)
+(has name)
+(del name)
+(take name)
+
+# ======================================================================
+# - LISP-like functional expression definition "defun" and evaluation with a
+#   conventional ordinary argument list
+
+(defun my_expr [x y z] (x y z))
+
+(my_expr 1 2 3)
+
+# result: [1,2,3]
+
+# - Python-like code definition "def" and evaluation using an ordinary
+#   argument list.
+
+(def my_code [x y z] (x y z))
+
+(my_code 1 2 3)
+
+# result: 3
+
+# ======================================================================
+# - List manipulations, assuming that the list is bound to a top-level
+# symbol.  NOTE: Jenarix list indices are zero-based (like C/Python)
+
+#   - from front: shift, unshift
+
+(set x [2,3])
+(unshift x 4)
+x;
+# result: [4, 2, 3]
+
+#   - from end: pop, push & append (synonyms), 
+
+(append x 6)
+x;
+# result: [4, 2, 3, 6]
+
+#   - copying an entry: get
+
+(get x 0)
+# result: 4
+
+#   - replacing an entry: set
+
+(set x 3 5)
+x;
+# result: [4, 2, 3, 5]
+
+#   - removing and returning: take
+
+(take x 1)
+# result: 2
+
+#   - deleting an entry without returning: del
+
+(del x 0); 
+x;
+# result: [3, 5]
+
+#   - getting the size of a list
+
+(size x)
+# result: 4
 
 
 

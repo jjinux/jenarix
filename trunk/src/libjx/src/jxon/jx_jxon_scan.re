@@ -212,7 +212,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
     "\n" {
       s->pos = cursor; s->line++;
       s->eof = NULL;
-      goto std;
+      RET(0);
     }
 
     null_char { 
@@ -387,7 +387,12 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
           break;
         }
       }
-      jx_jxon_(jx_Parser, (int)tok_type, token, &state->context);
+      if(!tok_type) { /* 0 */
+        jx_ob tok = jx_ob_from_null();
+        jx_jxon_(jx_Parser, (int)tok_type,tok, &state->context);        
+      } else {
+        jx_jxon_(jx_Parser, (int)tok_type, token, &state->context);
+      }
 
       if(!jx_ok(state->context.status)) /* something bad happened */
         break;

@@ -35,4 +35,4 @@ cleaner: clean
 	cd $(JX_BUILD); make -f ../../rules/cleaner.mk
 
 restart: 
-	make distclean $(JX_PREFIX1) depbuild
+	make distclean $(JX_PREFIX1)$(JX_CONFIG) depbuild

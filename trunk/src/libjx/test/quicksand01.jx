@@ -8,3 +8,19 @@
 
 # Weak reference policies
 
+# Numbers used as hash keys are distinct based on type (int vs. float
+# vs. boolean).  This is not the way Python works, but it is
+# reflective of the underlying reality inside the computer, and
+# personally I think it makes sense. (Python is even more bizarre in
+# that 0, 0.0, and False are all equivalent hash keys!)
+
+(set h {})
+(set h 1 "int one")
+(set h 1.0 "float one")
+
+(get h 1)
+# result: "int one"
+
+(get h 1.0)
+# result: "float one"
+

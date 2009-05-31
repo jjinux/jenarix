@@ -935,7 +935,7 @@ jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 
 JX_MATH_OP(sub, -)
   JX_MATH_OP(mul, *)
-  JX_MATH_OP(div, /)
+
 #undef JX_MATH_OP
 #define JX_LOG_OP(SUFFIX,OPER) \
 jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
@@ -953,7 +953,8 @@ jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
   JX_LOG_OP(and, &&)
   JX_LOG_OP(or, ||)
 #undef JX_LOG_OP
-     jx_ob jx__ob_mod(jx_ob left, jx_ob right)
+
+jx_ob jx__ob_mod(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
   jx_bits merge_bits = left.meta.bits | right.meta.bits;

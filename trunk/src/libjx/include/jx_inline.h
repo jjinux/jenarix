@@ -1650,8 +1650,63 @@ JX_INLINE jx_ob jx_ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 
 JX_MATH_OP(sub,-)
 JX_MATH_OP(mul,*)
-JX_MATH_OP(div,/)
 #undef JX_MATH_OP
+
+JX_INLINE jx_ob jx_ob_idiv(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS; 
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS; 
+  if(left_bits == right_bits) { 
+    switch(left_bits) {
+    case JX_META_BIT_INT: 
+      return jx_ob_from_int( left.data.io.int_ / right.data.io.int_);
+      break; 
+    case JX_META_BIT_FLOAT: 
+      return jx_ob_from_float( (float)(((int)left.data.io.float_) / 
+                                       (int)right.data.io.float_ ));
+      break; 
+    case JX_META_BIT_BOOL: 
+      return jx_ob_from_float( left.data.io.bool_ / right.data.io.bool_ );
+      break; 
+    }
+  } else {
+    jx_bits merge_bits = left.meta.bits | right.meta.bits;
+    if(merge_bits & JX_META_BIT_FLOAT) {
+      return jx_ob_from_float((jx_float)(jx_ob_as_int(left) / jx_ob_as_int(right)));
+    } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
+      return jx_ob_from_int(jx_ob_as_int(left) / jx_ob_as_int(right));
+    }
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_ob_div(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS; 
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS; 
+  if(left_bits == right_bits) { 
+    switch(left_bits) {
+    case JX_META_BIT_INT: 
+      return jx_ob_from_float( ((float)left.data.io.int_) / right.data.io.int_);
+      break; 
+    case JX_META_BIT_FLOAT: 
+      return jx_ob_from_float( left.data.io.float_ / right.data.io.float_ ); 
+      break; 
+    case JX_META_BIT_BOOL: 
+      return jx_ob_from_float( ((float)left.data.io.bool_) / right.data.io.bool_ );
+      break; 
+    }
+  } else {
+    jx_bits merge_bits = left.meta.bits | right.meta.bits;
+    if(merge_bits & JX_META_BIT_FLOAT) {
+      return jx_ob_from_float(jx_ob_as_float(left) / jx_ob_as_float(right));
+    } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
+      return jx_ob_from_float(jx_ob_as_float(left) / jx_ob_as_float(right));
+    }
+ }
+  return jx_ob_from_null();
+}
+
 
 #define JX_LOG_OP(SUFFIX,OPER) \
 jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right); \

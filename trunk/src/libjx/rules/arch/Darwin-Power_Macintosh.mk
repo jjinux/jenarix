@@ -1,12 +1,9 @@
 
-ARCH_CFLAGS = -Wall -ansi -pedantic -std=gnu99 -O3
+ARCH_CFLAGS = -Wall -ansi -pedantic -std=gnu99 -g -O3 
 # -DJX_64_BIT -m64 
 
 ARCH_CXXFLAGS = -ansi 
 
-OOO_ARCH =
 
-LDFLAGS_ARCH = 
+ARCH_LDFLAGS =
 #-m64
-
-CFLAGS = -g 
