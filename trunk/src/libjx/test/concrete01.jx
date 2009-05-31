@@ -1,0 +1,34 @@
+
+# Concrete: those aspects of Jenarix, JXON, JXP, the C-api, etc. which
+# are set in stone and can thus be safely built upon in development of
+# long-lived applications.
+
+# - Hash-based single-line comments.
+
+# - Pure JSON-based primitives, with rectangular bracket syntax.
+
+[null,true,false,1,2.0,"astring"];
+
+# - Semicolon-delimited phrases: with the caveat that they may no
+# longer be required in the future the way they are today.  By making
+# them optional, developers could selectively rely upon them when
+# needed to troubleshoot complex code, but wouldn't be burdened with
+# them continuously.
+
+# - Explicit memory management at the C-programming level.  If you
+# create an object, then you have the responsibility for freeing it
+# or handing off ownership to a container that will do the job at
+# an appropriate time.
+
+
+
+
+
+
+
+
+
+
+
+
+

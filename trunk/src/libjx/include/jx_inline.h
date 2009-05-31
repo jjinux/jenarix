@@ -1962,6 +1962,10 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
 #define JX_EVAL_ALLOW_NESTED_WEAK_REFS  0x01
 #define JX_EVAL_DEFER_INVOCATION        0x02
 
+#define JX_EVAL_DEBUG_DUMP_SUBEX        0x04
+#define JX_EVAL_DEBUG_TRACE             0x08
+#define JX_EVAL_DEBUG_DUMP_NODE         0x10
+
 jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob expr);
 JX_INLINE jx_ob jx_code_eval(jx_ob node, jx_ob expr)
 {

@@ -57,17 +57,17 @@ int main(int argc, char *argv[])
         status = jx_jxon_scanner_next_ob(&source, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# tree", source);
+          if(console) jx_jxon_dump(stdout, "# source", source);
           {
             jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
                       
-            jx_jxon_dump(stdout, "# comp", code);
+            jx_jxon_dump(stdout, "#   eval", code);
             {
               jx_ob result = jx_code_eval(node,code);
             
               if(console) {
-                jx_jxon_dump(stdout, "# eval", result);
+                jx_jxon_dump(stdout, "# result", result);
               } else {
                 jx_ob jxon = jx_ob_to_jxon(result);
                 printf("%s;\n",jx_ob_as_str(&jxon));

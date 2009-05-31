@@ -1,0 +1,121 @@
+
+# The JXON VM's reference handling strategy -- Is it weak????
+
+# The Church of Jenarix worships at the alter of the cyclic directed
+# graph!
+
+# In a perfectly Jenaric universe, every resource-consuming object
+# (such as a long string, containers, code) would only be owned and
+# reference by one other object.
+
+# Having such a structure greatly simplifies parallel execution, since
+# any given branch of such a graph can be passed and operated on with
+# guaranteed exclusivity.
+
+# However, for performance reasons, we must allow weak references to
+# exist transiently during evaluation, etc.  The question is: how do
+# we guarantee that these references don't leak into persistent
+# storage?
+
+# To illustrate what is going on, if we create a container and bind it
+# to a symbol in the current namespace
+
+(set a [1,2,3]);
+
+# and then resolve the symbol
+
+(a);
+
+# source: (a)
+#   eval: [ (`resolve a)]
+
+# You can see that a "resolve" expression is automatically generated
+# by the compiler when it converts the source into executable code.
+
+# When (`resolve a) is evaluated, a weak reference is returned to the
+# surrounding expression.  Since the first element in the surrounding
+# expression is not callable but is simply a weak reference to
+# [1,2,3], the expression is returned.
+
+# result: [ [1, 2, 3]]
+
+# However, before the expression is returned, all weak references the
+# the top level of the expression are replaced with owned copies of
+# the original data.
+
+# You can see the weak references marked below with a # in the debug
+# trace output:
+
+(debug (a));
+
+# source: (debug (a))
+#   eval: (`debug [ (`resolve a)])
+# trace: eval_to_weak(tls 0x600928, flags 0xc, ...)
+#   expr: [ (`resolve a)]
+# trace: eval_to_weak(tls 0x600928, flags 0xc, ...)
+#   expr: (`resolve a)
+# return: # [1, 2, 3]
+# sub-ex: [ # [1, 2, 3]]
+# return: [ [1, 2, 3]]
+# result: [ [1, 2, 3]]
+
+# eval_to_weak is an internal evaluation routine which is permitted to
+# return a weak reference as the result, but the list of results may
+# NOT itself contain weak references (unless otherwise authorized
+# internally).  The main evaluation routines which call eval_to_weak
+# will then eliminate the weak reference in the result before returning
+# a final result to the interactive prompt.
+
+# So for instance, although the following expression would involve a lot 
+# of transient we references, the end result contains none.
+
+(a (a) ((a a) ((a))));
+
+# result: [ [1, 2, 3], [ [1, 2, 3]],
+#           [ [ [1, 2, 3], [1, 2, 3]], [ [ [1, 2, 3]]]]]
+
+# However, because intermediate expressions contain weak references,
+# and may contain function calls within them, those functions may
+# themselves receive and act upon weak references.
+
+# Jenarix functions must therefore be architected in such a way as to
+# not retain any weak references.  This is accomplished by requiring
+# that all Jenarix code use built-in Jenarix containers (lists, and
+# hashes) which normally filter out and replace all weak references
+# with genuine copies before storing their values.
+
+# For instance, the set builtin function copies the weak reference
+# provided before binding the value within the namespace
+
+(set b a);
+
+(b);
+
+(debug (set b a));
+
+# source: (debug (set b a))
+#   eval: (`debug (`set b
+#             (`resolve a)))
+
+# trace: eval_to_weak(tls 0x600518, flags 0xc, ...)
+#   expr: (`set b
+#           (`resolve a))
+
+# trace: eval_to_weak(tls 0x600518, flags 0xc, ...)
+#   expr: (`resolve a)
+# return: # [1, 2, 3]
+
+# sub-ex: (`set b
+#           # [1, 2, 3])
+# result: null
+
+# So far this strategy seems to be working...hopefully it will
+# continue to work!
+
+
+
+
+
+
+
+

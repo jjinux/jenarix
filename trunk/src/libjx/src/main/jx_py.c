@@ -61,16 +61,16 @@ int main(int argc, char *argv[])
         status = jx_py_scanner_next_ob(&tree, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# tree", tree);
+          if(console) jx_jxon_dump(stdout, "# parsed", tree);
           {
             jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
             
-            if(console) jx_jxon_dump(stdout, "# tran", source);
+            if(console) jx_jxon_dump(stdout, "# source", source);
             {
               jx_ob code = jx_code_bind_with_source(names, source);
               source = jx_ob_from_null();
                       
-              jx_jxon_dump(stdout, "# code", code);
+              jx_jxon_dump(stdout, "#   eval", code);
               {
                 jx_ob result = jx_code_eval(node,code);
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
                   /* swallow null values just like Python does */
 
                   if(console) {
-                    jx_jxon_dump(stdout, "# eval", result);
+                    jx_jxon_dump(stdout, "# result", result);
                   } else {
                     jx_ob jxon = jx_ob_to_jxon(result);
                     printf("%s;\n",jx_ob_as_str(&jxon));

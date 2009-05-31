@@ -1,30 +1,38 @@
 
-# "Entities" are the analog of traditional classes and high-level
-# objects in the Jenarix runtime environment
+# "Entities" are the replacement for traditional classes and
+# high-level objects in the Jenarix runtime environment
 
 # delaring an entity effectively reserves the word for use by the entity
 
 (entity Vector);
 
-# notice that two entries are created in the symbol table, one which
+# result: .Vector
+
+# Notice that two entries are created in the symbol table, one which
 # binds the entity name (Vector) to the builtin entity handle
 # (.Vector) and a second which binds the handle to the attribute table
 # (which can be null)
 
 (symbols);
 
+# result: {Vector:.Vector,.Vector:null}
+
 # using an entity
 
 (set vect1,
   [ Vector, [ 1,0,0,0,1,0,0,0,1 ],
-    { get_first_two : (lambda [self] (cutout (self 1) 0 2))
+    { take_first_two : (lambda [self] (cutout (self 1) 0 2))
       }]);
 
 vect1;
 
-# bound methods ends up calling the associated function
+# result: [.Vector, [1, 0, 0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0x6010e8}]
 
-(vect1 get_first_two);
+# Bound methods ends up calling the associated function
+
+(vect1 take_first_two);
+
+# result: [1, 0]
 
 # calling an unbound method currently acts like a nop -- this should
 # probably be changed to either return null or throw an error
@@ -39,9 +47,13 @@ vect1;
 
 (symbols);
 
+# result: { ..., Vector: {length:fn`0x600ed8}, ... }
+
 # newly-defined class methods are available to all instances in the namespace
 
 (vect1 length);
+
+# result: 7
 
 
 

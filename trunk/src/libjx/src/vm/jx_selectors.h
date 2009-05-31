@@ -62,6 +62,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_DEFMAC    22
 #define JX_SELECTOR_REDUCE    23
 #define JX_SELECTOR_FOREACH   24
+#define JX_SELECTOR_DEBUG     25
 
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
