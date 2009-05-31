@@ -1,0 +1,18 @@
+
+# pyjx is a Python-based Jenarix implementation intended to serve
+# several important purposes:
+
+# (1) to serve as a cross check for our main CJenarix implementation
+
+# (2) to prove that the Jenarix platform is language-independent
+#     abstraction capable of being hosted within many runtime
+#     environments.
+
+# AND
+
+# (3) to serve as a roadmap for implementing Jenarix on a platform
+#     which high-level containers and automatic garbge collection,
+#     such as: Java, Javascript, Lua, and C++ (using a framework
+#     like Boost or Qt.)
+
+

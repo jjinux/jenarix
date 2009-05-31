@@ -1276,6 +1276,7 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
                 tst = jx_ob_as_bool(test);
                 jx_ob_free(test);
               } while(tst);
+              return result;
             }
             break;
           case JX_SELECTOR_FOR:
