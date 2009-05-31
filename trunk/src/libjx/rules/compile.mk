@@ -5,8 +5,8 @@ include ../.config
 include ../../../rules/arch/$(JX_ARCH).mk
 include ../../../rules/objects.mk
 
-CXXFLAGS=-g $(ARCH_CXXFLAGS) -Wall
-CFLAGS=-g $(ARCH_CFLAGS) -Wall
+CXXFLAGS=$(ARCH_CXXFLAGS)
+CFLAGS=$(ARCH_CFLAGS) 
 #CFLAGS=-O3 -g $(ARCH_CFLAGS) -Wall
 
 
