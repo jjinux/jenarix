@@ -14,7 +14,7 @@
 
 #ifndef JX_CONFIGURED
 
-/* STANDALONE DEFAULT / DEVELOPMENT CONFIG */
+/* STANDALONE DEFAULT CONFIG */
 
 /* Are our native ints & floats 64-bits wide? */
 
@@ -31,13 +31,13 @@
 
 /* DEBUG SETTINGS */
 
-/* wrap malloc, calloc, realloc, and free? (print atexit) */
-
-#define JX_MEM_WRAP
-
 /* track heap objects in depth? (print atexit) */
 
-#define JX_HEAP_TRACKER
+#define noJX_HEAP_TRACKER
+
+/* no heap tracker, but still wrap malloc, etc.? (print atexit) */
+
+#define noJX_MEM_WRAP
 
 /* should we scramble released memory whenever possible? */
 

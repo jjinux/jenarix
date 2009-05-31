@@ -44,6 +44,12 @@ extern "C" {
 #endif
 #endif
 
+/* heap tracker requires and implies JX_MEM_WRAP */
+
+#ifdef JX_HEAP_TRACKER
+#define JX_MEM_WRAP
+#endif
+
 #ifndef JX_MEM_WRAP
 
 /* just use system malloc, etc. */

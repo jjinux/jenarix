@@ -227,14 +227,6 @@ stop_expression(A) ::= container(B) SEMICOLON.
 #endif
 }
 
-stop_expression(A) ::= container(B).
-{  
-  A = B;
-#ifdef JX_JXON_PARSER_DEBUG
-  printf("stop_expression(A) ::= expression(B) SEMICOLON\n");
-#endif
-}
-
 implicit_list(A) ::= implicit_list(B) EOI.
 {  
   A = B;
