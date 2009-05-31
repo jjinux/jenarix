@@ -1,13 +1,34 @@
-(set a [1,2,3]);
 
-(set myfn (lambda [[a,b],{b:[2,3,4]}] ((a,b))));
+# another illustration of how Jenarix closures work
 
-(impl myfn);
+(def fnbuilder [y] (lambda [] y));
 
-(myfn);
+(set newfn (fnbuilder 2));
 
-(myfn 1);
+(symbols);
 
-(myfn 1 2);
+(newfn);
 
+# result: 2
+
+(set v [1,2]);
+
+(set newfn (fnbuilder v));
+
+(newfn);
+
+# result: [1, 2]
+
+# note that value of v was closed on (copied) at the time of function
+# creation.  Changing v later has no effect on the function.
+
+(append v 3);
+
+v;
+
+# result: [1, 2, 3]
+
+(newfn);
+
+# result: [1, 2]
 

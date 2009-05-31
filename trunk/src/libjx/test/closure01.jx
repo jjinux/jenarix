@@ -1,16 +1,27 @@
 
-# Jenarix functions statically close on free variables in the surrounding scope
+# Jenarix functions statically close on free variables using the
+# surrounding scope
 
-(set a [1,2,3]);
+(set x [1,2,3]);
 
-(def myfn [[a,b],{b:[2,3,4]}] ((a,b)));
+(set z [3,4,5]);
+
+(def myfn [[x,y],{y:[2,3,4]}] ((x,y,z)));
 
 (impl myfn);
 
 (myfn);
 
+# result: [ [1, 2, 3], [2, 3, 4],
+#           [3, 4, 5]]
+
 (myfn 1);
+
+# result: [1, [2, 3, 4],
+#           [3, 4, 5]]
 
 (myfn 1 2);
 
+# result: [1,2,
+#           [3, 4, 5]]
 
