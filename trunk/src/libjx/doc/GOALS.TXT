@@ -11,15 +11,5 @@
 #    used in development of DeLano Scientific's future products.
 
 #    Eventually we seek to have native Jenarix implementations written
-#    in C, Python, Lua, Java, CLR, and C++ (with some template lib).
-
-
-
-
-
-
-
-
-
-
-
+#    in C, Python, Java, C++ (w/ a lib), JavaScript, Lua, COLA, CLR,
+#    and pretty much any other interesting language platform.

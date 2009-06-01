@@ -12,8 +12,8 @@
 # II. The JXON Virtual Machine (JXON VM)
 
 #  NOTE: JXON is pronounced "Jackson" and is an abbreviation for
-#  "Jenarix eXecutable Object Notation" as well as "JSON eXecutable
-#  Object Notation".  
+#  "Jenarix eXecutable Object Notation", or if you prefer, the 
+#  "JSON eXecutable Object Notation".
 
 #  Think of JSON as data, and JXON as code with embedded JSON data.
 
@@ -23,54 +23,62 @@
 #    data structures consisting of primitives, lists, and hashes.
 
 #  - There is no JXON VM "bytecode".  JXON ASTs are executed directly,
-#    and selectors present in the AST (with the help of a few
-#    flow-control opcodes) drive the builtin aspects of the JXON VM.
+#    and the action selectors and opcodes present in the AST drive the
+#    builtin aspects of the JXON VM.  
 
-#  - JXON is intended to serve as the intermediate language for the
-#    Jenarix architecture and as a front end language for those who
-#    rare developers who enjoy LISP or Scheme syntax.  Most users are
-#    expected to create JXON code using one of the front-end dialects:
-#    The Python dialect, the Shell dialect, or the Javascript dialect.
+#    Although JXON could conceivably be compiled, VM performance is
+#    not the main goal of the Jenarix runtime since it is assumed that
+#    performance-critical aspects of Jenarix-based applications will
+#    be written in the platform's native language.
+
+#  - JXON is intended to serve as the native intermediate language for
+#    the Jenarix virtual architecture and as a front end language for
+#    those who rare developers who enjoy LISP or Scheme syntax.  Most
+#    everyday users are expected to write JXON code using one of the
+#    front-end dialects: The Python dialect, the Shell dialect, or the
+#    Java/C/JavaScript dialect.
 
 #  - The JXON VM is implemented using the features of the host
 #    platform to the greatest practical extent.  For example, in the
 #    PyJenarix implementation, the Jenaric list is simply a Python
-#    list, whereas on C, which lacks a builtin list, the
-#    implementation includes its own C structure for a list.
+#    list, whereas in CJenarix, because C lacks builtin lists and
+#    hashs, the implementation includes its own C library for
+#    handling lists.
 
 #  - The JXON VM can call native platform functions and vice versa,
 #    and in a nested fashion.  Consequently, the JXON VM is stackful
 #    to the extent that the host platform is stackful.  Each JXON VM
 #    thread corresponds to a native host thread and will thus scale
-#    well across multicore and many-core architectures (provided that
+#    well across multi-core and many-core architectures (provided that
 #    the host platform supports true concurrency).
 
-#  - As a lowest-common-denominator virtual platform, JXON VM
+#  - As a lowest-common-denominator virtual platform, the JXON VM
 #    deliberately avoids reliance upon of advanced modern language
 #    features, such as coroutines, continuations, references, and
-#    sophisticaed garbage collection.
+#    sophisticated garbage collection.
 
 #    Instead, the JXON VM embraces and implements the simple, highly
-#    portable, and concurrency-friendly data & execution model of the
-#    Directed Acyclic Graph (DAG).  That means eliminating multiple
-#    references to a single piece of data to the greatest extent
-#    possible while still achieving reasonable program efficiency.
-#    The primary benefits of adopting the DAG are (A) elimination of
-#    references and thus the need for a garbage collector and (B)
-#    suppport for lock-free concurrency where transfer of arbitrarily
-#    complex data structures between threads is always a trivial,
-#    lock-free O(1) operation.
+#    portable, and concurrency-friendly data and execution model of
+#    the Directed Acyclic Graph (DAG).  That means eliminating
+#    multiple references to a single piece of data to the greatest
+#    extent possible while still achieving reasonable program
+#    efficiency.  The primary benefits of adopting the DAG throughout
+#    are (A) elimination of references and along with it the need for
+#    a garbage collector and (B) suppport for lock-free concurrency
+#    wherein transfer between threads of arbitrarily large and complex
+#    data structures is always a trivial, lock-free, O(1) operation.
 
-#    Accordingly, the JXON VM is based largely on copy semantics.  An
-#    assignment statement such as "X = Y" implies copying the DAG
+#    Naturally, the JXON VM is thus based largely on copy semantics.
+#    An assignment statement such as "X = Y" implies copying the DAG
 #    represented by the symbol X into new storage associated with the
 #    symbol Y.
 
 #    Similarly, containers generally expect to assume ownership of
 #    that which is placed inside them.  To actually move data from one
 #    container to another without a copy, the user must "take" the
-#    data out of the original container and then set it in the new
-#    container, as shown here using actual JXON syntax:
+#    data out of the original container and then place it in the new
+#    container (or back into the original container under a new name)
+#    as shown here using actual JXON syntax:
 
 (set X (take Y));
 
@@ -82,26 +90,30 @@
 
 #  - Each JXON thread has a single a toplevel hash representing its
 #    exclusive namespace and which serves as the root node for the
-#    DAG accessible to the thread.
+#    DAG owned by the thread.
 
 #  - JXON VM functions are "functional" in that they take ownership of
-#    and consume their argument object (an independent DAG) and return
-#    their results as a new object (also a DAG) "owned" by the caller.
+#    and consume their payload object (an independent DAG) and return
+#    their results as a new object (also an independent DAG)
+#    subsequently "owned" by the caller.
 
 #  - JXON VM function closures are static in that they contain copies
-     of the objects bound at the time of function definition.
-     
-III. The JXON Intermediate Language
+#    of the objects bound at the time of function definition.
+ 
+#  - The JXON VM supports tail recursion for VM functions.
+
+III. The JXON Intermediate Language 
 
 #  - JXON is an extension of the JavaScript Serial Object Notation
 #    (JSON) semantic (http://json.org) with the following semantic
 #    changes:
 
 #     - two new public primitive types have been added: 
-#         identifier and opcode
+#         identifiers, for use as symbols, and
+#         opcodes, for low-level VM flow control 
 
 #     - during runtime, additional builtin primitives exists
-#       internally: selectors, JXON functions, native
+#       internally: selectors, JXON VM functions, native platform
 #       functions, entity handles, and opaque (native platform)
 #       objects.
 
@@ -117,8 +129,10 @@ III. The JXON Intermediate Language
 #    is itself a direct extension of the JSON syntax with the
 #    following syntatic changes:
 
-#    - JXON identifiers match regexp pattern [a-zA-Z][a-zA-Z0.]+ and
-#      are exclusive of null, true, and false.
+#    - JXON identifiers match regexp pattern [a-zA-Z][a-zA-Z0-9_.]+
+#      and are exclusive of null, true, and false.
+
+#    - JXON opcodes match regexp pattern @[a-zA-Z][a-zA-Z0-9_.]+ 
 
 #    - Commas are optional delimiters in JXON syntax -- whitespace is
 #      sufficient to separate objects.
@@ -158,8 +172,8 @@ III. The JXON Intermediate Language
 #    thread timesliced by the Jenarix scheduler, or they may simple
 #    process objects in a purely functional way as they are fed.
 
-#  - Jenarix Nodes can be stateful or stateless.  Stateless nodes
-     run concurrently with themselves.
+# - Jenarix Nodes can be stateful or stateless.  Stateless nodes run
+     concurrently with themselves when process simultaneous requests.
 
 #  - Each Node has a namespace for ports, which include the default
 #    ports: input, output, and error, with default wiring matching
@@ -174,6 +188,54 @@ III. The JXON Intermediate Language
 
 #  - Jenarix Network can be defined using a simple declarative script
 #    with networks described using shell-like "pipe" syntax.
+
+# V. Jenarix Object-Oriented Features
+
+#  - Whereas lists and hash tables are both ubiquitious and
+#    isofunctional across many different language platforms (for the
+#    most part), classes and object behaviours differ widely from one
+#    language to another.
+
+#    Also, despite the name, the JSON serializiation protocol doesn't
+#    really have objects -- just lists (JavaScript arrays) and hashes
+#    (JavaScript objects).  Nevertheless, we do want to introduce new
+#    containers into JXON to support objects in a way that would break
+#    our connection with JSON.
+
+#    Jenarix Entities are what passess for high-level objects in the
+#    Jenarix environment.  Entities are merely lists which have an
+#    entity identifier as the first element of the list, an (optional)
+#    list of content as the second element of the list, and an
+#    (optional) hash table for attributes as the third element of the
+#    list:   [Entity, [content], {attributes}] 
+
+#    JXON Examples include:
+
+(Unity)
+
+(Vector [0 0 0])
+
+(Matrix
+  [1 0 0
+   0 1 0 
+   0 0 1]
+  {dim:[3,3]})
+
+#    Jenarix Entities behave much like objects in that they can have
+#    bound methods which operate on underlying container, and functions
+#    can exhibit polymorphic behavior based on what entities are passed in.
+
+#    The class instance-like behavior of Entities is due to the
+#    presence of the identifier field, which provides an index into
+#    the thread's current namespace.  Provided that a thread has
+#    associated the Entity identifier with an
+#    Entity-identifier-specific entry, all Entityies which share that
+#    identifier will exhibit behaviors in common.
+
+
+
+
+
 
 
 

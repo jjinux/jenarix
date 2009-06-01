@@ -46,6 +46,8 @@ typedef struct {
   jx_int mode;
   FILE *file;
   jx_jxon_parse_context context;
+  jx_ob saved_token;
+  jx_int saved_token_type;
 } jx_jxon_scanner_state;
 
 #ifndef true
@@ -289,6 +291,12 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
   state->context.status = 0;
   state->n_tok_parsed = 0;
 
+  if(state->saved_token_type) {
+    state->n_tok_parsed ++;
+    jx_jxon_(jx_Parser, state->saved_token_type, state->saved_token, &state->context);
+    state->saved_token_type = 0;
+    state->saved_token = jx_ob_from_null();
+  }
   while(!state->context.exhausted) {
     tok_type = jx_scan(state);
     {
@@ -420,13 +428,24 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
         case JX_JXON_SEMICOLON: 
           /* do nothing */
           break;
-          break;
         case JX_JXON_ERROR:
           state->context.status = JX_STATUS_SYNTAX_ERROR;
           break;
         }
       }
-
+      switch(tok_type) {      
+      case JX_JXON_SEMICOLON:
+      case JX_JXON_EOI:
+        if(state->saved_token_type) {
+          state->saved_token = jx_null_with_ob(state->saved_token);
+          state->saved_token_type = 0;
+        }
+        break;
+      default:
+        state->saved_token_type = tok_type;
+        state->saved_token = jx_ob_copy(token);
+        break;
+      }
       jx_jxon_(jx_Parser, (int)tok_type, token, &state->context);
 
       if(!jx_ok(state->context.status)) /* something bad happened */
@@ -441,7 +460,6 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
         }
         break;
       }
-
       if(state->context.status) /* accepted or complete */
         break;
       else
