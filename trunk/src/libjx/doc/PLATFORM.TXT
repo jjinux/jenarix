@@ -23,23 +23,26 @@
 #    using lists of "cons" cells, the JXON VM uses JSON-like nested
 #    data structures consisting of primitives, lists, and hashes.
 
-#  - There is no JXON VM "bytecode".  JXON ASTs are executed directly,
-#    and the action selectors and opcodes present in the AST drive the
-#    builtin aspects of the JXON VM.  
+#  - There is no JXON VM "bytecode".  JXON ASTs are prebound and then
+#    executed directly, and the opcodes and action selectors and
+#    opcodes present in the AST are what drive the JXON VM.
 
 #    Although JXON ASTs could conceivably be compiled, VM performance
 #    is not the main goal of the Jenarix runtime since it is assumed
 #    that performance-critical aspects of Jenarix-based applications
 #    will be written in the platform's native language.  In limited
 #    testing so far, an -O3 optimized CJenarix runtime is typically
-#    2-5 times slower than CPython.
+#    2-5 times slower than CPython.  Jenarix is intended to be runtime
+#    accompanyment to, rather than a replacement for, highly optimized
+#    native platform code.
 
 #  - JXON is intended to serve as the native intermediate language for
 #    the Jenarix virtual architecture and as a front end language for
-#    those who rare developers who enjoy LISP or Scheme syntax.  Most
-#    everyday users are expected to write JXON code using one of the
-#    front-end dialects: The Python dialect, the Shell dialect, or the
-#    Java/C/JavaScript dialect.
+#    those distinguished developers who enjoy LISP or Scheme syntax.
+#    However, most everyday users are expected to write JXON code
+#    using one of the front-end dialects: The Python dialect, the
+#    Shell dialect, the Java/C/JavaScript dialect, or the Jenarix
+#    network language (JXN -- see below).
 
 #  - The JXON VM is implemented using the features of the host
 #    platform to the greatest practical extent.  For example, in the
@@ -63,7 +66,7 @@
 #    Instead, the JXON VM embraces and implements the simple, highly
 #    portable, and concurrency-friendly data and execution model of
 #    the Directed Acyclic Graph (DAG).  That means eliminating
-#    multiple references to a single piece of data to the greatest
+#    multiple references to each single piece of data to the greatest
 #    extent possible while still achieving reasonable program
 #    efficiency.  The primary benefits of adopting the DAG throughout
 #    are (A) elimination of references and along with it the need for
@@ -80,8 +83,8 @@
 #    that which is placed inside them.  To actually move data from one
 #    container to another without a copy, the user must "take" the
 #    data out of the original container and then place it in the new
-#    container (or back into the original container under a new name)
-#    as shown here using actual JXON syntax:
+#    container (or back into the original container under a new name).  
+#    Such an action is shown here using actual JXON syntax:
 
 (set X (take Y));
 
@@ -95,10 +98,13 @@
 #    exclusive namespace and which serves as the root node for the
 #    DAG owned by the thread.
 
-#  - JXON VM functions are "functional" in that they take ownership of
-#    and consume their payload object (an independent DAG) and return
-#    their results as a new object (also an independent DAG)
-#    subsequently "owned" by the caller.
+#  - JXON VM functions are "purely" functional in that they take
+#    ownership of and consume their payload object (an independent
+#    DAG) and return their results as a new object (also an
+#    independent DAG) subsequently "owned" by the caller.  However,
+#    each JXON function has access to a namespace which may either be
+#    the caller's namespace (for scopeless functions / subroutines) or
+#    a namespace containing the function's private variables.
 
 #  - JXON VM function closures are static in that they contain copies
 #    of the objects bound at the time of function definition.
@@ -108,10 +114,9 @@
 III. The JXON Intermediate Language 
 
 #  - JXON is an extension of the JavaScript Serial Object Notation
-#    (JSON) semantic (http://json.org) with the following semantic
-#    changes:
+#    semantic (JSON, http://json.org) with the following changes:
 
-#     - two new public primitive types have been added: 
+#     - two new primitive types have been added: 
 #         identifiers, for use as symbols, and
 #         opcodes, for low-level VM flow control 
 
@@ -135,14 +140,14 @@ III. The JXON Intermediate Language
 #    - JXON identifiers match regexp pattern [a-zA-Z][a-zA-Z0-9_.]+
 #      and are exclusive of null, true, and false.
 
-#    - JXON opcodes match regexp pattern @[a-zA-Z][a-zA-Z0-9_.]+ 
+#    - JXON opcodes match regexp pattern @[a-zA-Z][a-zA-Z0-9_]+ 
 
 #    - Commas are optional delimiters in JXON syntax -- whitespace is
-#      sufficient to separate objects.
+#      sufficient for separate fields within lists and hases.
 
 #    - JXON parsers accept either parentheses or square braces as
 #      input, provided that they come in matched pairs.  This is done
-#      to embrace LISP or Scheme syntax.
+#      so as to embrace LISP or Scheme syntax.
 
 #    - The JXON parser supports #-delimited single-line comments,
 #      which are ignored.
@@ -160,8 +165,8 @@ III. The JXON Intermediate Language
 #  data-intensive, concurrent applications while avoiding the pitfalls
 #  of multithreaded programming using explicit threads, locks,
 #  mutexes, etc., without being subject to the performance limitations
-#  of independent operating system processes or the complexity of
-#  shared memory.
+#  of independent operating system processes or the heterogenariety of 
+#  shared memory implementations.
 
 #  - Jenarix Networks consist of connected Nodes within a network-wide
 #    namespace, where each Node may itself be a network with its own
@@ -175,35 +180,41 @@ III. The JXON Intermediate Language
 #    thread timesliced by the Jenarix scheduler, or they may simple
 #    process objects in a purely functional way as they are fed.
 
-# - Jenarix Nodes can be stateful or stateless.  Stateless nodes run
-     concurrently with themselves when process simultaneous requests.
+#  - Jenarix Nodes can be stateful or stateless.  Stateless nodes run
+#    concurrently with themselves when processing requests
+#    simultaneously.
 
 #  - Each Node has a namespace for ports, which include the default
 #    ports: input, output, and error, with default wiring matching
-#    the unix command line shell paradigm.
+#    that of the unix command line shell paradigm.
 
 #  - Connected Nodes within a given Network can ship Jenaric objects
 #    (DAGs) along their "pipe" without enlisting the help (and thus
 #    blocking) their host Network.
 
 #  - Disconnected Nodes can send Jenarix objects (DAGs) to other nodes
-#    by name, using the namespace of the host network
+#    by name, with resolution via the namespace of the host network
 
-#  - Jenarix Network can be defined using a simple declarative script
+#  - Jenarix Networks can be defined using a simple declarative script
 #    with networks described using shell-like "pipe" syntax.
 
-# V. Jenarix Object-Oriented Features
+# V. Jenarix High-Level Objects: a.k.a. "Entities"
 
 #  - Whereas lists and hash tables are both ubiquitious and
 #    isofunctional across many different language platforms (for the
-#    most part), classes and object behaviours differ widely from one
-#    language to another.
+#    most part), object, class, and inhertance behaviours differ
+#    widely from one language to another.  Lowest- common demonator
+#    behaviors are hard to find.
 
 #    Also, despite the name, the JSON serializiation protocol doesn't
 #    really have objects -- just lists (JavaScript arrays) and hashes
-#    (JavaScript objects).  Nevertheless, we do not want to introduce
-#    new containers into JXON to support objects in a way that would
-#    break our close connection with JSON.
+#    (JavaScript objects).  Nevertheless, with Jenarix do not want to
+#    introduce new containers into JXON to support objects in a way
+#    that would break our close connection with JSON.
+
+#    Therefore, Jenarix implements an extremely simplistic,
+#    lowest-common denominator an object and class model through use
+#    of "entities".
 
 #    Jenarix Entities are what pass for high-level objects in the
 #    Jenarix environment.  Entities are merely JXON lists which have
@@ -226,30 +237,34 @@ III. The JXON Intermediate Language
 
 #    Jenarix Entities behave much like objects in that they can have
 #    instance-specific bound methods which operate on underlying
-#    container, and functions can exhibit polymorphic behavior based
-#    on what entities are passed in.  These magic behaviors arise so
-#    long as the entity identifier has been blessed using the entity
-#    function.
+#    container, class-wide methods, and functions can exhibit
+#    polymorphic behavior based on what entities are passed in.  All
+#    of these magic behaviors arise so long as the entity identifier
+#    has been blessed through invocation of the entity function:
 
 (entity Matrix);
 
 #    The class instance-like behavior of Entities is due to the
 #    presence of the identifier field, which provides an index into
-#    the thread's current namespace.  Provided that a thread has
-#    blessd the Entity identifier in order to associate it with an
+#    the thread's current namespace and provides access to an
+#    class-wide namespace.  Provided that a thread has blessed the
+#    Entity identifier in order to associate it with an
 #    Entity-specific namespace, all Entities which share that
 #    identifier will exhibit a set of behaviors in common.
 
-#    The Jenarix Entity strategy enable all threads and functions can
-#    store and pass entities along whether or not they have loaded the
+#    Jenarix Entities enable all threads and functions can store and
+#    pass entities along whether or not they have loaded the
 #    appropriate code modules for a given entity.  That is because
 #    entities look like, and are structured as ordinary JXON data.
+#    There is not black box nor private data with Jenarix entities.
+#    Any thread can potentially modify the structure of an entity as a
+#    JXON container.
 
 #    However, threads and functions that seek to manipulate Entities
-#    as structured data, and call methods upon them will need to load
-#    the associated code modules for a given entity class, or at least
-#    bless the associated identifier before attempting to call methods
-#    on a given entity.
+#    as object-oriented data, and wish to call methods upon them, will
+#    need to load the associated code modules for a given entity
+#    class, and/or bless the associated Entity identifier before
+#    attempting to call methods on a given entity.
 
 
 

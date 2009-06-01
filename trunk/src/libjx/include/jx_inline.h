@@ -1,14 +1,6 @@
 #ifndef _H_jx_inline
 #define _H_jx_inline
 
-/* disable C++ mangling */
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -49,6 +41,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* adapt to tiny string size (a least as large as a machine
    pointer + 2 bytes) */
+
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
 
 #if (JX_TINY_STR_SIZE < JX_TINY_STR_MIN_SIZE)
 #undef JX_TINY_STR_SIZE
@@ -388,9 +389,6 @@ JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
 #endif
 #endif
 }
-
-
-
 
 /* variable length array (vla) functions provide untyped, auto-zeroed,
    size and record-length aware variable length arrays NOTE: ALWAYS
@@ -2026,6 +2024,9 @@ JX_INLINE jx_status jx_ob_type(jx_ob ob)
     break;
   case JX_META_BIT_IDENT:
     return JX_OB_TYPE_IDENT;
+    break;
+  case JX_META_BIT_OPCODE:
+    return JX_OB_TYPE_OPCODE;
     break;
   default:
     return 0;

@@ -104,6 +104,7 @@ typedef struct jx__ob jx_ob;
 #define JX_OB_TYPE_LIST               7
 #define JX_OB_TYPE_HASH               8
 #define JX_OB_TYPE_IDENT              9
+#define JX_OB_TYPE_OPCODE            10
 
 /* enable C++ mangling */
 #ifdef __cplusplus
@@ -130,13 +131,13 @@ extern "C" {
 
 /* meaningful prepositions, for systematic memory management:
 
-   ..._ob_with_...(...) implies destructive conversion of input object (destroyed)
+   ..._ob_with_...(...) implies a destructive conversion of input object (destroyed)
 
-   ..._ob_from_...(...) implies constructive copy / conversion of input object (preserved)
+   ..._ob_from_...(...) implies a constructive copy / conversion of input object (preserved)
 
-   ..._ob_to_...(...) implies an constructive cast resulting in a new copy of the input object (preserved)
+   ..._ob_to_...(...) implies a constructive cast resulting in a new copy of the input object (preserved)
 
-   ..._ob_as_...(...) implies a failsafe (volatile) cast of in-place borrowed object data (preserved)
+   ..._ob_as_...(...) implies a volatile (yet failsafe) cast of in-place borrowed object data (preserved)
    
 */
 
@@ -283,7 +284,7 @@ jx_status jx_ob_replace_with_null(jx_ob *ob_ptr);
 jx_ob jx_ob_swap(jx_ob *ob_ptr,jx_ob ob);
 jx_ob jx_ob_swap_with_null(jx_ob *ob_ptr);
 
-/* convenient method for freeing and re-initializing */
+/* convenience method for freeing while re-initializing */
 
 jx_ob jx_null_with_ob(jx_ob ob);
 
@@ -339,6 +340,7 @@ jx_int jx_list_index(jx_ob list, jx_ob ob);
 
 jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
 jx_status jx_list_reset(jx_ob list);
+
 /* homogenous lists with variable length arrays (vla's)  */
 
 jx_int *jx_int_vla_new(jx_int size);
