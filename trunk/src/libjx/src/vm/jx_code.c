@@ -443,10 +443,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
     break;
   case JX_META_BIT_BUILTIN_SELECTOR:
     {
-      //      printf("have seletor %d\n",callable.data.io.int_);
       /* NOTE for performance reasons, the "safe" builtin
          selector functions pull from but do not free the
-         result object, hence the use of jx_replace below */
+         payload object, hence the use of jx_replace below */
       switch (callable.data.io.int_) {
       case JX_SELECTOR_RETURN:
         tls->leave = -1; 
@@ -1715,6 +1714,14 @@ static jx_ob jx__code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob c
       inst = jx_code_eval_to_weak(tls,flags, node, code);
       if(!jx_opcode_check(inst)) 
         jx_ob_replace(&result,inst);
+      if(tls->leave) {
+        if(tls->have_result) {
+          jx_ob_replace(&result,tls->result);
+          tls->have_result = JX_FALSE;
+        }
+        tls->result = jx_ob_from_null();
+        tls->leave--;
+      }        
     } else {
       /* code = [ [ ... ]  [ ... ] .... ] */
       jx_int pc = 0;
@@ -1766,7 +1773,7 @@ jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
     return jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));
   } else {
     jx_ob result;
-    jx_tls *tls = jx_tls_new();
+    jx_tls *tls = jx_tls_new(); // use stack not heap?
     result = jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));    
     jx_tls_free(tls);
     return result;
@@ -1781,7 +1788,7 @@ jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
   if(tls) {
     result = jx_ob_not_weak_with_ob(jx__code_exec_to_weak(tls,flags,node,code));
   } else {
-    jx_tls *tls = jx_tls_new();
+    jx_tls *tls = jx_tls_new(); // ditto w/ above
     result = jx_ob_not_weak_with_ob(jx__code_exec_to_weak(tls,flags,node,code));
     jx_tls_free(tls);
   }
