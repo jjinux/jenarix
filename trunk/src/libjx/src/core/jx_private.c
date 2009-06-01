@@ -4903,6 +4903,7 @@ void jx_tls_free(jx_tls *tls)
     jx_free(chain);
     chain = next;
   }
+  jx_ob_free(tls->result);
   jx_free(tls);
 }
 
