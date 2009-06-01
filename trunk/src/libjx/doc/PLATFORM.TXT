@@ -1,0 +1,176 @@
+# What defines the Jenarix Abstract Meta-Platform (JAMP)?
+
+# I. The Jenaric Object (jx_ob / JxOb) capable of representing:
+
+#  - Primitives: null, true, false, int, float, string, identifier
+
+#  - Containers: list, hash
+
+#  - Builtins: selectors, virtual machine functions, and native
+#    functions of the underlying implementation platform.
+
+# II. The JXON Virtual Machine (JXON VM)
+
+#  NOTE: JXON is pronounced "Jackson" and is an abbreviation for
+#  "Jenarix eXecutable Object Notation" as well as "JSON eXecutable
+#  Object Notation".  
+
+#  Think of JSON as data, and JXON as code with embedded JSON data.
+
+#  - The JXON VM processes abstract syntax trees (ASTs) in much the
+#    same way as a LISP or Scheme interpreter.  However, instead of
+#    using lists of "cons" cells, the JXON VM uses JSON-like nested
+#    data structures consisting of primitives, lists, and hashes.
+
+#  - There is no JXON VM "bytecode".  JXON ASTs are executed directly,
+#    and selectors present in the AST serve as opcodes for the VM.
+
+#  - JXON is intended to serve as the intermediate language for the
+#    Jenarix architecture and as a front end language for those who
+#    rare developers who enjoy LISP or Scheme syntax.  Most users are
+#    expected to create JXON code using one of the front-end dialects:
+#    The Python dialect, the Shell dialect, or the Javascript dialect.
+
+#  - The JXON VM is implemented using the features of the host
+#    platform to the greatest practical extent.  For example, in the
+#    PyJenarix implementation, the Jenaric list is simply a Python
+#    list, whereas on C, which lacks a builtin list, the
+#    implementation includes its own C structure for a list.
+
+#  - The JXON VM can call native platform functions and vice versa,
+#    and in a nested fashion.  Consequently, the JXON VM is stackful
+#    to the extent that the host platform is stackful.  Each JXON VM
+#    thread corresponds to a native host thread and will thus scale
+#    well across multicore and many-core architectures (provided that
+#    the host platform supports true concurrency).
+
+#  - As a lowest-common-denominator virtual platform, JXON VM
+#    deliberately avoids reliance upon of advanced modern language
+#    features, such as coroutines, continuations, references, and
+#    sophisticaed garbage collection.
+
+#    Instead, the JXON VM embraces and implements the simple, highly
+#    portable, and concurrency-friendly data & execution model of the
+#    Directed Acyclic Graph (DAG).  That means eliminating multiple
+#    references to a single piece of data to the greatest extent
+#    possible while still achieving reasonable program efficiency.
+#    The primary benefits of adopting the DAG are (A) elimination of
+#    references and thus the need for a garbage collector and (B)
+#    suppport for lock-free concurrency where transfer of arbitrarily
+#    complex data structures between threads is always a trivial,
+#    lock-free O(1) operation.
+
+#    Accordingly, the JXON VM is based largely on copy semantics.  An
+#    assignment statement such as "X = Y" implies copying the DAG
+#    represented by the symbol X into new storage associated with the
+#    symbol Y.
+
+#    Similarly, containers generally expect to assume ownership of
+#    that which is placed inside them.  To actually move data from one
+#    container to another without a copy, the user must "take" the
+#    data out of the original container and then set it in the new
+#    container, as shown here using actual JXON syntax:
+
+(set X (take Y));
+
+#  - Since references are almost effectively eliminated from the JXON
+#    VM, JXON containers are normally only accessible by one thread at
+#    a time and are safely mutable.  Containers which must be shared
+#    between more than one thread are either marked read-only or
+#    synchronized so as to provide atomicity with respect to changes.
+
+#  - Each JXON thread has a single a toplevel hash representing its
+#    exclusive namespace and which serves as the root node for the
+#    DAG accessible to the thread.
+
+#  - JXON VM functions are "functional" in that they take ownership of
+#    and consume their argument object (an independent DAG) and return
+#    their results as a new object (also a DAG) "owned" by the caller.
+
+#  - JXON VM function closures are static in that they contain copies
+     of the objects bound at the time of function definition.
+     
+III. The JXON Intermediate Language
+
+#  - JXON is an extension of the JavaScript Serial Object Notation
+#    (JSON) semantic (http://json.org) with the following semantic
+#    changes:
+
+#     - a new public primitive type has been added: identifier 
+
+#     - during runtime, additional builtin primitives exists
+#       internally: selectors, JXON functions, native
+#       functions, entity handles, and opaque (native platform)
+#       objects.
+
+#     - null, true, false, int, and float are allowed to be hash keys
+
+#     - during runtime, builtin primitives are also allowed to be hash
+#       keys.
+
+#  - JXON structure may be serially encoded in JSON directly (using
+#    string escape prefixs for identifiers and non-string hash keys),
+#    or they may be written and read using JXON ASCII notation which
+#    is itself a direct extension of the JSON syntax with the
+#    following syntatic changes:
+
+#    - JXON identifiers match regexp pattern [a-zA-Z][a-zA-Z0.]+ and
+#      are exclusive of null, true, and false.
+
+#    - Commas are optional delimiters in JXON syntax -- whitespace is
+#      sufficient to separate objects.
+
+#    - JXON parsers accept either parentheses or square braces as
+#      input, provided that they come in matched pairs.  This is done
+#      to embrace LISP or Scheme syntax.
+
+#    - The JXON parser supports #-delimited single-line comments,
+#      which are ignored.
+
+#    - When JXON objects are streamed syntactically, as found in JXON
+#      source code, multiple JXON phrases may be optionally separated
+#      by semicolons.  The benefit of using semicolons is that the
+#      parser will catch unmatched parentheses or braces immediate
+#      upon encountering a semicolon instead of have such typos
+#      confounded with the next phrases.
+
+# IV. Jenarix Networks: Concurrent Dataflow Programming Made Easy!
+
+#  Jenarix networks exist to facilitate development of complex,
+#  data-intensive, concurrent applications while avoiding the pitfalls
+#  of multithreaded programming using explicit threads, locks,
+#  mutexes, etc., without being subject to the performance limitations
+#  of independent operating system processes or the complexity of
+#  shared memory.
+
+#  - Jenarix Networks consist of connected Nodes within a network-wide
+#    namespace, where each Node may itself be a network with its own
+#    Nodes residing in its own namespace.
+
+#  - Each Node is a Jenarix network is a "actor" potentially capable
+#    of running concurrently with respect to all nodes in all all
+#    other networks.
+
+#  - Jenarix Nodes may own a dedicated machine thread, a "green"
+#    thread timesliced by the Jenarix scheduler, or they may simple
+#    process objects in a purely functional way as they are fed.
+
+#  - Jenarix Nodes can be stateful or stateless.  Stateless nodes
+     run concurrently with themselves.
+
+#  - Each Node has a namespace for ports, which include the default
+#    ports: input, output, and error, with default wiring matching
+#    the unix command line shell paradigm.
+
+#  - Connected Nodes within a given Network can ship Jenaric objects
+#    (DAGs) along their "pipe" without enlisting the help (and thus
+#    blocking) their host Network.
+
+#  - Disconnected Nodes can send Jenarix objects (DAGs) to other nodes
+#    by name, using the namespace of the host network
+
+#  - Jenarix Network can be defined using a simple declarative script
+#    with networks described using shell-like "pipe" syntax.
+
+
+

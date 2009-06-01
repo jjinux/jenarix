@@ -1,0 +1,25 @@
+# What are the goals of the Jenarix Project?
+
+# 1. To define the Jenarix Abtract Meta-Platform (JAMP), with a set of
+#    requirements and features particularly well-suited for
+#    development of highly-concurrent, network dataflow applications.
+
+# 2. To develop two or more open-source Jenarix implementations, at
+#    least one of which is efficient and practically useful (and
+#    likely written in C).  The C implementation will be immediately
+#    applied to refactoring of the PyMOL Molecular Viewer and will be
+#    used in development of DeLano Scientific's future products.
+
+#    Eventually we seek to have native Jenarix implementations written
+#    in C, Python, Lua, Java, CLR, and C++ (with some template lib).
+
+
+
+
+
+
+
+
+
+
+

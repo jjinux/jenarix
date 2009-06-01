@@ -409,6 +409,7 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
         state->n_tok_parsed++;
     }
   }
+
   
   if(tok_type == JX_JXON_EOI) {
     state->context.exhausted = JX_TRUE;

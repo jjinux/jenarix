@@ -76,8 +76,8 @@ typedef union {
 #define jx_jxon_ARG_PDECL ,jx_jxon_parse_context *context
 #define jx_jxon_ARG_FETCH jx_jxon_parse_context *context = yypParser->context
 #define jx_jxon_ARG_STORE yypParser->context = context
-#define YYNSTATE 53
-#define YYNRULE 36
+#define YYNSTATE 54
+#define YYNRULE 38
 #define YYERRORSYMBOL 20
 #define YYERRSYMDT yy65
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
@@ -132,41 +132,42 @@ typedef union {
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */    11,   34,   35,    7,    2,   27,    1,   16,   18,   19,
- /*    10 */    20,   21,   22,   23,   36,   25,   38,   39,   11,    9,
- /*    20 */    91,   15,    2,   10,    1,    8,   18,   19,   20,   21,
- /*    30 */    22,   23,   36,   25,   11,   91,   91,    7,    2,   91,
- /*    40 */     1,   50,   18,   19,   20,   21,   22,   23,   36,   25,
- /*    50 */    31,   32,   11,   91,   91,   91,    2,   91,    1,   91,
- /*    60 */    18,   19,   20,   21,   22,   23,   36,   25,   24,   51,
- /*    70 */    11,   41,   42,   43,    2,   44,    1,   91,   18,   19,
- /*    80 */    20,   21,   22,   23,   36,   25,   11,   91,   91,   91,
- /*    90 */     2,   91,    1,   49,   18,   19,   20,   21,   22,   23,
- /*   100 */    36,   25,   11,   91,   91,   91,    2,   48,    1,   91,
- /*   110 */    18,   19,   20,   21,   22,   23,   36,   25,   11,   91,
- /*   120 */    91,   91,    2,   91,    1,   91,   18,   19,   20,   21,
- /*   130 */    22,   23,   36,   25,   46,   91,   13,   91,   91,   91,
- /*   140 */    91,   18,   19,   20,   21,   22,   23,   36,   25,   45,
- /*   150 */    91,   91,   91,   91,   91,   91,   18,   19,   20,   21,
- /*   160 */    22,   23,   36,   25,   91,   91,   91,   91,   91,   18,
- /*   170 */    19,   20,   21,   22,   23,   36,   25,   91,   91,    6,
- /*   180 */    91,   37,    4,   14,   43,   17,   44,   91,   91,   90,
- /*   190 */    29,   12,   26,   91,   41,   42,   43,    5,   44,   26,
- /*   200 */    91,   41,   42,   43,    3,   44,   47,   91,   41,   42,
- /*   210 */    43,   91,   44,   91,   91,   30,   91,   41,   42,   43,
- /*   220 */    40,   44,   41,   42,   43,   52,   44,   41,   42,   43,
- /*   230 */    91,   44,   33,   91,   41,   42,   43,   91,   44,   91,
- /*   240 */    28,   91,   41,   42,   43,   91,   44,
+ /*     0 */    11,   35,   36,    7,    2,   15,    1,   52,   19,   20,
+ /*    10 */    21,   22,   23,   37,   25,   26,   40,   41,   11,    9,
+ /*    20 */    94,    8,    2,   10,    1,   16,   19,   20,   21,   22,
+ /*    30 */    23,   37,   25,   26,   11,   94,   94,    7,    2,   28,
+ /*    40 */     1,   94,   19,   20,   21,   22,   23,   37,   25,   26,
+ /*    50 */    32,   33,   11,   94,   94,   94,    2,   94,    1,   94,
+ /*    60 */    19,   20,   21,   22,   23,   37,   25,   26,   24,   38,
+ /*    70 */    11,   94,   94,   94,    2,   94,    1,   94,   19,   20,
+ /*    80 */    21,   22,   23,   37,   25,   26,   11,   94,   94,   94,
+ /*    90 */     2,   94,    1,   51,   19,   20,   21,   22,   23,   37,
+ /*   100 */    25,   26,   11,   94,   94,   94,    2,   50,    1,   94,
+ /*   110 */    19,   20,   21,   22,   23,   37,   25,   26,   11,   94,
+ /*   120 */    94,   94,    2,   94,    1,   94,   19,   20,   21,   22,
+ /*   130 */    23,   37,   25,   26,   48,   94,   13,   94,   94,   94,
+ /*   140 */    94,   19,   20,   21,   22,   23,   37,   25,   26,   47,
+ /*   150 */    94,   94,   94,   94,   94,   94,   19,   20,   21,   22,
+ /*   160 */    23,   37,   25,   26,   94,   94,   94,   94,   94,   19,
+ /*   170 */    20,   21,   22,   23,   37,   25,   26,   94,   94,    6,
+ /*   180 */    94,   39,    4,   14,   45,   17,   46,   94,   94,   93,
+ /*   190 */    30,   12,   27,   94,   43,   44,   45,    5,   46,   27,
+ /*   200 */    94,   43,   44,   45,    3,   46,   34,   94,   43,   44,
+ /*   210 */    45,   94,   46,   94,   94,   49,   94,   43,   44,   45,
+ /*   220 */    53,   46,   43,   44,   45,   18,   46,   43,   44,   45,
+ /*   230 */    94,   46,   42,   94,   43,   44,   45,   94,   46,   94,
+ /*   240 */    29,   94,   43,   44,   45,   31,   46,   43,   44,   45,
+ /*   250 */    94,   46,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     4,    2,    3,    7,    8,    9,   10,   24,   12,   13,
+ /*     0 */     4,    2,    3,    7,    8,   24,   10,   11,   12,   13,
  /*    10 */    14,   15,   16,   17,   18,   19,    2,    3,    4,    6,
- /*    20 */    32,   24,    8,    6,   10,    6,   12,   13,   14,   15,
- /*    30 */    16,   17,   18,   19,    4,   32,   32,    7,    8,   32,
- /*    40 */    10,   11,   12,   13,   14,   15,   16,   17,   18,   19,
+ /*    20 */    32,    6,    8,    6,   10,   24,   12,   13,   14,   15,
+ /*    30 */    16,   17,   18,   19,    4,   32,   32,    7,    8,    9,
+ /*    40 */    10,   32,   12,   13,   14,   15,   16,   17,   18,   19,
  /*    50 */     2,    3,    4,   32,   32,   32,    8,   32,   10,   32,
- /*    60 */    12,   13,   14,   15,   16,   17,   18,   19,    2,   22,
- /*    70 */     4,   24,   25,   26,    8,   28,   10,   32,   12,   13,
+ /*    60 */    12,   13,   14,   15,   16,   17,   18,   19,    2,    3,
+ /*    70 */     4,   32,   32,   32,    8,   32,   10,   32,   12,   13,
  /*    80 */    14,   15,   16,   17,   18,   19,    4,   32,   32,   32,
  /*    90 */     8,   32,   10,   11,   12,   13,   14,   15,   16,   17,
  /*   100 */    18,   19,    4,   32,   32,   32,    8,    9,   10,   32,
@@ -183,27 +184,28 @@ static const YYCODETYPE yy_lookahead[] = {
  /*   210 */    26,   32,   28,   32,   32,   22,   32,   24,   25,   26,
  /*   220 */    22,   28,   24,   25,   26,   22,   28,   24,   25,   26,
  /*   230 */    32,   28,   22,   32,   24,   25,   26,   32,   28,   32,
- /*   240 */    22,   32,   24,   25,   26,   32,   28,
+ /*   240 */    22,   32,   24,   25,   26,   22,   28,   24,   25,   26,
+ /*   250 */    32,   28,
 };
 #define YY_SHIFT_USE_DFLT (-5)
 #define YY_SHIFT_MAX 17
 static const short yy_shift_ofst[] = {
- /*     0 */    66,   82,   98,   -4,   48,   30,   14,  114,  114,  114,
- /*    10 */   114,  144,  129,  157,   -1,   17,   19,   13,
+ /*     0 */    66,   82,   98,   30,   48,   -4,   14,  114,  114,  114,
+ /*    10 */   114,  144,  129,  157,   -1,   17,   15,   13,
 };
-#define YY_REDUCE_USE_DFLT (-18)
+#define YY_REDUCE_USE_DFLT (-20)
 #define YY_REDUCE_MAX 13
 static const short yy_reduce_ofst[] = {
- /*     0 */   158,  170,  177,   47,  210,   47,  198,  203,  218,  193,
- /*    10 */   184,  161,   -3,  -17,
+ /*     0 */   158,  170,  177,  198,  184,  198,  210,  203,  218,  223,
+ /*    10 */   193,  161,  -19,    1,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */    89,   89,   89,   89,   89,   89,   55,   89,   89,   89,
- /*    10 */    89,   89,   89,   89,   89,   89,   89,   89,   81,   82,
- /*    20 */    83,   84,   85,   86,   53,   88,   78,   76,   71,   72,
- /*    30 */    73,   56,   57,   63,   58,   59,   87,   54,   60,   61,
- /*    40 */    62,   64,   65,   66,   67,   68,   69,   70,   74,   75,
- /*    50 */    77,   79,   80,
+ /*     0 */    92,   92,   92,   92,   92,   92,   57,   92,   92,   92,
+ /*    10 */    92,   92,   92,   92,   62,   92,   92,   92,   83,   84,
+ /*    20 */    85,   86,   87,   88,   54,   90,   91,   81,   79,   74,
+ /*    30 */    75,   76,   58,   59,   66,   60,   61,   89,   55,   56,
+ /*    40 */    63,   64,   65,   67,   68,   69,   70,   71,   72,   73,
+ /*    50 */    77,   78,   80,   82,
 };
 #define YY_SZ_ACTTAB (sizeof(yy_action)/sizeof(yy_action[0]))
 
@@ -305,41 +307,43 @@ static const char *yyTokenName[] = {
 */
 static const char *yyRuleName[] = {
  /*   0 */ "statement ::= EOI",
- /*   1 */ "statement ::= stop_expression",
- /*   2 */ "statement ::= implicit_list",
- /*   3 */ "stop_expression ::= primitive EOI",
- /*   4 */ "stop_expression ::= primitive SEMICOLON",
- /*   5 */ "stop_expression ::= container EOI",
- /*   6 */ "stop_expression ::= container SEMICOLON",
- /*   7 */ "implicit_list ::= implicit_list EOI",
- /*   8 */ "implicit_list ::= implicit_list SEMICOLON",
- /*   9 */ "implicit_list ::= implicit_list expression",
- /*  10 */ "implicit_list ::= primitive expression",
- /*  11 */ "expression ::= primitive",
- /*  12 */ "expression ::= container",
- /*  13 */ "container ::= list",
- /*  14 */ "container ::= hash",
- /*  15 */ "hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE",
- /*  16 */ "hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE",
- /*  17 */ "list_of_associations ::= list_of_associations primitive COLON expression",
- /*  18 */ "list_of_associations ::= list_of_associations COMMA primitive COLON expression",
- /*  19 */ "list_of_associations ::= association",
- /*  20 */ "association ::= primitive COLON expression",
- /*  21 */ "list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE",
- /*  22 */ "list ::= OPEN_PAR CLOSE_PAR",
- /*  23 */ "list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE",
- /*  24 */ "list ::= OPEN_PAR list_of_expressions CLOSE_PAR",
- /*  25 */ "list_of_expressions ::= expression",
- /*  26 */ "list_of_expressions ::= list_of_expressions expression",
- /*  27 */ "list_of_expressions ::= list_of_expressions COMMA expression",
- /*  28 */ "primitive ::= BUILTIN",
- /*  29 */ "primitive ::= ICON",
- /*  30 */ "primitive ::= FCON",
- /*  31 */ "primitive ::= SCON",
- /*  32 */ "primitive ::= IDENT",
- /*  33 */ "primitive ::= TRUE",
- /*  34 */ "primitive ::= FALSE",
- /*  35 */ "primitive ::= NULL",
+ /*   1 */ "statement ::= SEMICOLON",
+ /*   2 */ "statement ::= stop_expression",
+ /*   3 */ "statement ::= implicit_list",
+ /*   4 */ "stop_expression ::= primitive EOI",
+ /*   5 */ "stop_expression ::= primitive SEMICOLON",
+ /*   6 */ "stop_expression ::= container EOI",
+ /*   7 */ "stop_expression ::= container SEMICOLON",
+ /*   8 */ "stop_expression ::= container",
+ /*   9 */ "implicit_list ::= implicit_list EOI",
+ /*  10 */ "implicit_list ::= implicit_list SEMICOLON",
+ /*  11 */ "implicit_list ::= implicit_list expression",
+ /*  12 */ "implicit_list ::= primitive expression",
+ /*  13 */ "expression ::= primitive",
+ /*  14 */ "expression ::= container",
+ /*  15 */ "container ::= list",
+ /*  16 */ "container ::= hash",
+ /*  17 */ "hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE",
+ /*  18 */ "hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE",
+ /*  19 */ "list_of_associations ::= list_of_associations primitive COLON expression",
+ /*  20 */ "list_of_associations ::= list_of_associations COMMA primitive COLON expression",
+ /*  21 */ "list_of_associations ::= association",
+ /*  22 */ "association ::= primitive COLON expression",
+ /*  23 */ "list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE",
+ /*  24 */ "list ::= OPEN_PAR CLOSE_PAR",
+ /*  25 */ "list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE",
+ /*  26 */ "list ::= OPEN_PAR list_of_expressions CLOSE_PAR",
+ /*  27 */ "list_of_expressions ::= expression",
+ /*  28 */ "list_of_expressions ::= list_of_expressions expression",
+ /*  29 */ "list_of_expressions ::= list_of_expressions COMMA expression",
+ /*  30 */ "primitive ::= BUILTIN",
+ /*  31 */ "primitive ::= ICON",
+ /*  32 */ "primitive ::= FCON",
+ /*  33 */ "primitive ::= SCON",
+ /*  34 */ "primitive ::= IDENT",
+ /*  35 */ "primitive ::= TRUE",
+ /*  36 */ "primitive ::= FALSE",
+ /*  37 */ "primitive ::= NULL",
 };
 #endif /* NDEBUG */
 
@@ -418,7 +422,7 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
     case 19:
 #line 122 "jx_jxon_parse.lem"
 { jx_ob_free((yypminor->yy0));}
-#line 423 "jx_jxon_parse.c"
+#line 427 "jx_jxon_parse.c"
       break;
     case 21:
     case 22:
@@ -432,7 +436,7 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
     case 30:
 #line 109 "jx_jxon_parse.lem"
 { jx_ob_free((yypminor->yy39)); }
-#line 437 "jx_jxon_parse.c"
+#line 441 "jx_jxon_parse.c"
       break;
     default:  break;   /* If no destructor action specified: do nothing */
   }
@@ -611,10 +615,12 @@ static struct {
   { 31, 1 },
   { 31, 1 },
   { 31, 1 },
+  { 31, 1 },
   { 23, 2 },
   { 23, 2 },
   { 23, 2 },
   { 23, 2 },
+  { 23, 1 },
   { 21, 2 },
   { 21, 2 },
   { 21, 2 },
@@ -688,10 +694,20 @@ static void yy_reduce(
 #endif
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 693 "jx_jxon_parse.c"
+#line 699 "jx_jxon_parse.c"
         break;
       case 1:
 #line 181 "jx_jxon_parse.lem"
+{  
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("statement = SEMICOLON\n"); 
+#endif
+  yy_destructor(3,&yymsp[0].minor);
+}
+#line 709 "jx_jxon_parse.c"
+        break;
+      case 2:
+#line 188 "jx_jxon_parse.lem"
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement = expression(yymsp[0].minor.yy39) EOI\n"); 
@@ -699,10 +715,10 @@ static void yy_reduce(
   jx_ob_free(context->result); /* free previous result (if any) */ 
   context->result = yymsp[0].minor.yy39; /* save the result */
 }
-#line 704 "jx_jxon_parse.c"
+#line 720 "jx_jxon_parse.c"
         break;
-      case 2:
-#line 190 "jx_jxon_parse.lem"
+      case 3:
+#line 197 "jx_jxon_parse.lem"
 {  
 #ifdef JX_JXON_PARSER_DEBUG
   printf("statement ::= implicit_list(yymsp[0].minor.yy39).\n"); 
@@ -710,11 +726,11 @@ static void yy_reduce(
   jx_ob_free(context->result); /* free previous result (if any) */ 
   context->result = yymsp[0].minor.yy39; /* save the result */
 }
-#line 715 "jx_jxon_parse.c"
+#line 731 "jx_jxon_parse.c"
         break;
-      case 3:
-      case 5:
-#line 199 "jx_jxon_parse.lem"
+      case 4:
+      case 6:
+#line 206 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = yymsp[-1].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -722,10 +738,10 @@ static void yy_reduce(
 #endif
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 727 "jx_jxon_parse.c"
+#line 743 "jx_jxon_parse.c"
         break;
-      case 4:
-#line 207 "jx_jxon_parse.lem"
+      case 5:
+#line 214 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = yymsp[-1].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -733,10 +749,10 @@ static void yy_reduce(
 #endif
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 738 "jx_jxon_parse.c"
+#line 754 "jx_jxon_parse.c"
         break;
-      case 6:
-#line 223 "jx_jxon_parse.lem"
+      case 7:
+#line 230 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = yymsp[-1].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -744,10 +760,20 @@ static void yy_reduce(
 #endif
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 749 "jx_jxon_parse.c"
+#line 765 "jx_jxon_parse.c"
         break;
-      case 7:
-#line 231 "jx_jxon_parse.lem"
+      case 8:
+#line 238 "jx_jxon_parse.lem"
+{  
+  yygotominor.yy39 = yymsp[0].minor.yy39;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("stop_expression(yygotominor.yy39) ::= expression(yymsp[0].minor.yy39) SEMICOLON\n");
+#endif
+}
+#line 775 "jx_jxon_parse.c"
+        break;
+      case 9:
+#line 247 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = yymsp[-1].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -755,10 +781,10 @@ static void yy_reduce(
 #endif
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 760 "jx_jxon_parse.c"
+#line 786 "jx_jxon_parse.c"
         break;
-      case 8:
-#line 239 "jx_jxon_parse.lem"
+      case 10:
+#line 255 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = yymsp[-1].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -766,10 +792,10 @@ static void yy_reduce(
 #endif
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 771 "jx_jxon_parse.c"
+#line 797 "jx_jxon_parse.c"
         break;
-      case 9:
-#line 247 "jx_jxon_parse.lem"
+      case 11:
+#line 263 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = yymsp[-1].minor.yy39;
   jx_list_append(yygotominor.yy39,yymsp[0].minor.yy39);
@@ -777,10 +803,10 @@ static void yy_reduce(
   printf("implicit_list(yygotominor.yy39) ::= implicit_list(yymsp[-1].minor.yy39) expression(yymsp[0].minor.yy39) EOI.\n");
 #endif
 }
-#line 782 "jx_jxon_parse.c"
+#line 808 "jx_jxon_parse.c"
         break;
-      case 10:
-#line 256 "jx_jxon_parse.lem"
+      case 12:
+#line 272 "jx_jxon_parse.lem"
 {  
   yygotominor.yy39 = jx_list_new();
   jx_list_append(yygotominor.yy39,yymsp[-1].minor.yy39);
@@ -789,41 +815,41 @@ static void yy_reduce(
   printf("implicit_list(yygotominor.yy39) ::= primitive(yymsp[-1].minor.yy39) expression(yymsp[0].minor.yy39).\n");
 #endif
 }
-#line 794 "jx_jxon_parse.c"
+#line 820 "jx_jxon_parse.c"
         break;
-      case 11:
-#line 266 "jx_jxon_parse.lem"
+      case 13:
+#line 282 "jx_jxon_parse.lem"
 {  
    yygotominor.yy39 = yymsp[0].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("expression(yygotominor.yy39) = primitive(yymsp[0].minor.yy39)\n");
 #endif
 }
-#line 804 "jx_jxon_parse.c"
+#line 830 "jx_jxon_parse.c"
         break;
-      case 12:
-      case 13:
-#line 274 "jx_jxon_parse.lem"
+      case 14:
+      case 15:
+#line 290 "jx_jxon_parse.lem"
 {  
    yygotominor.yy39 = yymsp[0].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("expression(yygotominor.yy39) = list(yymsp[0].minor.yy39)\n");
 #endif
 }
-#line 815 "jx_jxon_parse.c"
+#line 841 "jx_jxon_parse.c"
         break;
-      case 14:
-#line 290 "jx_jxon_parse.lem"
+      case 16:
+#line 306 "jx_jxon_parse.lem"
 {  
    yygotominor.yy39 = yymsp[0].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("expression(yygotominor.yy39) = hash(yymsp[0].minor.yy39)\n");
 #endif
 }
-#line 825 "jx_jxon_parse.c"
+#line 851 "jx_jxon_parse.c"
         break;
-      case 15:
-#line 298 "jx_jxon_parse.lem"
+      case 17:
+#line 314 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = jx_hash_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -832,10 +858,10 @@ static void yy_reduce(
   yy_destructor(4,&yymsp[-1].minor);
   yy_destructor(5,&yymsp[0].minor);
 }
-#line 837 "jx_jxon_parse.c"
+#line 863 "jx_jxon_parse.c"
         break;
-      case 16:
-#line 306 "jx_jxon_parse.lem"
+      case 18:
+#line 322 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[-1].minor.yy39; 
 #ifdef JX_JXON_PARSER_DEBUG
@@ -844,10 +870,10 @@ static void yy_reduce(
   yy_destructor(4,&yymsp[-2].minor);
   yy_destructor(5,&yymsp[0].minor);
 }
-#line 849 "jx_jxon_parse.c"
+#line 875 "jx_jxon_parse.c"
         break;
-      case 17:
-#line 314 "jx_jxon_parse.lem"
+      case 19:
+#line 330 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[-3].minor.yy39;
   jx_hash_set(yygotominor.yy39,yymsp[-2].minor.yy39,yymsp[0].minor.yy39);
@@ -856,10 +882,10 @@ static void yy_reduce(
 #endif
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 861 "jx_jxon_parse.c"
+#line 887 "jx_jxon_parse.c"
         break;
-      case 18:
-#line 323 "jx_jxon_parse.lem"
+      case 20:
+#line 339 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[-4].minor.yy39;
   jx_hash_set(yygotominor.yy39,yymsp[-2].minor.yy39,yymsp[0].minor.yy39);
@@ -869,20 +895,20 @@ static void yy_reduce(
   yy_destructor(7,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 874 "jx_jxon_parse.c"
+#line 900 "jx_jxon_parse.c"
         break;
-      case 19:
-#line 332 "jx_jxon_parse.lem"
+      case 21:
+#line 348 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[0].minor.yy39;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("list_of_associations(yygotominor.yy39) = association(yymsp[0].minor.yy39)\n");
 #endif
 }
-#line 884 "jx_jxon_parse.c"
+#line 910 "jx_jxon_parse.c"
         break;
-      case 20:
-#line 340 "jx_jxon_parse.lem"
+      case 22:
+#line 356 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = jx_hash_new();
   jx_hash_set(yygotominor.yy39,yymsp[-2].minor.yy39,yymsp[0].minor.yy39); /* takes ownership of yymsp[-2].minor.yy39 & yymsp[0].minor.yy39 */
@@ -891,10 +917,10 @@ static void yy_reduce(
 #endif
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 896 "jx_jxon_parse.c"
+#line 922 "jx_jxon_parse.c"
         break;
-      case 21:
-#line 349 "jx_jxon_parse.lem"
+      case 23:
+#line 365 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -903,10 +929,10 @@ static void yy_reduce(
   yy_destructor(8,&yymsp[-1].minor);
   yy_destructor(9,&yymsp[0].minor);
 }
-#line 908 "jx_jxon_parse.c"
+#line 934 "jx_jxon_parse.c"
         break;
-      case 22:
-#line 357 "jx_jxon_parse.lem"
+      case 24:
+#line 373 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -915,10 +941,10 @@ static void yy_reduce(
   yy_destructor(10,&yymsp[-1].minor);
   yy_destructor(11,&yymsp[0].minor);
 }
-#line 920 "jx_jxon_parse.c"
+#line 946 "jx_jxon_parse.c"
         break;
-      case 23:
-#line 365 "jx_jxon_parse.lem"
+      case 25:
+#line 381 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[-1].minor.yy39; 
 #ifdef JX_JXON_PARSER_DEBUG
@@ -927,10 +953,10 @@ static void yy_reduce(
   yy_destructor(8,&yymsp[-2].minor);
   yy_destructor(9,&yymsp[0].minor);
 }
-#line 932 "jx_jxon_parse.c"
+#line 958 "jx_jxon_parse.c"
         break;
-      case 24:
-#line 373 "jx_jxon_parse.lem"
+      case 26:
+#line 389 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[-1].minor.yy39; 
 #ifdef JX_JXON_PARSER_DEBUG
@@ -939,10 +965,10 @@ static void yy_reduce(
   yy_destructor(10,&yymsp[-2].minor);
   yy_destructor(11,&yymsp[0].minor);
 }
-#line 944 "jx_jxon_parse.c"
+#line 970 "jx_jxon_parse.c"
         break;
-      case 25:
-#line 381 "jx_jxon_parse.lem"
+      case 27:
+#line 397 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = jx_list_new();
   jx_list_append(yygotominor.yy39,yymsp[0].minor.yy39);
@@ -950,10 +976,10 @@ static void yy_reduce(
   printf("list_of_expressions(yygotominor.yy39) = expression(yymsp[0].minor.yy39)\n");
 #endif
 }
-#line 955 "jx_jxon_parse.c"
+#line 981 "jx_jxon_parse.c"
         break;
-      case 26:
-#line 390 "jx_jxon_parse.lem"
+      case 28:
+#line 406 "jx_jxon_parse.lem"
 { 
   jx_list_append(yymsp[-1].minor.yy39,yymsp[0].minor.yy39); /* takes ownership of yymsp[0].minor.yy39 */
   yygotominor.yy39 = yymsp[-1].minor.yy39;
@@ -961,10 +987,10 @@ static void yy_reduce(
   printf("list_of_expressions(yygotominor.yy39) = list_of_expressions(yymsp[-1].minor.yy39) , expression(yymsp[0].minor.yy39)\n");
 #endif
 }
-#line 966 "jx_jxon_parse.c"
+#line 992 "jx_jxon_parse.c"
         break;
-      case 27:
-#line 399 "jx_jxon_parse.lem"
+      case 29:
+#line 415 "jx_jxon_parse.lem"
 { 
   jx_list_append(yymsp[-2].minor.yy39,yymsp[0].minor.yy39); /* takes ownership of yymsp[0].minor.yy39 */
   yygotominor.yy39 = yymsp[-2].minor.yy39;
@@ -973,87 +999,87 @@ static void yy_reduce(
 #endif
   yy_destructor(7,&yymsp[-1].minor);
 }
-#line 978 "jx_jxon_parse.c"
-        break;
-      case 28:
-#line 408 "jx_jxon_parse.lem"
-{ 
-  yygotominor.yy39 = yymsp[0].minor.yy0;
-#ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = BUILTIN\n"); 
-#endif
-}
-#line 988 "jx_jxon_parse.c"
-        break;
-      case 29:
-#line 416 "jx_jxon_parse.lem"
-{ 
-  yygotominor.yy39 = yymsp[0].minor.yy0;
-#ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = ICON\n"); 
-#endif
-}
-#line 998 "jx_jxon_parse.c"
+#line 1004 "jx_jxon_parse.c"
         break;
       case 30:
 #line 424 "jx_jxon_parse.lem"
 { 
   yygotominor.yy39 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = FCON\n"); 
+  printf("primitive = BUILTIN\n"); 
 #endif
 }
-#line 1008 "jx_jxon_parse.c"
+#line 1014 "jx_jxon_parse.c"
         break;
       case 31:
 #line 432 "jx_jxon_parse.lem"
-{
+{ 
   yygotominor.yy39 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = SCON\n"); 
+  printf("primitive = ICON\n"); 
 #endif
 }
-#line 1018 "jx_jxon_parse.c"
+#line 1024 "jx_jxon_parse.c"
         break;
       case 32:
 #line 440 "jx_jxon_parse.lem"
-{
+{ 
   yygotominor.yy39 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = IDENT\n"); 
+  printf("primitive = FCON\n"); 
 #endif
 }
-#line 1028 "jx_jxon_parse.c"
+#line 1034 "jx_jxon_parse.c"
         break;
       case 33:
 #line 448 "jx_jxon_parse.lem"
 {
   yygotominor.yy39 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = TRUE\n"); 
+  printf("primitive = SCON\n"); 
 #endif
 }
-#line 1038 "jx_jxon_parse.c"
+#line 1044 "jx_jxon_parse.c"
         break;
       case 34:
 #line 456 "jx_jxon_parse.lem"
 {
   yygotominor.yy39 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("primitive = FALSE\n"); 
+  printf("primitive = IDENT\n"); 
 #endif
 }
-#line 1048 "jx_jxon_parse.c"
+#line 1054 "jx_jxon_parse.c"
         break;
       case 35:
 #line 464 "jx_jxon_parse.lem"
 {
   yygotominor.yy39 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = TRUE\n"); 
+#endif
+}
+#line 1064 "jx_jxon_parse.c"
+        break;
+      case 36:
+#line 472 "jx_jxon_parse.lem"
+{
+  yygotominor.yy39 = yymsp[0].minor.yy0;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive = FALSE\n"); 
+#endif
+}
+#line 1074 "jx_jxon_parse.c"
+        break;
+      case 37:
+#line 480 "jx_jxon_parse.lem"
+{
+  yygotominor.yy39 = yymsp[0].minor.yy0;
+#ifdef JX_JXON_PARSER_DEBUG
   printf("primitive = NULL\n"); 
 #endif
 }
-#line 1058 "jx_jxon_parse.c"
+#line 1084 "jx_jxon_parse.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -1088,7 +1114,7 @@ static void yy_parse_failed(
 #ifdef JX_JXON_PARSER_DEBUG
   printf("parse failed.\n");
 #endif
-#line 1094 "jx_jxon_parse.c"
+#line 1120 "jx_jxon_parse.c"
   jx_jxon_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1107,7 +1133,7 @@ static void yy_syntax_error(
 #ifdef JX_JXON_PARSER_DEBUG
   printf("jx_jxon_parse-error: syntax error.\n");
 #endif
-#line 1114 "jx_jxon_parse.c"
+#line 1140 "jx_jxon_parse.c"
   jx_jxon_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1132,7 +1158,7 @@ static void yy_accept(
 #ifdef JX_JXON_PARSER_DEBUG
   printf("accept called\n");
 #endif
-#line 1140 "jx_jxon_parse.c"
+#line 1166 "jx_jxon_parse.c"
   jx_jxon_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

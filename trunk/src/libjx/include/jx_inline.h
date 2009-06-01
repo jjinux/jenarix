@@ -133,7 +133,7 @@ struct jx__ob {
 
 /* meta flag bits */
 
-#define JX_META_NOT_AN_OB              0x8000
+#define JX_META_BIT_NOT_AN_OB          0x8000
 
 #define JX_META_BIT_GC                 0x4000
 /* set if object has garbage collected resourcese */
@@ -469,31 +469,39 @@ JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
   return result;
 }
 
+JX_INLINE jx_ob jx_ob_from_null(void)
+{
+  jx_ob result = JX_OB_NULL;
+  return result;
+}
+
 JX_INLINE jx_ob jx_ob_not_weak_with_ob(jx_ob ob)
 {
-  //  printf("not weak with ob\n");
-  return (ob.meta.bits & JX_META_BIT_WEAK_REF) ?
-    jx_ob_copy(ob) : ob;
+  jx_bits bits = ob.meta.bits;
+  return ((bits & JX_META_BIT_NOT_AN_OB) ?
+          jx_ob_from_null() : 
+          (bits & JX_META_BIT_WEAK_REF) ?
+          jx_ob_copy(ob) : ob);
 }
 
 jx_ob jx__ob_make_strong_with_ob(jx_ob ob);
 JX_INLINE jx_ob jx_ob_make_strong_with_ob(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_GC) ?
-    jx__ob_make_strong_with_ob(ob) : ob;
+  jx_bits bits = ob.meta.bits;
+  return ((bits & JX_META_BIT_NOT_AN_OB) ?
+          jx_ob_from_null() : 
+          (ob.meta.bits & JX_META_BIT_GC) ?
+          jx__ob_make_strong_with_ob(ob) : ob);
 }
 
 jx_ob jx__ob_only_strong_with_ob(jx_ob ob);
 JX_INLINE jx_ob jx_ob_only_strong_with_ob(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_GC) ?
-    jx__ob_only_strong_with_ob(ob) : ob;
-}
-
-JX_INLINE jx_ob jx_ob_from_null(void)
-{
-  jx_ob result = JX_OB_NULL;
-  return result;
+  jx_bits bits = ob.meta.bits;
+  return ((bits & JX_META_BIT_NOT_AN_OB) ?
+          jx_ob_from_null() : 
+          (ob.meta.bits & JX_META_BIT_GC) ?
+          jx__ob_only_strong_with_ob(ob) : ob);
 }
 
 JX_INLINE jx_ob jx_ob_from_bool(jx_bool bool_)
@@ -610,6 +618,11 @@ JX_INLINE jx_ob jx_ob_to_ident(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_IDENT) ?
     jx_ob_copy(ob) : jx__ob_to_ident(ob);
+}
+
+JX_INLINE jx_bool jx_ob_check(jx_ob ob)
+{
+  return !(ob.meta.bits & JX_META_BIT_NOT_AN_OB);
 }
 
 JX_INLINE jx_bool jx_null_check(jx_ob ob)

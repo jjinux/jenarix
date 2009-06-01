@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
             jx_ob_free(code);
           }
           break;
+        case JX_NO: /* keep going */
+          break;
         case JX_STATUS_SYNTAX_ERROR: /* catch this error */
           {
             jx_ob message = jx_jxon_scanner_get_error_message(scanner);

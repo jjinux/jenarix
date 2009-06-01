@@ -63,11 +63,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_REDUCE    23
 #define JX_SELECTOR_FOREACH   24
 #define JX_SELECTOR_DEBUG     25
+#define JX_SELECTOR_RETURN    26
+#define JX_SELECTOR_BREAK     27
+#define JX_SELECTOR_CONTINUE  28
 
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
 
-#define JX_SELECTOR_SPECIAL_FORMS_LIMIT 28
+#define JX_SELECTOR_SPECIAL_FORMS_LIMIT 32
 
 /* The next batch of selectors (through 1024?) are reserved for "safe"
    functions which only involve internal actions performed within the
@@ -84,10 +87,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* symbols */
 
-#define JX_SELECTOR_ENTITY      29
-#define JX_SELECTOR_FILL        30
-#define JX_SELECTOR_RANGE       31
-#define JX_SELECTOR_SET         32
+#define JX_SELECTOR_ENTITY      79
+#define JX_SELECTOR_FILL        80
+#define JX_SELECTOR_RANGE       81
+#define JX_SELECTOR_SET         82
 #define JX_SELECTOR_GET         33
 #define JX_SELECTOR_BORROW      34
 #define JX_SELECTOR_TAKE        35
@@ -141,7 +144,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_SAME        76
 
 #define JX_SELECTOR_STR         77
-#define JX_SELECTOR_PUSH        79
+#define JX_SELECTOR_PUSH        83
 
 
 #endif

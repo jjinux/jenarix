@@ -376,27 +376,46 @@ JX_INLINE jx_ob jx_safe_range(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_take(jx_ob node, jx_ob payload)
 {
+  //  jx_jxon_dump(stdout,"safe get payload",payload);
+  //  jx_jxon_dump(stdout,"safe get node",node);
   jx_int size = jx_list_size(payload);
+  jx_ob container = node;
+  jx_ob target =  jx_list_borrow(payload,0);
+  jx_status resolved = jx__resolve(&container,&target);
   switch(size) {
   case 1:
-    return jx_hash_remove(node, jx_list_borrow(payload,0));
+    return jx_hash_remove(container, target);
     break;
   case 2:
-    {
-      jx_ob container = jx_list_borrow(payload,0);
-      if(jx_ident_check(container))
-        container = jx_hash_borrow(node,container);
+    if(JX_POS(resolved)) {
       switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_LIST:
-        return jx_list_remove(container,
-                           jx_ob_as_int(jx_list_borrow(payload,1)));
+        container = jx_list_borrow(container,jx_ob_as_int(target));
         break;
       case JX_META_BIT_HASH:
-        return jx_hash_remove(container,
-                           jx_list_borrow(payload,1));
+        container = jx_hash_borrow(container,target);
+        break;
+      default:
+        container = jx_ob_from_null();
         break;
       }
     }
+    target = jx_list_borrow(payload,1);
+    jx__resolve(&container,&target);
+    switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_LIST:
+      return jx_list_remove(container, jx_ob_as_int(target));
+      break;
+    case JX_META_BIT_HASH:
+      return jx_hash_remove(container, jx_ob_not_weak_with_ob(target));
+      break;
+    default:
+      return jx_ob_from_null();
+      break;
+    }
+    break;
+  default:
+    return jx_ob_from_null();
     break;
   }
   return jx_ob_from_null();

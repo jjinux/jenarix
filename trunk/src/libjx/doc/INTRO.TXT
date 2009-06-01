@@ -27,15 +27,7 @@
 # JXON is a strict super-set of JSON syntax and can be encoded in JSON
 # through escaping system without loss of structure or fidelity. 
 
-# - JXON adds two new primitive types (identifiers and builtins),
-
-# - JXON permits all primitive types to serve as hash keys
-
-# - Commas are optional in JSON -- whitespace is sufficient
-
-# - JXON accepts either parentheses and square braces as input.
-
-# - JXON supports #-delimited single-line comments.
+# see PLATFORM.TXT for more information on JXON semantics and syntax.
 
 # With respect to LISP, JXON phrases are LISP-inspired symbolic-
 # expressions (S-expressions) which the Jenarix runtime is capable of

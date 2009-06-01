@@ -1,0 +1,7 @@
+
+(set a 10);
+
+(while 1 ((decr a) (test a () (break)) (output a)));
+
+a;
+

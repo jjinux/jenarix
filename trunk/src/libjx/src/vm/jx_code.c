@@ -88,6 +88,10 @@ jx_status jx_code_expose_special_forms(jx_ob names)
   ok = jx_declare(ok, names, "switch", JX_SELECTOR_SWITCH);
 
   ok = jx_declare(ok, names, "select", JX_SELECTOR_SELECT);
+  ok = jx_declare(ok, names, "return", JX_SELECTOR_RETURN);
+  ok = jx_declare(ok, names, "break", JX_SELECTOR_BREAK);
+  ok = jx_declare(ok, names, "continue", JX_SELECTOR_CONTINUE);
+
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 
@@ -222,6 +226,7 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source)
               break;
             case JX_SELECTOR_ENTITY:
             case JX_SELECTOR_GET:
+            case JX_SELECTOR_TAKE:
             case JX_SELECTOR_SET:
             case JX_SELECTOR_HAS:
             case JX_SELECTOR_DEL:
@@ -252,11 +257,48 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source)
       while((size>unresolved)&&(size--)) {
         jx_ob entry = jx__list_swap_with_null(source_list,size);
         if(jx_ident_check(entry)) { /* # -> [*res* #] */
-          jx_ob new_entry = jx_list_new_with_size(2);
-          jx_list_replace(new_entry, 0, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
-          jx_list_replace(new_entry, 1, entry); 
-          entry = new_entry;
+          jx_ob builtin = jx_hash_borrow(prebind, entry);
+          if(jx_builtin_selector_check(builtin)) { 
+            switch(builtin.data.io.int_) {              
+            case JX_SELECTOR_BREAK:
+            case JX_SELECTOR_CONTINUE:
+            case JX_SELECTOR_RETURN: /* [.. return ..] -> [.. (return) ..] */
+              {
+                jx_ob new_entry = jx_list_new_with_size(1);
+                jx_list_replace(new_entry, 0, builtin);
+                entry = new_entry;
+              }
+              break;
+            default:
+              {
+                jx_ob new_entry = jx_list_new_with_size(2);
+                jx_list_replace(new_entry, 0, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
+                jx_list_replace(new_entry, 1, entry); 
+                entry = new_entry;
+              }
+              break;
+            }
+          } else {
+            jx_ob new_entry = jx_list_new_with_size(2);
+            jx_list_replace(new_entry, 0, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
+            jx_list_replace(new_entry, 1, entry); 
+            entry = new_entry;
+          }
         } else if(entry.meta.bits & JX_META_BIT_GC) {
+          if(jx_list_size(entry)>1) {
+            jx_ob ident = jx_list_borrow(entry,0);
+            if(jx_ident_check(ident)) {
+              jx_ob builtin = jx_hash_borrow(prebind, ident);
+              if(jx_builtin_selector_check(builtin)) { 
+                if(builtin.data.io.int_ == JX_SELECTOR_RETURN) { /* [(return ...) ..] -> [ ... (return) ] */
+                  jx_ob new_entry = jx_list_new_with_size(1);
+                  jx_list_replace(new_entry, 0, jx_builtin_new_from_selector(JX_SELECTOR_RETURN));
+                  jx_list_insert(source,size+1,new_entry);
+                  jx_list_replace(entry,0,jx_builtin_new_from_selector(JX_SELECTOR_NOP));
+                }
+              }
+            }
+          }
           entry = jx__code_bind_with_source(prebind,entry);
         }
         jx__list_replace(source_list, size, entry);
@@ -383,6 +425,12 @@ static void jx__code_make_strong(jx_ob *ob,jx_int size)
       *ob = jx_ob_copy(*ob); 
     ob++;
   }
+}
+
+JX_INLINE jx_ob jx_return(void)
+{
+  jx_ob result = {JX_DATA_INIT, {JX_META_BIT_NOT_AN_OB}};
+  return result;
 }
 
 JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, 
@@ -982,10 +1030,12 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node,
       
       for(i=0;i<max_size;i++) {
         for(j=0;j<n_src;j++) {
-          jx_list_replace(arg_ob, j, jx_ob_take_weak_ref(jx_list_borrow(jx_list_borrow(src_list,j),i)));
+          jx_list_replace(arg_ob, j, jx_ob_take_weak_ref
+                          (jx_list_borrow(jx_list_borrow(src_list,j),i)));
         }
-        jx_list_replace(out,i,jx__code_apply_callable(tls, node, callable_weak_ref, 
-                                                      jx_tls_ob_copy(tls,arg_ob)));
+        jx_list_replace(out,i,jx__code_apply_callable
+                        (tls, node, callable_weak_ref, 
+                         jx_tls_ob_copy(tls,arg_ob)));
       }
       jx_list_repack(out);
     }
@@ -1038,7 +1088,7 @@ static jx_ob jx__code_close_with_args(jx_ob node, jx_ob code, jx_ob args)
   return args;
 }
 
-static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
+jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
 {
   if(flags & JX_EVAL_DEBUG_TRACE) {
     fprintf(stderr, "# trace: eval_to_weak(tls %p, flags 0x%x, ...)\n",
@@ -1125,10 +1175,10 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
               jx_bool cond_bool = jx_ob_as_bool(cond);
               jx_ob_free(cond);
               if(cond_bool) {
-                return (size>2) ? jx_code_eval_tls(tls,flags,node, expr_vla[2]) : 
+                return (size>2) ? jx_code_eval_to_weak(tls,flags,node, expr_vla[2]) : 
                   jx_ob_from_null();
               } else {
-                return (size>3) ? jx_code_eval_tls(tls,flags,node, expr_vla[3]) : 
+                return (size>3) ? jx_code_eval_to_weak(tls,flags,node, expr_vla[3]) : 
                   jx_ob_from_null();
               }
             }
@@ -1252,7 +1302,8 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
               jx_ob cond = (size>1) ? expr_vla[1] : jx_ob_from_null();
               jx_ob body = (size>2) ? expr_vla[2] : jx_ob_from_null();
               jx_ob result = JX_OB_NULL;
-              while(1) {
+              tls->break_seen = JX_FALSE;
+              while(!tls->break_seen) {
                 jx_ob test = jx_code_eval_to_weak(tls, flags, node, cond); 
                 jx_int tst = jx_ob_as_bool(test);
                 jx_ob_free(test);
@@ -1261,6 +1312,7 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
                 } else
                   break;
               }
+              tls->break_seen = JX_FALSE;
               return result;
             }
             break;
@@ -1290,6 +1342,8 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
               jx_ob_free(jx_code_eval_tls(tls, flags, node, init));
               while(tst) {
                 jx_ob test = jx_code_eval_tls(tls, flags, node, cond);
+                if(!jx_ob_check(test))
+                  break;
                 tst = jx_ob_as_bool(test);
                 jx_ob_free(test);
                 if(tst) {
@@ -1300,7 +1354,7 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
               return result;
             }
             break;
-          case JX_SELECTOR_FOREACH:
+          case JX_SELECTOR_FOREACH: /* does not currently support break... */
             {
               jx_ob expr = (size>1) ? expr_vla[1] : jx_ob_from_null();
               jx_ob list = (size>2) ? 
@@ -1419,6 +1473,14 @@ static jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob e
               }
             }
             return jx_ob_from_null();
+            break;
+          case JX_SELECTOR_RETURN:
+          case JX_SELECTOR_CONTINUE:
+            return jx_return();
+            break;
+          case JX_SELECTOR_BREAK:
+            tls->break_seen = JX_TRUE;
+            return jx_return();
             break;
           }
           return jx_ob_from_null();
@@ -1641,7 +1703,7 @@ static jx_ob jx__code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob c
      if code is [ [fn, ...], [fn, ...], ... ] then
      evaluate all members of a list, returning only the last result */
   jx_ob result = JX_OB_NULL;
-  jx_int pc, size = jx_list_size(code);
+  jx_int size = jx_list_size(code);
   if(size) {
     jx_list *code_list = code.data.io.list;
     jx_ob inst = jx__list_borrow(code_list, 0);
@@ -1651,11 +1713,27 @@ static jx_ob jx__code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob c
                     jx_code_eval_to_weak(tls,flags, node, code));
     } else {
       /* code = [[ ... ]  .... ] */
-      for(pc = 0; pc < size; pc++) { /* standard code block */
-        if(pc)
-          inst = jx__list_borrow(code_list, pc);
-        jx_ob_replace(&result, jx_code_eval_to_weak(tls,flags, node, inst));
+      jx_int pc = 0;
+      while( pc<size ) {
+        inst = jx__list_borrow(code_list, pc);
+        jx_ob tmp = jx_code_eval_to_weak(tls,flags, node, inst);
+        if(jx_ob_check(tmp)) {
+          jx_ob_replace(&result, tmp);
+          pc++;
+        } else {
+          if(!tmp.data.io.int_) { /* early return */
+            return result;
+          } else {
+            pc += tmp.data.io.int_; /* jump operation */
+            if((pc<size) && (pc>=0)) {
+              inst = jx__list_borrow(code_list,pc);
+            } else {
+              return jx_null_with_ob(result);
+            }
+          }           
+        }
       }
+
     }
   }
   return result;

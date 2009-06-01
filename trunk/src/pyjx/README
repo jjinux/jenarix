@@ -4,9 +4,9 @@
 
 # (1) to serve as a cross check for our main CJenarix implementation
 
-# (2) to prove that the Jenarix platform is language-independent
-#     abstraction capable of being hosted within many runtime
-#     environments.
+# (2) to prove through demonstration that the Jenarix meta-platform is
+#     indeed a language-independent abstraction capable of being
+#     hosted within many common runtime environments.
 
 # AND
 

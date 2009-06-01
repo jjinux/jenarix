@@ -1,0 +1,4 @@
+(set a 10);
+
+(while (decr a) ((output a) (test (gt a 5) (continue)) (break))));
+

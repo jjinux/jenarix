@@ -203,6 +203,7 @@ jx_status jx_ob_into_strcat(jx_char *buf, jx_int buf_size, jx_ob ob);
 
 /* determining object type */
 
+jx_bool jx_ob_check(jx_ob ob);
 jx_bool jx_null_check(jx_ob ob);
 jx_bool jx_bool_check(jx_ob ob);
 jx_bool jx_int_check(jx_ob ob);

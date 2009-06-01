@@ -4379,7 +4379,7 @@ jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
               jx_uint32 *hash_entry = table_base + (index << 1);
               if(hash_entry[1] && !(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
                 jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
-                key_value[kv_offset].meta.bits = JX_META_NOT_AN_OB;       /* mark inactive entries */
+                key_value[kv_offset].meta.bits = JX_META_BIT_NOT_AN_OB;       /* mark inactive entries */
               }
               index++;
             } while(index <= mask);
@@ -4387,7 +4387,7 @@ jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
               jx_ob *ob = key_value;
               jx_int i, count = 0;
               for(i = 0; i < size; i += 2) {
-                if(ob[0].meta.bits != JX_META_NOT_AN_OB) {        /* purge the inactives */
+                if(ob[0].meta.bits != JX_META_BIT_NOT_AN_OB) {        /* purge the inactives */
                   if(count != i) {
                     jx_os_memcpy(key_value + count, ob, sizeof(jx_ob) * 2);
                   }
@@ -4598,22 +4598,6 @@ jx_ob jx__ob_only_strong_with_ob(jx_ob ob)
 }
 
 /* thread-local storage for accelerating memory use within a single thread */
-
-typedef struct jx__tls_chain jx_tls_chain;
-
-struct jx__tls_chain {
-  jx_tls_chain *next;
-};
-
-#define JX_TLS_VLA_ALLOC_MAX   4000
-#define JX_TLS_MAX              100
-
-struct jx__tls {
-  jx_int n_hash,n_list,n_vla;
-  jx_tls_chain *hash_chain;
-  jx_tls_chain *list_chain;
-  jx_tls_chain *vla_chain;
-};
 
 
 void *jx__tls_vla_new(jx_tls *tls, jx_int rec_size, jx_int size, jx_bool zero)
