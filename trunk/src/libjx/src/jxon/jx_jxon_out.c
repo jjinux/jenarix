@@ -343,6 +343,55 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
       }
     }
     break;
+  case JX_META_BIT_OPCODE:
+    switch(bits & JX_META_MASK_OPCODE_INST) {
+    case JX_OPCODE_JUMP_RELATIVE:
+      {
+        char buffer[JX_STR_TMP_BUF_SIZE];
+        snprintf(buffer, sizeof(buffer), "@%d", (int)ob.data.io.int_);
+        {
+          jx_ob st = jx_ob_from_str(buffer);
+          if(!ref) {
+            return st;
+          } else {
+            flags = autowrap(ref,flags,space_left,jx_str_len(st));
+            jx_vla_append_ob_str(ref, st);
+            return jx_null_with_ob(st);
+          }
+        }
+      }
+      break;
+    default:
+      {
+        jx_ob st ;
+        switch(bits & JX_META_MASK_OPCODE_INST) {
+        case JX_OPCODE_BREAK:
+          st = jx_ob_from_str("@BREAK");
+          break;
+        case JX_OPCODE_CONTINUE:
+          st = jx_ob_from_str("@CONTINUE");
+          break;
+        case JX_OPCODE_RETURN:
+          st = jx_ob_from_str("@RETURN");
+          break;
+        case JX_OPCODE_TAIL_CALL:
+          st = jx_ob_from_str("@TAIL_CALL");
+          break;
+        default:
+          st = jx_ob_from_str("@UNKNOWN");
+          break;
+        }
+        if(!ref) {
+          return st;
+        } else {
+          flags = autowrap(ref,flags,space_left,jx_str_len(st));
+          jx_vla_append_ob_str(ref, st);
+          return jx_null_with_ob(st);
+        }
+      }
+      break;
+    }
+    break;
   case JX_META_BIT_BOOL:
     {
       jx_ob st;
@@ -605,6 +654,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags,
 {
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case 0:
+  case JX_META_BIT_OPCODE:
   case JX_META_BIT_BOOL:
   case JX_META_BIT_INT:
   case JX_META_BIT_FLOAT:

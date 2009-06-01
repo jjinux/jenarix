@@ -543,6 +543,32 @@ jx_ob jx__ob_to_str(jx_ob ob)
   switch (bits & JX_META_MASK_TYPE_BITS) {
   case 0: /* NULL */
     return jx_ob_from_str("null");
+    break;
+  case JX_META_BIT_OPCODE:
+    switch(bits & JX_META_MASK_OPCODE_INST) {
+    case JX_OPCODE_BREAK:
+      return jx_ob_from_str("@BREAK");
+      break;
+    case JX_OPCODE_CONTINUE:
+      return jx_ob_from_str("@CONTINUE");
+      break;
+    case JX_OPCODE_RETURN:
+      return jx_ob_from_str("@RETURN");
+      break;
+    case JX_OPCODE_TAIL_CALL:
+      return jx_ob_from_str("@TAIL_CALL");
+      break;
+    case JX_OPCODE_JUMP_RELATIVE:
+      {
+        char buffer[JX_STR_TMP_BUF_SIZE];
+        snprintf(buffer, sizeof(buffer), "@%d", (int)ob.data.io.int_);
+        return jx_ob_from_str(buffer);
+      }
+    default:
+      return jx_ob_from_str("@UNKNOWN");
+      break;
+    }
+    break;
   case JX_META_BIT_BOOL:
     if(ob.data.io.bool_)
       return jx_ob_from_str("true");
@@ -4379,7 +4405,7 @@ jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
               jx_uint32 *hash_entry = table_base + (index << 1);
               if(hash_entry[1] && !(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
                 jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
-                key_value[kv_offset].meta.bits = JX_META_BIT_NOT_AN_OB;       /* mark inactive entries */
+                key_value[kv_offset].meta.bits = JX_META_NOT_AN_OB;       /* mark inactive entries */
               }
               index++;
             } while(index <= mask);
@@ -4387,7 +4413,7 @@ jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
               jx_ob *ob = key_value;
               jx_int i, count = 0;
               for(i = 0; i < size; i += 2) {
-                if(ob[0].meta.bits != JX_META_BIT_NOT_AN_OB) {        /* purge the inactives */
+                if(ob[0].meta.bits != JX_META_NOT_AN_OB) {        /* purge the inactives */
                   if(count != i) {
                     jx_os_memcpy(key_value + count, ob, sizeof(jx_ob) * 2);
                   }

@@ -17,3 +17,8 @@
 #define JX_JXON_TRUE                           17
 #define JX_JXON_FALSE                          18
 #define JX_JXON_NULL                           19
+#define JX_JXON_JUMP_REL                       20
+#define JX_JXON_BREAK                          21
+#define JX_JXON_CONTINUE                       22
+#define JX_JXON_RETURN                         23
+#define JX_JXON_TAIL_CALL                      24

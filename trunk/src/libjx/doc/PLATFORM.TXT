@@ -23,7 +23,8 @@
 #    data structures consisting of primitives, lists, and hashes.
 
 #  - There is no JXON VM "bytecode".  JXON ASTs are executed directly,
-#    and selectors present in the AST serve as opcodes for the VM.
+#    and selectors present in the AST (with the help of a few
+#    flow-control opcodes) drive the builtin aspects of the JXON VM.
 
 #  - JXON is intended to serve as the intermediate language for the
 #    Jenarix architecture and as a front end language for those who
@@ -96,14 +97,16 @@ III. The JXON Intermediate Language
 #    (JSON) semantic (http://json.org) with the following semantic
 #    changes:
 
-#     - a new public primitive type has been added: identifier 
+#     - two new public primitive types have been added: 
+#         identifier and opcode
 
 #     - during runtime, additional builtin primitives exists
 #       internally: selectors, JXON functions, native
 #       functions, entity handles, and opaque (native platform)
 #       objects.
 
-#     - null, true, false, int, and float are allowed to be hash keys
+#     - null, true, false, ints, floats, opcodes, and identifiers are
+#       all allowed to be hash keys for JXON hashes
 
 #     - during runtime, builtin primitives are also allowed to be hash
 #       keys.

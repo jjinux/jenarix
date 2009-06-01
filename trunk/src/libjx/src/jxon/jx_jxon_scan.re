@@ -183,6 +183,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     "`" (L|D|":")+  { RET(JX_JXON_BUILTIN); }
     
+
     "["         { RET(JX_JXON_OPEN_RECT_BRACE); }
     "]"         { RET(JX_JXON_CLOSE_RECT_BRACE); }
 
@@ -201,6 +202,14 @@ static int jx_scan(jx_jxon_scanner_state *s)
     LD ("." LD)* { RET(JX_JXON_IDENT); }
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JXON_ICON); }
+
+    ("@" [[+\-]? D+ IS?)  { RET(JX_JXON_JUMP_REL); }
+
+    ("@BREAK" [[+\-]? D+ IS?)  { RET(JX_JXON_BREAK); }
+    ("@CONTINUE" [[+\-]? D+ IS?)  { RET(JX_JXON_CONTINUE); }
+    ("@RETURN" [[+\-]? D+ IS?)  { RET(JX_JXON_RETURN); }
+
+    ("@TAIL_CALL" [[+\-]? D+ IS?)  { RET(JX_JXON_TAIL_CALL); }
     
     ";"         { RET(JX_JXON_SEMICOLON); }
 
@@ -306,6 +315,7 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
       case JX_JXON_FCON:
       case JX_JXON_SCON:
       case JX_JXON_IDENT:
+      case JX_JXON_JUMP_REL:
         {
           char *buffer = stack_buffer;
           if(st_len >= SSCANF_BUFSIZE) {
@@ -315,6 +325,23 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
             jx_os_strncpy(buffer, state->tok, st_len);                              
             buffer[st_len] = 0;
             switch(tok_type) {
+            case JX_JXON_JUMP_REL:
+              {
+#ifdef JX_64_BIT
+                jx_int icon;
+                if( jx_os_sscanf(buffer+1, "%lli", &icon) != 1) { /* use strtol instead? */
+                  icon = 0;
+                }
+                token = jx_ob_from_int(icon);            
+#else
+                int icon;
+                if( jx_os_sscanf(buffer+1, "%i", &icon) != 1) { /* use strtol instead? */
+                  icon = 0;
+                }
+#endif
+                token = jx_ob_from_opcode(JX_OPCODE_JUMP_RELATIVE,icon);
+              }
+              break;
             case JX_JXON_ICON:
               {
 #ifdef JX_64_BIT
@@ -369,6 +396,18 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
         case JX_JXON_NULL:
           token = jx_ob_from_null();
           break;
+        case JX_JXON_BREAK:
+          token = jx_ob_from_opcode(JX_OPCODE_BREAK,0);
+          break;
+        case JX_JXON_CONTINUE:
+          token = jx_ob_from_opcode(JX_OPCODE_CONTINUE,0);
+          break;
+        case JX_JXON_RETURN:
+          token = jx_ob_from_opcode(JX_OPCODE_RETURN,0);
+          break;
+        case JX_JXON_TAIL_CALL:
+          token = jx_ob_from_opcode(JX_OPCODE_TAIL_CALL,0);
+          break;
         case JX_JXON_BUILTIN:
           token = jx_builtin_new_from_selector(0);
           break;
@@ -409,7 +448,6 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
         state->n_tok_parsed++;
     }
   }
-
   
   if(tok_type == JX_JXON_EOI) {
     state->context.exhausted = JX_TRUE;

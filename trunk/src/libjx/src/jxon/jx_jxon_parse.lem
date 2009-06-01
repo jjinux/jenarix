@@ -484,6 +484,44 @@ primitive(A) ::= NULL(B).
 #endif
 }
 
+primitive(A) ::= JUMP_REL(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive(A) ::= JUMP_REL(B).\n");
+#endif
+}
+
+primitive(A) ::= BREAK(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive(A) ::= LEAVE(B).\n");
+#endif
+}
+primitive(A) ::= CONTINUE(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive(A) ::= CONTINUE(B).\n");
+#endif
+}
+primitive(A) ::= RETURN(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive(A) ::= RETURN(B).\n");
+#endif
+}
+
+primitive(A) ::= TAIL_CALL(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("primitive(A) ::= TAIL_CALL(B).\n");
+#endif
+}
+
 
 
 

@@ -107,21 +107,12 @@ struct jx__hash {
 
 jx_ob jx_ob_with_str_vla(jx_char ** ref);
 
-typedef struct jx__tls_chain jx_tls_chain;
+#define JX_TLS_VLA_ALLOC_MAX   4000
+#define JX_TLS_MAX              100
 
 struct jx__tls_chain {
   jx_tls_chain *next;
 };
 
-#define JX_TLS_VLA_ALLOC_MAX   4000
-#define JX_TLS_MAX              100
-
-struct jx__tls {
-  jx_int n_hash,n_list,n_vla;
-  jx_tls_chain *hash_chain;
-  jx_tls_chain *list_chain;
-  jx_tls_chain *vla_chain;
-  jx_bool break_seen;
-};
 
 #endif

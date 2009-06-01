@@ -28,73 +28,39 @@ State 0:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
-                           EOI shift  24
-                     SEMICOLON shift  38
+                           EOI shift  41
+                     SEMICOLON shift  43
               OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                 implicit_list shift  6
-               stop_expression shift  39
-                     primitive shift  4
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                 implicit_list shift  4
+               stop_expression shift  44
+                     primitive shift  5
                      container shift  14
-                          list shift  45
-                          hash shift  46
+                          list shift  50
+                          hash shift  51
                      statement accept
 
 State 1:
-          expression ::= * primitive
-          expression ::= * container
-          container ::= * list
-          container ::= * hash
-          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
-          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR CLOSE_PAR
-          list ::= OPEN_PAR * CLOSE_PAR
-          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
-          list ::= OPEN_PAR * list_of_expressions CLOSE_PAR
-          list_of_expressions ::= * expression
-          list_of_expressions ::= * list_of_expressions expression
-          list_of_expressions ::= * list_of_expressions COMMA expression
-          primitive ::= * BUILTIN
-          primitive ::= * ICON
-          primitive ::= * FCON
-          primitive ::= * SCON
-          primitive ::= * IDENT
-          primitive ::= * TRUE
-          primitive ::= * FALSE
-          primitive ::= * NULL
-
-              OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
-                     CLOSE_PAR shift  51
-                       BUILTIN shift  19
-                          ICON shift  20
-                          FCON shift  21
-                          SCON shift  22
-                         IDENT shift  23
-                          TRUE shift  37
-                         FALSE shift  25
-                          NULL shift  26
-                    expression shift  27
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-           list_of_expressions shift  5
-                          hash shift  46
-
-State 2:
           expression ::= * primitive
           expression ::= * container
           container ::= * list
@@ -118,25 +84,89 @@ State 2:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
               OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-              CLOSE_RECT_BRACE shift  50
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+              CLOSE_RECT_BRACE shift  55
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                    expression shift  27
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  32
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
            list_of_expressions shift  3
-                          hash shift  46
+                          hash shift  51
+
+State 2:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= OPEN_PAR * CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
+          list ::= OPEN_PAR * list_of_expressions CLOSE_PAR
+          list_of_expressions ::= * expression
+          list_of_expressions ::= * list_of_expressions expression
+          list_of_expressions ::= * list_of_expressions COMMA expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
+
+              OPEN_CURLY_BRACE shift  11
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
+                     CLOSE_PAR shift  56
+                       BUILTIN shift  19
+                          ICON shift  20
+                          FCON shift  21
+                          SCON shift  22
+                         IDENT shift  23
+                          TRUE shift  24
+                         FALSE shift  25
+                          NULL shift  26
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  32
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+           list_of_expressions shift  6
+                          hash shift  51
 
 State 3:
           expression ::= * primitive
@@ -160,111 +190,37 @@ State 3:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
               OPEN_CURLY_BRACE shift  11
                          COMMA shift  7
-               OPEN_RECT_BRACE shift  2
-              CLOSE_RECT_BRACE shift  28
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+              CLOSE_RECT_BRACE shift  33
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                    expression shift  53
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  58
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
 
 State 4:
-          stop_expression ::= primitive * EOI
-          stop_expression ::= primitive * SEMICOLON
-          implicit_list ::= primitive * expression
-          expression ::= * primitive
-          expression ::= * container
-          container ::= * list
-          container ::= * hash
-          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
-          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR CLOSE_PAR
-          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
-          primitive ::= * BUILTIN
-          primitive ::= * ICON
-          primitive ::= * FCON
-          primitive ::= * SCON
-          primitive ::= * IDENT
-          primitive ::= * TRUE
-          primitive ::= * FALSE
-          primitive ::= * NULL
-
-                           EOI shift  32
-                     SEMICOLON shift  33
-              OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
-                       BUILTIN shift  19
-                          ICON shift  20
-                          FCON shift  21
-                          SCON shift  22
-                         IDENT shift  23
-                          TRUE shift  37
-                         FALSE shift  25
-                          NULL shift  26
-                    expression shift  34
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
-
-State 5:
-          expression ::= * primitive
-          expression ::= * container
-          container ::= * list
-          container ::= * hash
-          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
-          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR CLOSE_PAR
-          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
-          list ::= OPEN_PAR list_of_expressions * CLOSE_PAR
-          list_of_expressions ::= list_of_expressions * expression
-          list_of_expressions ::= list_of_expressions * COMMA expression
-          primitive ::= * BUILTIN
-          primitive ::= * ICON
-          primitive ::= * FCON
-          primitive ::= * SCON
-          primitive ::= * IDENT
-          primitive ::= * TRUE
-          primitive ::= * FALSE
-          primitive ::= * NULL
-
-              OPEN_CURLY_BRACE shift  11
-                         COMMA shift  7
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
-                     CLOSE_PAR shift  52
-                       BUILTIN shift  19
-                          ICON shift  20
-                          FCON shift  21
-                          SCON shift  22
-                         IDENT shift  23
-                          TRUE shift  37
-                         FALSE shift  25
-                          NULL shift  26
-                    expression shift  53
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
-
-State 6:
       (3) statement ::= implicit_list *
           implicit_list ::= implicit_list * EOI
           implicit_list ::= implicit_list * SEMICOLON
@@ -287,26 +243,140 @@ State 6:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
-                           EOI shift  40
-                     SEMICOLON shift  41
+                           EOI shift  45
+                     SEMICOLON shift  46
               OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                    expression shift  42
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  47
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
                      {default} reduce 3
+
+State 5:
+          stop_expression ::= primitive * EOI
+          stop_expression ::= primitive * SEMICOLON
+          implicit_list ::= primitive * expression
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
+
+                           EOI shift  37
+                     SEMICOLON shift  38
+              OPEN_CURLY_BRACE shift  11
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
+                       BUILTIN shift  19
+                          ICON shift  20
+                          FCON shift  21
+                          SCON shift  22
+                         IDENT shift  23
+                          TRUE shift  24
+                         FALSE shift  25
+                          NULL shift  26
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  39
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
+
+State 6:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
+          list ::= OPEN_PAR list_of_expressions * CLOSE_PAR
+          list_of_expressions ::= list_of_expressions * expression
+          list_of_expressions ::= list_of_expressions * COMMA expression
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
+
+              OPEN_CURLY_BRACE shift  11
+                         COMMA shift  7
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
+                     CLOSE_PAR shift  57
+                       BUILTIN shift  19
+                          ICON shift  20
+                          FCON shift  21
+                          SCON shift  22
+                         IDENT shift  23
+                          TRUE shift  24
+                         FALSE shift  25
+                          NULL shift  26
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  58
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
 
 State 7:
           expression ::= * primitive
@@ -328,63 +398,35 @@ State 7:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
               OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
                     expression shift  18
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
 
 State 8:
-          expression ::= * primitive
-          expression ::= * container
-          container ::= * list
-          container ::= * hash
-          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
-          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
-          list_of_associations ::= list_of_associations COMMA primitive COLON * expression
-          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR CLOSE_PAR
-          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
-          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
-          primitive ::= * BUILTIN
-          primitive ::= * ICON
-          primitive ::= * FCON
-          primitive ::= * SCON
-          primitive ::= * IDENT
-          primitive ::= * TRUE
-          primitive ::= * FALSE
-          primitive ::= * NULL
-
-              OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
-                       BUILTIN shift  19
-                          ICON shift  20
-                          FCON shift  21
-                          SCON shift  22
-                         IDENT shift  23
-                          TRUE shift  37
-                         FALSE shift  25
-                          NULL shift  26
-                    expression shift  29
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
-
-State 9:
           expression ::= * primitive
           expression ::= * container
           container ::= * list
@@ -404,23 +446,81 @@ State 9:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
               OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                    expression shift  31
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  36
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
+
+State 9:
+          expression ::= * primitive
+          expression ::= * container
+          container ::= * list
+          container ::= * hash
+          hash ::= * OPEN_CURLY_BRACE CLOSE_CURLY_BRACE
+          hash ::= * OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE
+          list_of_associations ::= list_of_associations COMMA primitive COLON * expression
+          list ::= * OPEN_RECT_BRACE CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR CLOSE_PAR
+          list ::= * OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE
+          list ::= * OPEN_PAR list_of_expressions CLOSE_PAR
+          primitive ::= * BUILTIN
+          primitive ::= * ICON
+          primitive ::= * FCON
+          primitive ::= * SCON
+          primitive ::= * IDENT
+          primitive ::= * TRUE
+          primitive ::= * FALSE
+          primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
+
+              OPEN_CURLY_BRACE shift  11
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
+                       BUILTIN shift  19
+                          ICON shift  20
+                          FCON shift  21
+                          SCON shift  22
+                         IDENT shift  23
+                          TRUE shift  24
+                         FALSE shift  25
+                          NULL shift  26
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  34
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
 
 State 10:
           expression ::= * primitive
@@ -442,23 +542,33 @@ State 10:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
               OPEN_CURLY_BRACE shift  11
-               OPEN_RECT_BRACE shift  2
-                      OPEN_PAR shift  1
+               OPEN_RECT_BRACE shift  1
+                      OPEN_PAR shift  2
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                    expression shift  49
-                     primitive shift  43
-                     container shift  44
-                          list shift  45
-                          hash shift  46
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                    expression shift  54
+                     primitive shift  48
+                     container shift  49
+                          list shift  50
+                          hash shift  51
 
 State 11:
           hash ::= OPEN_CURLY_BRACE * CLOSE_CURLY_BRACE
@@ -475,18 +585,28 @@ State 11:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
-             CLOSE_CURLY_BRACE shift  47
+             CLOSE_CURLY_BRACE shift  52
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                     primitive shift  17
-                   association shift  30
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                     primitive shift  16
+                   association shift  35
           list_of_associations shift  12
 
 State 12:
@@ -501,17 +621,27 @@ State 12:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
-             CLOSE_CURLY_BRACE shift  48
+             CLOSE_CURLY_BRACE shift  53
                          COMMA shift  13
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
                      primitive shift  15
 
 State 13:
@@ -524,24 +654,34 @@ State 13:
           primitive ::= * TRUE
           primitive ::= * FALSE
           primitive ::= * NULL
+          primitive ::= * JUMP_REL
+          primitive ::= * BREAK
+          primitive ::= * CONTINUE
+          primitive ::= * RETURN
+          primitive ::= * TAIL_CALL
 
                        BUILTIN shift  19
                           ICON shift  20
                           FCON shift  21
                           SCON shift  22
                          IDENT shift  23
-                          TRUE shift  37
+                          TRUE shift  24
                          FALSE shift  25
                           NULL shift  26
-                     primitive shift  16
+                      JUMP_REL shift  27
+                         BREAK shift  28
+                      CONTINUE shift  29
+                        RETURN shift  30
+                     TAIL_CALL shift  31
+                     primitive shift  17
 
 State 14:
           stop_expression ::= container * EOI
           stop_expression ::= container * SEMICOLON
       (8) stop_expression ::= container *
 
-                           EOI shift  35
-                     SEMICOLON shift  36
+                           EOI shift  40
+                     SEMICOLON shift  42
                      {default} reduce 8
 
 State 15:
@@ -550,12 +690,12 @@ State 15:
                          COLON shift  10
 
 State 16:
-          list_of_associations ::= list_of_associations COMMA primitive * COLON expression
+          association ::= primitive * COLON expression
 
                          COLON shift  8
 
 State 17:
-          association ::= primitive * COLON expression
+          list_of_associations ::= list_of_associations COMMA primitive * COLON expression
 
                          COLON shift  9
 
@@ -590,9 +730,9 @@ State 23:
                      {default} reduce 34
 
 State 24:
-      (0) statement ::= EOI *
+     (35) primitive ::= TRUE *
 
-                     {default} reduce 0
+                     {default} reduce 35
 
 State 25:
      (36) primitive ::= FALSE *
@@ -605,136 +745,161 @@ State 26:
                      {default} reduce 37
 
 State 27:
+     (38) primitive ::= JUMP_REL *
+
+                     {default} reduce 38
+
+State 28:
+     (39) primitive ::= BREAK *
+
+                     {default} reduce 39
+
+State 29:
+     (40) primitive ::= CONTINUE *
+
+                     {default} reduce 40
+
+State 30:
+     (41) primitive ::= RETURN *
+
+                     {default} reduce 41
+
+State 31:
+     (42) primitive ::= TAIL_CALL *
+
+                     {default} reduce 42
+
+State 32:
      (27) list_of_expressions ::= expression *
 
                      {default} reduce 27
 
-State 28:
+State 33:
      (25) list ::= OPEN_RECT_BRACE list_of_expressions CLOSE_RECT_BRACE *
 
                      {default} reduce 25
 
-State 29:
+State 34:
      (20) list_of_associations ::= list_of_associations COMMA primitive COLON expression *
 
                      {default} reduce 20
 
-State 30:
+State 35:
      (21) list_of_associations ::= association *
 
                      {default} reduce 21
 
-State 31:
+State 36:
      (22) association ::= primitive COLON expression *
 
                      {default} reduce 22
 
-State 32:
+State 37:
       (4) stop_expression ::= primitive EOI *
 
                      {default} reduce 4
 
-State 33:
+State 38:
       (5) stop_expression ::= primitive SEMICOLON *
 
                      {default} reduce 5
 
-State 34:
+State 39:
      (12) implicit_list ::= primitive expression *
 
                      {default} reduce 12
 
-State 35:
+State 40:
       (6) stop_expression ::= container EOI *
 
                      {default} reduce 6
 
-State 36:
+State 41:
+      (0) statement ::= EOI *
+
+                     {default} reduce 0
+
+State 42:
       (7) stop_expression ::= container SEMICOLON *
 
                      {default} reduce 7
 
-State 37:
-     (35) primitive ::= TRUE *
-
-                     {default} reduce 35
-
-State 38:
+State 43:
       (1) statement ::= SEMICOLON *
 
                      {default} reduce 1
 
-State 39:
+State 44:
       (2) statement ::= stop_expression *
 
                      {default} reduce 2
 
-State 40:
+State 45:
       (9) implicit_list ::= implicit_list EOI *
 
                      {default} reduce 9
 
-State 41:
+State 46:
      (10) implicit_list ::= implicit_list SEMICOLON *
 
                      {default} reduce 10
 
-State 42:
+State 47:
      (11) implicit_list ::= implicit_list expression *
 
                      {default} reduce 11
 
-State 43:
+State 48:
      (13) expression ::= primitive *
 
                      {default} reduce 13
 
-State 44:
+State 49:
      (14) expression ::= container *
 
                      {default} reduce 14
 
-State 45:
+State 50:
      (15) container ::= list *
 
                      {default} reduce 15
 
-State 46:
+State 51:
      (16) container ::= hash *
 
                      {default} reduce 16
 
-State 47:
+State 52:
      (17) hash ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE *
 
                      {default} reduce 17
 
-State 48:
+State 53:
      (18) hash ::= OPEN_CURLY_BRACE list_of_associations CLOSE_CURLY_BRACE *
 
                      {default} reduce 18
 
-State 49:
+State 54:
      (19) list_of_associations ::= list_of_associations primitive COLON expression *
 
                      {default} reduce 19
 
-State 50:
+State 55:
      (23) list ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE *
 
                      {default} reduce 23
 
-State 51:
+State 56:
      (24) list ::= OPEN_PAR CLOSE_PAR *
 
                      {default} reduce 24
 
-State 52:
+State 57:
      (26) list ::= OPEN_PAR list_of_expressions CLOSE_PAR *
 
                      {default} reduce 26
 
-State 53:
+State 58:
      (28) list_of_expressions ::= list_of_expressions expression *
 
                      {default} reduce 28
@@ -761,15 +926,20 @@ Symbols:
    17: TRUE
    18: FALSE
    19: NULL
-   20: error:
-   21: implicit_list: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   22: expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   23: stop_expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   24: primitive: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   25: container: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR
-   26: list: OPEN_RECT_BRACE OPEN_PAR
-   27: list_of_expressions: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   28: hash: OPEN_CURLY_BRACE
-   29: association: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   30: list_of_associations: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
-   31: statement: EOI SEMICOLON OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL
+   20: JUMP_REL
+   21: BREAK
+   22: CONTINUE
+   23: RETURN
+   24: TAIL_CALL
+   25: error:
+   26: implicit_list: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   27: expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   28: stop_expression: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   29: primitive: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   30: container: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR
+   31: list: OPEN_RECT_BRACE OPEN_PAR
+   32: list_of_expressions: OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   33: hash: OPEN_CURLY_BRACE
+   34: association: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   35: list_of_associations: BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
+   36: statement: EOI SEMICOLON OPEN_CURLY_BRACE OPEN_RECT_BRACE OPEN_PAR BUILTIN ICON FCON SCON IDENT TRUE FALSE NULL JUMP_REL BREAK CONTINUE RETURN TAIL_CALL
