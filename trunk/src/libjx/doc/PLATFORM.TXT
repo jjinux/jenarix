@@ -198,40 +198,55 @@ III. The JXON Intermediate Language
 
 #    Also, despite the name, the JSON serializiation protocol doesn't
 #    really have objects -- just lists (JavaScript arrays) and hashes
-#    (JavaScript objects).  Nevertheless, we do want to introduce new
-#    containers into JXON to support objects in a way that would break
-#    our connection with JSON.
+#    (JavaScript objects).  Nevertheless, we do not want to introduce
+#    new containers into JXON to support objects in a way that would
+#    break our close connection with JSON.
 
-#    Jenarix Entities are what passess for high-level objects in the
-#    Jenarix environment.  Entities are merely lists which have an
-#    entity identifier as the first element of the list, an (optional)
-#    list of content as the second element of the list, and an
-#    (optional) hash table for attributes as the third element of the
-#    list:   [Entity, [content], {attributes}] 
+#    Jenarix Entities are what pass for high-level objects in the
+#    Jenarix environment.  Entities are merely JXON lists which have
+#    an entity identifier as the first element of the list, an
+#    (optional) list of content as the second element of the list, and
+#    an (optional) hash table for attributes as the third element of
+#    the list: [entity-identifier, [content-list], {attribute-hash}]
 
-#    JXON Examples include:
+#    Examples of JXON Entities include:
 
-(Unity)
+(Unity);
 
-(Vector [0 0 0])
+(Vector [0 0 0]);
 
 (Matrix
   [1 0 0
    0 1 0 
    0 0 1]
-  {dim:[3,3]})
+  {dim:[3,3]});
 
 #    Jenarix Entities behave much like objects in that they can have
-#    bound methods which operate on underlying container, and functions
-#    can exhibit polymorphic behavior based on what entities are passed in.
+#    instance-specific bound methods which operate on underlying
+#    container, and functions can exhibit polymorphic behavior based
+#    on what entities are passed in.  These magic behaviors arise so
+#    long as the entity identifier has been blessed using the entity
+#    function.
+
+(entity Matrix);
 
 #    The class instance-like behavior of Entities is due to the
 #    presence of the identifier field, which provides an index into
 #    the thread's current namespace.  Provided that a thread has
-#    associated the Entity identifier with an
-#    Entity-identifier-specific entry, all Entityies which share that
-#    identifier will exhibit behaviors in common.
+#    blessd the Entity identifier in order to associate it with an
+#    Entity-specific namespace, all Entities which share that
+#    identifier will exhibit a set of behaviors in common.
 
+#    The Jenarix Entity strategy enable all threads and functions can
+#    store and pass entities along whether or not they have loaded the
+#    appropriate code modules for a given entity.  That is because
+#    entities look like, and are structured as ordinary JXON data.
+
+#    However, threads and functions that seek to manipulate Entities
+#    as structured data, and call methods upon them will need to load
+#    the associated code modules for a given entity class, or at least
+#    bless the associated identifier before attempting to call methods
+#    on a given entity.
 
 
 
