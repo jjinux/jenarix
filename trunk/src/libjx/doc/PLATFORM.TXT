@@ -15,7 +15,8 @@
 #  "Jenarix eXecutable Object Notation", or if you prefer, the 
 #  "JSON eXecutable Object Notation".
 
-#  Think of JSON as data, and JXON as code with embedded JSON data.
+#  Think of JSON as data, and think of JXON as exectable code with
+#  embedded JSON data.  JXON is turing-complete JSON.
 
 #  - The JXON VM processes abstract syntax trees (ASTs) in much the
 #    same way as a LISP or Scheme interpreter.  However, instead of
@@ -26,10 +27,12 @@
 #    and the action selectors and opcodes present in the AST drive the
 #    builtin aspects of the JXON VM.  
 
-#    Although JXON could conceivably be compiled, VM performance is
-#    not the main goal of the Jenarix runtime since it is assumed that
-#    performance-critical aspects of Jenarix-based applications will
-#    be written in the platform's native language.
+#    Although JXON ASTs could conceivably be compiled, VM performance
+#    is not the main goal of the Jenarix runtime since it is assumed
+#    that performance-critical aspects of Jenarix-based applications
+#    will be written in the platform's native language.  In limited
+#    testing so far, an -O3 optimized CJenarix runtime is typically
+#    2-5 times slower than CPython.
 
 #  - JXON is intended to serve as the native intermediate language for
 #    the Jenarix virtual architecture and as a front end language for
