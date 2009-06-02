@@ -553,13 +553,23 @@ JX_INLINE jx_ob jx_safe_size(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_append(jx_ob node, jx_ob payload)
 {
-  jx_ob container = jx_list_borrow(payload,0);
-  if(jx_ident_check(container)) 
-    container = jx_hash_borrow(node,container);
-  return jx_ob_from_status
-    ( jx_list_append( container,
-                      jx_ob_not_weak_with_ob
-                      ( jx_list_swap_with_null(payload,1))));
+  jx_ob container = node;
+  jx_ob target =  jx_list_borrow(payload,0);
+  if(JX_POS(jx__resolve(&container,&target))) {
+    switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_HASH:
+      container = jx_hash_borrow(container,target);
+      return jx_ob_from_status
+        ( jx_list_append( container,
+                          jx_ob_not_weak_with_ob
+                          ( jx_list_swap_with_null(payload,1))));
+    default:
+      return jx_ob_from_null();
+      break;
+    }
+  } else {
+    return jx_ob_from_null();
+  }
 }
 
 JX_INLINE jx_ob jx_safe_extend(jx_ob node, jx_ob payload)

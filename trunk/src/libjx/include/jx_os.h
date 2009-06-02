@@ -103,6 +103,7 @@
 #define jx_os_strcmp strcmp
 #define jx_os_strncmp strncmp
 #define jx_os_strlen(x) ((jx_size)strlen(x))
+#define jx_os_strstr strstr
 #define jx_os_qsort qsort
 #define jx_os_rand rand
 
@@ -258,7 +259,7 @@ typedef struct timeval jx_os_timeval;
 #define jx_stderr jx_os_stderr
 #define jx_stdout jx_os_stdout
 #define jx_strlen jx_os_strlen
-
+#define jx_strstr jx_os_strstr
 /* defines */
 
 #ifdef __cplusplus

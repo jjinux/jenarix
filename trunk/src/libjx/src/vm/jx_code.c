@@ -106,94 +106,8 @@ jx_status jx_code_expose_secure_builtins(jx_ob names)
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 
-#if 0
-
-// unneccesary -- we've eliminated weak references from JXON runtime
-
-/* this crucial transformation wraps secure branches containing borrow
-   operations (weak references), and replaces insecure borrow
-   operations with get operations */
-
-static jx_ob jx__code_secure_with_source(jx_ob source,jx_int level)
-{
-  switch (JX_META_MASK_TYPE_BITS & source.meta.bits) {
-  case JX_META_BIT_LIST:
-    if(source.data.io.list->packed_meta_bits) { /* packed lists cannot contain code */
-      return source;
-    } else {
-      jx_int size = jx_list_size(source);
-      jx_ob result = jx_list_new_with_size(size);
-      jx_ob list = result;
-      jx_bool must_secure = JX_FALSE;
-      jx_ob first = jx_list_borrow(source,0);
-      while(size--) {
-        jx_ob entry1 = jx_list_remove(source,size);
-        if((!level) && 
-           jx_builtin_selector_check(entry1) && 
-           (entry1.data.io.int_ == JX_SELECTOR_BORROW)) {
-          jx_ob_replace(&entry1,jx_builtin_new_from_selector(JX_SELECTOR_GET));
-        } else if(jx_list_check(entry1)) {
-          jx_int size1 = jx_list_size(entry1);
-          while(size1--) {
-            jx_ob entry2 = jx_list_borrow(entry1,size1);              
-            if((!level) && 
-               jx_builtin_selector_check(entry2) && 
-               (entry2.data.io.int_ == JX_SELECTOR_BORROW)) {
-              jx_list_replace(entry1,size1,jx_builtin_new_from_selector(JX_SELECTOR_GET));
-            } else if(jx_list_check(entry2)) {
-              jx_int size2 = jx_list_size(entry2);
-              while(size2--) {
-                jx_ob entry3 = jx_list_borrow(entry2,size2);              
-                if(jx_builtin_selector_check(entry3) && 
-                   (entry3.data.io.int_ == JX_SELECTOR_BORROW)) {
-                  if(allow_borrow) {
-                    must_secure = JX_TRUE; 
-                  } else {
-                    jx_list_replace(entry2,size2,jx_builtin_new_from_selector(JX_SELECTOR_GET));
-                  }
-                }
-              }
-            }
-          }
-        }
-        jx_list_replace(list, size,jx__code_secure_with_source(entry1,level+1));
-      }
-      jx_ob_free(source);
-      return result;
-    }
-    break;
-  case JX_META_BIT_BUILTIN:
-  case JX_META_BIT_IDENT:
-  case JX_META_BIT_BOOL:
-  case JX_META_BIT_FLOAT:
-  case JX_META_BIT_INT:
-  case JX_META_BIT_STR:
-    return source;
-    break;
-  case JX_META_BIT_HASH:
-    {
-      jx_ob result = jx_hash_new();
-      jx_ob list = jx_list_new_with_hash(source);       /* destroys source */
-      jx_int size = jx_list_size(list);
-      while(size) {
-        jx_ob key = jx_list_remove(list, 0);
-        jx_ob value = jx_list_remove(list, 0);
-        size = size - 2;
-        jx_hash_set(result, key, jx__code_secure_with_source(value,level+1));
-      }
-      jx_ob_free(list);
-      return result;
-    }
-    break;
-   default:                     
-    jx_ob_free(source);
-    return jx_ob_from_null();
-    break;
-  }
-}
-#endif
-
 /* consume source & return builtin-bound executable */
+
 static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source)
 {
   switch (JX_META_MASK_TYPE_BITS & source.meta.bits) {
@@ -231,6 +145,7 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source)
             case JX_SELECTOR_SET:
             case JX_SELECTOR_HAS:
             case JX_SELECTOR_DEL:
+            case JX_SELECTOR_APPEND:
             case JX_SELECTOR_FOREACH:
             case JX_SELECTOR_LAMBDA:
             case JX_SELECTOR_INCR:

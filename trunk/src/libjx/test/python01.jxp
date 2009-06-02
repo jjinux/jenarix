@@ -9,7 +9,7 @@ print a
 
 b = {"some key":[1,2,3], 3:"some value", "another key":"another value",8.4:0}
 
-print b, size(b)
+print b, len(b)
 
 # REMEMBER, Jenarix uses copy semantics, not reference-taking semantics, so
 
@@ -17,7 +17,7 @@ d = {"some key":"value"}
 
 c = d
 
-set(c,"another key","value")
+c["another key"] ="value"
 
 print c
 
@@ -29,7 +29,7 @@ print d
 
 # we have print
 
-print "hello Python world!!!" " Can you hear me now?"
+print "hello Python world!!!" " Can you hear me?"
 
 # we have for loops (simple iterator)
 

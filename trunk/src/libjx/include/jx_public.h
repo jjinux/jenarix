@@ -150,6 +150,7 @@ jx_ob jx_ob_from_float(jx_float float_);
 jx_ob jx_ob_from_str(jx_char * str);    /* copies string into new storage */
 jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len); /* copies string into new storage */
 jx_ob jx_ob_from_ident(jx_char * ident);  /* copies identifier into new storage */
+jx_ob jx_ob_from_ident_with_len(jx_char * str, jx_int len); /* copies string into new storage */
 
 /* unboxing / volatile / not-gaureanteed casts for inline use */
 
@@ -204,7 +205,7 @@ jx_status jx_ob_into_strcat(jx_char *buf, jx_int buf_size, jx_ob ob);
 
 /* determining object type */
 
-jx_bool jx_ob_check(jx_ob ob);
+jx_bool jx_gc_check(jx_ob ob);
 jx_bool jx_null_check(jx_ob ob);
 jx_bool jx_bool_check(jx_ob ob);
 jx_bool jx_int_check(jx_ob ob);

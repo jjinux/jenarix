@@ -653,6 +653,11 @@ JX_INLINE jx_bool jx_opcode_check(jx_ob ob)
   return (ob.meta.bits & JX_META_BIT_OPCODE);
 }
 
+JX_INLINE jx_bool jx_gc_check(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_GC) && JX_TRUE;
+}
+
 JX_INLINE jx_bool jx_null_check(jx_ob ob)
 {
   return !ob.meta.bits;

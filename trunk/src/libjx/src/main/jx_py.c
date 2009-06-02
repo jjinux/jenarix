@@ -33,11 +33,66 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_main_tools.h"
 
+#define JX_MODE_AUTOMATIC      0
+#define JX_MODE_CONSOLE        1
+#define JX_MODE_EVALUATE       2
+#define JX_MODE_PARSE_ONLY     3
+#define JX_MODE_TRANSLATE_ONLY 4
+#define JX_MODE_COMPILE_ONLY   5
+#define JX_MODE_EXECUTE        6
+
 int main(int argc, char *argv[])
 {
   FILE *input = stdin;
-  if(argc>1) {
-    input = fopen(argv[1],"rb");
+  jx_int mode = JX_MODE_AUTOMATIC;
+  {
+    jx_int arg = 1;
+    while(arg<argc) {
+      switch(argv[arg][0]) {
+      case '-':
+        {
+          char *ch = argv[arg]+1;
+          while(*ch) {
+            switch(*(ch++)) {
+            case 'p':
+              mode = JX_MODE_PARSE_ONLY;
+              break;
+            case 't':
+              mode = JX_MODE_TRANSLATE_ONLY;
+              break;
+            case 'c':
+              mode = JX_MODE_COMPILE_ONLY;
+              break;
+            case 'e':
+              mode = JX_MODE_EVALUATE;
+              break;
+            case 'x':
+              mode = JX_MODE_EXECUTE;
+              break;
+            case 'n':
+              mode = JX_MODE_CONSOLE;
+              break;
+            case 'h':
+              fprintf(stderr,"usage: ./jxp -[cehtx] file\n");
+              fprintf(stderr," -c stop after compilation\n");
+              fprintf(stderr," -e evaluate and print return values\n");
+              fprintf(stderr," -h print help\n");
+              fprintf(stderr," -n console mode\n");
+              fprintf(stderr," -t stop after parsing\n");
+              fprintf(stderr," -t stop after translation\n");
+              fprintf(stderr," -x just execute (suppress return values)\n");
+              exit(-1);
+              break;
+            }
+          }
+        }
+        break;  
+      default:
+        input = fopen(argv[arg],"rb");
+        break;
+      }
+      arg++;
+    }
   }
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
     
@@ -46,11 +101,18 @@ int main(int argc, char *argv[])
     jx_ob node = jx_hash_new();
     jx_bool console = jx_adapt_for_console(input);
 
+    if(mode == JX_MODE_AUTOMATIC) {
+      if(console)
+        mode = JX_MODE_CONSOLE;
+      else
+        mode = JX_MODE_EXECUTE;
+    }
+
     jx_code_expose_secure_builtins(names);
 
     jx_py_expose_python_builtins(names);
 
-    printf("Jenarix Python-like Syntax (JXP):\n");
+    if(console) printf("Jenarix Python-like Syntax (JXP):\n");
 
     {
       jx_ob tree = JX_OB_NULL;
@@ -60,35 +122,55 @@ int main(int argc, char *argv[])
         status = jx_py_scanner_next_ob(&tree, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# parsed", tree);
-          {
-            jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
-            
-            if(console) jx_jxon_dump(stdout, "# source", source);
+          if(mode == JX_MODE_PARSE_ONLY) {
+            jx_ob jxon = jx_ob_to_jxon(tree);
+            printf("%s;\n",jx_ob_as_str(&jxon));
+            jx_ob_free(jxon);
+          } else {
+            if(mode == JX_MODE_CONSOLE) jx_jxon_dump(stdout, "# parsed", tree);
             {
-              jx_ob code = jx_code_bind_with_source(names, source);
-              source = jx_ob_from_null();
-                      
-              jx_jxon_dump(stdout, "#   eval", code);
-              {
-                jx_ob result = jx_code_eval(node,code);
-
-                if(!jx_null_check(result)) {
-                  /* swallow null values just like Python does */
-
-                  if(console) {
-                    jx_jxon_dump(stdout, "# result", result);
-                  } else {
-                    jx_ob jxon = jx_ob_to_jxon(result);
+              jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
+            
+              if(mode == JX_MODE_TRANSLATE_ONLY) {
+                jx_ob jxon = jx_ob_to_jxon(source);
+                printf("%s;\n",jx_ob_as_str(&jxon));
+                jx_ob_free(jxon);
+              } else {
+                if(mode == JX_MODE_CONSOLE) 
+                  jx_jxon_dump(stdout, "# source", source);
+                {
+                  jx_ob code = jx_code_bind_with_source(names, source);
+                  source = jx_ob_from_null();
+                  if(mode == JX_MODE_COMPILE_ONLY) {
+                    jx_ob jxon = jx_ob_to_jxon(code);
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
+                  
+                  } else {
+                    if(mode == JX_MODE_CONSOLE)
+                    jx_jxon_dump(stdout, "#   eval", code);
+                    {
+                      jx_ob result = jx_code_eval(node,code);
+                    
+                      if(!jx_null_check(result)) {
+                        /* swallow null values just like Python does */
+                      
+                        if(console) {
+                          jx_jxon_dump(stdout, "# result", result);
+                        } else if(mode == JX_MODE_EVALUATE) {
+                          jx_ob jxon = jx_ob_to_jxon(result);
+                          printf("%s;\n",jx_ob_as_str(&jxon));
+                          jx_ob_free(jxon);
+                        }
+                      }
+                      jx_ob_free(result);
+                    }
                   }
+                  jx_ob_free(code);
                 }
-                jx_ob_free(result);
               }
-              jx_ob_free(code);
+              jx_ob_free(source);
             }
-            jx_ob_free(source);
           }
           break;
         case JX_STATUS_SYNTAX_ERROR: /* catch this error */

@@ -744,12 +744,31 @@ jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_STR | len;
-    jx_os_memcpy(result.data.io.tiny_str, str, len + 1);
+    jx_os_memcpy(result.data.io.tiny_str, str, len);
   } else {
     /* string not tiny -- use heap */
     result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
+      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
+      result.data.io.str[sizeof(jx_str) + len] = 0;
+    }
+  }
+  return result;
+}
+
+jx_ob jx_ob_from_ident_with_len(jx_char * str, jx_int len)
+{
+  jx_ob result = JX_OB_NULL;
+
+  if(len < JX_TINY_STR_SIZE) {
+    result.meta.bits = JX_META_BIT_IDENT | len;
+    jx_os_memcpy(result.data.io.tiny_str, str, len );
+  } else {
+    /* string not tiny -- use heap */
+    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
+    if(result.data.io.str) {
+      result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
       jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
       result.data.io.str[sizeof(jx_str) + len] = 0;
     }

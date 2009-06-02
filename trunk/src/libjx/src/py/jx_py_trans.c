@@ -33,9 +33,92 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_private.h"
 #include "jx_heap.h"
 
-jx_ob jx_py_translate_with_tree(jx_ob tree)
+static jx_ob jx_ident_split_from_dotted(jx_ob ident)
 {
-  return tree;
+  if(jx_ident_check(ident)) {
+    jx_char *st = jx_ob_as_ident(&ident);
+    if(jx_strstr(st,".")) { /* dot present */
+      jx_ob result = jx_list_new();
+      jx_char *next;
+      while( (next=jx_strstr(st,".")) ) {
+        jx_int len = (next-st);
+        if(len>0) {
+          jx_list_append(result, jx_ob_from_ident_with_len(st,len));
+        } else {
+          jx_ob_free(result);
+          return jx_null_with_ob(ident);
+        }
+        st = next+1;
+      }
+      jx_list_append(result, jx_ob_from_ident(st));
+      return result;
+    } else
+      return jx_ob_copy(ident);
+  } else {
+    return jx_ob_from_null();
+  }
+}
+
+jx_ob jx_py_translate_with_tree(jx_ob source)
+{
+  /* transform the AST to map recognized Python constructs into JXON
+     input source */
+  switch (JX_META_MASK_TYPE_BITS & source.meta.bits) {
+  case JX_META_BIT_LIST:
+    if(source.data.io.list->packed_meta_bits) { /* packed lists cannot contain code */
+      return source;
+    } else {
+      jx_ob ident = jx_list_borrow(source, 0);
+      if(jx_ident_check(ident)) {
+        ident = jx_ident_split_from_dotted(ident);
+        if(jx_list_check(ident)) {
+          jx_list_replace(source,0,jx_list_pop(ident));
+          jx_list_insert(source,1,ident);
+        } else {
+          if(jx_ob_identical(ident,jx_ob_from_ident("len"))) {
+            jx_list_replace(source,0,jx_ob_from_ident("size"));
+          }
+        }
+      }
+      
+      {
+        jx_int size = jx_list_size(source);
+        while(size--) {
+          jx_ob entry = jx_list_swap_with_null(source,size);
+          entry = jx_py_translate_with_tree(entry);
+          jx_list_replace(source, size, entry);
+        }
+      }
+    }
+    return source;
+    break;
+  case JX_META_BIT_HASH:
+    { /* TO DO refactor to avoid rehashing */
+      jx_ob result = jx_hash_new();
+      jx_ob list = jx_list_new_with_hash(source);       /* destroys source */
+      jx_int size = jx_list_size(list);
+      while(size) {
+        jx_ob key = jx_list_remove(list, 0);
+        jx_ob value = jx_list_remove(list, 0);
+        size = size - 2;
+        jx_hash_set(result, key, jx_py_translate_with_tree(value));
+      }
+      jx_ob_free(list);
+      return result;
+    }
+    break;
+  case JX_META_BIT_IDENT:
+  case JX_META_BIT_BOOL:
+  case JX_META_BIT_FLOAT:
+  case JX_META_BIT_INT:
+  case JX_META_BIT_STR:
+    return source;
+    break;
+  default:                     
+    jx_ob_free(source);
+    return jx_ob_from_null();
+    break;
+  }
 }
 
 jx_ob jx_py_print(jx_ob node, jx_ob payload)
