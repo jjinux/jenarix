@@ -201,8 +201,9 @@ static int jx_scan(jx_py_scanner_state *s)
     "pass"   { RET(JX_PY_PASS); }
     "def"    { RET(JX_PY_DEF); }
     "lambda" { RET(JX_PY_LAMBDA);}
+    "return" { RET(JX_PY_RETURN); }
 
-    ("0" [xX] H+ IS?) | ("0" D+ IS?) | (D+ IS?) { RET(JX_PY_ICON); }
+    ("0" [xX] H+ IS?) | ("0" D+ IS?) | ( D+ IS?) { RET(JX_PY_ICON); }
     
     (D+ E FS?) | ( D* "." D+ E? FS?) | (D+ "." D* E? FS?)  { RET(JX_PY_FCON); }
 
@@ -305,7 +306,6 @@ comment:
     "import" { RET(JX_PY_IMPORT); }
     "is"     { RET(JX_PY_IS);}
     "or"     { RET(JX_PY_OR);}
-    "return" { RET(JX_PY_RETURN); }
 #endif
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_PY_ICON); }
@@ -894,7 +894,7 @@ void jx_py_echo_stdin(void)
       break;
     case JX_YES: /* accepted */
       {
-        jx_ob jxon = jx_ob_to_jxon(state.context.result);
+        jx_ob jxon = jx_ob_to_jxon(jx_ob_from_null(), state.context.result);
         if(state.n_tok_parsed)
           printf("%s;\n",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);

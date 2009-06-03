@@ -78,47 +78,47 @@ int main(int argc, char **argv)
   }
 
   {
-    P1("1 == %d", jx_null_check(jx_ob_from_null()));
-    P1("0 == %d", jx_null_check(jx_ob_from_bool(JX_FALSE)));
-    P1("0 == %d", jx_null_check(jx_ob_from_int(0)));
-    P1("0 == %d", jx_null_check(jx_ob_from_float(1.0)));
-    P1("0 == %d", jx_null_check(jx_ob_from_str("tny")));
+    P1("1 == %d", JX_TRUE && jx_null_check(jx_ob_from_null()));
+    P1("0 == %d", JX_TRUE && jx_null_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", JX_TRUE && jx_null_check(jx_ob_from_int(0)));
+    P1("0 == %d", JX_TRUE && jx_null_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", JX_TRUE && jx_null_check(jx_ob_from_str("tny")));
 
-    P1("0 == %d", jx_bool_check(jx_ob_from_null()));
-    P1("1 == %d", jx_bool_check(jx_ob_from_bool(JX_FALSE)));
-    P1("0 == %d", jx_bool_check(jx_ob_from_int(0)));
-    P1("0 == %d", jx_bool_check(jx_ob_from_float(1.0)));
-    P1("0 == %d", jx_bool_check(jx_ob_from_str("tny")));
+    P1("0 == %d", JX_TRUE && jx_bool_check(jx_ob_from_null()));
+    P1("1 == %d", JX_TRUE && jx_bool_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", JX_TRUE && jx_bool_check(jx_ob_from_int(0)));
+    P1("0 == %d", JX_TRUE && jx_bool_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", JX_TRUE && jx_bool_check(jx_ob_from_str("tny")));
 
-    P1("0 == %d", jx_int_check(jx_ob_from_null()));
-    P1("0 == %d", jx_int_check(jx_ob_from_bool(JX_FALSE)));
-    P1("1 == %d", jx_int_check(jx_ob_from_int(0)));
-    P1("0 == %d", jx_int_check(jx_ob_from_float(1.0)));
-    P1("0 == %d", jx_int_check(jx_ob_from_str("tny")));
+    P1("0 == %d", JX_TRUE && jx_int_check(jx_ob_from_null()));
+    P1("0 == %d", JX_TRUE && jx_int_check(jx_ob_from_bool(JX_FALSE)));
+    P1("1 == %d", JX_TRUE && jx_int_check(jx_ob_from_int(0)));
+    P1("0 == %d", JX_TRUE && jx_int_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", JX_TRUE && jx_int_check(jx_ob_from_str("tny")));
 
-    P1("0 == %d", jx_float_check(jx_ob_from_null()));
-    P1("0 == %d", jx_float_check(jx_ob_from_bool(JX_FALSE)));
-    P1("0 == %d", jx_float_check(jx_ob_from_int(0)));
-    P1("1 == %d", jx_float_check(jx_ob_from_float(1.0)));
-    P1("0 == %d", jx_float_check(jx_ob_from_str("tny")));
+    P1("0 == %d", JX_TRUE && jx_float_check(jx_ob_from_null()));
+    P1("0 == %d", JX_TRUE && jx_float_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", JX_TRUE && jx_float_check(jx_ob_from_int(0)));
+    P1("1 == %d", JX_TRUE && jx_float_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", JX_TRUE && jx_float_check(jx_ob_from_str("tny")));
 
-    P1("0 == %d", jx_str_check(jx_ob_from_null()));
-    P1("0 == %d", jx_str_check(jx_ob_from_bool(JX_FALSE)));
-    P1("0 == %d", jx_str_check(jx_ob_from_int(0)));
-    P1("0 == %d", jx_str_check(jx_ob_from_float(1.0)));
-    P1("1 == %d", jx_str_check(jx_ob_from_str("tny")));
+    P1("0 == %d", JX_TRUE && jx_str_check(jx_ob_from_null()));
+    P1("0 == %d", JX_TRUE && jx_str_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", JX_TRUE && jx_str_check(jx_ob_from_int(0)));
+    P1("0 == %d", JX_TRUE && jx_str_check(jx_ob_from_float(1.0)));
+    P1("1 == %d", JX_TRUE && jx_str_check(jx_ob_from_str("tny")));
 
-    P1("0 == %d", jx_list_check(jx_ob_from_null()));
-    P1("0 == %d", jx_list_check(jx_ob_from_bool(JX_FALSE)));
-    P1("0 == %d", jx_list_check(jx_ob_from_int(0)));
-    P1("0 == %d", jx_list_check(jx_ob_from_float(1.0)));
-    P1("0 == %d", jx_list_check(jx_ob_from_str("tny")));
+    P1("0 == %d", JX_TRUE && jx_list_check(jx_ob_from_null()));
+    P1("0 == %d", JX_TRUE && jx_list_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", JX_TRUE && jx_list_check(jx_ob_from_int(0)));
+    P1("0 == %d", JX_TRUE && jx_list_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", JX_TRUE && jx_list_check(jx_ob_from_str("tny")));
 
-    P1("0 == %d", jx_hash_check(jx_ob_from_null()));
-    P1("0 == %d", jx_hash_check(jx_ob_from_bool(JX_FALSE)));
-    P1("0 == %d", jx_hash_check(jx_ob_from_int(0)));
-    P1("0 == %d", jx_hash_check(jx_ob_from_float(1.0)));
-    P1("0 == %d", jx_hash_check(jx_ob_from_str("tny")));
+    P1("0 == %d", JX_TRUE && jx_hash_check(jx_ob_from_null()));
+    P1("0 == %d", JX_TRUE && jx_hash_check(jx_ob_from_bool(JX_FALSE)));
+    P1("0 == %d", JX_TRUE && jx_hash_check(jx_ob_from_int(0)));
+    P1("0 == %d", JX_TRUE && jx_hash_check(jx_ob_from_float(1.0)));
+    P1("0 == %d", JX_TRUE && jx_hash_check(jx_ob_from_str("tny")));
   }
 
   {

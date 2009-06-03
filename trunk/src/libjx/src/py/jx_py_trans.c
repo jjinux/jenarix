@@ -33,32 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_private.h"
 #include "jx_heap.h"
 
-static jx_ob jx_ident_split_from_dotted(jx_ob ident)
-{
-  if(jx_ident_check(ident)) {
-    jx_char *st = jx_ob_as_ident(&ident);
-    if(jx_strstr(st,".")) { /* dot present */
-      jx_ob result = jx_list_new();
-      jx_char *next;
-      while( (next=jx_strstr(st,".")) ) {
-        jx_int len = (next-st);
-        if(len>0) {
-          jx_list_append(result, jx_ob_from_ident_with_len(st,len));
-        } else {
-          jx_ob_free(result);
-          return jx_null_with_ob(ident);
-        }
-        st = next+1;
-      }
-      jx_list_append(result, jx_ob_from_ident(st));
-      return result;
-    } else
-      return jx_ob_copy(ident);
-  } else {
-    return jx_ob_from_null();
-  }
-}
-
 jx_ob jx_py_translate_with_tree(jx_ob source)
 {
   /* transform the AST to map recognized Python constructs into JXON
@@ -69,17 +43,10 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
       return source;
     } else {
       jx_ob ident = jx_list_borrow(source, 0);
-      if(jx_ident_check(ident)) {
-        ident = jx_ident_split_from_dotted(ident);
-        if(jx_list_check(ident)) {
-          jx_list_replace(source,0,jx_list_pop(ident));
-          jx_list_insert(source,1,ident);
-        } else {
-          if(jx_ob_identical(ident,jx_ob_from_ident("len"))) {
-            jx_list_replace(source,0,jx_ob_from_ident("size"));
-          }
-        }
+      if(jx_ob_identical(ident,jx_ob_from_ident("len"))) {
+          jx_list_replace(source,0,jx_ob_from_ident("size"));
       }
+
       
       {
         jx_int size = jx_list_size(source);
@@ -132,7 +99,7 @@ jx_ob jx_py_print(jx_ob node, jx_ob payload)
       break;
     default:
       {    
-        jx_ob jxon = jx_ob_to_jxon(ob);
+        jx_ob jxon = jx_ob_to_jxon(node, ob);
         fprintf(stdout,"%s",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);
       }
@@ -160,6 +127,12 @@ jx_status jx_py_expose_python_builtins(jx_ob names)
   jx_bool ok = JX_TRUE;
 
   ok = jx_declare(ok, names, "print", jx_py_print);
+
+  jx_hash_set(names,jx_ob_from_ident("has_key"),
+              jx_hash_get(names,jx_ob_from_ident("has")));
+  
+  jx_hash_set(names,jx_ob_from_ident("xrange"),
+              jx_hash_get(names,jx_ob_from_ident("range")));
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

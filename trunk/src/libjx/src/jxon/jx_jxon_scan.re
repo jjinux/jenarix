@@ -386,7 +386,7 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
             case JX_JXON_SCON:
               buffer[st_len-1]=0;
               token = jx_ob_from_str(buffer+1);
-              break;
+              break; 
             case JX_JXON_IDENT:
               token = jx_ob_from_ident(buffer);
               break;
@@ -442,6 +442,7 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
         }
         break;
       default:
+        jx_ob_free(state->saved_token);
         state->saved_token_type = tok_type;
         state->saved_token = jx_ob_copy(token);
         break;
@@ -544,7 +545,7 @@ void jx_jxon_echo_stdin(void)
       break;
     case JX_YES: /* accepted */
       {
-        jx_ob jxon = jx_ob_to_jxon(state.context.result);
+        jx_ob jxon = jx_ob_to_jxon(jx_ob_from_null(),state.context.result);
         if(state.n_tok_parsed)
           printf("%s;\n",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);

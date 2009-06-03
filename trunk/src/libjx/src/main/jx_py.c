@@ -95,7 +95,6 @@ int main(int argc, char *argv[])
     }
   }
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
-    
     jx_ob names = jx_hash_new();
     jx_ob scanner = jx_py_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
@@ -112,6 +111,8 @@ int main(int argc, char *argv[])
 
     jx_py_expose_python_builtins(names);
 
+    jx_hash_set(node, jx_ob_from_null(), names);
+
     if(console) printf("Jenarix Python-like Syntax (JXP):\n");
 
     {
@@ -123,32 +124,32 @@ int main(int argc, char *argv[])
         switch(status) {
         case JX_YES:
           if(mode == JX_MODE_PARSE_ONLY) {
-            jx_ob jxon = jx_ob_to_jxon(tree);
+            jx_ob jxon = jx_ob_to_jxon(node,tree);
             printf("%s;\n",jx_ob_as_str(&jxon));
             jx_ob_free(jxon);
           } else {
-            if(mode == JX_MODE_CONSOLE) jx_jxon_dump(stdout, "# parsed", tree);
+            if(mode == JX_MODE_CONSOLE) jx_jxon_dump(stdout, "# parsed", node, tree);
             {
               jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
             
               if(mode == JX_MODE_TRANSLATE_ONLY) {
-                jx_ob jxon = jx_ob_to_jxon(source);
+                jx_ob jxon = jx_ob_to_jxon(node,source);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               } else {
                 if(mode == JX_MODE_CONSOLE) 
-                  jx_jxon_dump(stdout, "# source", source);
+                  jx_jxon_dump(stdout, "# source", node, source);
                 {
                   jx_ob code = jx_code_bind_with_source(names, source);
                   source = jx_ob_from_null();
                   if(mode == JX_MODE_COMPILE_ONLY) {
-                    jx_ob jxon = jx_ob_to_jxon(code);
+                    jx_ob jxon = jx_ob_to_jxon(node,code);
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
                   
                   } else {
                     if(mode == JX_MODE_CONSOLE)
-                    jx_jxon_dump(stdout, "#   eval", code);
+                      jx_jxon_dump(stdout, "#   eval", node, code);
                     {
                       jx_ob result = jx_code_eval(node,code);
                     
@@ -156,9 +157,9 @@ int main(int argc, char *argv[])
                         /* swallow null values just like Python does */
                       
                         if(console) {
-                          jx_jxon_dump(stdout, "# result", result);
+                          jx_jxon_dump(stdout, "# result", node, result);
                         } else if(mode == JX_MODE_EVALUATE) {
-                          jx_ob jxon = jx_ob_to_jxon(result);
+                          jx_ob jxon = jx_ob_to_jxon(node,result);
                           printf("%s;\n",jx_ob_as_str(&jxon));
                           jx_ob_free(jxon);
                         }

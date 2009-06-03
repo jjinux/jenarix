@@ -397,7 +397,7 @@ static void jx_net_scan_input(jx_net_scanner_state *s)
     }
 #ifdef JX_NET_PARSER_DEBUG
     printf("scanner: token index %d: \n",tok_type);
-    jx_jxon_dump(stdout,"scanner: indent_stack",s->indent_stack);
+    jx_jxon_dump(stdout,"scanner: indent_stack",jx_ob_from_null(), s->indent_stack);
     printf("scanner: current_indent %d\n",s->current_indent);
     printf("scanner: newline_just_seen %d\n",s->newline_just_seen);
     printf("scanner: colon_just_seen %d\n",s->colon_just_seen);
@@ -703,7 +703,7 @@ void jx_net_echo_stdin(void)
       break;
     case JX_YES: /* accepted */
       {
-        jx_ob jxon = jx_ob_to_jxon(state.context.result);
+        jx_ob jxon = jx_ob_to_jxon(jx_ob_from_null(), state.context.result);
         if(state.n_tok_parsed)
           printf("%s;\n",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);

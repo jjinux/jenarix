@@ -259,6 +259,9 @@ struct jx__tls {
   jx_tls_chain *hash_chain;
   jx_tls_chain *list_chain;
   jx_tls_chain *vla_chain;
+  jx_ob builtins;
+  jx_ob method;
+  jx_bool have_method;
   jx_bool break_seen;
   jx_bool tail_call;
   jx_ob   result;
@@ -347,12 +350,12 @@ JX_INLINE jx_status jx_tls_ob_free(jx_tls *tls,jx_ob ob)
   return JX_SUCCESS;
 }
 
-jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags, jx_int indent, 
+jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags, jx_int indent, 
                                jx_int width, jx_int space_left);
 
-JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
+JX_INLINE jx_ob jx_ob_to_jxon(jx_ob node, jx_ob ob)
 {
-  return jx_ob_to_jxon_with_flags(ob, 0, 0, 0, 0);
+  return jx_ob_to_jxon_with_flags(node, ob, 0, 0, 0, 0);
 }
 
 /* debugging */
@@ -655,7 +658,12 @@ JX_INLINE jx_bool jx_opcode_check(jx_ob ob)
 
 JX_INLINE jx_bool jx_gc_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_GC) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_GC);
+}
+
+JX_INLINE jx_bool jx_weak_check(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_WEAK_REF);
 }
 
 JX_INLINE jx_bool jx_null_check(jx_ob ob)
@@ -665,38 +673,39 @@ JX_INLINE jx_bool jx_null_check(jx_ob ob)
 
 JX_INLINE jx_bool jx_bool_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_BOOL) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_BOOL);
 }
 
 JX_INLINE jx_bool jx_int_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_INT) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_INT);
 }
 
 JX_INLINE jx_bool jx_float_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_FLOAT) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_FLOAT);
 }
 
 JX_INLINE jx_bool jx_str_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_STR) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_STR);
 }
 
 JX_INLINE jx_bool jx_ident_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_IDENT) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_IDENT);
 }
 
 JX_INLINE jx_bool jx_list_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_LIST) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_LIST);
 }
 
 JX_INLINE jx_bool jx_hash_check(jx_ob ob)
 {
-  return (ob.meta.bits & JX_META_BIT_HASH) && JX_TRUE;
+  return (ob.meta.bits & JX_META_BIT_HASH);
 }
+
 
 /* builtin fn objects are a means through which jenarix can be extended */
 
@@ -1905,6 +1914,29 @@ JX_INLINE jx_ob jx_str_join_with_list_sep(jx_ob list, jx_ob sep)
   return jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx_str_join_from_list(jx_ob list)
+{
+  if(list.meta.bits & JX_META_BIT_LIST) {
+    jx_ob result = jx__str_join_with_list(list.data.io.list,JX_NULL);
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_str_join_from_list_sep(jx_ob list, jx_ob sep)
+{
+  if(list.meta.bits & JX_META_BIT_LIST) {
+    jx_char *sep_str = JX_NULL;
+    jx_ob result;
+    if(sep.meta.bits & JX_META_BIT_STR) {
+      sep_str = jx_ob_as_str(&sep);
+    }
+    result = jx__str_join_with_list(list.data.io.list,sep_str);
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
 /* comparison operators */
 
 jx_bool jx__ob_lt(jx_ob left, jx_ob right);
@@ -2395,6 +2427,105 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
     jx_ob_free(macro);
     return jx_ob_from_null();
   }
+}
+
+JX_INLINE jx_status jx__create_path(jx_ob *container,jx_ob *target)
+{
+  if(jx_list_check(*target)) { /* compound indentifier */
+    jx_int i,path_size = jx_list_size(*target);
+    jx_ob path = *target;
+    if(!path_size) 
+      return JX_NO;
+    for(i=0;i<path_size;i++) {
+      *target = jx_list_borrow(path,i);
+      if((1+i)<path_size) {
+        switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
+        case JX_META_BIT_LIST:
+          *container = jx_list_borrow(*container,jx_ob_as_int(*target));
+          break;
+        case JX_META_BIT_HASH:
+          {
+            jx_ob tmp = JX_OB_NULL;
+            if(!jx_hash_peek(&tmp,*container,*target)) {
+              tmp = jx_hash_new();
+              jx_hash_set(*container,*target,tmp);
+            }
+            *container = tmp;
+          }
+          break;
+        default:
+          *container = jx_ob_from_null();
+          break;
+        }
+      }
+    }
+  }
+  return JX_YES;
+}
+
+JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
+{
+  if(jx_list_check(*target)) { /* compound indentifier */
+    jx_int i,path_size = jx_list_size(*target);
+    jx_ob path = *target;
+    if(!path_size)
+      return JX_NO;
+    for(i=0;i<path_size;i++) {
+      *target = jx_list_borrow(path,i);
+      if((1+i)<path_size) {
+        switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
+        case JX_META_BIT_LIST:
+          *container = jx_list_borrow(*container,jx_ob_as_int(*target));
+          break;
+        case JX_META_BIT_HASH:
+          *container = jx_hash_borrow(*container,*target);
+          break;
+        default:
+          *container = jx_ob_from_null();
+          break;
+        }
+      }
+    }
+  }
+  return JX_YES;
+}
+
+JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *target)
+{
+  if(jx_weak_check(*target)) {
+    *container = *target;
+    return JX_YES;
+  }
+  jx_status status = jx__resolve_path(container,target);
+  if(JX_POS(status)) {
+    switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_LIST:
+      if(jx_int_check(*target)) {
+        *container = jx_list_borrow(*container,jx_ob_as_int(*target));
+      } else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+        tls->have_method = JX_TRUE;
+      } else {
+        status =JX_STATUS_INVALID_CONTAINER;
+      }
+        break;
+    case JX_META_BIT_HASH:
+      {
+        jx_ob tmp = JX_OB_NULL;
+        if(jx_hash_peek(&tmp,*container,*target))
+          *container = tmp;
+        else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+          tls->have_method = JX_TRUE;
+        } else {
+          status =JX_STATUS_INVALID_CONTAINER;
+        }
+      }
+      break;
+    default:
+      *container = jx_ob_from_null();
+      break;
+      }
+    }
+  return status;
 }
 
 /* enable C++ mangling */

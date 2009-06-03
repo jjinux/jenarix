@@ -66,8 +66,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_BREAK     27
 #define JX_SELECTOR_CONTINUE  28
 
-#define JX_SELECTOR_TAIL      84
-#define JX_SELECTOR_RETURN    85
 
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
@@ -89,64 +87,70 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* symbols */
 
-#define JX_SELECTOR_ENTITY      79
-#define JX_SELECTOR_FILL        80
-#define JX_SELECTOR_RANGE       81
-#define JX_SELECTOR_SET         82
-#define JX_SELECTOR_GET         33
-#define JX_SELECTOR_BORROW      34
-#define JX_SELECTOR_TAKE        35
-#define JX_SELECTOR_DEL         36
+#define JX_SELECTOR_TAIL        47
+#define JX_SELECTOR_RETURN      48
 
-#define JX_SELECTOR_IDENTICAL   37
-#define JX_SELECTOR_EQ          38
-#define JX_SELECTOR_LT          39
-#define JX_SELECTOR_GT          40
-#define JX_SELECTOR_LE          41
-#define JX_SELECTOR_GE          42
-#define JX_SELECTOR_NE          43
-#define JX_SELECTOR_AND         44    
-#define JX_SELECTOR_OR          45
-#define JX_SELECTOR_BIT_AND     46 
-#define JX_SELECTOR_BIT_OR      47
-#define JX_SELECTOR_BIT_XOR     48
-#define JX_SELECTOR_BIT_SHL     49
-#define JX_SELECTOR_BIT_SHR     50
+#define JX_SELECTOR_ENTITY      49
+#define JX_SELECTOR_FILL        50
+#define JX_SELECTOR_RANGE       61
+#define JX_SELECTOR_SET         62
+#define JX_SELECTOR_GET         63
+#define JX_SELECTOR_BORROW      64
+#define JX_SELECTOR_TAKE        65
+#define JX_SELECTOR_DEL         66
 
-#define JX_SELECTOR_ADD         51
-#define JX_SELECTOR_SUB         52
-#define JX_SELECTOR_MUL         53
-#define JX_SELECTOR_DIV         54
-#define JX_SELECTOR_IDIV        78
-#define JX_SELECTOR_MOD         55
+#define JX_SELECTOR_IDENTICAL   67
+#define JX_SELECTOR_EQ          68
+#define JX_SELECTOR_LT          69
+#define JX_SELECTOR_GT          70
+#define JX_SELECTOR_LE          71
+#define JX_SELECTOR_GE          72
+#define JX_SELECTOR_NE          73
+#define JX_SELECTOR_AND         74    
+#define JX_SELECTOR_OR          75
+#define JX_SELECTOR_BIT_AND     76 
+#define JX_SELECTOR_BIT_OR      77
+#define JX_SELECTOR_BIT_XOR     78
+#define JX_SELECTOR_BIT_SHL     79
+#define JX_SELECTOR_BIT_SHR     80
 
-#define JX_SELECTOR_BIT_NOT     56
-#define JX_SELECTOR_NOT         57
-#define JX_SELECTOR_NEG         58
+#define JX_SELECTOR_ADD         81
+#define JX_SELECTOR_SUB         82
+#define JX_SELECTOR_MUL         83
+#define JX_SELECTOR_DIV         84
+#define JX_SELECTOR_IDIV        85
+#define JX_SELECTOR_MOD         86
 
-#define JX_SELECTOR_OUTPUT      59
-#define JX_SELECTOR_ERROR       60
+#define JX_SELECTOR_BIT_NOT     87
+#define JX_SELECTOR_NOT         88
+#define JX_SELECTOR_NEG         89
 
-#define JX_SELECTOR_SIZE        61
-#define JX_SELECTOR_APPEND      62
-#define JX_SELECTOR_POP         63
-#define JX_SELECTOR_SHIFT       64
-#define JX_SELECTOR_UNSHIFT     65
-#define JX_SELECTOR_INSERT      66
-#define JX_SELECTOR_RESIZE      67
-#define JX_SELECTOR_EXTEND      68
-#define JX_SELECTOR_SLICE       69
-#define JX_SELECTOR_CUTOUT      70
-#define JX_SELECTOR_IMPL        71
+#define JX_SELECTOR_OUTPUT      80
+#define JX_SELECTOR_ERROR       91
 
-#define JX_SELECTOR_INCR        72
-#define JX_SELECTOR_DECR        73
-#define JX_SELECTOR_SYMBOLS     74
-#define JX_SELECTOR_HAS         75
-#define JX_SELECTOR_SAME        76
+#define JX_SELECTOR_SIZE        92
+#define JX_SELECTOR_APPEND      93
+#define JX_SELECTOR_PUSH        94
 
-#define JX_SELECTOR_STR         77
-#define JX_SELECTOR_PUSH        83
+#define JX_SELECTOR_POP         95
+#define JX_SELECTOR_SHIFT       96
+#define JX_SELECTOR_UNSHIFT     97
+#define JX_SELECTOR_INSERT      98
+#define JX_SELECTOR_RESIZE      99
+#define JX_SELECTOR_EXTEND     100
+#define JX_SELECTOR_SLICE      101
+#define JX_SELECTOR_CUTOUT     102
+#define JX_SELECTOR_IMPL       103
 
+#define JX_SELECTOR_INCR       104
+#define JX_SELECTOR_DECR       105
+#define JX_SELECTOR_SYMBOLS    106
+#define JX_SELECTOR_HAS        107
+#define JX_SELECTOR_SAME       108
+
+#define JX_SELECTOR_STR        109
+#define JX_SELECTOR_INT        110 
+#define JX_SELECTOR_FLOAT      111
+#define JX_SELECTOR_BOOL       112
 
 #endif

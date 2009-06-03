@@ -271,6 +271,14 @@ small_stmt(A) ::= pass_stmt(B).
 #endif
 }
 
+small_stmt(A) ::= flow_stmt(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("small_stmt(A) ::=  flow_stmt(B).\n");
+#endif
+}
+
 /* del_stmt: 'del' exprlist */
 
 del_stmt(A) ::= DEL exprlist(B).
@@ -295,6 +303,25 @@ pass_stmt(A) ::= PASS.
 
 /* flow_stmt: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt */
 
+flow_stmt(A) ::= return_stmt(B).
+{  
+   A=B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("flow_stmt(A) ::= return_stmt(B).\n");
+#endif
+}
+
+/* return_stmt: 'return' [testlist] */
+
+return_stmt(A) ::= RETURN testlist(B).
+{  
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("return"));
+  jx_list_append(A,B);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("return_stmt(A) ::= testlist(B).\n");
+#endif
+}
 
 /* expr_stmt: testlist ( augassign (yield_expr|testlist) |  ('=' (yield_expr|testlist))* )
 augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
@@ -678,7 +705,7 @@ comparison(A) ::= expr(B) EQ_EQ expr(C).
 comparison(A) ::= expr(B) NOT_EQ expr(C).
 {
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("eq"));
+  jx_list_append(A,jx_ob_from_ident("ne"));
   jx_list_append(A,B);
   jx_list_append(A,C);
 

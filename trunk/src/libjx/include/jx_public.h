@@ -88,6 +88,7 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_PERMISSION_DENIED          -15
 #define JX_STATUS_OB_NOT_HASHABLE            -16
 #define JX_STATUS_OVERFLOW                   -17
+#define JX_STATUS_INVALID_CONTAINER          -18
 
 /* shortcuts */
 
@@ -114,7 +115,7 @@ typedef struct jx__ob jx_ob;
 }
 #endif
 
-void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);
+void jx_jxon_dump(FILE *f, char *prefix, jx_ob node, jx_ob ob);
 
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by API-users as private */
@@ -187,9 +188,9 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
 #define JX_JXON_FLAG_WIDTH_MASK     0x0000FF00
 #define JX_JXON_FLAG_INDENT_MASK    0x000000FF
 
-jx_ob jx_ob_to_jxon(jx_ob ob);
+jx_ob jx_ob_to_jxon(jx_ob node, jx_ob ob);
 
-jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags, jx_int indent, 
+jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags, jx_int indent, 
                                jx_int width, jx_int space_left);
 
 /* constructive casts which preserve the source object and return a new object */
@@ -214,6 +215,10 @@ jx_bool jx_str_check(jx_ob ob);
 jx_bool jx_list_check(jx_ob ob);
 jx_bool jx_hash_check(jx_ob ob);
 jx_bool jx_ident_check(jx_ob ob);
+
+jx_ob jx_ident_split_with_dotted(jx_ob ident);
+jx_ob jx_ident_split_from_dotted(jx_ob ident);
+jx_ob jx_ident_new_from_dotted(jx_ob list);
 
 /* builtin object types */
 
@@ -300,7 +305,10 @@ jx_int jx_str_compare(jx_ob left, jx_ob right);
 jx_ob jx_str_concat(jx_ob left, jx_ob right);
 jx_ob jx_str_concat_with_both(jx_ob left, jx_ob right);
 
+jx_ob jx_str_join_from_list(jx_ob list);
+jx_ob jx_str_join_from_list_sep(jx_ob list,jx_ob sep); /* neither consumed */
 jx_ob jx_str_join_with_list(jx_ob list);
+jx_ob jx_str_join_with_list_sep(jx_ob list,jx_ob sep); /* both consumed */
 
 /* lists */
 

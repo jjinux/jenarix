@@ -119,9 +119,9 @@ JX_INLINE jx_int nest(jx_int flags,jx_int amount)
     (column & JX_JXON_FLAG_INDENT_MASK);
 }
 
-jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *space_left);
+jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref, jx_int flags, jx_int *space_left);
 
-static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, jx_int *space_left)
+static jx_status jx__list_to_jxon(jx_ob node, jx_list * list, jx_char **ref, jx_int flags, jx_int *space_left)
 {
   jx_int i, size = jx_vla_size(&list->data.vla);
   char square[] = "]", rounded[] = ")";
@@ -152,7 +152,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
           jx_int *int_ = list->data.int_vla;
           for(i = 0; i < size; i++) {
             ob.data.io.int_ = *(int_++);
-            jx_ob_free( jx__ob_to_jxon_with_flags(ob, ref, flags, space_left));
+            jx_ob_free( jx__ob_to_jxon_with_flags(node, ob, ref, flags, space_left));
             if(i<(size-1)) {
               flags = autowrap(ref,flags,space_left,1);
               jx_vla_append_c_str(ref, sep);
@@ -170,7 +170,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
           jx_float *float_ = list->data.float_vla;
           for(i = 0; i < size; i++) {
             ob.data.io.float_ = *(float_++);
-            jx_ob_free( jx__ob_to_jxon_with_flags(ob, ref, flags, space_left));
+            jx_ob_free( jx__ob_to_jxon_with_flags(node, ob, ref, flags, space_left));
             if(i<(size-1)) {
               flags = autowrap(ref,flags,space_left,1);
               jx_vla_append_c_str(ref, sep);
@@ -195,7 +195,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
         }
       }
       for(i = 0; i < size; i++) {
-        jx_ob_free( jx__ob_to_jxon_with_flags(*(ob++), ref, flags, space_left) );
+        jx_ob_free( jx__ob_to_jxon_with_flags(node, *(ob++), ref, flags, space_left) );
         if(i<(size-1)) {
           if((sep[0]!=' ') || (!(jx_list_check(*ob)||(jx_hash_check(*ob))))) {
             flags = autowrap(ref,flags,space_left,1);
@@ -225,7 +225,7 @@ static jx_status jx__list_to_jxon(jx_list * list, jx_char **ref, jx_int flags, j
   return JX_SUCCESS;
 }
 
-static jx_status jx__hash_to_jxon(jx_hash * I, jx_char **ref, jx_int flags, jx_int *space_left)
+static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int flags, jx_int *space_left)
 {
   jx_int size = jx_vla_size(&I->key_value);
   jx_bool comma = JX_FALSE;
@@ -259,10 +259,10 @@ static jx_status jx__hash_to_jxon(jx_hash * I, jx_char **ref, jx_int flags, jx_i
         }
 #endif
 
-        jx_ob_free( jx__ob_to_jxon_with_flags(ob[0], ref, flags, space_left) );
+        jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[0], ref, flags, space_left) );
         flags = autowrap(ref,flags,space_left,1);
         jx_vla_append_c_str(ref, ":");
-        jx_ob_free( jx__ob_to_jxon_with_flags(ob[1], ref, flags, space_left) );
+        jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[1], ref, flags, space_left) );
         ob += 2;
       }
     } else {
@@ -285,10 +285,12 @@ static jx_status jx__hash_to_jxon(jx_hash * I, jx_char **ref, jx_int flags, jx_i
               } else {
                 comma = JX_TRUE;
               }
-              jx_ob_free( jx__ob_to_jxon_with_flags(key_value[kv_offset], ref, flags, space_left) );
+              jx_ob_free( jx__ob_to_jxon_with_flags
+                          (node, key_value[kv_offset], ref, flags, space_left) );
               flags = autowrap(ref,flags,space_left,1);
               jx_vla_append_c_str(ref, ":");
-              jx_ob_free( jx__ob_to_jxon_with_flags(key_value[kv_offset + 1], ref, flags, space_left) );
+              jx_ob_free( jx__ob_to_jxon_with_flags
+                          (node, key_value[kv_offset + 1], ref, flags, space_left) );
             }
             index++;
           } while(index <= mask);
@@ -322,7 +324,8 @@ static void force_float(char *str)
 
 #define JX_STR_TMP_BUF_SIZE 256
 
-jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *space_left)
+jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
+                                jx_int flags, jx_int *space_left)
 {
   jx_bits bits = ob.meta.bits;
   if(ref && flags & JX_JXON_FLAG_SHOW_WEAK) {
@@ -583,19 +586,16 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
         break;
       case JX_META_BIT_BUILTIN_SELECTOR:
         {
-          jx_ob operators = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
-          if(jx_ok(jx_code_expose_secure_builtins(operators))) {
-            jx_ob name = jx_hash_get_key(operators,ob);
-            if(jx_ident_check(name)) {
-              sprintf(buffer,"`");
-              jx_ob_into_str(buffer+1, JX_STR_TMP_BUF_SIZE-1, name);
-            }
-            jx_ob_free(name);
+          jx_ob builtins = jx_hash_borrow(node,jx_ob_from_null());
+          jx_ob name = jx_hash_get_key(builtins,ob);
+          if(jx_ident_check(name)) {
+            sprintf(buffer,"`");
+            jx_ob_into_str(buffer+1, JX_STR_TMP_BUF_SIZE-1, name);
           }
+          jx_ob_free(name);
           if(!buffer[0]) {
             sprintf(buffer,"op`%d",(int)ob.data.io.int_);
           }
-          jx_ob_free(operators);
         }
         break;
       case JX_META_BIT_BUILTIN_OPAQUE_OB:
@@ -639,17 +639,17 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob ob, jx_char **ref, jx_int flags, jx_int *s
       }
     }
     break;
-  case JX_META_BIT_LIST:
-    jx__list_to_jxon(ob.data.io.list, ref, flags, space_left);
+    case JX_META_BIT_LIST:
+    jx__list_to_jxon(node, ob.data.io.list, ref, flags, space_left);
     break;
   case JX_META_BIT_HASH:
-    jx__hash_to_jxon(ob.data.io.hash, ref, flags, space_left);
+    jx__hash_to_jxon(node, ob.data.io.hash, ref, flags, space_left);
     break;
   }
   return jx_ob_from_null();
 }
 
-jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags, 
+jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags, 
                                jx_int indent, jx_int width, jx_int space_left)
 {
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
@@ -661,7 +661,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags,
   case JX_META_BIT_STR:
   case JX_META_BIT_IDENT: 
   case JX_META_BIT_BUILTIN:
-    return jx__ob_to_jxon_with_flags(ob,NULL,flags,NULL); /* unformatted */
+    return jx__ob_to_jxon_with_flags(node, ob,NULL,flags,NULL); /* unformatted */
     break;
   default: /* prepare for a large response */
     {
@@ -675,7 +675,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags,
       }
       flags |= (indent & JX_JXON_FLAG_INDENT_MASK);
       if(vla) {
-        jx_ob_free(jx__ob_to_jxon_with_flags(ob,&vla,flags,&space_left));
+        jx_ob_free(jx__ob_to_jxon_with_flags(node, ob,&vla,flags,&space_left));
         return jx_ob_with_str_vla(&vla);
       }
     }
@@ -684,7 +684,7 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob ob, jx_int flags,
   return jx_ob_from_null();
 }
 
-void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
+void jx_jxon_dump(FILE *f, char *prefix, jx_ob node, jx_ob ob)
 {
   jx_int width = 0;
   jx_int left = width;
@@ -694,7 +694,7 @@ void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
     left -= jx_strlen(prefix) + 2;
   }
   {
-    jx_ob jxon = jx_ob_to_jxon_with_flags(ob,
+    jx_ob jxon = jx_ob_to_jxon_with_flags(node, ob,
                                           JX_JXON_FLAG_COMMENT | 
                                           JX_JXON_FLAG_PRETTY |  
                                           //JX_JXON_FLAG_NO_ROUNDED |

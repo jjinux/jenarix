@@ -107,7 +107,11 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"has", JX_SELECTOR_HAS);
 
   ok = jx_declare(ok,names,"same", JX_SELECTOR_SAME);
+
   ok = jx_declare(ok,names,"str",  JX_SELECTOR_STR);
+  ok = jx_declare(ok,names,"int",  JX_SELECTOR_INT);
+  ok = jx_declare(ok,names,"float", JX_SELECTOR_FLOAT);
+  ok = jx_declare(ok,names,"bool",  JX_SELECTOR_BOOL);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

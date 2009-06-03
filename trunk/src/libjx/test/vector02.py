@@ -1,7 +1,7 @@
 
 
 def dot(v0,v1):
-    if(len(v0)!=len(v1)):
+    if len(v0)!=len(v1) :
         print "Vector size mismatch"
     else:
         return map(lambda x,y:x+y, v0,v1)

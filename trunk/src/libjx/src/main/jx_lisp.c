@@ -41,11 +41,13 @@ int main(int argc, char *argv[])
   }
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
     jx_bool console = jx_adapt_for_console(input);
-    jx_ob names = jx_hash_new();
+    jx_ob names = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
     jx_ob scanner = jx_jxon_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
 
     jx_code_expose_secure_builtins(names);
+    
+    jx_hash_set(node, jx_ob_from_null(), names);
 
     if(console) 
       printf("Jenarix LISP-like Syntax (JXON):\n");
@@ -57,19 +59,19 @@ int main(int argc, char *argv[])
         status = jx_jxon_scanner_next_ob(&source, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# source", source);
+          if(console) jx_jxon_dump(stdout, "# source", node, source);
           {
             jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
                       
-            jx_jxon_dump(stdout, "#   eval", code);
+            jx_jxon_dump(stdout, "#   eval", node, code);
             {
               jx_ob result = jx_code_eval(node,code);
             
               if(console) {
-                jx_jxon_dump(stdout, "# result", result);
+                jx_jxon_dump(stdout, "# result", node, result);
               } else {
-                jx_ob jxon = jx_ob_to_jxon(result);
+                jx_ob jxon = jx_ob_to_jxon(node,result);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               }
