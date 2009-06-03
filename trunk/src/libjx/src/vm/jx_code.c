@@ -1713,6 +1713,9 @@ static jx_ob jx__code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob c
      if code is [ fn, ...] then evaluate & return result
      if code is [ [fn, ...], [fn, ...], ... ] then
      evaluate all members of a list, returning only the last result */
+  //jx_jxon_dump(stdout,"jx__code_exec_to_weak entered with code",node,code);
+  //jx_jxon_dump(stdout,"                               and node",node,node);
+
   jx_ob result = JX_OB_NULL;
   jx_int size = jx_list_size(code);
   if(size) {
@@ -1792,8 +1795,8 @@ jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
 
 jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
 { 
-  //  jx_jxon_dump(stdout,"jx__code_exec entered with code",code);
-  //  jx_jxon_dump(stdout,"                       and node",node);
+  //jx_jxon_dump(stdout,"jx__code_exec entered with code",node,code);
+  //jx_jxon_dump(stdout,"                       and node",node,node);
   jx_ob result;
   if(tls) {
     result = jx_ob_not_weak_with_ob(jx__code_exec_to_weak(tls,flags,node,code));

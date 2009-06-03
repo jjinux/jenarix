@@ -2244,9 +2244,10 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       } else {
         /* args declaration is a primitive */
         jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
-        jx_ob result;
         //      jx_jxon_dump(stdout,"args",args);
-        jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+        jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),
+                    jx_ob_take_weak_ref(function));
+        //jx_jxon_dump(stdout,"hash",jx_ob_from_null(),inv_node);
         result = fn->mode ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
           jx_code_eval_tls(tls, 0, inv_node,fn->body);
         jx_tls_ob_free(tls,inv_node);

@@ -113,7 +113,8 @@ int main(int argc, char *argv[])
 
     jx_hash_set(node, jx_ob_from_null(), names);
 
-    if(console) printf("Jenarix Python-like Syntax (JXP):\n");
+    if(console&&(mode == JX_MODE_CONSOLE))
+      printf("Jenarix Python-like Syntax (JXP):\n");
 
     {
       jx_ob tree = JX_OB_NULL;
