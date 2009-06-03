@@ -2167,6 +2167,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         jx_ob inv_node = jx_ob_copy(args);
         /* expose fn to itself */
         jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+        //jx_jxon_dump(stdout,"inv_node",jx_ob_from_null(),inv_node);
+        //jx_jxon_dump(stdout,"payload",jx_ob_from_null(),payload);
         if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
           /* call */
           result = fn->mode ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 

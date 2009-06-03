@@ -1,0 +1,56 @@
+# There are several ways to define function parameters
+# which result in differential behavior
+
+# The first approach is to define a function without
+# a parameter list.  When such a function is invoked,
+# the active namespace is simply that of the caller
+# and any parameters passed in will be assigned to the
+# underscore (_) symbol as a list.
+
+(def fn null _)
+
+(fn 1 2 3);
+
+# result: [1,2,3]
+
+# The second approach is to define a function with a
+# hash table as the parameter list that will serve
+# as the function's namespace.  As above, any passed
+# in parameters will be assigned to underscore.  This
+# use case is intended for invocations with arbitrarily
+# large argument lists.  The purpose of the hash is to
+# simply provide the function with local storage separate
+# from the caller's namespace (which is the above scenario).
+
+(defun fn {} _);
+
+(fn 2 3);
+
+# result: [2,3]
+
+# The third approach is to provide a list of parameter
+# names that which be mapped to the passed-in arguments.
+
+(defun fn [a,b] (a,b));
+
+(fn 1 2);
+
+# result: [1,2]
+
+# The fourth approach is to provide a list which contains
+# both the list of parameter names and a dictionary of default
+# values.
+
+(defun fn [[a,b],{b:3}] (a,b));
+
+(fn 1);
+
+# result: [1,3]
+
+(fn 1 2);
+
+# result: [1,2]
+
+
+
+
