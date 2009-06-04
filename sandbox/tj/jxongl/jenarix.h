@@ -3,7 +3,7 @@
 
 namespace Jenarix {
 
-   jx_ob parseJXON  ( );
+   jx_ob parseJXON  (bool process);
    int   processJXON( jx_ob ob );
    void  printJXON  ( jx_ob ob );
 

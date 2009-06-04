@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "jenarix.h"
 
-jx_ob Jenarix::parseJXON( )
+jx_ob Jenarix::parseJXON(bool process)
 {
     jx_ob result;
   
@@ -28,6 +28,11 @@ jx_ob Jenarix::parseJXON( )
             //show_ob(result,0);
             //jx_ob_free(result);
             jx_ob_free(code);
+            if (process) {
+              processJXON(result);
+            } else {
+              return result;
+            }
           }
           break;
         case JX_STATUS_SYNTAX_ERROR: /* catch this error */
@@ -64,47 +69,48 @@ Jenarix::processJXON( jx_ob ob )
    int nval = jx_list_size(ob);
    int nprimitives = 0;
    for ( int index = 0; index < nval; ++index ) {
-      jx_ob item = jx_list_get(ob,index);
+      //jx_ob item = jx_list_get(ob,index);
+      jx_ob item = jx_list_shift(ob);
       assert (jx_str_check(item));
       std::string ptype = jx_ob_as_str(&item);
       
       if ( ptype == "cylinder" ) {
         ++index;
         //color(0.25, 1.0, 0.5, 0.0);
-        Jenarix::cylinder( jx_list_get(ob,index) );
+        Jenarix::cylinder( jx_list_shift(ob) );
 
       } else if ( ptype == "sphere" ) {
         ++index;
         //color(0.5, 0.5, 1.0, 0.0);
-        Jenarix::sphere( jx_list_get(ob,index) );
+        Jenarix::sphere( jx_list_shift(ob) );
 
       } else if ( ptype == "colorsphere" ) {
         ++index;
-        Jenarix::colorsphere( jx_list_get(ob,index) );
+        Jenarix::colorsphere( jx_list_shift(ob) );
 
       } else if ( ptype == "triangle" ) {
         ++index;
-        Jenarix::triangle( jx_list_get(ob,index), true );
+        Jenarix::triangle( jx_list_shift(ob), true );
 
       } else if ( ptype == "cctriangle" ) {
         ++index;
-        Jenarix::triangle( jx_list_get(ob,index), false );
+        Jenarix::triangle( jx_list_shift(ob), false );
 
       } else if ( ptype == "cwtriangle" ) {
         ++index;
-        Jenarix::triangle( jx_list_get(ob,index), true );
+        Jenarix::triangle( jx_list_shift(ob), true );
 
       } else if ( ptype == "trianglenormal" ) {
         ++index;
-        Jenarix::trianglenormal( jx_list_get(ob,index), true );
+        Jenarix::trianglenormal( jx_list_shift(ob), true );
 
       } else if ( ptype == "cctrianglenormal" ) {
         ++index;
-        Jenarix::trianglenormal( jx_list_get(ob,index), false );
+        Jenarix::trianglenormal( jx_list_shift(ob), false );
 
       } else if ( ptype == "cwtrianglenormal" ) {
         ++index;
-        Jenarix::trianglenormal( jx_list_get(ob,index), true );
+        Jenarix::trianglenormal( jx_list_shift(ob), true );
 
       } else {
         printf ("unrecognized primitive type '%s'\n", ptype.c_str() );
@@ -126,7 +132,7 @@ int get_point( jx_ob ob, GLdouble xyz[3] ) {
     assert (jx_list_check(ob));
     assert (jx_list_size(ob) == 3);
     for (unsigned int index=0; index < 3; ++index) {
-      xyz[index] = get_real(jx_list_get(ob,index));
+      xyz[index] = get_real(jx_list_shift(ob));
     }
 
   return 3;
@@ -155,7 +161,7 @@ int Jenarix::sphere( jx_ob ob )
     //printf ("%d sphere\n", nval);
 
     for ( int index = 0; index < nval; ++index ) {
-      jx_ob xyz_rad = jx_list_get(ob,index);
+      jx_ob xyz_rad = jx_list_shift(ob);
       glPushMatrix();
       //printf ("%d\n", value[index].size());
       get_point(jx_list_get(xyz_rad, ixyz), xyz);
@@ -185,7 +191,7 @@ int Jenarix::triangle( jx_ob ob, bool clockwise)
 
     glBegin(GL_TRIANGLES);
     for ( int index = 0; index < nval; ++index ) {
-      jx_ob triangle = jx_list_get(ob,index);
+      jx_ob triangle = jx_list_shift(ob);
       //printf ("%d\n", value[index].size());
       for (unsigned int itri=0; itri<3; ++itri) {
         get_point(jx_list_get(triangle, itri), xyz[itri]);
@@ -214,7 +220,7 @@ int Jenarix::trianglenormal( jx_ob ob, bool clockwise)
 
     glBegin(GL_TRIANGLES);
     for ( int index = 0; index < nval; ++index ) {
-      jx_ob triangle_nml = jx_list_get(ob,index);
+      jx_ob triangle_nml = jx_list_shift(ob);
       //printf ("%d\n", value[index].size());
       for (unsigned int itri=0; itri<3; ++itri) {
         get_point_normal(jx_list_get(triangle_nml, itri), xyz[itri], nml[itri]);
@@ -247,7 +253,7 @@ int Jenarix::colorsphere( jx_ob ob )
     //printf ("%d sphere\n", nval);
 
     for ( int index = 0; index < nval; ++index ) {
-      jx_ob xyz_rgb_rad = jx_list_get(ob,index);
+      jx_ob xyz_rgb_rad = jx_list_shift(ob);
       glPushMatrix();
       //printf ("%d\n", value[index].size());
       get_point(jx_list_get(xyz_rgb_rad, ixyz), xyz);
@@ -281,7 +287,7 @@ int Jenarix::cylinder( jx_ob ob)
     int nval = jx_list_size(ob);
     //printf ("%d cylinder\n", nval);
     for ( int index = 0; index < nval; ++index ) {
-      jx_ob base_tip_rad = jx_list_get(ob,index);
+      jx_ob base_tip_rad = jx_list_shift(ob);
       //printf ("%d\n", value[index].size());
       get_point(jx_list_get(base_tip_rad,ibxyz), bxyz);
       //printf ("%f %f %f\n", bxyz[0], bxyz[1], bxyz[2]);
