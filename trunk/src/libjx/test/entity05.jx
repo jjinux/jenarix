@@ -1,0 +1,18 @@
+
+# verify access to attributes
+
+(entity Matrix)
+
+(set mat (Matrix, [ 0 0 0 0 0 0 0 0 0 ], {dim:[3,3]}))
+
+# conventional attribute resolution
+
+(mat dim);
+
+# dot-based attribute access
+
+mat.dim;
+
+
+
+
