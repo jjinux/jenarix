@@ -1,5 +1,5 @@
 
-# in this example, we'll try to connect two nodes that run concurrently
+# in this example, we'll try to connect three nodes that run concurrently
 
 (entity JxonNodeEntity)
 

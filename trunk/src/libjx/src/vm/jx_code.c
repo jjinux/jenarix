@@ -458,7 +458,8 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
         tls->leave = -1; 
         if(jx_list_size(payload)) {
           tls->have_result = JX_TRUE;
-          jx_tls_ob_replace(tls, &tls->result, jx_ob_not_weak_with_ob(jx_list_remove(payload,0)));
+          jx_tls_ob_replace(tls, &tls->result, jx_ob_not_weak_with_ob
+                            (jx_list_remove(payload,0)));
         } else {
           jx_tls_ob_replace(tls, &payload, jx_ob_from_opcode(JX_OPCODE_RETURN,0));
         }
@@ -1718,10 +1719,17 @@ static jx_ob jx__code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob c
           }
         }
         switch(inst.meta.bits & JX_META_MASK_OPCODE_INST) {
+        case JX_OPCODE_RETURN:
+          tls->leave = -1;
+          return result; /* return current (last evaluated) */
+          break;
+        case JX_OPCODE_TAIL_CALL:
+          tls->leave = -1;
+          tls->tail_call = JX_TRUE;
+          return result; /* return current (last evaluated) */
+          break;
         case JX_OPCODE_BREAK:
         case JX_OPCODE_CONTINUE:
-        case JX_OPCODE_TAIL_CALL:
-        case JX_OPCODE_RETURN:
           return result; /* return current (last evaluated) */
           break;
         case JX_OPCODE_JUMP_RELATIVE:

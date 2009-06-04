@@ -2278,6 +2278,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       }
     }
   }
+  tls->leave = 0;
   jx_tls_ob_free(tls,payload);
   jx_tls_ob_free(tls,function);
   return result;
