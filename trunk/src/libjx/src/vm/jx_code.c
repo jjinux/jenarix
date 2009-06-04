@@ -77,6 +77,7 @@ jx_status jx_code_expose_special_forms(jx_ob names)
 
   ok = jx_declare(ok, names, "apply", JX_SELECTOR_APPLY);
   ok = jx_declare(ok, names, "map", JX_SELECTOR_MAP);
+
   ok = jx_declare(ok, names, "reduce", JX_SELECTOR_REDUCE);
 
   ok = jx_declare(ok, names, "resolve", JX_SELECTOR_RESOLVE);
@@ -92,6 +93,8 @@ jx_status jx_code_expose_special_forms(jx_ob names)
   ok = jx_declare(ok, names, "break", JX_SELECTOR_BREAK);
   ok = jx_declare(ok, names, "continue", JX_SELECTOR_CONTINUE);
   ok = jx_declare(ok, names, "tail", JX_SELECTOR_TAIL);
+
+  ok = jx_declare(ok, names, "parmap", JX_SELECTOR_PARMAP);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
@@ -598,6 +601,21 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
       case JX_SELECTOR_STR:
         jx_tls_ob_replace(tls, &payload, jx_safe_str(node, payload));
         break;
+      case JX_SELECTOR_INT:
+        jx_tls_ob_replace(tls, &payload, jx_safe_int(node, payload));
+        break;
+      case JX_SELECTOR_FLOAT:
+        jx_tls_ob_replace(tls, &payload, jx_safe_float(node, payload));
+        break;
+      case JX_SELECTOR_BOOL:
+        jx_tls_ob_replace(tls, &payload, jx_safe_bool(node, payload));
+        break;
+      case JX_SELECTOR_SYNCHRONIZE:
+        jx_tls_ob_replace(tls, &payload, jx_safe_synchronize(node, payload));
+        break;
+      case JX_SELECTOR_SYNCHRONIZED:
+        jx_tls_ob_replace(tls, &payload, jx_safe_synchronized(node, payload));
+        break;
       default: /* unrecognized selector? purge weak */
         jx_ob_free(callable);
         jx_ob_replace_with_null(&payload);
@@ -752,141 +770,65 @@ JX_INLINE jx_ob jx__code_reduce(jx_tls *tls, jx_int flags, jx_ob node, jx_ob cal
   return out;
 }
 
-#if 0
 typedef struct {
   jx_int id;
-  jx_ob list;
-} thread_info;
+  jx_ob callable;
+  jx_ob node;
+  jx_ob payload;
+} jx_thread_info;
 
 void *thread_fn(void *id_ptr)
 {
-  thread_info *info = (thread_info*)id_ptr;
+  jx_thread_info *info = (jx_thread_info*)id_ptr;
+  jx_tls *tls = jx_tls_new(); // use stack not heap?
 
-  printf("thread %d started\n",info->id);
+  //  printf("thread %d started\n",info->id);
 
-  {
-    jx_int i;
-    if(!info->id) {
-      for(i=0;i<N_PACKETS;i++) {
-        jx_list_append(info->list, jx_ob_from_int(1));
-      }
-    } else {
-      int cnt = 0;
-      while(1) {
-        jx_ob ob = jx_list_remove(info[-1].list,0);
-        if(!jx_null_check(ob)) {
-          cnt++;
-          if(info->id!=(N_THREAD-1)) {
-            jx_ob new_ob = jx_ob_add(ob,ob);
-            jx_list_append(info->list, new_ob); 
-          } else {
-            printf("count: %d\n",cnt);
-            jx_jxon_dump(stdout, "output", node, ob);
-          }
-          if(cnt==N_PACKETS)
-            break;
-        }
-      }
-    }
-  }
+  tls->builtins = jx_hash_borrow(info->node,jx_ob_from_null());
 
-  printf("thread %d complete\n",info->id);
+
+  info->payload = jx__code_apply_callable
+    (tls, info->node, info->callable, info->payload);
+  
+  jx_tls_free(tls);
+  //  printf("thread %d complete\n",info->id);
   return NULL;
-}
-
-jx_status run_test(void)
-{
-  jx_os_thread *thread_array = NULL;
-  thread_info thread_info[N_THREAD];
-
-  jx_status status;
-
-  if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
-
-    {
-      jx_int i;
-      for(i=0; i<N_THREAD; i++) {
-        jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
-
-        thread_info[i].id = i;
-        thread_info[i].list = jx_list_new();
-
-        jx_ob_set_synchronized(thread_info[i].list,JX_TRUE,JX_TRUE);
-
-        JX_OK_DO( jx_os_thread_start(thread, thread_fn, thread_info + i));
-      }
-    }
-    {
-      jx_int i;
-      for(i=0; i<N_THREAD; i++) {
-        jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
-        
-        JX_OK_DO( jx_os_thread_join(thread) );
-      }
-    }
-    {
-      jx_int i;
-      for(i=0; i<N_THREAD; i++) {
-        jx_ob_free(thread_info[i].list);
-      }
-    }
-    JX_OK_DO( jx_os_thread_array_free( &thread_array ));
-  }
-  return status;
 }
 
 JX_INLINE jx_ob jx__code_parmap1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob inp) 
 {
-  if(jx_builtin_callable_check(callable) && jx_list_check(inp)) {
-    jx_int size = jx_list_size(inp);
-    jx_ob out = jx_tls_list_new_with_size(tls, size);
-    if(jx_list_check(out)) {
-      if(JX_IS_OK( jx_os_thread_array_new( &thread_array, N_THREAD ))) {
-        
-        {
-          jx_int i;
-          for(i=0; i<size; i++) {
-            jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
-            
-            thread_info[i].id = i;
-            
-            jx_ob_set_synchronized(thread_info[i].list,JX_TRUE,JX_TRUE);
-            
-            JX_OK_DO( jx_os_thread_start(thread, thread_fn, thread_info + i));
-          }
-        }
-    {
+  jx_ob result = JX_OB_NULL;
+  jx_int size = jx_list_size(inp);
+  if(jx_builtin_callable_check(callable) && size) {
+    result = jx_tls_list_new_with_size(tls, size);
+    jx_os_thread *thread_array = NULL;        
+    jx_thread_info *thread_info =  (jx_thread_info*)jx_vla_new(sizeof(jx_thread_info),size);
+    if(jx_ok( jx_os_thread_array_new( &thread_array,size ))) {
       jx_int i;
-      for(i=0; i<N_THREAD; i++) {
+      for(i=0; i<size; i++) {
         jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
-        
-        JX_OK_DO( jx_os_thread_join(thread) );
+        thread_info[i].id = i;
+        thread_info[i].node = node;
+        thread_info[i].callable = callable;
+        thread_info[i].payload = jx_list_swap_with_null(inp,i);
+        jx_os_thread_start(thread, thread_fn, thread_info + i);
       }
-    }
-    {
-      jx_int i;
-      for(i=0; i<N_THREAD; i++) {
-        jx_ob_free(thread_info[i].list);
+      {
+        jx_int i;
+        for(i=0; i<size; i++) {
+          jx_os_thread *thread = jx_os_thread_array_entry( thread_array, i);
+          jx_os_thread_join(thread);
+          jx_list_replace(result,i,thread_info[i].payload);
+        }
       }
+      jx_os_thread_array_free( &thread_array );
+      jx_vla_free(&thread_info);
     }
-    JX_OK_DO( jx_os_thread_array_free( &thread_array ));
-
-      jx_ob *inp_ob = inp_list->data.ob_vla;
-      jx_ob *out_ob = out_list->data.ob_vla;
-      for(i=0;i<size;i++) {
-        *(out_ob++) = jx__code_apply_callable
-          (tls, node, callable_weak_ref, *(inp_ob++));
-      }
-    }
-
-
-  } else { /* trying to apply a non-function -- that just won't work */
-    jx_tls_ob_free(tls, inp);
-    jx_tls_ob_free(tls, callable);
-    return jx_ob_from_null();
   }
+  jx_tls_ob_free(tls, inp);
+  jx_tls_ob_free(tls, callable);
+  return result;
 }
-#endif
 
 JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob inp) 
 {
@@ -1302,7 +1244,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
               jx_ob body = (size>2) ? expr_vla[2] : jx_ob_from_null();
               jx_ob result = JX_OB_NULL;
               tls->break_seen = JX_FALSE;
-              while(!tls->break_seen) {
+              while(!(tls->break_seen || tls->leave)) {
                 jx_ob test = jx_code_eval_to_weak(tls, flags, node, cond); 
                 jx_int tst = jx_ob_as_bool(test);
                 jx_ob_free(test);
@@ -1408,7 +1350,6 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
               }
             }
             break;
-#if 0
           case JX_SELECTOR_PARMAP: /* [map callable list] */
             {
               jx_ob callable = (size>1) ? jx_code_eval_to_weak
@@ -1433,7 +1374,6 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
             }
             return jx_ob_from_null();
             break;
-#endif
           case JX_SELECTOR_MAP: /* [map callable list] */
             {
               jx_ob callable = (size>1) ? jx_code_eval_to_weak
@@ -1784,17 +1724,17 @@ static jx_ob jx__code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob c
 
 jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
 {
+  jx_ob result;
   //  jx_jxon_dump(stdout,"jx__code_eval entered",code);
   if(tls) {
-    return jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));
+    result = jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));
   } else {
-    jx_ob result;
     jx_tls *tls = jx_tls_new(); // use stack not heap?
     tls->builtins = jx_hash_borrow(node,jx_ob_from_null());
     result = jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));    
     jx_tls_free(tls);
-    return result;
   }
+  return result;
 }
 
 jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
@@ -1810,7 +1750,7 @@ jx_ob jx__code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
     result = jx_ob_not_weak_with_ob(jx__code_exec_to_weak(tls,flags,node,code));
     jx_tls_free(tls);
   }
-  //  jx_jxon_dump(stdout,"jx__code_exec existing with result",result);
+  //jx_jxon_dump(stdout,"jx__code_exec existing with result",node,result);
   return result;
 }
                   

@@ -1,0 +1,44 @@
+
+# now we flip things around to create a thread pool to which we feed
+# first class JXON functions :)
+
+(def fn1 [] (output "hello"))
+(def fn2 [] (output "there"))
+(def fn3 [] (output "mac"))
+
+(def thread [master,queue,id] (
+  (if master 
+    ( 
+      (append queue fn1)
+      (append queue fn2)
+      (append queue fn3)
+      (append queue fn1)
+      (append queue fn2)
+      (append queue fn3)
+      (append queue fn1)
+      (append queue fn2)
+      (append queue fn1)
+      (append queue fn2)
+      (append queue fn3)
+      (append queue false)
+      (append queue false)
+      )
+    ( (set cnt 0)
+      (while 1 (
+        (set fn (shift queue))
+        (test (eq fn false) (break))
+        (test (ne fn null) ((fn) (incr cnt)))))
+      cnt)
+)));
+
+(set pipe []);
+(synchronize pipe true);
+
+(parmap thread [
+ [false,pipe,1]
+ [false,pipe,2]
+ [true,pipe,0]
+ ]
+)
+
+

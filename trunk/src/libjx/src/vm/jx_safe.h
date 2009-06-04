@@ -250,10 +250,12 @@ JX_INLINE jx_ob jx_safe_incr(jx_ob container, jx_ob payload)
       jx_hash_set(container,target,jx_ob_add
                   (jx_ob_copy(result),
                    jx_ob_from_int(1)));
+      break;
     default:
       jx_hash_set(container,target,jx_ob_add
                   (jx_ob_copy(result),
                    jx_list_get(payload,1)));
+      break;
     }
     return result;
   }
@@ -272,14 +274,30 @@ JX_INLINE jx_ob jx_safe_decr(jx_ob container, jx_ob payload)
       jx_hash_set(container,target,jx_ob_sub
                   (jx_ob_copy(result),
                    jx_ob_from_int(1)));
+      break;
     default:
       jx_hash_set(container,target,jx_ob_sub
                   (jx_ob_copy(result),
                    jx_list_get(payload,1)));
+      break;
     }
     return result;
   }
   return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_safe_synchronize(jx_ob container, jx_ob payload)
+{
+  return jx_ob_from_status
+    (jx_ob_set_synchronized(jx_list_borrow(payload,0),
+                            jx_ob_as_bool(jx_list_borrow(payload,1)),
+                            jx_ob_as_bool(jx_list_borrow(payload,2))));
+}
+
+JX_INLINE jx_ob jx_safe_synchronized(jx_ob container, jx_ob payload)
+{
+  return jx_ob_from_bool
+    (jx_ob_synchronized(jx_list_borrow(payload,0)));
 }
 
 JX_INLINE jx_ob jx_safe_fill(jx_ob node, jx_ob payload)

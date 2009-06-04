@@ -1,0 +1,23 @@
+
+
+# out first parallel code -- a simple parallel map command resulting in
+# one machine thread per list entry
+
+(def delay [id,x] (
+  (set sum 0) 
+  (while (decr x) (incr sum (idiv x 10000)))
+  (id,sum)));
+
+(parmap delay [
+  [1,100000]
+  [2,200000] 
+  [3,300000]
+  [4,400000]
+  [5,500000]
+  [6,600000]
+  [7,700000]
+  [8,800000]]);
+
+
+
+

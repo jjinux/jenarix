@@ -113,6 +113,9 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"float", JX_SELECTOR_FLOAT);
   ok = jx_declare(ok,names,"bool",  JX_SELECTOR_BOOL);
 
+  ok = jx_declare(ok,names,"synchronize", JX_SELECTOR_SYNCHRONIZE);
+  ok = jx_declare(ok,names,"synchronized",  JX_SELECTOR_SYNCHRONIZED);
+
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 

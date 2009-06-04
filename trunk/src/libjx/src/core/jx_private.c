@@ -4673,6 +4673,20 @@ jx_status jx__ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recurs
   return JX_SUCCESS;
 }
 
+jx_status jx__ob_synchronized(jx_ob ob)
+{
+  /* on entry, we know the object is GC'd */
+  switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_LIST:
+    return ob.data.io.list->synchronized;
+    break;
+  case JX_META_BIT_HASH:
+    return ob.data.io.list->synchronized;
+    break;
+  }
+  return JX_SUCCESS;
+}
+
 jx_ob jx__builtin_copy(jx_ob ob)
 {
   /* on entry, we know object is GC'd, so only GC'd objects needed here */
@@ -4719,9 +4733,13 @@ jx_ob jx__ob_copy(jx_ob ob)
     return jx__ident_gc_copy(ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
+    if(ob.data.io.list->synchronized)
+      return jx_ob_take_weak_ref(ob);
     return jx__list_copy(ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
+    if(ob.data.io.hash->synchronized)
+      return jx_ob_take_weak_ref(ob);
     return jx__hash_copy(ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:

@@ -12,9 +12,15 @@ entity(A,{class_fn:cl_fn})
 
 b=[A,[1,2,3],{inst_fn:in_fn}]
 
+c=[A,[2,3,4],{inst_fn:in_fn}]
+
 print b.class_fn();
 
 print b.inst_fn();
+
+print c.class_fn();
+
+print c.inst_fn();
 
 
 

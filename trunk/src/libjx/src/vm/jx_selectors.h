@@ -66,6 +66,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_BREAK     27
 #define JX_SELECTOR_CONTINUE  28
 
+#define JX_SELECTOR_PARMAP    29
+
 
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
@@ -152,5 +154,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_INT        110 
 #define JX_SELECTOR_FLOAT      111
 #define JX_SELECTOR_BOOL       112
+#define JX_SELECTOR_SYNCHRONIZE  113
+#define JX_SELECTOR_SYNCHRONIZED 114
+
 
 #endif
