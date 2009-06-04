@@ -1,0 +1,82 @@
+
+# a minimal stateless JXON-based node would consist of a single
+# function handling all requests
+
+(entity JxonNodeEntity)
+
+(set JxonNodeProto [JxonNodeEntity, [], {
+  _handler : null
+  _inputs : [raw [ input ]]
+  _outputs : [raw [ output, error ]]
+  input : (lambda [self,payload] [self._handler input payload])
+  output : (lambda [self,x] [output x])
+  error : (lambda [self,x] [error x])
+  }
+]);
+
+JxonNodeProto;
+
+# here we define a couple of payload handler functions
+
+(def _adder [self,port,payload] [
+  (self.error "_adder called")
+  (self.output 
+    (add 
+      (take payload 1) 
+      (take payload 0))
+    )
+  ]);
+
+(def _negator [self,port,payload] [
+  (self.error "_negator called")
+  (self.output 
+    (neg payload)
+    )
+  ]);
+
+# then we copy the prototype
+
+(set nodeA JxonNodeProto)
+(set nodeB JxonNodeProto)
+
+# and bind the underlying functions
+
+(set (nodeA 2) _handler _adder)
+(set (nodeB 2) _handler _negator)
+
+nodeA;
+
+nodeA.input;
+
+# do they work?
+
+[nodeA.input [1 2]]
+
+[nodeB.input 3]
+
+# can we rewire nodeA's output?
+
+(def got_here [self,payload] ((error "got_here called") (output payload)))
+
+[set (nodeA 2) output got_here]
+
+[nodeA.input [1 2]]
+
+# can we direct wire nodeA's output to nodeB's input using a pipe function?
+# (direct call -- no concurrency)
+
+(def pipe [self,payload] ((error "pipe called") (nodeB.input payload)));
+
+(impl pipe)
+
+[set (nodeA 2) output pipe]
+
+[nodeA.input [1 2]]
+
+# yep!
+
+
+
+
+
+

@@ -1481,7 +1481,7 @@ static jx_ob jx__ident_join_with_list(jx_list * I, jx_char * sep)
 
 jx_ob jx_ident_new_from_dotted(jx_ob ident)
 {
-  jx_jxon_dump(stdout,"ident",jx_ob_from_null(),ident);
+  //  jx_jxon_dump(stdout,"ident",jx_ob_from_null(),ident);
   if(jx_list_check(ident)) {
     return jx__ident_join_with_list(ident.data.io.list,".");
   } else
@@ -4693,7 +4693,7 @@ jx_ob jx__builtin_copy(jx_ob ob)
 
   switch(ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
   case JX_META_BIT_BUILTIN_ENTITY: /* 0 */
-    return jx_builtin_new_entity(jx__ident_gc_copy(ob.data.io.str));
+    return jx_builtin_new_entity_with_name(jx__ident_gc_copy(ob.data.io.str));
     break;
   case JX_META_BIT_BUILTIN_FUNCTION:
     {

@@ -1,0 +1,117 @@
+
+# in this example, we'll try to connect two nodes that run concurrently
+
+(entity JxonNodeEntity)
+
+(set JxonNodeProto [JxonNodeEntity, [], {
+  _handler : null
+  _inputs : [raw [ input ]]
+  _outputs : [raw [ output, error ]]
+  input : (lambda [self,payload] [self._handler input payload])
+  output : (lambda [self,x] [output x])
+  error : (lambda [self,x] [error x])
+  }
+]);
+
+# create underlying functions which waste a bunch of CPU before
+# sending their payload
+
+(def _add [self,port,payload] [
+  (self.error "_add called")
+  (if (eq payload false) [(self.output false) return])
+  (set a 100000)
+  (while (decr a))
+  (self.output 
+    (add 
+      (take payload 1) 
+      (take payload 0)))
+  ]);
+
+(def _negate [self,port,payload] [
+  (self.error "_negate called")
+  (if (eq payload false) [(self.output false) return])
+  (set a 100000)
+  (while (decr a))
+  (self.output 
+    (neg payload))
+  ]);
+
+(def _square [self,port,payload] [
+  (self.error "_square called")
+  (if (eq payload false) [(self.output false) return])
+  (set a 100000)
+  (while (decr a))
+  (self.output 
+    (mul payload payload))
+  ]);
+
+# then we copy the prototype
+
+(set nodeA JxonNodeProto)
+(set nodeB JxonNodeProto)
+(set nodeC JxonNodeProto)
+
+# and bind the underlying functions
+
+(set (nodeA 2) _handler _add)
+(set (nodeB 2) _handler _negate)
+(set (nodeC 2) _handler _square)
+
+# prepare for concurrent use
+
+[synchronize nodeA]
+[synchronize nodeB]
+[synchronize nodeC]
+
+# hook up the nodes using queues
+
+[set queueAB []]
+[set queueBC []]
+[synchronize queueAB]
+[synchronize queueBC]
+
+(def pipeAB [self,payload] (append queueAB payload));
+(def pipeBC [self,payload] (append queueBC payload));
+
+(set (nodeA 2) output pipeAB)
+(set (nodeB 2) output pipeBC)
+
+(def thread [id,nodeA,nodeB,nodeC,queueAB,queueBC] [
+  (if (eq id 0) [
+    (set a 100)
+    (while (decr a) [(nodeA.input [1 a])])
+    (nodeA.input false)
+    (output "thread 0 done")
+    ])
+  (if (eq id 1) [ 
+    ( while 1 [
+      (set payload (shift queueAB))
+      (if (eq payload false) [(nodeB.input false) (break)])
+      (test (ne null payload) (nodeB.input payload))
+      ])
+    (output "thread 1 done")
+    ])
+  (if (eq id 2) [ 
+    ( while 1 [
+      (set payload (shift queueBC))
+      (if (eq payload false) ((nodeC.input false) (break)))
+      (test (ne null payload) (nodeC.input payload))
+      ])
+    (output "thread 2 done")
+    ])
+  ])
+
+# now use parmap to run the network
+
+(parmap thread [ 
+  [0, nodeA, nodeB, nodeC, queueAB, queueBC]
+  [1, nodeA, nodeB, nodeC, queueAB, queueBC]
+  [2, nodeA, nodeB, nodeC, queueAB, queueBC]
+  ])
+
+
+
+
+
+
+

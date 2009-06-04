@@ -53,7 +53,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob names);
 JX_INLINE jx_ob jx_safe_entity(jx_ob node, jx_ob payload)
 {
   jx_ob name = jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,0));
-  jx_ob entity = jx_builtin_new_entity(name);
+  jx_ob entity = jx_builtin_new_entity_with_name(jx_ob_copy(name));
   jx_hash_set(node, name, jx_ob_copy(entity));
   {
     jx_ob methods = JX_OB_NULL;
@@ -288,9 +288,11 @@ JX_INLINE jx_ob jx_safe_decr(jx_ob container, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_synchronize(jx_ob container, jx_ob payload)
 {
+  jx_ob flag = jx_list_borrow(payload,1);
+  if(jx_null_check(flag)) flag = jx_ob_from_bool(JX_TRUE);
   return jx_ob_from_status
     (jx_ob_set_synchronized(jx_list_borrow(payload,0),
-                            jx_ob_as_bool(jx_list_borrow(payload,1)),
+                            jx_ob_as_bool(flag),
                             jx_ob_as_bool(jx_list_borrow(payload,2))));
 }
 

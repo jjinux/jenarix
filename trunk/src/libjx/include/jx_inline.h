@@ -725,15 +725,15 @@ JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
   return result;
 }
 
-JX_INLINE jx_ob jx_builtin_new_entity(jx_ob name)
+JX_INLINE jx_ob jx_builtin_new_entity_with_name(jx_ob name)
 {
   if(jx_ident_check(name)) { /* an entity is simply a cloaked identifier */
-    jx_ob result = jx_ob_copy(name);
+    jx_ob result = name;
     result.meta.bits = (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_ENTITY |
                         (JX_META_BIT_GC & result.meta.bits));
     return result;
   } else {
-    return jx_ob_from_null();
+    return jx_null_with_ob(name);
   }
 }
 
