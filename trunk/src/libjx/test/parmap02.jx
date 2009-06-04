@@ -21,7 +21,7 @@
 
 (synchronize pipe true);
 (synchronized pipe);
-i
+
 (parmap send_recv [
   [true,100000,pipe]  # reader...the 
   [true,100000,pipe] 
