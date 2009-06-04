@@ -2503,7 +2503,7 @@ JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
 
 JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *target)
 {
-  if(jx_weak_check(*target)) { /* weak reference? use it */
+  if(jx_weak_check(*target)) { /* weak reference to actual container? use it */
     *container = *target;
     return JX_YES;
   }
@@ -2515,13 +2515,14 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
       case JX_META_BIT_LIST:
         if(jx_int_check(*target)) {
           *container = jx_list_borrow(*container,jx_ob_as_int(*target));
-        } else if(tls) {
+        } else {
           jx_int entity_size;
           jx_list *list = container->data.io.list;
           if((!list->packed_meta_bits) && 
              (entity_size = jx_vla_size(&list->data))) { 
             jx_ob *entity_ob = list->data.ob_vla;
             /* non-zero, unpacked => vla valid */
+
             if(jx_builtin_entity_check(entity_ob[0])) {
               /* first entry in result contains an entity (a class / instance, etc.) */
               /* the entry following the entity -- what is it? */
@@ -2541,10 +2542,10 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
                                              *target);
                   }
                   method = jx_ob_take_weak_ref(method);
-                  if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */
+                  if(tls && jx_builtin_callable_check(method)) { /* method */
                     tls->method = method;
                     tls->have_method = JX_TRUE;
-                  } else {
+                  } else { /* attribute */
                     *container = method;
                   }
                   return JX_YES;
@@ -2553,11 +2554,12 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
               }
             }
           }
-          if(!tls->have_method && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+          if(tls && (!tls->have_method) && 
+             jx_hash_peek(&tls->method, tls->builtins, *target)) {
             tls->have_method = JX_TRUE;
+          } else {
+            status = JX_STATUS_INVALID_CONTAINER;
           }
-        } else {
-          status=JX_STATUS_INVALID_CONTAINER;
         }
         break;
       case JX_META_BIT_HASH:

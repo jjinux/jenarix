@@ -1032,7 +1032,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
 {
   if(flags & JX_EVAL_DEBUG_TRACE) {
     fprintf(stderr, "# trace: eval_to_weak(tls %p, flags 0x%x, ...)\n",
-            (void*)tls, flags);
+            (void*)tls, (int)flags);
   }
   if(flags & (JX_EVAL_DEBUG_DUMP_NODE)) {
     jx_jxon_dump(stderr,"#   node",node, node);

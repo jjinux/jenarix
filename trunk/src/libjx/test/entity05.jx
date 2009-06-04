@@ -9,9 +9,37 @@
 
 (mat dim);
 
-# dot-based attribute access
+(append (mat dim) 1);
+
+# note that we've modified dim
+
+mat;
+
+# dot-based attribute resolution
+
+(pop mat.dim);
+
+mat;
+
+# note that in both cases, we're returned a weak reference to the
+# attributes which can be directly operated upon
+
+# a copy isn't made until we assign
+
+(set dim mat.dim);
+
+(append dim 1);
+
+dim;
 
 mat.dim;
+
+# double-check our ability to access entity components
+
+(mat 0)
+(mat 1)
+(mat 2)
+(mat 3)
 
 
 

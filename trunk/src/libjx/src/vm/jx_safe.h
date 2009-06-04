@@ -431,6 +431,7 @@ JX_INLINE jx_ob jx_safe_size(jx_ob node, jx_ob payload)
 JX_INLINE jx_ob jx_safe_append(jx_ob container, jx_ob payload)
 {
   jx_ob target =  jx_list_borrow(payload,0);
+
   if(JX_POS(jx__resolve_container(NULL,&container,&target))) {
     return jx_ob_from_status
       ( jx_list_append( container,
