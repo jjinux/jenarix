@@ -1,18 +1,18 @@
 
 # here's an example vector addition function
 
-(def vector.add [v1 v2] [
+(def vector_add [v1 v2] [
   [Vector
     (map (lambda [x y] (add x y)) (v1 1) (v2 1))
   ]]);
 
 (symbols);
 
-(entity Vector {add:vector.add} );
+(entity Vector {add:vector_add} );
 
 (symbols);
 
-(del vector.add);
+(del vector_add);
 
 (symbols);
 
@@ -20,6 +20,12 @@
 
 (set v2 [Vector, [2,3,4]]);
 
+# entity-based invocation
+
 (v1 add v2);
+
+# dot-based invocation
+
+(v1.add v2);
 
 ([Vector, [0.3 4 "hi"]] add [Vector, [0.3 9 "you"]]);

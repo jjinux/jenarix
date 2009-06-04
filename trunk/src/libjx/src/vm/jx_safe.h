@@ -548,7 +548,12 @@ JX_INLINE jx_ob jx_safe_impl(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_symbols(jx_ob node, jx_ob payload)
 {
-  return jx_ob_copy(node);
+  jx_ob result = jx_ob_copy(node);
+  if(!jx_ob_as_bool(jx_list_borrow(payload,0))) {
+    /* hide builtin symbols unless specifically asked for them */
+    jx_hash_delete(result, jx_builtins());
+  }
+  return result;
 }
 
 JX_INLINE jx_ob jx_safe_str(jx_ob node, jx_ob payload)

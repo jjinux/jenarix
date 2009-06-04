@@ -586,7 +586,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
         break;
       case JX_META_BIT_BUILTIN_SELECTOR:
         {
-          jx_ob builtins = jx_hash_borrow(node,jx_ob_from_null());
+          jx_ob builtins = jx_hash_borrow(node,jx_builtins());
           jx_ob name = jx_hash_get_key(builtins,ob);
           if(jx_ident_check(name)) {
             sprintf(buffer,"`");

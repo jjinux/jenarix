@@ -293,8 +293,10 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
 
   if(state->saved_token_type) {
     state->n_tok_parsed ++;
-    jx_jxon_(jx_Parser, state->saved_token_type, state->saved_token, &state->context);
+    jx_jxon_(jx_Parser, state->saved_token_type, state->saved_token, 
+             &state->context);
     state->saved_token_type = 0;
+    
     state->saved_token = jx_ob_from_null();
   }
   while(!state->context.exhausted) {
@@ -437,19 +439,19 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
       case JX_JXON_SEMICOLON:
       case JX_JXON_EOI:
         if(state->saved_token_type) {
-          state->saved_token = jx_null_with_ob(state->saved_token);
+          state->saved_token = jx_ob_from_null();
           state->saved_token_type = 0;
         }
         break;
       default:
-        jx_ob_free(state->saved_token);
         state->saved_token_type = tok_type;
-        state->saved_token = jx_ob_copy(token);
+        state->saved_token = token;
         break;
       }
       jx_jxon_(jx_Parser, (int)tok_type, token, &state->context);
 
       if(!jx_ok(state->context.status)) { /* something bad happened */
+        state->saved_token = jx_ob_from_null();
         state->saved_token_type = 0;
         break;
       }
@@ -505,6 +507,8 @@ static jx_status jx_jxon_scanner_state_purge(jx_jxon_scanner_state *state)
 {
   /* free last object */
   jx_ob_free(state->context.result);
+  /* free saved token (if any)*/
+  jx_ob_free(state->saved_token);
   /* free the input buffer (if using stdin) */
   switch(state->mode) {
   case JX_JXON_SCANNER_MODE_FILE:

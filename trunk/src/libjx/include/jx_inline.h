@@ -501,6 +501,14 @@ JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
   return result;
 }
 
+JX_INLINE jx_ob jx_builtins(void) 
+{
+  jx_ob result = { JX_DATA_INIT, {JX_META_BIT_IDENT} };
+  result.data.io.tiny_str[0] = '_';
+  result.data.io.tiny_str[1] = '_';
+  return result;
+}
+
 JX_INLINE jx_ob jx_ob_from_null(void)
 {
   jx_ob result = JX_OB_NULL;
@@ -2532,19 +2540,20 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
                     method = jx_hash_borrow( jx_hash_borrow(node,entity_ob[0]),
                                              *target);
                   }
+                  method = jx_ob_take_weak_ref(method);
                   if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */
-                    method = jx_ob_take_weak_ref(method);
                     tls->method = method;
                     tls->have_method = JX_TRUE;
-                    return JX_YES;
+                  } else {
+                    *container = method;
                   }
+                  return JX_YES;
                 }
                 break;
               }
             }
           }
           if(!tls->have_method && jx_hash_peek(&tls->method, tls->builtins, *target)) {
-            
             tls->have_method = JX_TRUE;
           }
         } else {
@@ -2554,12 +2563,15 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
       case JX_META_BIT_HASH:
         {
           jx_ob tmp = JX_OB_NULL;
-          if(jx_hash_peek(&tmp,*container,*target))
+          if(jx_hash_peek(&tmp,*container,*target)) {
             *container = tmp;
-          else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+          } else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+            *container = *target;
+            //            jx_jxon_dump(stdout,"tls->method",node,tls->method);
             tls->have_method = JX_TRUE;
           } else {
-            status =JX_STATUS_INVALID_CONTAINER;
+            *container = *target;
+            status = JX_STATUS_INVALID_CONTAINER;
           }
         }
         break;

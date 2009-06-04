@@ -1442,7 +1442,8 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
 
             tls->have_method = JX_FALSE;
             for(i=0;i<size;i++) {
-              if((!macro_flag) && (expr_ob->meta.bits & (JX_META_BIT_LIST|JX_META_BIT_HASH))) {
+              if((!macro_flag) && (expr_ob->meta.bits &
+                                   (JX_META_BIT_LIST|JX_META_BIT_HASH))) {
                 *(result_ob++) = jx_code_eval_to_weak(tls, flags, node, *expr_ob);
                 if((!i)&&tls->have_method) { /* implicit method call? */
                   method_flag = JX_TRUE;
@@ -1480,8 +1481,8 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                these will need to be eliminated or made strong (deep
                copied) before we return the frame to the caller */
 
-            //jx_jxon_dump(stdout,"# post-eval",result);
-            //printf("flags %d\n",flags);
+            //jx_jxon_dump(stdout,"# post-eval",node,result);
+            //            printf("flags %d\n",flags);
 
             if(flags & JX_EVAL_DEFER_INVOCATION) { /* expanding a macro... */
               return result;
@@ -1501,7 +1502,8 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                       switch(result_vla[1].meta.bits & JX_META_MASK_TYPE_BITS) {
                       case 0: /* null method == copy constructor? */
                         break;
-                      case JX_META_BIT_IDENT: /* identifier? -> standard method resolution */
+                      case JX_META_BIT_IDENT: /* identifier? -> 
+                                                  method/attr resolution */
                         {
                           jx_ob method_name = result_vla[1];
                           jx_ob method;
@@ -1546,8 +1548,10 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                               return jx__code_apply_callable(tls, node, method, result);
                               break;
                             }
+                          } else { /* simply an attribute */
+                            jx_ob_free(result);
+                            return method;
                           }
-                          jx_ob_free(method);
                         }
                         break;
                       case JX_META_BIT_INT: /* entity access (0=ident,1=content,2=attr) */
@@ -1730,7 +1734,7 @@ jx_ob jx__code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
     result = jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));
   } else {
     jx_tls *tls = jx_tls_new(); // use stack not heap?
-    tls->builtins = jx_hash_borrow(node,jx_ob_from_null());
+    tls->builtins = jx_hash_borrow(node,jx_builtins());
     result = jx_ob_not_weak_with_ob(jx__code_eval_to_weak(tls,flags,node,code));    
     jx_tls_free(tls);
   }

@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
     jx_code_expose_secure_builtins(names);
     
-    jx_hash_set(node, jx_ob_from_null(), names);
+    jx_hash_set(node, jx_builtins(), names);
 
     if(console) 
       printf("Jenarix LISP-like Syntax (JXON):\n");

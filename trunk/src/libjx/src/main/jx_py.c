@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 
     jx_py_expose_python_builtins(names);
 
-    jx_hash_set(node, jx_ob_from_null(), names);
+    jx_hash_set(node, jx_builtins(), names);
 
     if(console&&(mode == JX_MODE_CONSOLE))
       printf("Jenarix Python-like Syntax (JXP):\n");
