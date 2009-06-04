@@ -921,13 +921,19 @@ power(A) ::= atom(B) call_trailer(C).
 #endif
 }
 
-power(A) ::= atom(B) access_trailer(C).
+power(A) ::= power(B) access_trailer(C).
 {
-  /* B[C ...] becomes (B C ...) */
-  A = C;
-  jx_list_insert(A,1,B);
+  if(jx_ob_identical(jx_list_borrow(B,0),jx_ob_from_ident("get"))) {
+    A=B;
+    jx_list_combine(jx_list_borrow(B,1),C);
+  } else {
+    A=jx_list_new();
+    jx_list_append(A,jx_ob_from_ident("get"));
+    jx_list_insert(C,0,B);
+    jx_list_append(A,C);
+  }
 #ifdef JX_PY_PARSER_DEBUG
-  printf("power(A) ::= atom(B) trailer(C).\n");
+  printf("power(A) ::= power(B) access_trailer(C).\n");
 #endif
 }
 
@@ -1078,7 +1084,6 @@ access_trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
 subscriptlist(A) ::= subscript(B).
 {
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("get"));
   jx_list_append(A,B);
 }
 

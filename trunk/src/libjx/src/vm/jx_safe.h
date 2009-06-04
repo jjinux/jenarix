@@ -130,12 +130,14 @@ JX_INLINE jx_ob jx_safe_get(jx_ob container, jx_ob payload)
     jx__resolve_path(&container,&target);
   if(JX_POS(status)) {
     if(size>1)  target = jx_list_borrow(payload,1);
+    //jx_jxon_dump(stdout,"cont",jx_ob_from_null(),container);
+    //jx_jxon_dump(stdout,"target",jx_ob_from_null(),target);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
-      return jx_list_get(container, jx_ob_as_int(target));
+      return jx_ob_take_weak_ref(jx_list_borrow(container, jx_ob_as_int(target)));
       break;
     case JX_META_BIT_HASH:
-      return jx_hash_get(container, target);
+      return jx_ob_take_weak_ref(jx_hash_borrow(container, target));
     break;
     }
   }

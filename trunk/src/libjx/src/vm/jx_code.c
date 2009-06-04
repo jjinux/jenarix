@@ -1393,7 +1393,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
               return result;
             }
             break;
-          case JX_SELECTOR_APPLY: /* [apply callable payload] */
+          case JX_SELECTOR_APPLY: /* [apply callable payload] TODO: keyword arg list*/
             {
               jx_ob callable = (size>1) ? jx_code_eval_to_weak
                 (tls, flags, node, expr_vla[1]) : jx_ob_from_null();
@@ -1562,16 +1562,20 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                       case 0: /* null method == copy constructor? */
                         break;
                       case JX_META_BIT_IDENT: /* identifier? -> standard method resolution */
-                        if(entity_size>1) {
+                        {
                           jx_ob method_name = result_vla[1];
+                          jx_ob method;
+                          if(entity_size>2) {
                           /* first we look in the member */
-                          jx_ob method = jx_hash_borrow(entity_ob[2],method_name);
+                            method = jx_hash_borrow(entity_ob[2],method_name);
+                          } else 
+                            method = jx_ob_from_null();
                           if(jx_null_check(method)) {
                             /* no luck? then we consult the node's
                                namespace table using the entity object
                                as the namespace key */
                             method = jx_hash_borrow( jx_hash_borrow(node,entity_ob[0]),
-                                                  method_name );
+                                                     method_name );
                           }
                           method = jx_ob_take_weak_ref(method);
                           if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */

@@ -1575,7 +1575,7 @@ JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
 JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result;
+    jx_ob result = JX_OB_NULL;
     if(jx__hash_peek(&result, hash.data.io.hash, key))
       return result;
   }
@@ -1586,7 +1586,7 @@ JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result;
+    jx_ob result = JX_OB_NULL;
     if(jx__hash_peek(&result, hash.data.io.hash, key))
       return jx_ob_copy(result);
   }
@@ -1598,7 +1598,7 @@ JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
-    jx_ob result;
+    jx_ob result = JX_OB_NULL;
     if(jx__hash_remove(&result, hash.data.io.hash, key))
       return result;
   }
@@ -1617,7 +1617,7 @@ JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
-    jx_ob result;
+    jx_ob result = JX_OB_NULL;
     if(jx__hash_remove(&result, hash.data.io.hash, key)) {
       jx_ob_free(result);
       return JX_SUCCESS;
@@ -1630,7 +1630,7 @@ jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value);
 JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result;
+    jx_ob result = JX_OB_NULL;
     if(jx__hash_peek_key(&result, hash.data.io.hash, value))
       return result;
   }
@@ -1640,7 +1640,7 @@ JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value)
 JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result;
+    jx_ob result = JX_OB_NULL;
     if(jx__hash_peek_key(&result, hash.data.io.hash, value))
       return jx_ob_copy(result);
   }
@@ -2495,40 +2495,81 @@ JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
 
 JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *target)
 {
-  if(jx_weak_check(*target)) {
+  if(jx_weak_check(*target)) { /* weak reference? use it */
     *container = *target;
     return JX_YES;
   }
-  jx_status status = jx__resolve_path(container,target);
-  if(JX_POS(status)) {
-    switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
-    case JX_META_BIT_LIST:
-      if(jx_int_check(*target)) {
-        *container = jx_list_borrow(*container,jx_ob_as_int(*target));
-      } else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
-        tls->have_method = JX_TRUE;
-      } else {
-        status =JX_STATUS_INVALID_CONTAINER;
-      }
-        break;
-    case JX_META_BIT_HASH:
-      {
-        jx_ob tmp = JX_OB_NULL;
-        if(jx_hash_peek(&tmp,*container,*target))
-          *container = tmp;
-        else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
-          tls->have_method = JX_TRUE;
+  {
+    jx_ob node = *container;
+    jx_status status = jx__resolve_path(container,target);
+    if(JX_POS(status)) {
+      switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
+      case JX_META_BIT_LIST:
+        if(jx_int_check(*target)) {
+          *container = jx_list_borrow(*container,jx_ob_as_int(*target));
+        } else if(tls) {
+          jx_int entity_size;
+          jx_list *list = container->data.io.list;
+          if((!list->packed_meta_bits) && 
+             (entity_size = jx_vla_size(&list->data))) { 
+            jx_ob *entity_ob = list->data.ob_vla;
+            /* non-zero, unpacked => vla valid */
+            if(jx_builtin_entity_check(entity_ob[0])) {
+              /* first entry in result contains an entity (a class / instance, etc.) */
+              /* the entry following the entity -- what is it? */
+              switch(target->meta.bits & JX_META_MASK_TYPE_BITS) {
+              case JX_META_BIT_IDENT: /* identifier? -> standard method resolution */
+                {
+                  jx_ob method;
+                  if(entity_size>2) {
+                    method = jx_hash_borrow(entity_ob[2],*target);
+                  } else
+                    method = jx_ob_from_null();
+                  if(jx_null_check(method)) {
+                    /* no luck? then we consult the node's
+                       namespace table using the entity object
+                       as the namespace key */
+                    method = jx_hash_borrow( jx_hash_borrow(node,entity_ob[0]),
+                                             *target);
+                  }
+                  if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */
+                    method = jx_ob_take_weak_ref(method);
+                    tls->method = method;
+                    tls->have_method = JX_TRUE;
+                    return JX_YES;
+                  }
+                }
+                break;
+              }
+            }
+          }
+          if(!tls->have_method && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+            
+            tls->have_method = JX_TRUE;
+          }
         } else {
-          status =JX_STATUS_INVALID_CONTAINER;
+          status=JX_STATUS_INVALID_CONTAINER;
         }
-      }
-      break;
-    default:
-      *container = jx_ob_from_null();
-      break;
+        break;
+      case JX_META_BIT_HASH:
+        {
+          jx_ob tmp = JX_OB_NULL;
+          if(jx_hash_peek(&tmp,*container,*target))
+            *container = tmp;
+          else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+            tls->have_method = JX_TRUE;
+          } else {
+            status =JX_STATUS_INVALID_CONTAINER;
+          }
+        }
+        break;
+      default:
+        *container = jx_ob_from_null();
+        break;
       }
     }
-  return status;
+    return status;
+  }
 }
 
 /* enable C++ mangling */

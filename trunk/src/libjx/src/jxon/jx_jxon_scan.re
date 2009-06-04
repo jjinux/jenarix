@@ -449,8 +449,10 @@ static void jx_jxon_scan_input(jx_jxon_scanner_state *state)
       }
       jx_jxon_(jx_Parser, (int)tok_type, token, &state->context);
 
-      if(!jx_ok(state->context.status)) /* something bad happened */
+      if(!jx_ok(state->context.status)) { /* something bad happened */
+        state->saved_token_type = 0;
         break;
+      }
 
       switch(tok_type) {
       case JX_JXON_SEMICOLON:

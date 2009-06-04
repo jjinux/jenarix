@@ -1,0 +1,20 @@
+
+# experimenting with dot notation for calling methods on entity
+# instances (this will be particularly useful for pseudo-Python)
+
+def cl_fn(self):
+    return ["from class",self[1],self[1][0]]
+
+def in_fn(self):
+    return ["from instance",self[1],self[1][0]]
+
+entity(A,{class_fn:cl_fn})
+
+b=[A,[1,2,3],{inst_fn:in_fn}]
+
+print b.class_fn();
+
+print b.inst_fn();
+
+
+
