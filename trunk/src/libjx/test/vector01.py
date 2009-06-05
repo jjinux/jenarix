@@ -12,7 +12,7 @@ def dot(v0,v1):
 
 print dot([1,2,3], [2,3,4])
 
-len( dot( range(1000000), range(1000000)))
+print len( dot( range(1000000), range(1000000)))
 
 
 

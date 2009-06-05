@@ -64,6 +64,20 @@ jx-run64:
 	make -f rules/srclink.mk direct
 	exit 0 # Jenarix configured -- you can now run 'make'
 
+# mixed run mode (32 bit data, 64-bit arch)
+# -- max optimized builds with no heap tracking
+
+jx-mixed:
+	echo "JX_ARCH="`uname`-`uname -m`-mixed | sed 's/ /_/g' > .config
+	echo "JX_CONFIG=-mixed" >> .config
+	echo "JX_BASE="`pwd` >> .config
+	echo "JX_PREFIX1=jx" >> .config
+	echo "JX_PREFIX2=JX" >> .config
+	echo "JX_PREFIX3=Jx" >> .config
+	make -f rules/srclink.mk direct
+	exit 0 # Jenarix configured -- you can now run 'make'
+
+
 xx:
 	echo "JX_ARCH="`uname`-`uname -m` | sed 's/ /_/g' > .config
 	echo "JX_BASE="`pwd` >> .config
@@ -135,3 +149,4 @@ run: jx-run
 
 run64: jx-run64
 
+mixed: jx-mixed

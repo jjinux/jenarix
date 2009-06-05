@@ -42,6 +42,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <limits.h>
+
 /* memory management */
 
 #define jx_os_malloc malloc
@@ -150,7 +152,22 @@ typedef jx_uint32 jx_uint;
 typedef float jx_float;
 #define JX_FLOAT_ZERO 0.0F
 #define JX_UINT_MAX 0xFFFFFFFF
+
+/* make sure tiny_str matches pointer width */
+
+#ifdef __APPLE__
+#if ((0LL+SIZE_T_MAX) == 0x00000000FFFFFFFFLL)
 #define JX_TINY_STR_MIN_SIZE 6
+#else
+#define JX_TINY_STR_MIN_SIZE 10
+#endif
+#else
+#if (((size_t)-1) == 0xFFFFFFFF)
+#define JX_TINY_STR_MIN_SIZE 6
+#else
+#define JX_TINY_STR_MIN_SIZE 10
+#endif
+#endif
 #endif
 
 /* processes, threads, locks, etc. */

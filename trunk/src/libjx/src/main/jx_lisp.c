@@ -50,7 +50,8 @@ int main(int argc, char *argv[])
     jx_hash_set(node, jx_builtins(), names);
 
     if(console) 
-      printf("Jenarix LISP-like Syntax (JXON):\n");
+      printf("Jenarix LISP-like Syntax (JXON)\n[%d-byte numbers, %d-byte tiny strings, %d-byte jx_ob]:\n",
+             (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
     {
       jx_ob source = JX_OB_NULL;
       jx_status status;

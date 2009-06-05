@@ -1364,7 +1364,7 @@ jx_int jx__list_index(jx_list * I,jx_ob ob)
       status = jx_os_spinlock_release(&I->lock);
     }
   }
-  printf("index %d\n",result);
+  //  printf("index %d\n",result);
   return result;
 }
 
@@ -2628,7 +2628,7 @@ JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
     case JX_META_BIT_INT:
     case JX_META_BIT_BOOL:
     case JX_META_BIT_BUILTIN:
-      fprintf(f," %d",key.data.io.int_);
+      fprintf(f," %d",(int)key.data.io.int_);
       break;
     case JX_META_BIT_STR:
       fprintf(f," %s",jx_ob_as_str(&key));
@@ -2644,7 +2644,7 @@ JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
     case JX_META_BIT_INT:
     case JX_META_BIT_BOOL:
     case JX_META_BIT_BUILTIN:
-      fprintf(f," %d",value.data.io.int_);
+      fprintf(f," %d",(int)value.data.io.int_);
       break;
     case JX_META_BIT_STR:
       fprintf(f," %s",jx_ob_as_str(&value));
@@ -2662,7 +2662,7 @@ void jx__hash_dump(FILE *file,jx_hash *I)
   if(!I->info) {
     jx_int usage = jx_vla_size(&I->key_value) >> 1;
     fprintf(file,"hash: mode RAW\n");
-    fprintf(file,"hash: usage %d (from vla_size)\n",usage);
+    fprintf(file,"hash: usage %d (from vla_size)\n",(int)usage);
     {
       int i;
       jx_ob *ob = I->key_value;
@@ -2690,9 +2690,9 @@ void jx__hash_dump(FILE *file,jx_hash *I)
       fprintf(file,"hash: mode ONE-TO-NIL\n");
       break;
     }
-    fprintf(file,"hash: usage %d (from info)\n",usage);
-    fprintf(file,"hash: stale_usage %d (from info)\n",info->stale_usage);
-    fprintf(file,"hash: vla size / 2 = %d\n",jx_vla_size(&I->key_value)>>1);
+    fprintf(file,"hash: usage %d (from info)\n",(int)usage);
+    fprintf(file,"hash: stale_usage %d (from info)\n",(int)info->stale_usage);
+    fprintf(file,"hash: vla size / 2 = %d\n",(int)jx_vla_size(&I->key_value)>>1);
     fprintf(file,"hash: mask 0x%x \n", (unsigned int)info->mask);
     switch(info->mode) {
     case JX_HASH_LINEAR:

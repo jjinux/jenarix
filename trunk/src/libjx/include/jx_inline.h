@@ -1460,21 +1460,22 @@ JX_INLINE jx_uint32 jx__ob_hash_code(jx_ob ob)
 {
 #if (JX_TINY_STR_SIZE == 6)
   register jx_uint32 a = (((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
-                          ((jx_uint32) ob.data.raw.bits) ^ ((jx_uint32) ob.data.raw.word));
+                          (((jx_uint32) ob.data.raw.bits) ^
+                           ((jx_uint32) ob.data.raw.word)));
 #else
 #if (JX_TINY_STR_SIZE == 10)
-  register jx_uint32 a = (((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
-                          ((jx_uint32) ob.data.raw.bits) ^
-                          ((jx_uint32) ob.data.raw.word) ^ 
+  register jx_uint32 a = ((((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
+                           (((jx_uint32) ob.data.raw.bits) ^
+                            ((jx_uint32) ob.data.raw.word))) ^ 
                           ((jx_uint32) (ob.data.raw.word >> 32)));
 #else
 #if (JX_TINY_STR_SIZE == 18)
-  register jx_uint32 a = (((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
-                          ((jx_uint32) ob.data.bits) ^
-                          ((jx_uint32) ob.data.raw.word[0]) ^
-                          ((jx_uint32) (ob.data.raw.word[0] >> 32)) ^
-                          ((jx_uint32) ob.data.raw.word[1]) ^ 
-                          ((jx_uint32) (ob.data.raw.word[1] >> 32)));
+  register jx_uint32 a = ((((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
+                           ((((jx_uint32) ob.data.raw.bits) ^
+                             ((jx_uint32) ob.data.raw.word[0])) ^
+                            ((jx_uint32) ob.data.raw.word[1]))) ^ 
+                          ((jx_uint32) (ob.data.raw.word[0] >> 32) ^
+                           ((jx_uint32) (ob.data.raw.word[1] >> 32))));
 #endif
 #endif
 #endif
