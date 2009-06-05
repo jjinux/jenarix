@@ -1,7 +1,7 @@
 
 
 def main():
-    n = 100000
+    n = 1000000
     X = {}
     for i in xrange(1,n+1):
         X[str(i)] = i

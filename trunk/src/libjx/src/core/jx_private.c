@@ -862,8 +862,8 @@ jx_ob jx__str_concat(jx_ob left, jx_ob right)
 {                               /* on entry, we know the types aren't matched */
   jx_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {    /* we have at least one string */
-    jx_ob left_str = jx_ob_to_str(left_str);
-    jx_ob right_str = jx_ob_to_str(right_str);
+    jx_ob left_str = jx_ob_to_str(left);
+    jx_ob right_str = jx_ob_to_str(right);
     jx_ob result = jx_str_concat(left_str, right_str);
     jx_ob_free(left_str);
     jx_ob_free(right_str);
