@@ -349,6 +349,7 @@ jx_int jx_list_index(jx_ob list, jx_ob ob);
 
 jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
 jx_status jx_list_reset(jx_ob list);
+jx_status jx_list_reverse(jx_ob list);
 
 /* homogenous lists with variable length arrays (vla's)  */
 

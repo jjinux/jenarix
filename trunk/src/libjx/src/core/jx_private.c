@@ -406,6 +406,33 @@ jx_status jx__vla_reset(void **ref)
   return JX_SUCCESS;
 }
 
+jx_status jx__vla_reverse(void **ref)
+{
+  if(jx_vla_size(ref)>1) {
+    if(jx_ok(jx_vla_append(ref,1))) {
+      jx_vla *vla = ((jx_vla *) (*ref)) - 1;
+      {
+        register jx_int rec_size = vla->rec_size;
+        register jx_char *first = (jx_char*)(*ref);
+        register jx_char *last = first + (rec_size * (vla->size-2));
+        register jx_char *tmp = first + (rec_size * (vla->size-1));
+        while(first<last) {
+          jx_os_memcpy(tmp,first,rec_size);
+          jx_os_memcpy(first,last,rec_size);
+          jx_os_memcpy(last,tmp,rec_size);
+          first+=rec_size;
+          last-=rec_size;
+        }
+      }
+      jx__vla_resize(ref,vla->size-1);
+    } else {
+      return JX_FAILURE;
+    }
+  }
+  return JX_SUCCESS;
+}
+
+
 jx_status jx__vla_free(void **ref)
 {
   if(*ref) {

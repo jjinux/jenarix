@@ -587,6 +587,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
       case JX_SELECTOR_CUTOUT:
         jx_tls_ob_replace(tls, &payload, jx_safe_cutout(node, payload));
         break;
+      case JX_SELECTOR_REVERSE:
+        jx_tls_ob_replace(tls, &payload, jx_safe_reverse(node, payload));
+        break;
       case JX_SELECTOR_IMPL:
         jx_tls_ob_replace(tls, &payload, jx_safe_impl(node, payload));
         break;

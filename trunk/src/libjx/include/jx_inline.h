@@ -444,6 +444,7 @@ void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 #define   jx_vla_insert(r,i,c)      jx__vla_insert((void**)(void*)(r),(i),(c))
 #define   jx_vla_extend(r1,r2)      jx__vla_extend((void**)(void*)(r1),((void**)(void*)(r2)))
 #define   jx_vla_remove(r,i,c)      jx__vla_remove((void**)(void*)(r),(i),(c))
+#define   jx_vla_reverse(r)         jx__vla_reverse((void**)(void*)(r))
 #define   jx_vla_rezero(r)          jx__vla_rezero((void**)(void*)(r))
 #define   jx_vla_reset(r)           jx__vla_reset((void**)(void*)(r))
 #define   jx_vla_free(r)            jx__vla_free((void**)(void*)(r))
@@ -474,6 +475,7 @@ jx_status jx__vla_append_ob_str(void **ref, jx_ob ob);
 jx_status jx__vla_insert(void **ref, jx_int index, jx_int count);
 jx_status jx__vla_extend(void **ref1, void **ref2);
 jx_status jx__vla_remove(void **ref, jx_int index, jx_int count);
+jx_status jx__vla_reverse(void **ref);
 jx_status jx__vla_rezero(void **ref);
 jx_status jx__vla_reset(void **ref);
 jx_status jx__vla_free(void **ref);
@@ -1184,6 +1186,32 @@ JX_INLINE jx_status jx_list_repack(jx_ob list)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
     jx__list_repack_data(list.data.io.list) :
+    JX_FAILURE;
+}
+
+JX_INLINE jx_status jx__list_reverse_locked(jx_list * I)
+{
+  return jx_vla_reverse(&I->data.ob_vla);
+}
+
+JX_INLINE jx_status jx__list_reverse(jx_list * I)
+{
+  jx_bool synchronized = I->synchronized;
+  jx_status status = synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    status = jx__list_reverse_locked(I);
+    if(synchronized) {
+      jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx_list_reverse(jx_ob list)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_reverse(list.data.io.list) :
     JX_FAILURE;
 }
 
