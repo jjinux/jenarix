@@ -510,9 +510,16 @@ JX_INLINE jx_status jx_float_vla_free(jx_float ** ref)
   return jx_vla_free(ref);
 }
 
+JX_INLINE jx_ob jx_ob_from_null(void)
+{
+  jx_ob result = JX_OB_NULL;
+  return result;
+}
+
 jx_ob jx__ob_copy(jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
+  //  jx_jxon_dump(stdout,"ob",jx_ob_from_null(),ob);
   return (ob.meta.bits & JX_META_BIT_GC) ?
     jx__ob_copy(ob) : ob;
 }
@@ -530,11 +537,6 @@ JX_INLINE jx_ob jx_builtins(void)
   return result;
 }
 
-JX_INLINE jx_ob jx_ob_from_null(void)
-{
-  jx_ob result = JX_OB_NULL;
-  return result;
-}
 
 JX_INLINE jx_ob jx_ob_not_weak_with_ob(jx_ob ob)
 {
@@ -1116,6 +1118,7 @@ JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
   return result;
 }
 
+
 JX_INLINE jx_ob jx_list_new_with_first(jx_ob fill)
 {
   jx_ob result = jx_list_new();
@@ -1289,6 +1292,17 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
     }
   }
   return JX_FAILURE;
+}
+
+JX_INLINE jx_ob jx_list_new_with_repeat(jx_int size, jx_ob repeat)
+{
+  jx_ob result = jx_list_new();
+  jx_int i;
+  for(i=0;i<size;i++) {
+    jx_list_combine(result,jx_ob_copy(repeat));
+  }
+  jx_ob_free(repeat);
+  return result;
 }
 
 JX_INLINE jx_ob jx__list_get_packed_data_locked(jx_list * list, jx_int index)
@@ -2659,7 +2673,9 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
           }
           if(tls && (!tls->have_method) && 
              jx_hash_peek(&tls->method, tls->builtins, *target)) {
-            tls->have_method = JX_TRUE;
+            if(jx_builtin_callable_check(tls->method)) {
+              tls->have_method = JX_TRUE;
+            }
           } else {
             status = JX_STATUS_INVALID_CONTAINER;
           }
@@ -2675,7 +2691,9 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
               *container = *target;
               //jx_jxon_dump(stdout,"container",node,*container);
               //jx_jxon_dump(stdout,"target",node,*target);
-            tls->have_method = JX_TRUE;
+            if(jx_builtin_callable_check(tls->method)) {
+              tls->have_method = JX_TRUE;
+            }
           } else {
             *container = *target;
             status = JX_STATUS_INVALID_CONTAINER;

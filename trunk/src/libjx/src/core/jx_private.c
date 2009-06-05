@@ -964,6 +964,27 @@ jx_ob jx__ob_add(jx_ob left, jx_ob right)
   return jx_ob_from_null();
 }
 
+jx_ob jx__ob_mul(jx_ob left, jx_ob right)
+{
+  /* on entry, we know the types aren't matched */
+  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  if(merge_bits & JX_META_BIT_LIST) {
+    if((left.meta.bits & JX_META_BIT_LIST) &&
+       (right.meta.bits & JX_META_BIT_INT)) {
+      return jx_list_new_with_repeat(jx_ob_as_int(right),jx_ob_copy(left));
+    } else if((right.meta.bits & JX_META_BIT_LIST) &&
+       (left.meta.bits & JX_META_BIT_INT)) {
+      return jx_list_new_with_repeat(jx_ob_as_int(left),jx_ob_copy(right));
+    }
+    return jx_ob_from_null();
+  } else if(merge_bits & JX_META_BIT_FLOAT) {
+    return jx_ob_from_float(jx_ob_as_float(left) * jx_ob_as_float(right));
+  } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
+    return jx_ob_from_int(jx_ob_as_int(left) * jx_ob_as_int(right));
+  }
+  return jx_ob_from_null();
+}
+
 jx_bool jx__ob_lt(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
@@ -1033,7 +1054,6 @@ jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 }
 
 JX_MATH_OP(sub, -)
-  JX_MATH_OP(mul, *)
 
 #undef JX_MATH_OP
 #define JX_LOG_OP(SUFFIX,OPER) \
@@ -1405,7 +1425,7 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * I)
       jx_int i, size = jx_vla_size(&I->data.vla);
       jx_ob *ob = I->data.ob_vla;
       for(i = 0; i < size; i++) {
-	jx_tls_ob_free(tls,*(ob++));
+        jx_tls_ob_free(tls,*(ob++));
       }
     }      
     jx_tls_vla_free(tls,&I->data.vla);
@@ -2568,7 +2588,7 @@ static jx_status jx__hash_free(jx_tls *tls, jx_hash * I)
       jx_ob *ob = I->key_value;
       jx_int i;
       for(i = 0; i < size; i++) {
-	jx_ob_free(*(ob++));
+        jx_ob_free(*(ob++));
       }
     }
     jx_tls_vla_free(tls,&I->key_value);

@@ -134,5 +134,8 @@ jx_status jx_py_expose_python_builtins(jx_ob names)
   jx_hash_set(names,jx_ob_from_ident("xrange"),
               jx_hash_get(names,jx_ob_from_ident("range")));
 
+  jx_hash_set(names,jx_ob_from_ident("None"),jx_ob_from_null());
+
+
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

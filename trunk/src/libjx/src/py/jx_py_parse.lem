@@ -927,12 +927,18 @@ power(A) ::= power(B) access_trailer(C).
 {
   if(jx_ob_identical(jx_list_borrow(B,0),jx_ob_from_ident("get"))) {
     A=B;
-    jx_list_combine(jx_list_borrow(B,1),C);
+    jx_list_insert(C,0,jx_ob_from_ident("get"));
+    jx_list_append(jx_list_borrow(B,1),C);
   } else {
     A=jx_list_new();
     jx_list_append(A,jx_ob_from_ident("get"));
-    jx_list_insert(C,0,B);
-    jx_list_append(A,C);
+    {
+      jx_ob tmp = jx_list_new();
+      jx_list_append(tmp,B);
+      jx_list_insert(C,0,jx_ob_from_ident("get"));
+      jx_list_append(tmp,C);
+      jx_list_append(A,tmp);
+    }
   }
 #ifdef JX_PY_PARSER_DEBUG
   printf("power(A) ::= power(B) access_trailer(C).\n");
