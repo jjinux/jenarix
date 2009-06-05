@@ -884,7 +884,9 @@ factor(A) ::= PLUS factor(B).
 
 factor(A) ::= MINUS factor(B).
 {
-  A = B;
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("neg"));
+  jx_list_append(A,B);
 #ifdef JX_PY_PARSER_DEBUG
   printf("factor(A) ::= PLUS factor(B).\n");
 #endif

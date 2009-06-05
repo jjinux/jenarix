@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                       if(!jx_null_check(result)) {
                         /* swallow null values just like Python does */
                       
-                        if(console) {
+                        if(mode == JX_MODE_CONSOLE) {
                           jx_jxon_dump(stdout, "# result", node, result);
                         } else if(mode == JX_MODE_EVALUATE) {
                           jx_ob jxon = jx_ob_to_jxon(node,result);
