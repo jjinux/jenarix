@@ -401,7 +401,7 @@ jx_bool jx_hash_peek(jx_ob *result, jx_ob hash, jx_ob key); /* borrows value if 
 
 jx_ob jx_hash_borrow(jx_ob hash, jx_ob key);    /* borrows key and returns borrowed value */
 jx_ob jx_hash_get(jx_ob hash, jx_ob key);       /* borrows and returns copied (owned) value */
-jx_ob jx_hash_remove(jx_ob hash, jx_ob key);    /* borrows key and returns owned value */
+jx_ob jx_hash_remove(jx_ob hash, jx_ob key);    /* borrows key and returns owned value (destroys key inside hash) */
 jx_status jx_hash_delete(jx_ob hash, jx_ob key);        /* borrows key and deletes matched key & value */
 
 jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value);      /* borrows value and returns borrowed key */

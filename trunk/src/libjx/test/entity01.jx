@@ -21,8 +21,10 @@
 
 (set vect1,
   [ Vector, [ 1,0,0,0,1,0,0,0,1 ],
-    { take_first_two : (lambda [self] (cutout (self 1) 0 2))
-      }]);
+    { 
+      take_first_two : (lambda [self] (cutout (self 1) 0 2))
+      }
+  ]);
 
 vect1;
 
@@ -39,11 +41,55 @@ vect1;
 
 (vect1 length);
 
+# "Entities" are the replacement for traditional classes and
+# high-level objects in the Jenarix runtime environment
+
+# delaring an entity effectively reserves the word for use by the entity
+
+(entity Vector);
+
+# result: .Vector
+
+# Notice that two entries are created in the symbol table, one which
+# binds the entity name (Vector) to the builtin entity handle
+# (.Vector) and a second which binds the handle to the attribute table
+# (which can be null)
+
+(symbols);
+
+# result: {Vector:.Vector,.Vector:null}
+
+# using an entity to emulate an instance
+
+(set vect1,
+  [ Vector, [ 1,0,0,0,1,0,0,0,1 ],
+    { 
+      take_first_two : (lambda [self] (cutout (self 1) 0 2))
+      }
+  ]);
+
+vect1;
+
+# result: [.Vector, [1, 0, 0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0x6010e8}]
+
+# Bound methods ends up calling the associated function
+
+(vect1 take_first_two);
+
+# result: [1, 0]
+
+# calling an unbound method currently acts like a nop -- this should
+# probably be changed to either return null or throw an error
+
+(vect1 length);
+
+# result: null
+
 # class-wide methods are stored in the entity class's hash table
 
 (entity Vector
- { length : (lambda [self] (size (self 1)))
-   });
+  { length : (lambda [self] (size (self 1))) }
+  );
 
 (symbols);
 

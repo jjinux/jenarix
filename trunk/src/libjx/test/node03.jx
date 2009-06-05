@@ -76,10 +76,12 @@
 (set (nodeA 2) output pipeB)
 (set (nodeB 2) output pipeC)
 
+(set FINAL_RESULT_SIZE 1000)
+
 (def thread [master,head,queue,result] [
   (if master
     [
-      (set a 100)
+      (set a FINAL_RESULT_SIZE)
       (while (decr a) [(output ("sending 1+",a)) (head.input [1 a])])
       (output "master thread done")
       ]
@@ -89,8 +91,9 @@
         (set packet (shift queue))
         (set target (pop packet))
         (set payload (pop packet))
-        (test (ne null payload) [(target.input payload)])
-        (test (eq (size result) 100) (break))
+        (test (ne null payload) (target.input payload))
+        (test (eq null payload) 
+          (if (eq (size result) FINAL_RESULT_SIZE) [(break)]))
         ])
       (output "slave thread done")
     ])
@@ -110,7 +113,8 @@
   [false, null, queue, result]
   ])
 
-result;
+(size result);
+
 
 
 

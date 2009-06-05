@@ -1,7 +1,7 @@
 
 # now we're creating a queue and sending data through that queue asynchronously
 
-(def send_recv [sender,cnt,pipe] (
+(def send_recv [sender,cnt,pipe] [
   (if sender 
 
     ( (while (decr cnt) (append pipe sender))
@@ -11,7 +11,7 @@
     ( (set wait 7)
       (while wait (test (ge (shift pipe) 0) (incr cnt) (decr wait)))
       cnt))
-  ));
+  ]);
 
 (set pipe []);
 
@@ -23,7 +23,7 @@
 (synchronized pipe);
 
 (parmap send_recv [
-  [true,100000,pipe]  # reader...the 
+  [true,100000,pipe] 
   [true,100000,pipe] 
   [true,100000,pipe]
   [true,100000,pipe]

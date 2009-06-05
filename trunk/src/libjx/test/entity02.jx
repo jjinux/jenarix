@@ -8,13 +8,15 @@
 
 (symbols);
 
-(entity Vector {add:vector_add} );
+(entity Vector {add:vector_add});
 
 (symbols);
 
 (del vector_add);
 
 (symbols);
+
+# v1 = [Vector, [1 2 3]]
 
 (set v1 [Vector, [1 2 3]]);
 

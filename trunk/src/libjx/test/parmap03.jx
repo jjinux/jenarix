@@ -23,12 +23,14 @@
       (append queue false)
       (append queue false)
       )
+
     ( (set cnt 0)
       (while 1 (
         (set fn (shift queue))
         (test (eq fn false) (break))
         (test (ne fn null) ((fn) (incr cnt)))))
       cnt)
+
 )));
 
 (set pipe []);
@@ -38,7 +40,5 @@
  [false,pipe,1]
  [false,pipe,2]
  [true,pipe,0]
- ]
-)
-
+ ])
 
