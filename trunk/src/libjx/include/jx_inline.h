@@ -524,6 +524,14 @@ JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
     jx__ob_copy(ob) : ob;
 }
 
+jx_ob jx__ob_copy_strong(jx_ob ob);
+JX_INLINE jx_ob jx_ob_copy_strong(jx_ob ob)
+{
+  //  jx_jxon_dump(stdout,"ob",jx_ob_from_null(),ob);
+  return (ob.meta.bits & JX_META_BIT_GC) ?
+    jx__ob_copy_strong(ob) : ob;
+}
+
 JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
 {
   jx_ob result = JX_OB_NULL;
@@ -1239,9 +1247,12 @@ JX_INLINE jx_status jx__list_replace(jx_list * I, jx_int index, jx_ob ob)
   jx_status status = synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
+
     status = JX_FAILURE;
     if((!I->gc.shared) && (index >=0) && (index < jx_vla_size(&I->data.vla))) {
       if(!I->packed_meta_bits) {
+        //        jx_ob_dump(stdout,"index",I->data.ob_vla[index]);
+        //        jx_jxon_dump(stdout,"index",jx_ob_from_null(),I->data.ob_vla[index]);
         jx_ob_replace(I->data.ob_vla + index, ob);
         status = JX_SUCCESS;
       } else {
@@ -1280,16 +1291,18 @@ JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
   jx_bits bits1 = list1.meta.bits;
   jx_bits bits2 = list2.meta.bits;
   if((bits1 & JX_META_BIT_LIST) && (bits2 & JX_META_BIT_LIST)) {
-    if((bits2 & JX_META_BIT_WEAK_REF) || (jx_ob_shared(list2))) {
+    if((bits2 & JX_META_BIT_WEAK_REF) || (jx_ob_shared(list2) || (jx_ob_synchronized(list2)))) {
       /* copy list2 if weak or shared */
-      list2 = jx_ob_copy(list2);
-      if(!jx_ok(jx__list_combine(list1.data.io.list, list2.data.io.list)))
+      jx_ob list3 = jx_ob_copy_strong(list2);
+      if(!jx_ok(jx__list_combine(list1.data.io.list, list3.data.io.list))) {
+        jx_ob_free(list3);
         jx_ob_free(list2);
-      else
+      } else {
+        jx_ob_free(list2);
         return JX_SUCCESS;
-    } else {
-      return jx__list_combine(list1.data.io.list, list2.data.io.list);
+      }
     }
+    return jx__list_combine(list1.data.io.list, list2.data.io.list);
   }
   return JX_FAILURE;
 }
@@ -1299,7 +1312,7 @@ JX_INLINE jx_ob jx_list_new_with_repeat(jx_int size, jx_ob repeat)
   jx_ob result = jx_list_new();
   jx_int i;
   for(i=0;i<size;i++) {
-    jx_list_combine(result,jx_ob_copy(repeat));
+    jx_list_combine(result,jx_ob_copy_strong(repeat));
   }
   jx_ob_free(repeat);
   return result;

@@ -46,7 +46,6 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
       if(jx_ob_identical(ident,jx_ob_from_ident("len"))) {
           jx_list_replace(source,0,jx_ob_from_ident("size"));
       }
-
       
       {
         jx_int size = jx_list_size(source);
@@ -75,6 +74,17 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
     }
     break;
   case JX_META_BIT_IDENT:
+    if(jx_ob_identical(source,jx_ob_from_ident("null"))) {
+      jx_ob_replace(&source,jx_ob_from_null());
+    }
+    if(jx_ob_identical(source,jx_ob_from_ident("true"))) {
+      jx_ob_replace(&source,jx_ob_from_bool(1));
+    }
+    if(jx_ob_identical(source,jx_ob_from_ident("false"))) {
+      jx_ob_replace(&source,jx_ob_from_bool(0));
+    }
+    return source;
+    break;
   case JX_META_BIT_BOOL:
   case JX_META_BIT_FLOAT:
   case JX_META_BIT_INT:

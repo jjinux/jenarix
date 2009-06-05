@@ -1239,6 +1239,7 @@ jx_ob jx__list_copy(jx_list * I)
     if(result.meta.bits & JX_META_BIT_LIST) {
       jx_list *new_I = result.data.io.list;
       (*new_I) = (*I);
+      new_I->synchronized = JX_FALSE;
       jx__gc_init(&new_I->gc);
       new_I->data.vla = jx_vla_copy(&I->data.vla);
       if(!new_I->packed_meta_bits) {      /* need to recursively copy all GC content */
@@ -1247,6 +1248,36 @@ jx_ob jx__list_copy(jx_list * I)
         for(i = 0; i < size; i++) {
           if(ob->meta.bits & JX_META_BIT_GC) {
             *ob = jx_ob_copy(*ob);
+          }
+          ob++;
+        }
+      }
+    }
+    if(I->synchronized) {
+      status = jx_os_spinlock_release(&I->lock);
+    }
+  }
+  return result;
+}
+
+jx_ob jx__list_copy_strong(jx_list * I)
+{
+  jx_ob result = jx_list_new();
+  jx_status status = I->synchronized ? 
+    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    if(result.meta.bits & JX_META_BIT_LIST) {
+      jx_list *new_I = result.data.io.list;
+      (*new_I) = (*I);
+      new_I->synchronized = JX_FALSE;
+      jx__gc_init(&new_I->gc);
+      new_I->data.vla = jx_vla_copy(&I->data.vla);
+      if(!new_I->packed_meta_bits) {      /* need to recursively copy all GC content */
+        jx_int i, size = jx_vla_size(&new_I->data.ob_vla);
+        jx_ob *ob = new_I->data.ob_vla;
+        for(i = 0; i < size; i++) {
+          if(ob->meta.bits & JX_META_BIT_GC) {
+            *ob = jx_ob_copy_strong(*ob);
           }
           ob++;
         }
@@ -2141,89 +2172,75 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
 
 jx_status jx__list_combine(jx_list * list1, jx_list * list2)
 {
-  if(list1>list2) {
-    jx_list *tmp = list1;
-    list1 = list2; list2 = tmp;
-  }
-  {
-    jx_status status = (list1->synchronized ? 
-                        jx_os_spinlock_acquire(&list1->lock,JX_TRUE) : JX_YES);
+  /* we're assuming on entry that list2 is not synchronized 
+     (since we're consuming it)... */
+  jx_status status = (list1->synchronized ? 
+                      jx_os_spinlock_acquire(&list1->lock,JX_TRUE) : JX_YES);
+  if(JX_POS(status)) {
     if(JX_POS(status)) {
-      status = (list2->synchronized ? 
-                jx_os_spinlock_acquire(&list2->lock,JX_TRUE) : JX_YES);
-      if(JX_POS(status)) {
-        /* consumes list2 */
-        if(list1->gc.shared || list2->gc.shared) {
-          status = JX_STATUS_PERMISSION_DENIED;
-        } else if(list1 == list2) {
-          if(list1->synchronized) 
-            jx_os_spinlock_release(&list1->lock);
-          if(list2->synchronized) 
-            jx_os_spinlock_release(&list2->lock);
-          {
-            jx_ob ob = jx__list_copy(list2);
-            if(jx_ok(jx__list_combine(list1, ob.data.io.list))) {
-              return JX_SUCCESS; 
-            } else {
-              jx_ob_free(ob);
+      /* consumes list2 */
+      if(list1->gc.shared || list2->gc.shared) {
+        status = JX_STATUS_PERMISSION_DENIED;
+      } else if(list1 == list2) {
+        if(list1->synchronized) 
+          jx_os_spinlock_release(&list1->lock);
+        {
+          jx_ob ob = jx__list_copy_strong(list2);
+          if(jx_ok(jx__list_combine(list1, ob.data.io.list))) {
+            return JX_SUCCESS; 
+          } else {
+            jx_ob_free(ob);
+          }
+        }
+      } else {
+        jx_int list1_size = jx__list_size(list1);
+        jx_int list2_size = jx__list_size(list2);
+
+        if(!list1_size) {
+          list1->packed_meta_bits = 0;
+          jx_vla_free(&list1->data.vla);
+        }
+        if(!list2_size) {
+          list2->packed_meta_bits = 0;
+          jx_vla_free(&list2->data.vla);
+        }
+        if(list1_size && list2_size) {
+          if(list1->packed_meta_bits != list2->packed_meta_bits) {
+            if(list1->packed_meta_bits) {
+              if(!jx_ok(jx__list_unpack_data_locked(list1)))
+                goto unlock;
+            }
+            if(list2->packed_meta_bits) {
+              if(!jx_ok(jx__list_unpack_data_locked(list2)))
+                goto unlock;
             }
           }
-        } else {
-          jx_int list1_size = jx__list_size(list1);
-          jx_int list2_size = jx__list_size(list2);
-          if(!list1_size) {
-            list1->packed_meta_bits = 0;
-            jx_vla_free(&list1->data.vla);
-          }
-          if(!list2_size) {
-            list2->packed_meta_bits = 0;
-            jx_vla_free(&list2->data.vla);
-          }
-          if(list1_size && list2_size) {
-            if(list1->packed_meta_bits != list2->packed_meta_bits) {
-              if(list1->packed_meta_bits) {
-                if(!jx_ok(jx__list_unpack_data_locked(list1)))
-                  goto unlock_both;
-              }
-              if(list2->packed_meta_bits) {
-                if(!jx_ok(jx__list_unpack_data_locked(list2)))
-                  goto unlock_both;
-              }
-            }
-          }
-          if(list1->data.vla && list2->data.vla) {
-            if(jx_ok(jx__vla_extend(&list1->data.vla, &list2->data.vla))) {
-              jx_vla_free(&list2->data.vla);
-              if(list2->synchronized) {
-                status = jx_os_spinlock_release(&list2->lock);
-              }
-              jx__list_free(NULL,list2);
-              status = JX_SUCCESS;
-              goto unlock1;
-            }
-          } else if(list2->data.vla) {
-            (*list1) = (*list2);
-            list2->data.vla = NULL;
-            if(list2->synchronized) {
-              status = jx_os_spinlock_release(&list2->lock);
-            }
+        }
+        if(list1->data.vla && list2->data.vla) {
+          if(jx_ok(jx__vla_extend(&list1->data.vla, &list2->data.vla))) {
+            jx_vla_reset(&list2->data.vla);
             jx__list_free(NULL,list2);
             status = JX_SUCCESS;
-            goto unlock1;
+            goto unlock;
           }
+        } else if(list2->data.vla) {
+          list1->data.vla = list2->data.vla;
+          list1->packed_meta_bits = list2->packed_meta_bits;
+          list2->data.vla = NULL;
+          list2->packed_meta_bits = 0;
+          jx__list_free(NULL,list2);
+          status = JX_SUCCESS;
+          goto unlock;
         }
-      unlock_both:
-        if(list2->synchronized) {
-          jx_os_spinlock_release(&list2->lock);
-        }
-      }
-    unlock1:
-      if(list1->synchronized) {
-        jx_os_spinlock_release(&list1->lock);
       }
     }
-    return status;
+  unlock:
+    if(list1->synchronized) {
+      jx_os_spinlock_release(&list1->lock);
+    }
   }
+  return status;
+
 }
 
 jx_ob jx__list_remove(jx_list * I, jx_int index)
@@ -2526,6 +2543,36 @@ jx_ob jx__hash_copy(jx_hash * hash)
         for(i = 0; i < size; i++) {
           if(ob->meta.bits & JX_META_BIT_GC) {
             *ob = jx_ob_copy(*ob);
+          }
+          ob++;
+        }
+      }
+    }
+    if(hash->synchronized) {
+      status = jx_os_spinlock_release(&hash->lock);
+    }
+  }
+  return result;
+}
+
+jx_ob jx__hash_copy_strong(jx_hash * hash)
+{
+  jx_ob result = jx_hash_new();
+  jx_status status = hash->synchronized ? 
+    jx_os_spinlock_acquire(&hash->lock,JX_TRUE) : JX_YES;
+  if(JX_POS(status)) {
+    if(result.meta.bits & JX_META_BIT_HASH) {
+      jx_hash *I = result.data.io.hash;
+      *I = *hash;
+      jx__gc_init(&I->gc);
+      I->info = jx_vla_copy(&I->info);
+      I->key_value = jx_vla_copy(&I->key_value);
+      {
+        jx_int i, size = jx_vla_size(&I->key_value);
+        jx_ob *ob = I->key_value;
+        for(i = 0; i < size; i++) {
+          if(ob->meta.bits & JX_META_BIT_GC) {
+            *ob = jx_ob_copy_strong(*ob);
           }
           ob++;
         }
@@ -4784,11 +4831,44 @@ jx_ob jx__ob_copy(jx_ob ob)
   return jx_ob_from_null();
 }
 
+jx_ob jx__ob_copy_strong(jx_ob ob)
+{
+  /* on entry, we know the object is GC'd */
+  switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+    return jx__str_gc_copy(ob.data.io.str);
+    break;
+  case JX_META_BIT_IDENT:
+    return jx__ident_gc_copy(ob.data.io.str);
+    break;
+  case JX_META_BIT_LIST:
+    return jx__list_copy_strong(ob.data.io.list);
+    break;
+  case JX_META_BIT_HASH:
+    return jx__hash_copy_strong(ob.data.io.hash);
+    break;
+  case JX_META_BIT_BUILTIN:
+    return jx__builtin_copy(ob);
+   break;
+  }
+  return jx_ob_from_null();
+}
 
 jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
 {
+  /* BROKEN CODE - DO NOT USE! */
+
   jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_WEAK_REF) {
+    switch (bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_LIST:
+      jx__list_make_strong(ob.data.io.list);
+      break;
+    case JX_META_BIT_HASH:
+      jx__hash_make_strong(ob.data.io.hash);
+      break;
+    }
+  } else {
     /* on entry, we know the object is GC'd */
     switch (bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_STR:
@@ -4805,15 +4885,6 @@ jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
       break;
     case JX_META_BIT_BUILTIN:
       return jx__builtin_copy(ob);
-      break;
-    }
-  } else {
-    switch (bits & JX_META_MASK_TYPE_BITS) {
-    case JX_META_BIT_LIST:
-      jx__list_make_strong(ob.data.io.list);
-      break;
-    case JX_META_BIT_HASH:
-      jx__hash_make_strong(ob.data.io.hash);
       break;
     }
   }

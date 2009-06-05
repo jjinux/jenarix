@@ -927,7 +927,7 @@ power(A) ::= power(B) access_trailer(C).
 {
   if(jx_ob_identical(jx_list_borrow(B,0),jx_ob_from_ident("get"))) {
     A=B;
-    jx_list_insert(C,0,jx_ob_from_ident("get"));
+    jx_list_insert(C,0,jx_ob_from_ident("eval"));
     jx_list_append(jx_list_borrow(B,1),C);
   } else {
     A=jx_list_new();
@@ -935,7 +935,7 @@ power(A) ::= power(B) access_trailer(C).
     {
       jx_ob tmp = jx_list_new();
       jx_list_append(tmp,B);
-      jx_list_insert(C,0,jx_ob_from_ident("get"));
+      jx_list_insert(C,0,jx_ob_from_ident("eval"));
       jx_list_append(tmp,C);
       jx_list_append(A,tmp);
     }

@@ -1343,8 +1343,8 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                     jx_ob_replace(&result, jx_code_exec_tls(tls,flags,node,body));
                   }
                 }
-                jx_tls_ob_free(tls,list);
               }
+              jx_tls_ob_free(tls,list);
               return result;
             }
             break;

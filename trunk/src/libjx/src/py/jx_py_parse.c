@@ -2210,7 +2210,7 @@ static void yy_reduce(
 {
   if(jx_ob_identical(jx_list_borrow(yymsp[-1].minor.yy0,0),jx_ob_from_ident("get"))) {
     yygotominor.yy0=yymsp[-1].minor.yy0;
-    jx_list_insert(yymsp[0].minor.yy0,0,jx_ob_from_ident("get"));
+    jx_list_insert(yymsp[0].minor.yy0,0,jx_ob_from_ident("eval"));
     jx_list_append(jx_list_borrow(yymsp[-1].minor.yy0,1),yymsp[0].minor.yy0);
   } else {
     yygotominor.yy0=jx_list_new();
@@ -2218,7 +2218,7 @@ static void yy_reduce(
     {
       jx_ob tmp = jx_list_new();
       jx_list_append(tmp,yymsp[-1].minor.yy0);
-      jx_list_insert(yymsp[0].minor.yy0,0,jx_ob_from_ident("get"));
+      jx_list_insert(yymsp[0].minor.yy0,0,jx_ob_from_ident("eval"));
       jx_list_append(tmp,yymsp[0].minor.yy0);
       jx_list_append(yygotominor.yy0,tmp);
     }
