@@ -2593,34 +2593,34 @@ JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
   /* jx_ob = 64 bits */
   fprintf(f,"%s: %08x%04x %04x -> %08x%04x %04x",prefix, 
           (unsigned int)key.data.raw.word,
-          (unsigned int)key.data.raw.bits, (unsigned int)key.meta.bits,
+          (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)value.data.raw.word,
-          (unsigned int)value.data.raw.bits, (unsigned int)value.meta.bits);
+          (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #else
   /* jx_ob = 96 bits */
   fprintf(f,"%s: %08x%08x%04x %04x -> %08x%08x%04x %04x",prefix, 
           (unsigned int)(key.data.raw.word), (unsigned int)(key.data.raw.word>>32),
-          (unsigned int)key.data.raw.bits, (unsigned int)key.meta.bits,
+          (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)(value.data.raw.word), (unsigned int)(value.data.raw.word>>32),
-          (unsigned int)value.data.raw.bits, (unsigned int)value.meta.bits);
+          (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #endif
 #else
 #if (JX_TINY_STR_SIZE == 10)
   /* jx_ob = 96 bits */
   fprintf(f,"%s: %08x%08x%04x %04x -> %08x%08x%04x %04x",prefix, 
           (unsigned int)(key.data.raw.word), (unsigned int)(key.data.raw.word>>32),
-          (unsigned int)key.data.raw.bits, (unsigned int)key.meta.bits,
+          (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)(value.data.raw.word), (unsigned int)(value.data.raw.word>>32),
-          (unsigned int)value.data.raw.bits, (unsigned int)value.meta.bits);
+          (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #else 
   /* jx_ob = 160 bits */
   fprintf(f,"%s: %08x%08x%08x%08x%04x %04x -> %08x%08x%08x%08x%04x %04x",prefix, 
           (unsigned int)(key.data.raw.word[0]), (unsigned int)(key.data.raw.word[0]>>32),
           (unsigned int)(key.data.raw.word[1]), (unsigned int)(key.data.raw.word[1]>>32),
-          (unsigned int)key.data.raw.bits, (unsigned int)key.meta.bits,
+          (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)(value.data.raw.word[0]), (unsigned int)(value.data.raw.word[0]>>32),
           (unsigned int)(value.data.raw.word[1]), (unsigned int)(value.data.raw.word[1]>>32),
-          (unsigned int)value.data.raw.bits, (unsigned int)value.meta.bits);
+          (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #endif
 #endif
   {
@@ -3515,10 +3515,10 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
 #if 0
                 fprintf(stderr, "%08x %04x %04x == %08x %04x %04x %d\n",
                         (unsigned int) ob[0].data.raw.word,
-                        (unsigned int) ob[0].data.raw.bits,
+                        (unsigned int) ob[0].meta.fill,
                         (unsigned int) ob[0].meta.bits,
                         (unsigned int) key.data.raw.word,
-                        (unsigned int) key.data.raw.bits,
+                        (unsigned int) key.meta.fill,
                         (unsigned int) key.meta.bits, jx_ob_identical(ob[0], key)
                         );
 #endif

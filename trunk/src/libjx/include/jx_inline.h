@@ -58,15 +58,15 @@ extern "C" {
 
 #if (JX_TINY_STR_SIZE == 6)
 typedef jx_int32 jx_data_word;
-#define JX_DATA_INIT  {{0,0}}
+#define JX_DATA_INIT  {{0}}
 #else
 #if (JX_TINY_STR_SIZE == 10)
 typedef jx_int64 jx_data_word;
-#define JX_DATA_INIT  {{0,0}}
+#define JX_DATA_INIT  {{0}}
 #else
 #if (JX_TINY_STR_SIZE == 18)
 typedef jx_int64 jx_data_word[2];
-#define JX_DATA_INIT  {{{0,0},0}}
+#define JX_DATA_INIT  {{0,0}}
 #endif
 #endif
 #endif
@@ -86,12 +86,12 @@ typedef struct {
 } jx_gc;
 
 typedef struct { /* get rid of this later on */
+  jx_bits fill;
   jx_bits bits;
 } jx_meta;
 
 typedef struct { /* for fast initialization / comparison */
   jx_data_word word;
-  jx_bits bits;
 } jx_data_raw;
 
 /* opaque objects -- runtime objects inside jenarix containers */
@@ -111,7 +111,7 @@ typedef union {
   jx_bool bool_;
   jx_int int_;
   jx_float float_;
-  jx_char tiny_str[JX_TINY_STR_SIZE];
+  jx_char tiny_str[JX_TINY_STR_SIZE-2];
   jx_char *str; /* NEVER ACCESS DIRECTLY!
                    note: vla ptr to jx_str header, not first char */
   jx_list *list;
@@ -201,15 +201,16 @@ struct jx__ob {
 
 /* object initializers */
 
-#define JX_OB_NULL      { JX_DATA_INIT, {0                    }}
-#define JX_OB_INT       { JX_DATA_INIT, {JX_META_BIT_INT      }}
-#define JX_OB_FLOAT     { JX_DATA_INIT, {JX_META_BIT_FLOAT    }}
-#define JX_OB_BOOL      { JX_DATA_INIT, {JX_META_BIT_BOOL     }} 
+#define JX_OB_NULL      { JX_DATA_INIT, {0,0                    }}
+#define JX_OB_INT       { JX_DATA_INIT, {0,JX_META_BIT_INT      }}
+#define JX_OB_FLOAT     { JX_DATA_INIT, {0,JX_META_BIT_FLOAT    }}
+#define JX_OB_BOOL      { JX_DATA_INIT, {0,JX_META_BIT_BOOL     }} 
 
-#define JX_OB_LIST      { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_LIST  }}
-#define JX_OB_HASH      { JX_DATA_INIT, {JX_META_BIT_GC | JX_META_BIT_HASH  }}
+#define JX_OB_LIST      { JX_DATA_INIT, {0,JX_META_BIT_GC | JX_META_BIT_LIST  }}
+#define JX_OB_HASH      { JX_DATA_INIT, {0,JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
-#define JX_OB_OPCODE    { JX_DATA_INIT, {JX_META_BIT_OPCODE   }} 
+#define JX_OB_OPCODE    { JX_DATA_INIT, {0,JX_META_BIT_OPCODE   }} 
+#define JX_OB_BUILTINS  { JX_DATA_INIT, {0,JX_META_BIT_IDENT} }
 
 /* VM opcodes (of 32 possibilities, only 2 are assigned) */
 
@@ -369,25 +370,25 @@ JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
   /* jx_ob = 64 bits */
   fprintf(f,"%s: %08x%04x %04x\n",prefix, 
           (unsigned int)ob.data.raw.word,
-          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
+          (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
 #else
   /* jx_ob = 96 bits */
   fprintf(f,"%s: %08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word), (unsigned int)(ob.data.raw.word>>32),
-          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
+          (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
 #endif
 #else
 #if (JX_TINY_STR_SIZE == 10)
   /* jx_ob = 96 bits */
   fprintf(f,"%s: %08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word), (unsigned int)(ob.data.raw.word>>32),
-          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
+          (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
 #else
   /* jx_ob = 160 bits */
   fprintf(f,"%s: %08x%80x%08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word[0]), (unsigned int)(ob.data.raw.word[0]>>32),
           (unsigned int)(ob.data.raw.word[1]), (unsigned int)(ob.data.raw.word[1]>>32),
-          (unsigned int)ob.data.raw.bits, (unsigned int)ob.meta.bits);
+          (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
 
 #endif
 #endif
@@ -503,9 +504,7 @@ JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
 
 JX_INLINE jx_ob jx_builtins(void) 
 {
-  jx_ob result = { JX_DATA_INIT, {JX_META_BIT_IDENT} };
-  result.data.io.tiny_str[0] = '_';
-  result.data.io.tiny_str[1] = '_';
+  jx_ob result = JX_OB_BUILTINS;
   return result;
 }
 
@@ -936,13 +935,13 @@ JX_INLINE jx_bool jx_ob_same(jx_ob left, jx_ob right)
 #if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
     return ((left_bits == right_bits) &&
             (left.data.raw.word == right.data.raw.word) &&
-            (left.data.raw.bits == right.data.raw.bits));
+            (left.meta.fill == right.meta.fill));
 #else
 #if (JX_TINY_STR_SIZE == 18)
     return ((left_bits == right_bits) &&
             (left.data.raw.word[0] == right.data.raw.word[0]) &&
             (left.data.raw.word[1] == right.data.raw.word[1]) &&
-            (left.data.raw.bits    == right.data.raw.bits   ));
+            (left.meta.fill    == right.meta.fill   ));
 #endif
 #endif
 }
@@ -961,12 +960,12 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
   } else {
 #if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
     return ((left.data.raw.word == right.data.raw.word) &&
-            (left.data.raw.bits == right.data.raw.bits));
+            (left.meta.fill == right.meta.fill));
 #else
 #if (JX_TINY_STR_SIZE == 18)
     return ((left.data.raw.word[0] == right.data.raw.word[0]) &&
             (left.data.raw.word[1] == right.data.raw.word[1]) &&
-            (left.data.raw.bits    == right.data.raw.bits   ));
+            (left.meta.fill    == right.meta.fill   ));
 #endif
 #endif
   }
@@ -1459,23 +1458,25 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 JX_INLINE jx_uint32 jx__ob_hash_code(jx_ob ob)
 {
 #if (JX_TINY_STR_SIZE == 6)
-  register jx_uint32 a = (((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
-                          (((jx_uint32) ob.data.raw.bits) ^
-                           ((jx_uint32) ob.data.raw.word)));
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) ^ 
+                                      ob.meta.fill)) ^
+                          ((jx_uint32) ob.data.raw.word));
 #else
 #if (JX_TINY_STR_SIZE == 10)
-  register jx_uint32 a = ((((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
-                           (((jx_uint32) ob.data.raw.bits) ^
-                            ((jx_uint32) ob.data.raw.word))) ^ 
-                          ((jx_uint32) (ob.data.raw.word >> 32)));
+  register jx_int tmp = ob.data.raw.word;
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) ^ 
+                                       ob.meta.fill)) ^
+                          ((jx_uint32)(tmp ^ (tmp>>32))));
+  
 #else
 #if (JX_TINY_STR_SIZE == 18)
-  register jx_uint32 a = ((((jx_uint32) (ob.meta.bits & JX_META_MASK_FOR_HASH)) ^
-                           ((((jx_uint32) ob.data.raw.bits) ^
-                             ((jx_uint32) ob.data.raw.word[0])) ^
-                            ((jx_uint32) ob.data.raw.word[1]))) ^ 
-                          ((jx_uint32) (ob.data.raw.word[0] >> 32) ^
-                           ((jx_uint32) (ob.data.raw.word[1] >> 32))));
+  register jx_int tmp = (ob.data.raw.word[0] ^ ob.data.raw.word[1]);
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) ^ 
+                                       ob.meta.fill)) ^
+                          ((jx_uint32)(tmp ^ (tmp>>32))));
 #endif
 #endif
 #endif
