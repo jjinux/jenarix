@@ -42,7 +42,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#ifdef __APPLE__
 #include <limits.h>
+#else
+#include <stdint.h>
+#endif
 
 /* memory management */
 
@@ -162,7 +166,7 @@ typedef float jx_float;
 #define JX_TINY_STR_MIN_SIZE 10
 #endif
 #else
-#if (((size_t)-1) == 0xFFFFFFFF)
+#if (UINTPTR_MAX) == (4294967295U)
 #define JX_TINY_STR_MIN_SIZE 6
 #else
 #define JX_TINY_STR_MIN_SIZE 10
