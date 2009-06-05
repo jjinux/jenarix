@@ -1458,6 +1458,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                 if((!i)&&tls->have_method) { /* implicit method call? */
                   method_flag = JX_TRUE;
                   method_ob = tls->method;
+                  //jx_jxon_dump(stdout,"method_ob",node,tls->method);
                 }
               } else { /* not a container or we're processing a macro */
                 *(result_ob++) = jx_tls_ob_copy(tls,*expr_ob);
@@ -1484,6 +1485,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
             if(method_flag) { /* transform implict method 
                                  call into a standard evaluation */
               jx__list_insert(result_list,0,method_ob);
+              //              jx_jxon_dump(stdout,"result",node,result);
               result_vla = result_list->data.ob_vla;
             }
             /* WARNING / REMINDER: we may now have some weak

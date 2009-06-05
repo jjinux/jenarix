@@ -2511,7 +2511,10 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
   {
     jx_ob node = *container;
     jx_status status = jx__resolve_path(container,target);
+    //jx_jxon_dump(stdout,"container",node,*container);
+    //jx_jxon_dump(stdout,"target",node,*target);
     if(JX_POS(status)) {
+
       switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_LIST:
         if(jx_int_check(*target)) {
@@ -2569,8 +2572,10 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
           if(jx_hash_peek(&tmp,*container,*target)) {
             *container = tmp;
           } else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
-            *container = *target;
-            //            jx_jxon_dump(stdout,"tls->method",node,tls->method);
+            if(jx_ob_same(*container,node)) /* twisted logic, but it works! */
+              *container = *target;
+              //jx_jxon_dump(stdout,"container",node,*container);
+              //jx_jxon_dump(stdout,"target",node,*target);
             tls->have_method = JX_TRUE;
           } else {
             *container = *target;

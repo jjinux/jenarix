@@ -151,6 +151,8 @@ JX_INLINE jx_ob jx_safe_has(jx_ob container, jx_ob payload)
   jx_status status = size>1 ?
     jx__resolve_container(NULL,&container,&target) :
     jx__resolve_path(&container,&target);
+  //  jx_jxon_dump(stdout,"container",jx_ob_from_null(),container);
+  //  jx_jxon_dump(stdout,"target",jx_ob_from_null(),container);
   if(JX_POS(status)) {
     if(size>1)  target = jx_list_borrow(payload,1);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
