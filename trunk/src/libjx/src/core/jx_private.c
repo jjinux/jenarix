@@ -2589,39 +2589,47 @@ JX_INLINE jx_uint32 jx__new_mask_from_min_size(jx_uint32 min_size)
 JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
 {
 #if (JX_TINY_STR_SIZE == 6)
-#ifndef JX_64_BIT
-  /* jx_ob = 64 bits */
   fprintf(f,"%s: %08x%04x %04x -> %08x%04x %04x",prefix, 
           (unsigned int)key.data.raw.word,
           (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)value.data.raw.word,
           (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
-#else
-  /* jx_ob = 96 bits */
+#endif
+
+#if (JX_TINY_STR_SIZE == 10)
   fprintf(f,"%s: %08x%08x%04x %04x -> %08x%08x%04x %04x",prefix, 
           (unsigned int)(key.data.raw.word), (unsigned int)(key.data.raw.word>>32),
           (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)(value.data.raw.word), (unsigned int)(value.data.raw.word>>32),
           (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #endif
-#else
-#if (JX_TINY_STR_SIZE == 10)
-  /* jx_ob = 96 bits */
-  fprintf(f,"%s: %08x%08x%04x %04x -> %08x%08x%04x %04x",prefix, 
+
+#if (JX_TINY_STR_SIZE == 12)
+  fprintf(f,"%s: %08x%08x%08x %08x -> %08x%08x%08x %08x",prefix, 
           (unsigned int)(key.data.raw.word), (unsigned int)(key.data.raw.word>>32),
           (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)(value.data.raw.word), (unsigned int)(value.data.raw.word>>32),
           (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
-#else 
-  /* jx_ob = 160 bits */
-  fprintf(f,"%s: %08x%08x%08x%08x%04x %04x -> %08x%08x%08x%08x%04x %04x",prefix, 
+#endif
+
+#if (JX_TINE_STR_SIZE == 14)
+  fprintf(f,"%s: %08x%08x%08x%08x%08x %08x -> %08x%08x%08x%08x%08x %08x",prefix, 
+          (unsigned int)(key.data.raw.word[0]), (unsigned int)(key.data.raw.word[1]),
+          (unsigned int)(key.data.raw.word[2]), 
+          (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
+          (unsigned int)(value.data.raw.word[0]), (unsigned int)(value.data.raw.word[1]),
+          (unsigned int)(value.data.raw.word[2]), 
+          (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
+#endif
+
+#if (JX_TINE_STR_SIZE == 20)
+  fprintf(f,"%s: %08x%08x%08x%08x%08x %08x -> %08x%08x%08x%08x%08x %08x",prefix, 
           (unsigned int)(key.data.raw.word[0]), (unsigned int)(key.data.raw.word[0]>>32),
           (unsigned int)(key.data.raw.word[1]), (unsigned int)(key.data.raw.word[1]>>32),
           (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,
           (unsigned int)(value.data.raw.word[0]), (unsigned int)(value.data.raw.word[0]>>32),
           (unsigned int)(value.data.raw.word[1]), (unsigned int)(value.data.raw.word[1]>>32),
           (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
-#endif
 #endif
   {
     switch(key.meta.bits & JX_META_MASK_TYPE_BITS) {

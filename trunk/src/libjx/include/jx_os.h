@@ -146,7 +146,7 @@ typedef ptrdiff_t jx_word;
 typedef jx_int64 jx_int;
 typedef jx_uint64 jx_uint;
 typedef double jx_float;
-#define JX_TINY_STR_MIN_SIZE 10
+#define JX_TINY_STR_MIN_SIZE 12
 #define JX_FLOAT_ZERO 0.0
 #define JX_UWORD_MAX 0xFFFFFFFFFFFFFFFF
 #else
@@ -163,13 +163,13 @@ typedef float jx_float;
 #if ((0LL+SIZE_T_MAX) == 0x00000000FFFFFFFFLL)
 #define JX_TINY_STR_MIN_SIZE 6
 #else
-#define JX_TINY_STR_MIN_SIZE 10
+#define JX_TINY_STR_MIN_SIZE 12
 #endif
 #else
 #if (UINTPTR_MAX) == (4294967295U)
 #define JX_TINY_STR_MIN_SIZE 6
 #else
-#define JX_TINY_STR_MIN_SIZE 10
+#define JX_TINY_STR_MIN_SIZE 12
 #endif
 #endif
 #endif

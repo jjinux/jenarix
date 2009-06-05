@@ -52,14 +52,13 @@ int main(int argc, char *argv[])
     if(console) 
       printf("Jenarix LISP-like Syntax (JXON)\n[%d-byte numbers, %d-byte tiny strings, %d-byte jx_ob]:\n",
              (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
-    printf("%d %d %d\n",(int)sizeof(jx_data),(int)sizeof(jx_meta),(int)sizeof(jx_data_io));
-    {
-      jx_ob test = jx_ob_from_str("01234");
-      jx_ob_dump(stdout,"test",test);
-    }
-      
+
+#if 0
     jx_jxon_dump(stdout,"names",node,names);
-    printf("%d %d %d\n",(int)sizeof(jx_data),(int)sizeof(jx_meta),(int)sizeof(jx_data_io));
+    printf("jx_data %d jx_data_io %d jx_meta %d \n",
+           (int)sizeof(jx_data),(int)sizeof(jx_data_io),(int)sizeof(jx_meta));
+#endif
+
     {
       jx_ob source = JX_OB_NULL;
       jx_status status;

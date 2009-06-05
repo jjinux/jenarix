@@ -53,11 +53,11 @@ int main(int argc, char **argv)
 #if JX_TINY_STR_SIZE == 6
 #define TINY_TEST "12345"
 #else
-#if JX_TINY_STR_SIZE == 10
-#define TINY_TEST "123456789"
+#if JX_TINY_STR_SIZE == 12
+#define TINY_TEST "12345678901"
 #else
-#if JX_TINY_STR_SIZE == 18
-#define TINY_TEST "12345678901234567"
+#if JX_TINY_STR_SIZE == 14
+#define TINY_TEST "1234567890123"
 #endif
 #endif
 #endif

@@ -21,7 +21,7 @@
 #define notJX_64_BIT
 
 /* How many characters do we want to be able to squish into an object
-   so as to avoid touching the heap? (can only be 6, 10, or 18) */
+   so as to avoid touching the heap? (can only be 6, 10, or 14) */
 
 #define JX_TINY_STR_SIZE 6
 

@@ -58,17 +58,32 @@ extern "C" {
 
 #if (JX_TINY_STR_SIZE == 6)
 typedef jx_int32 jx_data_word;
+typedef jx_uint16 jx_bits;
 #define JX_DATA_INIT  {{0}}
-#else
+#endif
+
 #if (JX_TINY_STR_SIZE == 10)
 typedef jx_int64 jx_data_word;
+typedef jx_uint16 jx_bits;
 #define JX_DATA_INIT  {{0}}
-#else
-#if (JX_TINY_STR_SIZE == 18)
+#endif
+
+#if (JX_TINY_STR_SIZE == 12)
+typedef jx_int64 jx_data_word;
+typedef jx_uint32 jx_bits;
+#define JX_DATA_INIT  {{0}}
+#endif
+
+#if (JX_TINY_STR_SIZE == 14)
+typedef jx_int32 jx_data_word[3];
+typedef jx_uint16 jx_bits;
+#define JX_DATA_INIT  {{{0,0,0}}}
+#endif
+
+#if (JX_TINY_STR_SIZE == 20)
+typedef jx_uint32 jx_bits;
 typedef jx_int64 jx_data_word[2];
-#define JX_DATA_INIT  {{0,0}}
-#endif
-#endif
+#define JX_DATA_INIT  {{{0,0}}}
 #endif
 
 typedef struct jx__list jx_list;
@@ -77,7 +92,6 @@ typedef struct jx__opaque_ob jx_opaque_ob;
 typedef struct jx__function jx_function;
 typedef struct jx__tls jx_tls;
 
-typedef jx_uint16 jx_bits;
 
 /* header record for gc'd objects */
 
@@ -111,7 +125,7 @@ typedef union {
   jx_bool bool_;
   jx_int int_;
   jx_float float_;
-  jx_char tiny_str[JX_TINY_STR_SIZE-2];
+  jx_char tiny_str[JX_TINY_STR_SIZE-sizeof(jx_bits)];
   jx_char *str; /* NEVER ACCESS DIRECTLY!
                    note: vla ptr to jx_str header, not first char */
   jx_list *list;
@@ -366,31 +380,37 @@ void jx__hash_dump(FILE *file,jx_hash *I);
 JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
 {
 #if (JX_TINY_STR_SIZE == 6)
-#ifndef JX_64_BIT
-  /* jx_ob = 64 bits */
   fprintf(f,"%s: %08x%04x %04x\n",prefix, 
           (unsigned int)ob.data.raw.word,
           (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
-#else
-  /* jx_ob = 96 bits */
+#endif
+
+#if (JX_TINY_STR_SIZE == 10)
   fprintf(f,"%s: %08x%08x%04x %04x\n",prefix, 
           (unsigned int)(ob.data.raw.word), (unsigned int)(ob.data.raw.word>>32),
           (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
 #endif
-#else
-#if (JX_TINY_STR_SIZE == 10)
-  /* jx_ob = 96 bits */
-  fprintf(f,"%s: %08x%08x%04x %04x\n",prefix, 
+
+#if (JX_TINY_STR_SIZE == 12)
+  fprintf(f,"%s: %08x%08x%08x %08x\n",prefix, 
           (unsigned int)(ob.data.raw.word), (unsigned int)(ob.data.raw.word>>32),
           (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
-#else
-  /* jx_ob = 160 bits */
-  fprintf(f,"%s: %08x%80x%08x%08x%04x %04x\n",prefix, 
+#endif
+
+#if (JX_TINY_STR_SIZE == 14)
+  fprintf(f,"%s: %08x%08x%08x%04x %08x\n",prefix, 
+          (unsigned int)(ob.data.raw.word[0]), (unsigned int)(ob.data.raw.word[1]),
+          (unsigned int)(ob.data.raw.word[2]),
+          (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
+
+#endif
+
+#if (JX_TINY_STR_SIZE == 20)
+  fprintf(f,"%s: %08x%80x%08x%08x%08x %08x\n",prefix, 
           (unsigned int)(ob.data.raw.word[0]), (unsigned int)(ob.data.raw.word[0]>>32),
           (unsigned int)(ob.data.raw.word[1]), (unsigned int)(ob.data.raw.word[1]>>32),
           (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
 
-#endif
 #endif
 }
 
@@ -932,17 +952,37 @@ JX_INLINE jx_bool jx_ob_same(jx_ob left, jx_ob right)
   jx_bits left_bits = left.meta.bits & JX_META_MASK_FOR_HASH;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_FOR_HASH;
 
-#if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
+#if (JX_TINY_STR_SIZE == 6)
     return ((left_bits == right_bits) &&
             (left.data.raw.word == right.data.raw.word) &&
-            (left.meta.fill == right.meta.fill));
-#else
-#if (JX_TINY_STR_SIZE == 18)
+            (left.meta.fill     == right.meta.fill));
+#endif
+
+#if  (JX_TINY_STR_SIZE == 10)
+    return ((left_bits == right_bits) &&
+            (left.data.raw.word == right.data.raw.word) &&
+            (left.meta.fill     == right.meta.fill   ));
+#endif
+
+#if  (JX_TINY_STR_SIZE == 12)
+    return ((left_bits == right_bits) &&
+            (left.data.raw.word == right.data.raw.word) &&
+            (left.meta.fill     == right.meta.fill   ));
+#endif
+
+#if (JX_TINY_STR_SIZE == 14)
     return ((left_bits == right_bits) &&
             (left.data.raw.word[0] == right.data.raw.word[0]) &&
             (left.data.raw.word[1] == right.data.raw.word[1]) &&
-            (left.meta.fill    == right.meta.fill   ));
+            (left.data.raw.word[2] == right.data.raw.word[2]) &&
+            (left.meta.fill        == right.meta.fill   ));
 #endif
+
+#if (JX_TINY_STR_SIZE == 20)
+    return ((left_bits == right_bits) &&
+            (left.data.raw.word[0] == right.data.raw.word[0]) &&
+            (left.data.raw.word[1] == right.data.raw.word[1]) &&
+            (left.meta.fill        == right.meta.fill   ));
 #endif
 }
 
@@ -958,15 +998,28 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
   } else if(left_bits & JX_META_BIT_GC) {
     return jx__ob_gc_identical(left, right);
   } else {
-#if (JX_TINY_STR_SIZE == 6) ||  (JX_TINY_STR_SIZE == 10)
+#if (JX_TINY_STR_SIZE == 6)
     return ((left.data.raw.word == right.data.raw.word) &&
-            (left.meta.fill == right.meta.fill));
-#else
-#if (JX_TINY_STR_SIZE == 18)
+            (left.meta.fill     == right.meta.fill));
+#endif
+#if (JX_TINY_STR_SIZE == 10)
+    return ((left.data.raw.word == right.data.raw.word) &&
+            (left.meta.fill     == right.meta.fill   ));
+#endif
+#if (JX_TINY_STR_SIZE == 12)
+    return ((left.data.raw.word == right.data.raw.word) &&
+            (left.meta.fill     == right.meta.fill   ));
+#endif
+#if (JX_TINY_STR_SIZE == 14)
     return ((left.data.raw.word[0] == right.data.raw.word[0]) &&
             (left.data.raw.word[1] == right.data.raw.word[1]) &&
-            (left.meta.fill    == right.meta.fill   ));
+            (left.data.raw.word[2] == right.data.raw.word[2]) &&
+            (left.meta.fill        == right.meta.fill   ));
 #endif
+#if (JX_TINY_STR_SIZE == 20)
+    return ((left.data.raw.word[0] == right.data.raw.word[0]) &&
+            (left.data.raw.word[1] == right.data.raw.word[1]) &&
+            (left.meta.fill        == right.meta.fill   ));
 #endif
   }
 }
@@ -984,15 +1037,19 @@ JX_INLINE jx_bool jx_ob_equal(jx_ob left, jx_ob right)
       return JX_FALSE;
     } else {
       if((left_bits && !right_bits) ||
-         (right_bits && !left_bits))
+         (right_bits && !left_bits)) {
         return JX_FALSE;
+      }
       return jx__ob_non_gc_equal(left, right);
     }
-  } else if(left_bits & JX_META_BIT_GC) {
-    return jx__ob_gc_equal(left, right);
   } else {
-    return jx_ob_identical(left, right);
+    if(left_bits & JX_META_BIT_GC) {
+      return jx__ob_gc_equal(left, right);
+    } else {
+      return jx_ob_identical(left, right);
+    }
   }
+  return JX_FALSE;
 }
 
 /* lists */
@@ -1462,23 +1519,35 @@ JX_INLINE jx_uint32 jx__ob_hash_code(jx_ob ob)
                                        JX_META_MASK_FOR_HASH) ^ 
                                       ob.meta.fill)) ^
                           ((jx_uint32) ob.data.raw.word));
-#else
+#endif
 #if (JX_TINY_STR_SIZE == 10)
-  register jx_int tmp = ob.data.raw.word;
-  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
-                                       JX_META_MASK_FOR_HASH) ^ 
-                                       ob.meta.fill)) ^
-                          ((jx_uint32)(tmp ^ (tmp>>32))));
-  
-#else
-#if (JX_TINY_STR_SIZE == 18)
-  register jx_int tmp = (ob.data.raw.word[0] ^ ob.data.raw.word[1]);
+  register jx_int64 tmp = ob.data.raw.word;
   register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
                                        JX_META_MASK_FOR_HASH) ^ 
                                        ob.meta.fill)) ^
                           ((jx_uint32)(tmp ^ (tmp>>32))));
 #endif
+#if (JX_TINY_STR_SIZE == 12)
+  register jx_int64 tmp = ob.data.raw.word;
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) ^ 
+                                       ob.meta.fill)) ^
+                          ((jx_uint32)(tmp ^ (tmp>>32))));
 #endif
+#if (JX_TINY_STR_SIZE == 14)
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) ^ 
+                                       ob.meta.fill)) ^
+                          ((jx_uint32)(ob.data.raw.word[0] ^ 
+                                       ob.data.raw.word[1] ^
+                                       ob.data.raw.word[2])));
+#endif
+#if (JX_TINY_STR_SIZE == 20)
+  register jx_uint64 tmp = (ob.data.raw.word[0] ^ ob.data.raw.word[1]);
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) ^ 
+                                       ob.meta.fill)) ^
+                          ((jx_uint32)(tmp ^ (tmp>>32))));
 #endif
   a += ~(a << 15);
   a ^= (a >> 10);
