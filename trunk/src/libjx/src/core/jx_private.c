@@ -1370,29 +1370,19 @@ jx_int jx__list_index(jx_list * I,jx_ob ob)
 
 static jx_status jx__list_free(jx_tls *tls, jx_list * I)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
-  if(JX_POS(status)) {
-    status = JX_SUCCESS;
-    if(I->gc.shared) {
-      status = JX_STATUS_FREED_SHARED;
-      if(I->synchronized) {
-        jx_os_spinlock_release(&I->lock);
+  jx_status status = JX_SUCCESS;
+  if(I->gc.shared) {
+    status = JX_STATUS_FREED_SHARED;
+  } else {
+    if(!I->packed_meta_bits) {
+      jx_int i, size = jx_vla_size(&I->data.vla);
+      jx_ob *ob = I->data.ob_vla;
+      for(i = 0; i < size; i++) {
+	jx_tls_ob_free(tls,*(ob++));
       }
-    } else {
-      if(!I->packed_meta_bits) {
-        jx_int i, size = jx_vla_size(&I->data.vla);
-        jx_ob *ob = I->data.ob_vla;
-        for(i = 0; i < size; i++) {
-          jx_tls_ob_free(tls,*(ob++));
-        }
-      }      
-      jx_tls_vla_free(tls,&I->data.vla);
-      if(I->synchronized) {
-        jx_os_spinlock_release(&I->lock);
-      }
-      jx_tls_list_free(tls,I);
-    }
+    }      
+    jx_tls_vla_free(tls,&I->data.vla);
+    jx_tls_list_free(tls,I);
   }
   return status;
 }
@@ -2542,31 +2532,21 @@ static void jx__hash_only_strong(jx_hash * I)
 
 static jx_status jx__hash_free(jx_tls *tls, jx_hash * I)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
-  if(JX_POS(status)) {
-    if(I->gc.shared) {
-      status = JX_STATUS_FREED_SHARED;
-      if(I->synchronized) {
-        jx_os_spinlock_release(&I->lock);
-      } 
-    } else {
-      jx_int size = jx_vla_size(&I->key_value);
-      if(size) {
-        jx_ob *ob = I->key_value;
-        jx_int i;
-        for(i = 0; i < size; i++) {
-          jx_ob_free(*(ob++));
-        }
+  jx_status status = JX_SUCCESS;
+  if(I->gc.shared) {
+    status = JX_STATUS_FREED_SHARED;
+  } else {
+    jx_int size = jx_vla_size(&I->key_value);
+    if(size) {
+      jx_ob *ob = I->key_value;
+      jx_int i;
+      for(i = 0; i < size; i++) {
+	jx_ob_free(*(ob++));
       }
-      jx_tls_vla_free(tls,&I->key_value);
-      jx_tls_vla_free(tls,&I->info);
-      if(I->synchronized) {
-        jx_os_spinlock_release(&I->lock);
-      }
-      jx_tls_hash_free(tls,I);
-      status = JX_SUCCESS;
     }
+    jx_tls_vla_free(tls,&I->key_value);
+    jx_tls_vla_free(tls,&I->info);
+    jx_tls_hash_free(tls,I);
   }
   return status;
 }
