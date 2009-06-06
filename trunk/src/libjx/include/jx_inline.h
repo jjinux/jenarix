@@ -980,7 +980,6 @@ jx_status jx__ob_gc_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool rec
 JX_INLINE jx_status jx_ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recursive)
 {
   if(ob.meta.bits & JX_META_BIT_GC) {
-    jx_ob_dump(stdout,"synchronizing",ob);
     return jx__ob_gc_set_synchronized(ob, synchronized,recursive);
   }
   return JX_SUCCESS;
@@ -989,8 +988,6 @@ JX_INLINE jx_status jx_ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bo
 JX_INLINE jx_bool jx_ob_synchronized(jx_ob ob)
 {
   if(ob.meta.bits & JX_META_BIT_GC) {
-    jx_ob_dump(stdout,"synchronized?",ob);
-    printf("%d \n",ob.data.io.gc->synchronized);
     return ob.data.io.gc->synchronized;
   }
   return JX_FALSE;
