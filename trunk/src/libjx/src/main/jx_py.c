@@ -70,39 +70,39 @@ int main(int argc, char *argv[])
         switch(status) {
         case JX_YES:
           if(mode == JX_MODE_PARSE_ONLY) {
-            jx_ob jxon = jx_ob_to_jxon(node,tree);
+            jx_ob jxon = jx_ob_to_jxon_in_node(node,tree);
             printf("%s;\n",jx_ob_as_str(&jxon));
             jx_ob_free(jxon);
           } else {
-            if(mode == JX_MODE_CONSOLE) jx_jxon_dump(stdout, "# parsed", node, tree);
+            if(mode == JX_MODE_CONSOLE) jx_jxon_dump_in_node(stdout, "# parsed", node, tree);
             {
               jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
             
               if(mode == JX_MODE_TRANSLATE_ONLY) {
-                jx_ob jxon = jx_ob_to_jxon(node,source);
+                jx_ob jxon = jx_ob_to_jxon_in_node(node,source);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               } else {
                 if(mode == JX_MODE_CONSOLE) 
-                  jx_jxon_dump(stdout, "# source", node, source);
+                  jx_jxon_dump_in_node(stdout, "# source", node, source);
                 {
                   jx_ob code = jx_code_bind_with_source(names, source);
                   source = jx_ob_from_null();
                   if(mode == JX_MODE_COMPILE_ONLY) {
-                    jx_ob jxon = jx_ob_to_jxon(node,code);
+                    jx_ob jxon = jx_ob_to_jxon_in_node(node,code);
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
                   
                   } else {
                     if(mode == JX_MODE_CONSOLE)
-                      jx_jxon_dump(stdout, "#   eval", node, code);
+                      jx_jxon_dump_in_node(stdout, "#   eval", node, code);
                     {
                       jx_ob result = jx_code_eval(node,code);
                     
                       if(mode == JX_MODE_CONSOLE) {
-                        jx_jxon_dump(stdout, "# result", node, result);
+                        jx_jxon_dump_in_node(stdout, "# result", node, result);
                       } else if(mode == JX_MODE_EVALUATE) {
-                        jx_ob jxon = jx_ob_to_jxon(node,result);
+                        jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
                         printf("%s;\n",jx_ob_as_str(&jxon));
                         jx_ob_free(jxon);
                       }

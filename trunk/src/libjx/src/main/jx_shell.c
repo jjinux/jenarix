@@ -62,19 +62,19 @@ int main(int argc, char *argv[])
         status = jx_shell_scanner_next_ob(&source, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# in", node, source);
+          if(console) jx_jxon_dump_in_node(stdout, "# in", node, source);
           {
             jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
                       
-            jx_jxon_dump(stdout, "# vm", node, code);
+            jx_jxon_dump_in_node(stdout, "# vm", node, code);
             {
               jx_ob result = jx_code_eval(node,code);
             
               if(console) {
-                jx_jxon_dump(stdout, "# ->", node, result);
+                jx_jxon_dump_in_node(stdout, "# ->", node, result);
               } else {
-                jx_ob jxon = jx_ob_to_jxon(node,result);
+                jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               }

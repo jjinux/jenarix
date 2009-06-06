@@ -482,7 +482,7 @@ void jx_shell_echo_stdin(void)
       break;
     case JX_YES: /* accepted */
       {
-        jx_ob jxon = jx_ob_to_jxon(jx_ob_from_null(), state.context.result);
+        jx_ob jxon = jx_ob_to_jxon(state.context.result);
         if(state.n_tok_parsed)
           printf("%s;\n",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);

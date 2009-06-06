@@ -702,7 +702,7 @@ jx_ob jx__ob_to_str(jx_ob ob)
     break;
   case JX_META_BIT_LIST: /* only containers may recurse */
   case JX_META_BIT_HASH:
-    return jx_ob_to_jxon(jx_ob_from_null(), ob);   /* JXON is our default encoding */    
+    return jx_ob_to_jxon(ob);   /* JXON is our default encoding */    
     break;
   default: 
     return jx_ob_from_str("ERROR:invalid object");

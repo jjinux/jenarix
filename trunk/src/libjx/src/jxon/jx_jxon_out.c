@@ -684,11 +684,10 @@ jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags,
   return jx_ob_from_null();
 }
 
-void jx_jxon_dump(FILE *f, char *prefix, jx_ob node, jx_ob ob)
+void jx_jxon_dump_in_node(FILE *f, char *prefix, jx_ob node, jx_ob ob)
 {
   jx_int width = 0;
   jx_int left = width;
-
 
   if(width && prefix) {
     left -= jx_strlen(prefix) + 2;

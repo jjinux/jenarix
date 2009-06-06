@@ -109,7 +109,7 @@ jx_ob jx_py_print(jx_ob node, jx_ob payload)
       break;
     default:
       {    
-        jx_ob jxon = jx_ob_to_jxon(node, ob);
+        jx_ob jxon = jx_ob_to_jxon_in_node(node, ob);
         fprintf(stdout,"%s",jx_ob_as_str(&jxon));
         jx_ob_free(jxon);
       }

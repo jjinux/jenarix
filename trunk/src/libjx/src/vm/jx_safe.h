@@ -403,7 +403,7 @@ JX_INLINE jx_ob jx_safe_output(jx_ob node, jx_ob payload)
 {
   /* should check for 'output' in the node namespace and use that
      instead if defined */
-  jx_ob jxon = jx_ob_to_jxon(node, jx_list_borrow(payload,0));
+  jx_ob jxon = jx_ob_to_jxon_in_node(node, jx_list_borrow(payload,0));
   fprintf(stdout,"%s;\n",jx_ob_as_str(&jxon));
   jx_ob_free(jxon);
   return jx_ob_from_null();
@@ -413,7 +413,7 @@ JX_INLINE jx_ob jx_safe_error(jx_ob node, jx_ob payload)
 {
   /* should check for 'error' in the node namespace and use that
      instead if defined */
-  jx_ob jxon = jx_ob_to_jxon(node,jx_list_borrow(payload,0));
+  jx_ob jxon = jx_ob_to_jxon_in_node(node,jx_list_borrow(payload,0));
   fprintf(stderr,"%s;\n",jx_ob_as_str(&jxon));
   jx_ob_free(jxon);
   return jx_ob_from_null();

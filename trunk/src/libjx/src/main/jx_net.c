@@ -57,19 +57,19 @@ int main(int argc, char *argv[])
         status = jx_net_scanner_next_ob(&source, scanner);
         switch(status) {
         case JX_YES:
-          if(console) jx_jxon_dump(stdout, "# source", node, source);
+          if(console) jx_jxon_dump_in_node(stdout, "# source", node, source);
           {
             jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
                       
-            jx_jxon_dump(stdout, "#   eval", node, code);
+            jx_jxon_dump_in_node(stdout, "#   eval", node, code);
             {
               jx_ob result = jx_code_eval(node,code);
             
               if(console) {
-                jx_jxon_dump(stdout, "# result", node, result);
+                jx_jxon_dump_in_node(stdout, "# result", node, result);
               } else {
-                jx_ob net = jx_ob_to_jxon(node,result);
+                jx_ob net = jx_ob_to_jxon_in_node(node,result);
                 printf("%s;\n",jx_ob_as_str(&net));
                 jx_ob_free(net);
               }

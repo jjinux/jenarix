@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
              (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
 
 #if 0
-    jx_jxon_dump(stdout,"names",node,names);
+    jx_jxon_dump_in_node(stdout,"names",node,names);
     printf("jx_data %d jx_data_io %d jx_meta %d \n",
            (int)sizeof(jx_data),(int)sizeof(jx_data_io),(int)sizeof(jx_meta));
 #endif
@@ -74,19 +74,19 @@ int main(int argc, char *argv[])
         status = jx_jxon_scanner_next_ob(&source, scanner);
         switch(status) {
         case JX_YES:
-          if(mode == JX_MODE_CONSOLE) jx_jxon_dump(stdout, "# source", node, source);
+          if(mode == JX_MODE_CONSOLE) jx_jxon_dump_in_node(stdout, "# source", node, source);
           {
             jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
                       
-            jx_jxon_dump(stdout, "#   eval", node, code);
+            jx_jxon_dump_in_node(stdout, "#   eval", node, code);
             {
               jx_ob result = jx_code_eval(node,code);
 
               if(mode == JX_MODE_CONSOLE) {
-                jx_jxon_dump(stdout, "# result", node, result);
+                jx_jxon_dump_in_node(stdout, "# result", node, result);
               } else {
-                jx_ob jxon = jx_ob_to_jxon(node,result);
+                jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               }

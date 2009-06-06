@@ -115,7 +115,6 @@ typedef struct jx__ob jx_ob;
 }
 #endif
 
-void jx_jxon_dump(FILE *f, char *prefix, jx_ob node, jx_ob ob);
 
 /* inline functions and structs and required by the compiler to be
  public, but should be treated by API-users as private */
@@ -141,6 +140,10 @@ extern "C" {
    ..._ob_as_...(...) implies a volatile (yet failsafe) cast of in-place borrowed object data (preserved)
    
 */
+
+void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob);
+
+void jx_jxon_dump_in_node(FILE *f, char *prefix, jx_ob node, jx_ob ob);
 
 /* boxing (all of these return owned objects) */
 
@@ -188,8 +191,8 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
 #define JX_JXON_FLAG_WIDTH_MASK     0x0000FF00
 #define JX_JXON_FLAG_INDENT_MASK    0x000000FF
 
-jx_ob jx_ob_to_jxon(jx_ob node, jx_ob ob);
-
+jx_ob jx_ob_to_jxon(jx_ob ob);
+jx_ob jx_ob_to_jxon_in_node(jx_ob node, jx_ob ob);
 jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags, jx_int indent, 
                                jx_int width, jx_int space_left);
 

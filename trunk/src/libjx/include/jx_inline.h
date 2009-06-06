@@ -372,12 +372,38 @@ JX_INLINE jx_status jx_tls_ob_free(jx_tls *tls,jx_ob ob)
   return JX_SUCCESS;
 }
 
+/* for whatever reason, wrapping access to that static const inside a
+   inlined function optimizes better than simply accessing the static
+   const */
+
+JX_INLINE jx_ob jx_ob_from_null(void)
+{
+  return jx_ob_null;
+}
+JX_INLINE jx_ob jx_ob_from_int_zero(void)
+{
+  return jx_ob_int_zero;
+}
+JX_INLINE jx_ob jx_ob_from_float_zero(void)
+{
+  return jx_ob_float_zero;
+}
+JX_INLINE jx_ob jx_ob_from_bool_false(void)
+{
+  return jx_ob_bool_false;
+}
+
 jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags, jx_int indent, 
                                jx_int width, jx_int space_left);
 
-JX_INLINE jx_ob jx_ob_to_jxon(jx_ob node, jx_ob ob)
+JX_INLINE jx_ob jx_ob_to_jxon_in_node(jx_ob node, jx_ob ob)
 {
   return jx_ob_to_jxon_with_flags(node, ob, 0, 0, 0, 0);
+}
+
+JX_INLINE jx_ob jx_ob_to_jxon(jx_ob ob)
+{
+  return jx_ob_to_jxon_in_node(jx_ob_from_null(), ob);
 }
 
 /* debugging */
@@ -517,26 +543,7 @@ JX_INLINE jx_status jx_float_vla_free(jx_float ** ref)
   return jx_vla_free(ref);
 }
 
-/* for whatever reason, wrapping access to that static const inside a
-   inlined function optimizes better than simply accessing the static
-   const */
 
-JX_INLINE jx_ob jx_ob_from_null(void)
-{
-  return jx_ob_null;
-}
-JX_INLINE jx_ob jx_ob_from_int_zero(void)
-{
-  return jx_ob_int_zero;
-}
-JX_INLINE jx_ob jx_ob_from_float_zero(void)
-{
-  return jx_ob_float_zero;
-}
-JX_INLINE jx_ob jx_ob_from_bool_false(void)
-{
-  return jx_ob_bool_false;
-}
 
 JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
 {
@@ -545,6 +552,12 @@ JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
     ob.meta.bits = bits | JX_META_BIT_WEAK_REF;
   }
   return ob;
+}
+
+void jx_jxon_dump_in_node(FILE *f, char *prefix, jx_ob node, jx_ob ob);
+JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
+{
+  jx_jxon_dump_in_node(f,prefix,jx_ob_from_null(),ob);
 }
 
 jx_ob jx__ob_gc_copy(jx_ob ob);

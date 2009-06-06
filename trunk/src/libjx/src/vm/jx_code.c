@@ -1059,10 +1059,10 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
             (void*)tls, (int)flags_);
   }
   if(flags_ & (JX_EVAL_DEBUG_DUMP_NODE)) {
-    jx_jxon_dump(stderr,"#   node",node, node);
+    jx_jxon_dump_in_node(stderr,"#   node",node, node);
   }
   if(flags_ & (JX_EVAL_DEBUG_DUMP_SUBEX)) {
-    jx_jxon_dump(stderr,"#   expr",node, expr);
+    jx_jxon_dump_in_node(stderr,"#   expr",node, expr);
   }
   switch (expr.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_LIST:
@@ -1157,7 +1157,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                    it's EVAL's job to make sure they don't leak into end-user code */
                 jx_ob weak = jx_ob_take_weak_ref(container);
                 if(flags_ & (JX_EVAL_DEBUG_TRACE)) {
-                  jx_jxon_dump(stderr,"# rsolvd",node, weak);
+                  jx_jxon_dump_in_node(stderr,"# rsolvd",node, weak);
                 }
                 return weak;
               } else {
@@ -1487,7 +1487,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
             /* at this point, all subexpressions should have been evaluated */
 
             if(flags_ & (JX_EVAL_DEBUG_DUMP_SUBEX)) {
-              jx_jxon_dump(stderr,"# sub-ex",node, result);
+              jx_jxon_dump_in_node(stderr,"# sub-ex",node, result);
             }
 
             if(macro_flag) {
@@ -1628,7 +1628,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
               }
               
               if(flags_ & (JX_EVAL_DEBUG_DUMP_SUBEX)) {
-                jx_jxon_dump(stderr,"# return",node, result);
+                jx_jxon_dump_in_node(stderr,"# return",node, result);
               }
 
               /* return the evaluated value */
