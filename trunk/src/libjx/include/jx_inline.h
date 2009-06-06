@@ -234,6 +234,15 @@ struct jx__ob {
 #define JX_OPCODE_RETURN            3   /* return from current function */
 #define JX_OPCODE_TAIL_CALL         4   /* invoke tail recursion on function */
 
+/* for whatever reason, having a set of global extern jx_ob constants
+ * for common values really helps performance vis-a-vis using "inline"
+ * constants or initializers embedded in the code itself */
+
+extern jx_ob jx_ob_null;
+extern jx_ob jx_ob_int_zero;
+extern jx_ob jx_ob_float_zero;
+extern jx_ob jx_ob_bool_false;
+
 struct jx__list {
   jx_gc gc;
   jx_bits packed_meta_bits;
@@ -333,7 +342,6 @@ jx_ob jx_ob_from_ident(jx_char * ident);
 jx_ob jx__str__concat(jx_char *left,jx_int left_len, jx_char *right, jx_int right_len);
 jx_ob jx__ob_add(jx_ob left, jx_ob right);
 jx_status jx__ob_free(jx_tls *tls, jx_ob ob);
-
 
 /* free */
 
@@ -510,10 +518,25 @@ JX_INLINE jx_status jx_float_vla_free(jx_float ** ref)
   return jx_vla_free(ref);
 }
 
+/* for whatever reason, wrapping access to that static const inside a
+   inlined function optimizes better than simply accessing the static
+   const */
+
 JX_INLINE jx_ob jx_ob_from_null(void)
 {
-  jx_ob result = JX_OB_NULL;
-  return result;
+  return jx_ob_null;
+}
+JX_INLINE jx_ob jx_ob_from_int_zero(void)
+{
+  return jx_ob_int_zero;
+}
+JX_INLINE jx_ob jx_ob_from_float_zero(void)
+{
+  return jx_ob_float_zero;
+}
+JX_INLINE jx_ob jx_ob_from_bool_false(void)
+{
+  return jx_ob_bool_false;
 }
 
 jx_ob jx__ob_copy(jx_ob ob);
@@ -534,7 +557,7 @@ JX_INLINE jx_ob jx_ob_copy_strong(jx_ob ob)
 
 JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_ob_free(ob);
   return result;
 }
@@ -576,14 +599,14 @@ JX_INLINE jx_ob jx_ob_from_opcode(jx_int inst, jx_int operand)
 
 JX_INLINE jx_ob jx_ob_from_bool(jx_bool bool_)
 {
-  jx_ob result = JX_OB_BOOL;
+  jx_ob result = jx_ob_from_bool_false();
   result.data.io.bool_ = bool_;
   return result;
 }
 
 JX_INLINE jx_ob jx_ob_from_int(jx_int int_)
 {
-  jx_ob result = JX_OB_INT;
+  jx_ob result = jx_ob_from_int_zero();
   result.data.io.int_ = int_;
   return result;
 }
@@ -599,7 +622,7 @@ JX_INLINE jx_ob jx_ob_from_status(jx_status status)
 
 JX_INLINE jx_ob jx_ob_from_float(jx_float float_)
 {
-  jx_ob result = JX_OB_FLOAT;
+  jx_ob result = jx_ob_from_float_zero();
   result.data.io.float_ = float_;
   return result;
 }
@@ -750,7 +773,7 @@ JX_INLINE jx_bool jx_hash_check(jx_ob ob)
 
 JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR;
   result.data.io.int_ = selector;
   return result;
@@ -770,7 +793,7 @@ JX_INLINE jx_ob jx_builtin_new_entity_with_name(jx_ob name)
 
 JX_INLINE jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN | JX_META_BIT_WEAK_REF;
   result.data.io.native_fn = fn;
   return result;
@@ -778,7 +801,7 @@ JX_INLINE jx_ob jx_builtin_new_from_native_fn(jx_native_fn fn)
 
 JX_INLINE jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque_ob)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   result.meta.bits = JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB | JX_META_BIT_GC;
   result.data.io.opaque_ob = opaque_ob;
   return result;
@@ -1333,7 +1356,7 @@ JX_INLINE jx_ob jx__list_get_packed_data_locked(jx_list * list, jx_int index)
 
 JX_INLINE jx_ob jx__list_get_packed_data(jx_list * I, jx_int index)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_bool synchronized = I->synchronized;
   jx_status status = synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
@@ -1362,7 +1385,7 @@ JX_INLINE jx_ob jx__list_borrow_locked(jx_list * I, jx_int index)
 
 JX_INLINE jx_ob jx__list_borrow(jx_list * I, jx_int index)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -1407,7 +1430,7 @@ JX_INLINE jx_ob jx__list_swap_locked(jx_list * I, jx_int index, jx_ob ob)
 
 JX_INLINE jx_ob jx__list_swap(jx_list * I, jx_int index, jx_ob ob)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -1709,7 +1732,7 @@ JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
 JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result = JX_OB_NULL;
+    jx_ob result = jx_ob_from_null();
     if(jx__hash_peek(&result, hash.data.io.hash, key))
       return result;
   }
@@ -1720,7 +1743,7 @@ JX_INLINE jx_ob jx_hash_borrow(jx_ob hash, jx_ob key)
 JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result = JX_OB_NULL;
+    jx_ob result = jx_ob_from_null();
     if(jx__hash_peek(&result, hash.data.io.hash, key))
       return jx_ob_copy(result);
   }
@@ -1732,7 +1755,7 @@ JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
-    jx_ob result = JX_OB_NULL;
+    jx_ob result = jx_ob_from_null();
     if(jx__hash_remove(&result, hash.data.io.hash, key))
       return result;
   }
@@ -1751,7 +1774,7 @@ JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
-    jx_ob result = JX_OB_NULL;
+    jx_ob result = jx_ob_from_null();
     if(jx__hash_remove(&result, hash.data.io.hash, key)) {
       jx_ob_free(result);
       return JX_SUCCESS;
@@ -1764,7 +1787,7 @@ jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value);
 JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result = JX_OB_NULL;
+    jx_ob result = jx_ob_from_null();
     if(jx__hash_peek_key(&result, hash.data.io.hash, value))
       return result;
   }
@@ -1774,7 +1797,7 @@ JX_INLINE jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value)
 JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    jx_ob result = JX_OB_NULL;
+    jx_ob result = jx_ob_from_null();
     if(jx__hash_peek_key(&result, hash.data.io.hash, value))
       return jx_ob_copy(result);
   }
@@ -2264,9 +2287,22 @@ JX_INLINE jx_ob jx_code_exec_tls(jx_tls *tls, jx_int flags, jx_ob node, jx_ob co
 
 jx_ob jx__hash_copy(jx_hash * hash);
 
+JX_INLINE void jx_entity_carry_forward(jx_ob inv_node, jx_ob node,jx_ob handle)
+{
+  /* carry required entity definitions forward into a method call (unless
+   other definitions are already present) */
+  while(!jx_null_check(handle)) {
+    jx_ob def = jx_hash_borrow(node,handle);
+    if(jx_null_check(handle) || jx_hash_has_key(inv_node, handle))
+      break;
+    jx_hash_set(inv_node, jx_ob_take_weak_ref(handle), jx_ob_take_weak_ref(def));
+    handle = jx_list_borrow(def,0);
+  }
+}
+
 JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob payload)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   //  jx_jxon_dump(stdout,"jx_function_call function",function);
   //  jx_jxon_dump(stdout,"jx_function_call payload", payload);
 
@@ -2277,7 +2313,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       if(jx_null_check(args)) {
         /* inner functions run within the host node namespace */
         jx_ob payload_ident = jx_ob_from_ident("_");
-        jx_ob saved_payload = JX_OB_NULL;
+        jx_ob saved_payload = jx_ob_from_null();
         jx_bool saved = jx_hash_take(&saved_payload, node, payload_ident);
         if(jx_ok( jx_hash_set(node, payload_ident, payload) ) ) { 
           payload = jx_ob_from_null();
@@ -2301,6 +2337,13 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         jx_ob inv_node = jx_ob_copy(args);
         /* expose fn to itself */
         jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+        /* bring along base entities */
+        {
+          jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
+          if(jx_builtin_entity_check(entity)) {
+            jx_entity_carry_forward(inv_node, node, entity);
+          }
+        }
         //jx_jxon_dump(stdout,"inv_node",jx_ob_from_null(),inv_node);
         //jx_jxon_dump(stdout,"payload",jx_ob_from_null(),payload);
         if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
@@ -2311,17 +2354,26 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         jx_tls_ob_free(tls,inv_node);
         payload = jx_ob_from_null();
       } else if(jx_list_check(args)) { /* parameter list exists */
-        jx_ob ob_null = JX_OB_NULL;
+        jx_ob ob_null = jx_ob_from_null();
         jx_ob inv_node;
         jx_list *args_list = args.data.io.list;
         jx_ob sub_list = jx__list_borrow(args_list,0);
-        jx_ob kwd_hash = JX_OB_NULL;
+        jx_ob kwd_hash = jx_ob_from_null();
         if(jx_list_check(sub_list)) { /* have both positional and keyword defaults */
           jx_ob kwds = jx__list_borrow(args_list,1);
           if(jx_hash_check(kwds)) {
             inv_node = jx__hash_copy(kwds.data.io.hash);
           } else {
             inv_node = jx_tls_hash_new(tls);
+          }
+          /* bring along base entities */
+          {
+            jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
+            //jx_jxon_dump(stdout,"entity",node,payload);
+            //jx_jxon_dump(stdout,"entity",node,entity);
+            if(jx_builtin_entity_check(entity)) {
+              jx_entity_carry_forward(inv_node, node, entity);
+            }
           }
           if(jx_list_check(payload)) {
             jx_list *args_list2 = sub_list.data.io.list;
@@ -2331,7 +2383,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
             if(size2<size) size = size2;
             for(i=0;i<size;i++) {
               jx_hash_set(inv_node,jx__list_borrow(args_list2,i),
-                          jx__list_swap(payload_list,i, ob_null));
+                          jx__list_swap_with_null(payload_list,i));
             }
             if(size2>size) { /* keyword args also provided in payload? */
               kwd_hash = jx__list_borrow(payload_list,size);
@@ -2342,6 +2394,15 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
           }
         } else { /* only positional arguments */
           inv_node = jx_tls_hash_new(tls);
+          /* bring along base entities */
+          {
+            jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
+            jx_jxon_dump(stdout,"entity",node,payload);
+            jx_jxon_dump(stdout,"entity",node,entity);
+            if(jx_builtin_entity_check(entity)) {
+              jx_entity_carry_forward(inv_node, node, entity);
+            }
+          }
           if(jx_list_check(payload)) {
             jx_list *args_list = args.data.io.list;
             jx_list *payload_list = payload.data.io.list;
@@ -2349,7 +2410,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
             jx_int size2 = jx_list_size(payload);
             for(i=0;i<size;i++) {
               jx_hash_set(inv_node,jx__list_borrow(args_list,i),
-                          jx__list_swap(payload_list,i, ob_null));
+                          jx__list_swap_with_null(payload_list,i));
             }
             if(size2>size) { /* keyword args also provided in payload? */
               kwd_hash = jx__list_borrow(payload_list,size);
@@ -2381,8 +2442,16 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         /* args declaration is a primitive */
         jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
         //      jx_jxon_dump(stdout,"args",args);
-        jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),
-                    jx_ob_take_weak_ref(function));
+
+        /* expose fn to itself */
+        jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+        /* bring along base entities */
+        {
+          jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
+          if(jx_builtin_entity_check(entity)) {
+            jx_entity_carry_forward(inv_node, node, entity);
+          }
+        }
         //jx_jxon_dump(stdout,"hash",jx_ob_from_null(),inv_node);
         result = fn->mode ? jx_code_exec_tls(tls,0, inv_node,fn->body) : 
           jx_code_eval_tls(tls, 0, inv_node,fn->body);
@@ -2429,7 +2498,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
 
     if(jx_null_check(args)) { /* inner functions run within the host node namespace */
       jx_ob payload_ident = jx_ob_from_ident("_");
-      jx_ob saved_payload = JX_OB_NULL;
+      jx_ob saved_payload = jx_ob_from_null();
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident,payload))) {
         jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, node, fn->body);
@@ -2458,7 +2527,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
          thus can potentially be concurrent) */
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob inv_node = jx_ob_copy(args);
-      jx_ob result = JX_OB_NULL;
+      jx_ob result = jx_ob_from_null();
       
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
         jx_ob ob = jx_code_eval_tls(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
@@ -2473,12 +2542,12 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       }
       return result;
     } else if(jx_list_check(args)) { /* parameter list exists */
-      jx_ob ob_null = JX_OB_NULL;
+      jx_ob ob_null = jx_ob_from_null();
       jx_ob result;
       jx_ob inv_node;
       jx_list *args_list = args.data.io.list;
       jx_ob sub_list = jx__list_borrow(args_list,0);
-      jx_ob kwd_hash = JX_OB_NULL;
+      jx_ob kwd_hash = jx_ob_from_null();
       if(jx_list_check(sub_list)) { /* have both positional and keyword defaults */
         jx_ob kwds = jx__list_borrow(args_list,1);
         if(jx_hash_check(kwds)) {
@@ -2583,7 +2652,7 @@ JX_INLINE jx_status jx__create_path(jx_ob *container,jx_ob *target)
           break;
         case JX_META_BIT_HASH:
           {
-            jx_ob tmp = JX_OB_NULL;
+            jx_ob tmp = jx_ob_from_null();
             if(!jx_hash_peek(&tmp,*container,*target)) {
               tmp = jx_hash_new();
               jx_hash_set(*container,*target,tmp);
@@ -2630,7 +2699,7 @@ JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
 
 JX_INLINE jx_ob jx_entity_resolve_name(jx_ob node,jx_ob handle,jx_ob name)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   while(!jx_null_check(handle)) {
     jx_ob def = jx_hash_borrow(node,handle);
     jx_ob attrs = jx_list_borrow(def,2);
@@ -2646,7 +2715,7 @@ JX_INLINE jx_ob jx_entity_resolve_name(jx_ob node,jx_ob handle,jx_ob name)
 
 JX_INLINE jx_ob jx_entity_resolve_content(jx_ob node,jx_ob handle)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   while(!jx_null_check(handle)) {
     jx_ob def = jx_hash_borrow(node,handle);
     result = jx_list_borrow(def,1);
@@ -2660,7 +2729,7 @@ JX_INLINE jx_ob jx_entity_resolve_content(jx_ob node,jx_ob handle)
 jx_char *jx_ob_as_ident(jx_ob * ob);    
 JX_INLINE jx_ob jx_entity_resolve_attrs(jx_ob node,jx_ob handle)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   if(!jx_null_check(handle)) {
     //jx_ob_dump(stdout,"handle",handle);
     //    printf("%08x [%s]\n",jx_ob_hash_code(handle),jx_ob_as_ident(&handle));
@@ -2737,7 +2806,7 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
         break;
       case JX_META_BIT_HASH:
         {
-          jx_ob tmp = JX_OB_NULL;
+          jx_ob tmp = jx_ob_from_null();
           if(jx_hash_peek(&tmp,*container,*target)) {
             *container = tmp;
           } else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {

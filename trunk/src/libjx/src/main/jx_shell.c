@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     printf("NOTICE: this doesn't work yet!\n");
     {
-      jx_ob source = JX_OB_NULL;
+      jx_ob source = jx_ob_from_null();
       jx_status status;
       jx_bool done = JX_FALSE;
       while( !done ) {

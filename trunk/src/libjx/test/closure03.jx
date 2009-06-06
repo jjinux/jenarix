@@ -1,17 +1,21 @@
-
 # Jenarix functions statically close on free variables in the
 # surrounding scope by making deep copies 
 
-# Entities referenced in the function are closed upon as well.
+# Entities referenced in the function are closed upon as well,
+# including the method definitions
 
 (def vector.add [v1 v2] [
   [Vector
-    (map (lambda [x y] (add x y)) (v1 1) (v2 1))
-  ]]);
+    (map (lambda [x y] (add x y)) (v1 1) (v2 1)) ]
+  ]);
+
+(impl vector.add)
 
 (symbols);
 
-(entity Vector null null {add:vector.add});
+(entity VectorBase null null {add:vector.add})
+
+(entity Vector VectorBase null null);
 
 # defining a Vector inside the function is sufficient 
 # to create the closure
@@ -22,29 +26,42 @@
 
 (impl myfn);
 
+# if we create some vector instances
+
 (set v1 [Vector, [1 2 3]]);
 
 (set v2 [Vector, [2,3,4]]);
 
-# at this point, both the function and the local entity definition
+# both the function and the local entity methods work on them
 
 (myfn v1 v2);
 
 (v1 add v2);
 
-# but if we obliterate vector addition from the local entity
+# strictly speaking however, we can instead rely upon dynamic
+# referencing of the class at the point of method invocation
 
-(entity Vector null null {add:null});
+(def myfn2 [a,b] [(a add b)])
 
-# then now we can't do it
+(impl myfn2);
 
-(v1 add v2);
+(myfn2 v1 v2);
 
-# but the function with a closed entity copy still can!
+# but that only works if the class is present and bound in the caller's namespace
 
-(myfn v1 v2);
+# if we've nuked it
 
-# cool.
+(entity Vector)
+
+(symbols)
+
+# then that doesn't work
+
+(myfn2 v1 v2)
+
+# whereas the function with closed entity definitions still works
+
+(myfn v1 v2)
 
 
 

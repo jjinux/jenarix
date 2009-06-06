@@ -39,6 +39,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
 
+/* global constants (improve performance) */
+
+jx_ob jx_ob_null = JX_OB_NULL;
+jx_ob jx_ob_int_zero = JX_OB_INT;
+jx_ob jx_ob_float_zero = JX_OB_FLOAT;
+jx_ob jx_ob_bool_false = JX_OB_BOOL;
+
 JX_INLINE void jx__gc_init(jx_gc * gc)
 {
   memset(gc, 0, sizeof(jx_gc));
@@ -750,7 +757,7 @@ jx_ob jx__ob_to_ident(jx_ob ob)
 jx_ob jx_ob_from_str(jx_char * str)
 {
   jx_int len = jx_strlen(str);
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_STR | len;
@@ -768,7 +775,7 @@ jx_ob jx_ob_from_str(jx_char * str)
 
 jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_STR | len;
@@ -787,7 +794,7 @@ jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
 
 jx_ob jx_ob_from_ident_with_len(jx_char * str, jx_int len)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_IDENT | len;
@@ -807,7 +814,7 @@ jx_ob jx_ob_from_ident_with_len(jx_char * str, jx_int len)
 jx_ob jx_ob_with_str_vla(jx_char ** ref)
 {
   jx_int size = jx_vla_size(ref);
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   if(size)
     size--;
   if(size < JX_TINY_STR_SIZE) {
@@ -833,7 +840,7 @@ jx_ob jx_ob_with_str_vla(jx_char ** ref)
 static jx_ob jx_ob_with_ident_vla(jx_char ** ref)
 {
   jx_int size = jx_vla_size(ref);
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   if(size)
     size--;
   if(size < JX_TINY_STR_SIZE) {
@@ -873,7 +880,7 @@ jx_char *jx_ob_as_str(jx_ob * ob)
 
 jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int right_len)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_int total_size = left_len + right_len + 1;
   jx_char *vla = jx_vla_new(1, total_size + sizeof(jx_str));
   if(vla) {
@@ -930,7 +937,7 @@ jx_status jx__str_set_shared(jx_char * str, jx_bool shared)
 
 jx_ob jx__str_gc_copy(jx_char * str)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   result.data.io.str = (jx_char *) jx_vla_copy(&str);
   if(result.data.io.str) {
     jx__gc_init((jx_gc *) result.data.io.str);
@@ -1090,7 +1097,7 @@ jx_ob jx__ob_mod(jx_ob left, jx_ob right)
 jx_ob jx_ob_from_ident(jx_char * ident)
 {
   jx_int len = jx_strlen(ident);
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
 
   if(len < JX_TINY_STR_SIZE) {
     result.meta.bits = JX_META_BIT_IDENT | len;
@@ -1126,7 +1133,7 @@ jx_char *jx_ob_as_ident(jx_ob * ob)
 
 jx_ob jx__ident_gc_copy(jx_char * str)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   result.data.io.str = (jx_char *) jx_vla_copy(&str);
   if(result.data.io.str) {
     jx__gc_init((jx_gc *) result.data.io.str);
@@ -1467,7 +1474,7 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * I)
 
 jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -1508,7 +1515,7 @@ jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
 
 static jx_ob jx__ident_join_with_list(jx_list * I, jx_char * sep)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -2245,7 +2252,7 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
 
 jx_ob jx__list_remove(jx_list * I, jx_int index)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -2269,7 +2276,7 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
 
 jx_ob jx__list_new_from_slice(jx_list * I, jx_int start, jx_int stop)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -2312,7 +2319,7 @@ jx_ob jx__list_new_from_slice(jx_list * I, jx_int start, jx_int stop)
 
 jx_ob jx__list_new_with_cutout(jx_list * I, jx_int start, jx_int stop)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_status status = I->synchronized ? 
     jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
   if(JX_POS(status)) {
@@ -3914,7 +3921,7 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
               register jx_int i = (info ? info->usage : left_size);
               register jx_ob *ob = left->key_value;
               while(i--) {
-                jx_ob right_value = JX_OB_NULL;
+                jx_ob right_value = jx_ob_from_null();
                 if(!jx__hash_peek(&right_value, right, ob[0]))
                   return JX_FALSE;
                 else if(!jx_ob_equal(ob[1], right_value))
@@ -3936,7 +3943,7 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
                     jx_uint32 *hash_entry = hash_table + (index << 1);
                     if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
                       jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
-                      jx_ob right_value = JX_OB_NULL;
+                      jx_ob right_value = jx_ob_from_null();
                       if(!jx__hash_peek(&right_value, right, kv_ob[0]))
                         return JX_FALSE;
                       else if(!jx_ob_equal(kv_ob[1], right_value))
@@ -3992,7 +3999,7 @@ static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
               register jx_int i = (info ? info->usage : left_size);
               register jx_ob *ob = left->key_value;
               while(i--) {
-                jx_ob right_value = JX_OB_NULL;
+                jx_ob right_value = jx_ob_from_null();
                 if(!jx__hash_peek(&right_value, right, ob[0]))
                   return JX_FALSE;
                 else if(!jx_ob_identical(ob[1], right_value))
@@ -4014,7 +4021,7 @@ static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
                     jx_uint32 *hash_entry = hash_table + (index << 1);
                     if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
                       jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
-                      jx_ob right_value = JX_OB_NULL;
+                      jx_ob right_value = jx_ob_from_null();
                       if(!jx__hash_peek(&right_value, right, kv_ob[0]))
                         return JX_FALSE;
                       else if(!jx_ob_identical(kv_ob[1], right_value))
@@ -4980,7 +4987,22 @@ jx_status jx__tls_vla_free(jx_tls *tls,void **ref)
       jx_int rec_size = vla->rec_size;
       jx_int alloc = vla->alloc;
       jx_int padding = ((char *) vla) - ((char *) vla->ptr);
-      if(padding) alloc += (padding / rec_size);
+      if(padding) {
+        switch(rec_size) {
+        case 4:
+          alloc += (padding >> 2);
+          break;
+        case 8:
+          alloc += (padding >> 3);
+          break;
+        case 16:
+          alloc += (padding >> 4);
+          break;
+        default:
+          alloc += (padding / rec_size);
+          break;
+        }
+      }
       if((alloc*rec_size) < JX_TLS_VLA_ALLOC_MAX) {
         vla = vla->ptr;
         vla->rec_size = rec_size;
@@ -5301,7 +5323,7 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
 
 jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
   if(fn) {
     fn->name = name;
@@ -5325,7 +5347,7 @@ jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode)
 
 jx_ob jx_macro_new_with_def(jx_ob name, jx_ob args, jx_ob body)
 {
-  jx_ob result = JX_OB_NULL;
+  jx_ob result = jx_ob_from_null();
   jx_function *fn = (jx_function*) jx_calloc(1, sizeof(jx_function));
   if(fn) {
     fn->name = name;

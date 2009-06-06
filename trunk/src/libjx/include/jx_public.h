@@ -144,7 +144,7 @@ extern "C" {
 
 /* boxing (all of these return owned objects) */
 
-jx_ob jx_ob_from_null(void);
+// jx_ob jx_ob_from_null(void);
 jx_ob jx_ob_from_bool(jx_bool bool_);
 jx_ob jx_ob_from_int(jx_int int_);
 jx_ob jx_ob_from_float(jx_float float_);

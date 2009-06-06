@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     if(console) 
       printf("Jenarix Network Syntax (JXN):\n");
     {
-      jx_ob source = JX_OB_NULL;
+      jx_ob source = jx_ob_from_null();
       jx_status status;
       jx_bool done = JX_FALSE;
       while( !done ) {
