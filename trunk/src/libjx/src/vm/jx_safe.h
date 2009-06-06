@@ -435,6 +435,10 @@ JX_BIN_OP(or)
 JX_UNI_OP(neg)
 JX_UNI_OP(not)
 
+JX_INLINE jx_ob jx_safe_pow(jx_ob node, jx_ob payload)
+{
+  return jx_ob_pow( jx_list_borrow(payload,0), jx_list_borrow(payload,1) );
+}
 
 JX_INLINE jx_ob jx_safe_size(jx_ob node, jx_ob payload)
 {

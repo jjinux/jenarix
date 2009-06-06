@@ -256,6 +256,8 @@ jx_ob jx_ob_idiv(jx_ob left, jx_ob right);
 jx_ob jx_ob_mod(jx_ob left, jx_ob right);
 jx_ob jx_ob_neg(jx_ob ob);
 
+jx_ob jx_ob_pow(jx_ob left, jx_ob right);
+
 jx_bool jx_ob_lt(jx_ob left, jx_ob right);
 jx_bool jx_ob_gt(jx_ob left, jx_ob right);
 jx_bool jx_ob_le(jx_ob left, jx_ob right);

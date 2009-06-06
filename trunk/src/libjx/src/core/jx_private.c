@@ -964,6 +964,18 @@ jx_ob jx__ob_add(jx_ob left, jx_ob right)
   return jx_ob_from_null();
 }
 
+jx_ob jx__ob_pow(jx_ob left, jx_ob right)
+{
+  /* on entry, we know the types aren't matched */
+  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  if(merge_bits & JX_META_BIT_FLOAT) {
+    return jx_ob_from_float( pow(jx_ob_as_float(left),jx_ob_as_float(right)));
+  } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
+    return jx_ob_from_int( pow(jx_ob_as_int(left), jx_ob_as_int(right)));
+  }
+  return jx_ob_from_null();
+}
+
 jx_ob jx__ob_mul(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */

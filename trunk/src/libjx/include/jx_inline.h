@@ -1881,6 +1881,34 @@ JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
   return jx__ob_add(left,right);
 }
 
+jx_ob jx__ob_pow(jx_ob left, jx_ob right);
+JX_INLINE jx_ob jx_ob_pow(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_BOOL:
+      return jx_ob_from_int( pow(left.data.io.bool_, right.data.io.bool_) );
+      break;
+    case JX_META_BIT_INT:
+      return jx_ob_from_int( pow(left.data.io.int_ , right.data.io.int_) );
+      break;
+    case JX_META_BIT_FLOAT:
+      return jx_ob_from_float( pow(left.data.io.float_ , right.data.io.float_) );
+      break;
+    case JX_META_BIT_STR:
+      return jx_ob_from_null();
+      break;
+    case JX_META_BIT_LIST:
+      return jx_ob_from_null();
+      break;
+    }
+  } 
+  return jx__ob_pow(left,right);
+}
+
+
 #define JX_MATH_OP(SUFFIX,OPER) \
 jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right); \
 JX_INLINE jx_ob jx_ob_ ## SUFFIX(jx_ob left, jx_ob right) \

@@ -543,6 +543,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
       case JX_SELECTOR_OR:
         jx_tls_ob_replace(tls, &payload, jx_safe_or(node, payload));
         break;
+      case JX_SELECTOR_POW:
+        jx_tls_ob_replace(tls, &payload, jx_safe_pow(node, payload));
+        break;
 
       case JX_SELECTOR_NEG:
         jx_tls_ob_replace(tls, &payload, jx_safe_neg(node, payload));

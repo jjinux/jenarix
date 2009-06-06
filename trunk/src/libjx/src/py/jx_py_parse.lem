@@ -914,6 +914,17 @@ testlist_gexp(A) ::= test(B).
 
 /* power: atom trailer* ['**' factor] */
 
+power(A) ::= atom(B) DOUBLE_ASTERISK factor(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("pow"));
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("power(A) ::= atom(B) trailer(C).\n");
+#endif
+}
+
 power(A) ::= atom(B) call_trailer(C).
 {
   A = C;

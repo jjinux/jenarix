@@ -226,6 +226,7 @@ static int jx_scan(jx_py_scanner_state *s)
     "+"         { RET(JX_PY_PLUS); }
     "-"         { RET(JX_PY_MINUS); }
 
+    "**"        { RET(JX_PY_DOUBLE_ASTERISK); }
     "*"         { RET(JX_PY_ASTERISK); }
     "/"         { RET(JX_PY_SLASH); }
     "//"        { RET(JX_PY_SLASHSLASH); }

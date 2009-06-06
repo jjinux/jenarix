@@ -120,6 +120,8 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"share", JX_SELECTOR_SHARE);
   ok = jx_declare(ok,names,"shared",  JX_SELECTOR_SHARED);
 
+  ok = jx_declare(ok,names,"pow",  JX_SELECTOR_POW);
+
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 
