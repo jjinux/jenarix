@@ -70,8 +70,6 @@
 [synchronize queueAB]
 [synchronize queueBC]
 
-(symbols);
-
 [synchronized queueAB]
 [synchronized queueBC]
 
