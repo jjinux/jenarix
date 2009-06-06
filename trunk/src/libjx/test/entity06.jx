@@ -1,0 +1,51 @@
+
+# examply 3 by 3 matrix library built using entities
+
+(def _print [self] [
+  (output "hi")
+  (output self.dim)
+  (set rows (get self.dim 0))
+  (foreach row (range rows) [
+    (set cols (get self.dim 1))
+    (set line "")
+    (foreach col (range cols) [
+      (test col (set line (add line " ")))
+      (set line (add line (str (get (self 1) (add col (mul row cols))))))
+      ])
+    (output line)
+    ])
+  (rows, cols)
+  ]);
+
+#(impl _print)
+
+(entity MatrixBase null null { dim:[] , print:_print } )
+
+(entity Matrix33f MatrixBase
+  [ 1.0 0.0 0.0 
+    0.0 1.0 0.0 
+    0.0 0.0 1.0 ],
+  {dim:[3,3]})
+
+symbols;
+
+(set m0 ((MatrixBase)))
+
+m0;
+
+(m0 print);
+
+
+# new instances can be automatically created by resolving the entity handle and then
+# calling it as a function with no arguments
+
+(set m1 ((Matrix33f)))
+
+m1;
+
+(m1 print);
+
+
+
+
+
