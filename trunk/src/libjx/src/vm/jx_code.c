@@ -416,11 +416,11 @@ JX_INLINE jx_ob jx_code_exec_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob
     jx__code_exec_to_weak(tls,flags, node, expr) : jx_ob_copy(expr);
 }
 
-static void jx__code_make_strong(jx_ob *ob,jx_int size)
+static void jx__code_filter_weak_transients(jx_ob *ob,jx_int size)
 {
   while(size--) {
     if(ob->meta.bits & JX_META_BIT_WEAK_REF) 
-      *ob = jx_ob_copy(*ob); 
+      *ob = jx_ob_copy(*ob); /* NOTE: shared/synchronized objects remain weak */
     ob++;
   }
 }
@@ -629,6 +629,12 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
         break;
       case JX_SELECTOR_SYNCHRONIZED:
         jx_tls_ob_replace(tls, &payload, jx_safe_synchronized(node, payload));
+        break;
+      case JX_SELECTOR_SHARE:
+        jx_tls_ob_replace(tls, &payload, jx_safe_share(node, payload));
+        break;
+      case JX_SELECTOR_SHARED:
+        jx_tls_ob_replace(tls, &payload, jx_safe_shared(node, payload));
         break;
       default: /* unrecognized selector? purge weak */
         jx_ob_free(callable);
@@ -1011,7 +1017,9 @@ static jx_ob jx__code_close_with_args(jx_ob node, jx_ob code, jx_ob args)
       jx_ob ident = jx_list_borrow(unbound,i);
       jx_ob value = jx_ob_from_null();
       if(jx_hash_peek(&value,node,ident)) {
+        jx_ob_dump(stdout,"closing on",value);
         jx_hash_set(closed,jx_ob_copy(ident),jx_ob_copy(value));
+        
         while(jx_builtin_entity_check(value)) { /* close on chained entity hashes as well */
           jx_ob ent_def = jx_hash_get(node, value); 
           jx_hash_set(closed, jx_ob_copy(value), ent_def);
@@ -1581,7 +1589,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                               return jx__code_apply_callable(tls, node, method, result);
                               break;
                             default:
-                              jx__code_make_strong(result_list->data.ob_vla + 1,size - 1);
+                              jx__code_filter_weak_transients(result_list->data.ob_vla + 1,size - 1);
                               return jx__code_apply_callable(tls, node, method, result);
                               break;
                             }
@@ -1616,7 +1624,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
               
               /* strengthen result list unless weak-nesting is permitted */
               if(!(flags_ & JX_EVAL_ALLOW_NESTED_WEAK_REFS)) {
-                jx__code_make_strong(result_vla,size);
+                jx__code_filter_weak_transients(result_vla,size);
               }
               
               if(flags_ & (JX_EVAL_DEBUG_DUMP_SUBEX)) {
@@ -1657,7 +1665,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                 }
                 break;
               default:
-                jx__code_make_strong(result_list->data.ob_vla + 1,size - 1);
+                jx__code_filter_weak_transients(result_list->data.ob_vla + 1,size - 1);
                 {
                   jx_ob callable = jx__list_remove(result_list,0);
                   return jx__code_apply_callable(tls, node, callable, result);

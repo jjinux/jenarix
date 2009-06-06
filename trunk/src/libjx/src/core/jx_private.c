@@ -928,14 +928,7 @@ jx_int jx__str_compare(jx_ob left, jx_ob right)
   return 0;
 }
 
-jx_status jx__str_set_shared(jx_char * str, jx_bool shared)
-{
-  jx_str *I = (jx_str *) str;
-  I->gc.shared = shared;
-  return JX_SUCCESS;
-}
-
-jx_ob jx__str_gc_copy(jx_char * str)
+jx_ob jx__str_gc_copy_strong(jx_char * str)
 {
   jx_ob result = jx_ob_from_null();
   result.data.io.str = (jx_char *) jx_vla_copy(&str);
@@ -1131,7 +1124,7 @@ jx_char *jx_ob_as_ident(jx_ob * ob)
   return jx_ob_as_ident_error;
 }
 
-jx_ob jx__ident_gc_copy(jx_char * str)
+jx_ob jx__ident_gc_copy_strong(jx_char * str)
 {
   jx_ob result = jx_ob_from_null();
   result.data.io.str = (jx_char *) jx_vla_copy(&str);
@@ -1240,13 +1233,12 @@ jx_ob jx_list_new_with_float_vla(jx_float ** ref)
 jx_ob jx__list_copy(jx_list * I)
 {
   jx_ob result = jx_list_new();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_LIST) {
       jx_list *new_I = result.data.io.list;
       (*new_I) = (*I);
-      new_I->synchronized = JX_FALSE;
+      new_I->gc.synchronized = JX_FALSE;
       jx__gc_init(&new_I->gc);
       new_I->data.vla = jx_vla_copy(&I->data.vla);
       if(!new_I->packed_meta_bits) {      /* need to recursively copy all GC content */
@@ -1260,9 +1252,7 @@ jx_ob jx__list_copy(jx_list * I)
         }
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -1270,13 +1260,12 @@ jx_ob jx__list_copy(jx_list * I)
 jx_ob jx__list_copy_strong(jx_list * I)
 {
   jx_ob result = jx_list_new();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_LIST) {
       jx_list *new_I = result.data.io.list;
       (*new_I) = (*I);
-      new_I->synchronized = JX_FALSE;
+      new_I->gc.synchronized = JX_FALSE;
       jx__gc_init(&new_I->gc);
       new_I->data.vla = jx_vla_copy(&I->data.vla);
       if(!new_I->packed_meta_bits) {      /* need to recursively copy all GC content */
@@ -1290,17 +1279,16 @@ jx_ob jx__list_copy_strong(jx_list * I)
         }
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
 
+#if 0
+
 static void jx__list_make_strong(jx_list * I)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(!I->packed_meta_bits) {     
       jx_int i, size = jx_vla_size(&I->data.ob_vla);
@@ -1312,16 +1300,12 @@ static void jx__list_make_strong(jx_list * I)
         ob++;
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
 }
-
 static void jx__list_only_strong(jx_list * I)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(!I->packed_meta_bits) {     
       jx_int i, size = jx_vla_size(&I->data.ob_vla);
@@ -1333,16 +1317,14 @@ static void jx__list_only_strong(jx_list * I)
         ob++;
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
 }
+#endif
 
 jx_status jx__list_set_shared(jx_list * I, jx_bool shared)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_SUCCESS;
     I->gc.shared = shared;
@@ -1353,21 +1335,18 @@ jx_status jx__list_set_shared(jx_list * I, jx_bool shared)
         jx_ob_set_shared(*(ob++), shared);
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
 
 jx_status jx__list_set_synchronized(jx_list * I, jx_bool synchronized, jx_bool recursive)
 {
-  jx_bool synched_on_entry = I->synchronized;
-  jx_status status = synched_on_entry ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_bool synched_on_entry = I->gc.synchronized;
+  jx_status status = synched_on_entry ? jx_gc_lock(&I->gc) : JX_YES;
   if(JX_POS(status)) {
     status = JX_SUCCESS;
-    I->synchronized = synchronized;
+    I->gc.synchronized = synchronized;
     if(recursive && !I->packed_meta_bits) { 
       jx_int size = jx_vla_size(&I->data.ob_vla);
       jx_ob *ob = I->data.ob_vla;
@@ -1376,7 +1355,7 @@ jx_status jx__list_set_synchronized(jx_list * I, jx_bool synchronized, jx_bool r
       }
     }
     if(synched_on_entry) {
-      jx_os_spinlock_release(&I->lock);
+      jx_gc_unlock(&I->gc);
     }
   }
   return status;
@@ -1402,8 +1381,7 @@ jx_bool jx__ob_shared(jx_ob ob)
 jx_int jx__list_index(jx_list * I,jx_ob ob)
 {
   jx_int result = -1;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int I_size = jx__list_size(I);
     if(I_size) {
@@ -1445,16 +1423,26 @@ jx_int jx__list_index(jx_list * I,jx_ob ob)
         }
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   //  printf("index %d\n",result);
   return result;
 }
 
-static jx_status jx__list_free(jx_tls *tls, jx_list * I)
-{
+JX_INLINE void jx__tls_list_free(jx_tls *tls,jx_list *I)
+{ 
+  if(tls && (tls->n_list < JX_TLS_MAX)) {
+    jx_tls_chain *chain = (jx_tls_chain*)I;
+    chain->next = tls->list_chain;
+    tls->list_chain = chain;
+    tls->n_list++;
+  } else {
+    jx_free(I);
+  }
+}
+
+JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
+{ /* assumes I not shared */
   jx_status status = JX_SUCCESS;
   if(I->gc.shared) {
     status = JX_STATUS_FREED_SHARED;
@@ -1467,7 +1455,7 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * I)
       }
     }      
     jx_tls_vla_free(tls,&I->data.vla);
-    jx_tls_list_free(tls,I);
+    jx__tls_list_free(tls,I);
   }
   return status;
 }
@@ -1475,8 +1463,7 @@ static jx_status jx__list_free(jx_tls *tls, jx_list * I)
 jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
 {
   jx_ob result = jx_ob_from_null();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int sep_len = sep ? jx_strlen(sep) : 0;
     jx_int size = jx__list_size(I);
@@ -1506,9 +1493,7 @@ jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
         }
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -1516,8 +1501,7 @@ jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
 static jx_ob jx__ident_join_with_list(jx_list * I, jx_char * sep)
 {
   jx_ob result = jx_ob_from_null();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int sep_len = sep ? jx_strlen(sep) : 0;
     jx_int size = jx__list_size(I);
@@ -1547,9 +1531,7 @@ static jx_ob jx__ident_join_with_list(jx_list * I, jx_char * sep)
         }
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -1642,11 +1624,9 @@ jx_bool jx__list_equal(jx_list * left, jx_list * right)
     left = right; right = tmp;
   }
   {
-    jx_status status = (left->synchronized ? 
-                        jx_os_spinlock_acquire(&left->lock,JX_TRUE) : JX_YES);
+    jx_status status = jx_gc_lock(&left->gc);
     if(JX_POS(status)) {
-      status = (right->synchronized ? 
-                jx_os_spinlock_acquire(&right->lock,JX_TRUE) : JX_YES);
+      status = jx_gc_lock(&right->gc);
       if(JX_POS(status)) {
 
         jx_int left_size = jx__list_size(left);
@@ -1704,13 +1684,9 @@ jx_bool jx__list_equal(jx_list * left, jx_list * right)
           }
         }
       unlock_both:
-        if(right->synchronized) {
-          jx_os_spinlock_release(&right->lock);
-        }
+        jx_gc_unlock(&right->gc);
       }
-      if(left->synchronized) {
-        jx_os_spinlock_release(&left->lock);
-      }
+      jx_gc_unlock(&left->gc);
     }
   }
   return result;
@@ -1724,11 +1700,9 @@ jx_bool jx__list_identical(jx_list * left, jx_list * right)
     left = right; right = tmp;
   }
   {
-    jx_status status = (left->synchronized ? 
-                        jx_os_spinlock_acquire(&left->lock,JX_TRUE) : JX_YES);
+    jx_status status = jx_gc_lock(&left->gc);
     if(JX_POS(status)) {
-      status = (right->synchronized ? 
-                jx_os_spinlock_acquire(&right->lock,JX_TRUE) : JX_YES);
+      status = jx_gc_lock(&right->gc);
       if(JX_POS(status)) {
         jx_int left_size = jx__list_size(left);
         jx_int right_size = jx__list_size(right);
@@ -1784,13 +1758,9 @@ jx_bool jx__list_identical(jx_list * left, jx_list * right)
           }
         }
       unlock_both:
-        if(right->synchronized) {
-          jx_os_spinlock_release(&right->lock);
-        }
+        jx_gc_unlock(&right->gc);
       }
-      if(left->synchronized) {
-        jx_os_spinlock_release(&left->lock);
-      }
+      jx_gc_unlock(&left->gc);
     }
   }
   return result;
@@ -1920,8 +1890,7 @@ jx_status jx__list_unpack_data_locked(jx_list * I)
 #define JX_BORROW(ob) ob
 jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_FAILURE;
     if(I->gc.shared) {
@@ -2066,17 +2035,14 @@ jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill)
       }
     }
   unlock:
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
 
 jx_status jx__list_append(jx_list * I, jx_ob ob)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_FAILURE;
     if(I->gc.shared) {
@@ -2119,17 +2085,14 @@ jx_status jx__list_append(jx_list * I, jx_ob ob)
       }
     }
   unlock:
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
 
 jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_FAILURE;
     if(I->gc.shared) {
@@ -2170,9 +2133,7 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
       }
     }
   unlock:
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
@@ -2181,16 +2142,14 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
 {
   /* we're assuming on entry that list2 is not synchronized 
      (since we're consuming it)... */
-  jx_status status = (list1->synchronized ? 
-                      jx_os_spinlock_acquire(&list1->lock,JX_TRUE) : JX_YES);
+  jx_status status = jx_gc_lock(&list1->gc);
   if(JX_POS(status)) {
     if(JX_POS(status)) {
       /* consumes list2 */
       if(list1->gc.shared || list2->gc.shared) {
         status = JX_STATUS_PERMISSION_DENIED;
       } else if(list1 == list2) {
-        if(list1->synchronized) 
-          jx_os_spinlock_release(&list1->lock);
+        jx_gc_unlock(&list1->gc);
         {
           jx_ob ob = jx__list_copy_strong(list2);
           if(jx_ok(jx__list_combine(list1, ob.data.io.list))) {
@@ -2226,7 +2185,7 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
         if(list1->data.vla && list2->data.vla) {
           if(jx_ok(jx__vla_extend(&list1->data.vla, &list2->data.vla))) {
             jx_vla_reset(&list2->data.vla);
-            jx__list_free(NULL,list2);
+            jx__list_free(NULL,list2); 
             status = JX_SUCCESS;
             goto unlock;
           }
@@ -2242,9 +2201,7 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
       }
     }
   unlock:
-    if(list1->synchronized) {
-      jx_os_spinlock_release(&list1->lock);
-    }
+    jx_gc_unlock(&list1->gc);
   }
   return status;
 
@@ -2253,8 +2210,7 @@ jx_status jx__list_combine(jx_list * list1, jx_list * list2)
 jx_ob jx__list_remove(jx_list * I, jx_int index)
 {
   jx_ob result = jx_ob_from_null();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(!I->gc.shared) {
       if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
@@ -2267,9 +2223,7 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -2277,8 +2231,7 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
 jx_ob jx__list_new_from_slice(jx_list * I, jx_int start, jx_int stop)
 {
   jx_ob result = jx_ob_from_null();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int size = jx_vla_size(&I->data.vla);
     if(start<0) start = size + start + 1;
@@ -2310,9 +2263,7 @@ jx_ob jx__list_new_from_slice(jx_list * I, jx_int start, jx_int stop)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -2320,8 +2271,7 @@ jx_ob jx__list_new_from_slice(jx_list * I, jx_int start, jx_int stop)
 jx_ob jx__list_new_with_cutout(jx_list * I, jx_int start, jx_int stop)
 {
   jx_ob result = jx_ob_from_null();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int size = jx_vla_size(&I->data.vla);
     if(start<0) start = size + start + 1;
@@ -2345,17 +2295,14 @@ jx_ob jx__list_new_with_cutout(jx_list * I, jx_int start, jx_int stop)
         jx_vla_remove(&I->data.vla,start,new_size);
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
 
 jx_status jx__list_delete(jx_list * I, jx_int index)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_FAILURE;
     if(I->gc.shared) {
@@ -2366,9 +2313,7 @@ jx_status jx__list_delete(jx_list * I, jx_int index)
       }
       status = jx_vla_remove(&I->data.vla, index, 1);
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
@@ -2377,8 +2322,7 @@ jx_int *jx_list_as_int_vla(jx_ob ob)
 {
   jx_list *I = ob.data.io.list;
   jx_int *result = JX_NULL;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(ob.meta.bits & JX_META_BIT_LIST) {
       if(I->packed_meta_bits & JX_META_BIT_INT) {
@@ -2393,17 +2337,14 @@ jx_int *jx_list_as_int_vla(jx_ob ob)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
 
 jx_status jx__list_set_int_vla(jx_list * I, jx_int ** ref)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_FAILURE;
     if(I->gc.shared)
@@ -2414,9 +2355,7 @@ jx_status jx__list_set_int_vla(jx_list * I, jx_int ** ref)
         status = JX_SUCCESS;
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
@@ -2425,8 +2364,7 @@ jx_float *jx_list_as_float_vla(jx_ob ob)
 {
   jx_list *I = ob.data.io.list;
   jx_float *result = JX_NULL;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(ob.meta.bits & JX_META_BIT_LIST) {
       if(I->packed_meta_bits & JX_META_BIT_FLOAT) {
@@ -2441,9 +2379,7 @@ jx_float *jx_list_as_float_vla(jx_ob ob)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -2538,8 +2474,7 @@ jx_ob jx_hash_new_with_flags(jx_int flags)
 jx_ob jx__hash_copy(jx_hash * hash)
 {
   jx_ob result = jx_hash_new();
-  jx_status status = hash->synchronized ? 
-    jx_os_spinlock_acquire(&hash->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&hash->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_HASH) {
       jx_hash *I = result.data.io.hash;
@@ -2558,9 +2493,7 @@ jx_ob jx__hash_copy(jx_hash * hash)
         }
       }
     }
-    if(hash->synchronized) {
-      status = jx_os_spinlock_release(&hash->lock);
-    }
+    jx_gc_unlock(&hash->gc);
   }
   return result;
 }
@@ -2568,8 +2501,7 @@ jx_ob jx__hash_copy(jx_hash * hash)
 jx_ob jx__hash_copy_strong(jx_hash * hash)
 {
   jx_ob result = jx_hash_new();
-  jx_status status = hash->synchronized ? 
-    jx_os_spinlock_acquire(&hash->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&hash->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_HASH) {
       jx_hash *I = result.data.io.hash;
@@ -2588,17 +2520,14 @@ jx_ob jx__hash_copy_strong(jx_hash * hash)
         }
       }
     }
-    if(hash->synchronized) {
-      status = jx_os_spinlock_release(&hash->lock);
-    }
+    jx_gc_unlock(&hash->gc);
   }
   return result;
 }
-
+#if 0
 static void jx__hash_make_strong(jx_hash * I)
 { 
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int i, size = jx_vla_size(&I->key_value);
     jx_ob *ob = I->key_value;
@@ -2608,16 +2537,12 @@ static void jx__hash_make_strong(jx_hash * I)
       }
       ob++;
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
 }
-
 static void jx__hash_only_strong(jx_hash * I)
 { 
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
 
     jx_int i, size = jx_vla_size(&I->key_value);
@@ -2628,38 +2553,45 @@ static void jx__hash_only_strong(jx_hash * I)
       }
       ob++;
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
    }
 }
+#endif
 
-static jx_status jx__hash_free(jx_tls *tls, jx_hash * I)
+JX_INLINE void jx__tls_hash_free(jx_tls *tls,jx_hash *hash)
 {
-  jx_status status = JX_SUCCESS;
-  if(I->gc.shared) {
-    status = JX_STATUS_FREED_SHARED;
+  if(tls && (tls->n_hash < JX_TLS_MAX)) {
+    jx_tls_chain *chain = (jx_tls_chain*)hash;
+    chain->next = tls->hash_chain;
+    tls->hash_chain = chain;
+    tls->n_hash++;
   } else {
-    jx_int size = jx_vla_size(&I->key_value);
-    if(size) {
-      jx_ob *ob = I->key_value;
-      jx_int i;
-      for(i = 0; i < size; i++) {
-        jx_ob_free(*(ob++));
-      }
-    }
-    jx_tls_vla_free(tls,&I->key_value);
-    jx_tls_vla_free(tls,&I->info);
-    jx_tls_hash_free(tls,I);
+    jx_free(hash);
   }
-  return status;
 }
 
+
+JX_INLINE jx_status jx__hash_free(jx_tls *tls, jx_hash * I)
+{ /* assumes I not shared */
+  jx_status status = JX_SUCCESS;
+  jx_int size = jx_vla_size(&I->key_value);
+  if(size) {
+    jx_ob *ob = I->key_value;
+    jx_int i;
+    for(i = 0; i < size; i++) {
+      jx_ob_free(*(ob++));
+    }
+  }
+  jx_tls_vla_free(tls,&I->key_value);
+  jx_tls_vla_free(tls,&I->info);
+  jx__tls_hash_free(tls,I);
+  return status;
+}
+ 
 jx_int jx__hash_size(jx_hash * I)
 {
   jx_int result = 0;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(I->key_value) {
       if(!I->info) {              /* no info mode -- search & match objects directly  */
@@ -2669,9 +2601,7 @@ jx_int jx__hash_size(jx_hash * I)
         result = info->usage;
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -3597,8 +3527,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
 
 jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     status = JX_FAILURE;
     if(I->gc.shared) {
@@ -3887,9 +3816,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
@@ -3902,11 +3829,9 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
     left = right; right = tmp;
   }
   {
-    jx_status status = (left->synchronized ? 
-                        jx_os_spinlock_acquire(&left->lock,JX_TRUE) : JX_YES);
+    jx_status status = jx_gc_lock(&left->gc);
     if(JX_POS(status)) {
-      status = (right->synchronized ? 
-                jx_os_spinlock_acquire(&right->lock,JX_TRUE) : JX_YES);
+      status = jx_gc_lock(&right->gc);
       if(JX_POS(status)) {
 
         jx_int left_size = jx__hash_size(left);
@@ -3958,13 +3883,9 @@ static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
             }
           }
         }
-        if(right->synchronized) {
-          jx_os_spinlock_release(&right->lock);
-        }
+        jx_gc_unlock(&right->gc);
       }
-      if(left->synchronized) {
-        jx_os_spinlock_release(&left->lock);
-      }
+      jx_gc_unlock(&left->gc);
     }
   }
 
@@ -3979,11 +3900,9 @@ static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
     left = right; right = tmp;
   }
   {
-    jx_status status = (left->synchronized ? 
-                        jx_os_spinlock_acquire(&left->lock,JX_TRUE) : JX_YES);
+    jx_status status = jx_gc_lock(&left->gc);
     if(JX_POS(status)) {
-      status = (right->synchronized ? 
-                jx_os_spinlock_acquire(&right->lock,JX_TRUE) : JX_YES);
+      status = jx_gc_lock(&right->gc);
       if(JX_POS(status)) {
 
         jx_int left_size = jx__hash_size(left);
@@ -4036,13 +3955,9 @@ static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
             }
           }
         }
-        if(right->synchronized) {
-          jx_os_spinlock_release(&right->lock);
-        }
+        jx_gc_unlock(&right->gc);
       }
-      if(left->synchronized) {
-        jx_os_spinlock_release(&left->lock);
-      }
+      jx_gc_unlock(&left->gc);
     }
   }
   return JX_FALSE;
@@ -4051,8 +3966,7 @@ static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
 jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
 {
   jx_ob result = jx_list_new();
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
     if(size) {
@@ -4093,17 +4007,14 @@ jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
 
 jx_status jx__hash_set_shared(jx_hash * I, jx_bool shared)
 {
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
     status = JX_SUCCESS;
@@ -4142,9 +4053,7 @@ jx_status jx__hash_set_shared(jx_hash * I, jx_bool shared)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return status;
 }
@@ -4153,13 +4062,12 @@ jx_status jx__hash_set_synchronized(jx_hash * I,
                                     jx_bool synchronized, 
                                     jx_bool recursive)
 {
-  jx_bool synched_on_entry = I->synchronized;
-  jx_status status = synched_on_entry ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_bool synched_on_entry = I->gc.synchronized;
+  jx_status status = synched_on_entry ? jx_gc_lock(&I->gc) : JX_YES;
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
     status = JX_SUCCESS;
-    I->synchronized = synchronized;
+    I->gc.synchronized = synchronized;
     if(size && recursive) {
       jx_hash_info *info = (jx_hash_info *) I->info;
       if((!info) || (info->mode == JX_HASH_LINEAR)) {
@@ -4195,7 +4103,7 @@ jx_status jx__hash_set_synchronized(jx_hash * I,
       }
     }
     if(synched_on_entry) {
-      jx_os_spinlock_release(&I->lock);
+      jx_gc_unlock(&I->gc);
     }
   }
   return status;
@@ -4204,8 +4112,7 @@ jx_status jx__hash_set_synchronized(jx_hash * I,
 jx_bool jx__hash_has_key(jx_hash * I, jx_ob key)
 {
   jx_bool found = JX_FALSE;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
     if(size) {
@@ -4272,9 +4179,7 @@ jx_bool jx__hash_has_key(jx_hash * I, jx_ob key)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return found;
 }
@@ -4282,8 +4187,7 @@ jx_bool jx__hash_has_key(jx_hash * I, jx_ob key)
 jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
 {
   jx_bool found = JX_FALSE;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
     if(size) {
@@ -4350,9 +4254,7 @@ jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return found;
 }
@@ -4360,8 +4262,7 @@ jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
 jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
 {
   jx_bool found = JX_FALSE;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(I->gc.shared) {
       status = JX_STATUS_PERMISSION_DENIED;
@@ -4518,9 +4419,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return found;
 }
@@ -4529,8 +4428,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
 jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value)
 {
   jx_bool found = JX_FALSE;
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
     if(size) {
@@ -4597,17 +4495,14 @@ jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value)
         }
       }
     }
-    if(I->synchronized) {
-      jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return found;
 }
 
 jx_status jx__hash_from_list(jx_hash * hash, jx_list * list)
 {
-  jx_status status = list->synchronized ? 
-    jx_os_spinlock_acquire(&list->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&list->gc);
   if(JX_POS(status)) {
     jx_int size = jx__list_size(list);
     status = JX_SUCCESS;
@@ -4625,17 +4520,14 @@ jx_status jx__hash_from_list(jx_hash * hash, jx_list * list)
         }
       }
     }
-    if(list->synchronized) {
-      jx_os_spinlock_release(&list->lock);
-    }
+    jx_gc_unlock(&list->gc);
   }
   return status;
 }
 
 jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
 {
-  jx_status status = hash->synchronized ? 
-    jx_os_spinlock_acquire(&hash->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&hash->gc);
   if(JX_POS(status)) {
     status = JX_SUCCESS;
     jx_int size = jx_vla_size(&hash->key_value);
@@ -4687,17 +4579,14 @@ jx_status jx__list_with_hash(jx_list * list, jx_hash * hash)
         }
       }
     }
-    if(hash->synchronized) {
-      jx_os_spinlock_release(&hash->lock);
-    }
+    jx_gc_unlock(&hash->gc);
   }
   return status;
 }
 
 jx_status jx__hash_with_list(jx_hash * hash, jx_list * list)
 {
-  jx_status status = list->synchronized ? 
-    jx_os_spinlock_acquire(&list->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&list->gc);
   if(JX_POS(status)) {
     status = JX_SUCCESS;
     jx_int size = jx__list_size(list);
@@ -4722,22 +4611,60 @@ jx_status jx__hash_with_list(jx_hash * hash, jx_list * list)
         jx_vla_free(&hash->info);
       }
     }
-    if(list->synchronized) {
-      jx_os_spinlock_release(&list->lock);
-    }
+    jx_gc_unlock(&list->gc);
   }
   return status;
 }
 
+static jx_status jx__builtin_gc_set_synchronized(jx_ob ob,jx_bool synchronized,jx_bool recursive)
+{
+  /* on entry, we know object is GC'd, so only GC'd objects needed here */
+  ob.data.io.gc->synchronized = synchronized;
+  if(recursive) {
+    switch(ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
+    case JX_META_BIT_BUILTIN_FUNCTION:
+    case JX_META_BIT_BUILTIN_MACRO:
+      {
+        jx_function *fn = ob.data.io.function;
+        jx_ob_set_synchronized(fn->name,synchronized,recursive);
+        jx_ob_set_synchronized(fn->args,synchronized,recursive);
+        jx_ob_set_synchronized(fn->body,synchronized,recursive);
+      }
+      break;
+    }
+  }
+  return JX_SUCCESS;
+}
+
+
+static jx_status jx__builtin_gc_set_shared(jx_ob ob,jx_bool shared)
+{
+  /* on entry, we know object is GC'd, so only GC'd objects needed here */
+  ob.data.io.gc->shared = shared;
+  switch(ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
+  case JX_META_BIT_BUILTIN_FUNCTION:
+  case JX_META_BIT_BUILTIN_MACRO:
+    {
+      jx_function *fn = ob.data.io.function;
+      jx_ob_set_shared(fn->name,shared);
+      jx_ob_set_shared(fn->args,shared);
+      jx_ob_set_shared(fn->body,shared);
+    }
+    break;
+  }
+  return JX_SUCCESS;
+}
+
 /* shared: read only immortal gc'd objects & containers */
 
-jx_status jx__ob_set_shared(jx_ob ob, jx_bool shared)
+jx_status jx__ob_gc_set_shared(jx_ob ob, jx_bool shared)
 {
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
   case JX_META_BIT_IDENT:
-    return jx__str_set_shared(ob.data.io.str, shared);
+    ob.data.io.gc->shared = JX_TRUE;
+    return JX_SUCCESS;
     break;
   case JX_META_BIT_LIST:
     return jx__list_set_shared(ob.data.io.list, shared);
@@ -4745,35 +4672,31 @@ jx_status jx__ob_set_shared(jx_ob ob, jx_bool shared)
   case JX_META_BIT_HASH:
     return jx__hash_set_shared(ob.data.io.hash, shared);
     break;
+  case JX_META_BIT_BUILTIN:
+    return jx__builtin_gc_set_shared(ob, shared);
+    break;
   }
   return JX_SUCCESS;
 }
 
 /* synchronized: all access subject to spinlocks */
 
-jx_status jx__ob_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recursive)
+jx_status jx__ob_gc_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool recursive)
 {
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
+  case JX_META_BIT_STR:
+  case JX_META_BIT_IDENT:
+    ob.data.io.gc->synchronized = synchronized;
+    break;
   case JX_META_BIT_LIST:
     return jx__list_set_synchronized(ob.data.io.list, synchronized, recursive);
     break;
   case JX_META_BIT_HASH:
     return jx__hash_set_synchronized(ob.data.io.hash, synchronized, recursive);
     break;
-  }
-  return JX_SUCCESS;
-}
-
-jx_status jx__ob_synchronized(jx_ob ob)
-{
-  /* on entry, we know the object is GC'd */
-  switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
-  case JX_META_BIT_LIST:
-    return ob.data.io.list->synchronized;
-    break;
-  case JX_META_BIT_HASH:
-    return ob.data.io.list->synchronized;
+  case JX_META_BIT_BUILTIN:
+    return jx__builtin_gc_set_synchronized(ob, synchronized, recursive);
     break;
   }
   return JX_SUCCESS;
@@ -4785,7 +4708,7 @@ jx_ob jx__builtin_copy(jx_ob ob)
 
   switch(ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
   case JX_META_BIT_BUILTIN_ENTITY: /* 0 */
-    return jx_builtin_new_entity_with_name(jx__ident_gc_copy(ob.data.io.str));
+    return jx_builtin_new_entity_with_name(jx__ident_gc_copy_strong(ob.data.io.str));
     break;
   case JX_META_BIT_BUILTIN_FUNCTION:
     {
@@ -4812,26 +4735,57 @@ jx_ob jx__builtin_copy(jx_ob ob)
   return jx_ob_from_null();
 }
 
+jx_ob jx__builtin_copy_strong(jx_ob ob)
+{
+  /* on entry, we know object is GC'd, so only GC'd objects needed here */
+
+  switch(ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
+  case JX_META_BIT_BUILTIN_ENTITY: /* 0 */
+    return jx_builtin_new_entity_with_name(jx__ident_gc_copy_strong(ob.data.io.str));
+    break;
+  case JX_META_BIT_BUILTIN_FUNCTION:
+    {
+      jx_function *fn = ob.data.io.function;
+      //      printf("NOTICE: copying a function!\n");
+      return jx_function_new_with_def(jx_ob_copy_strong(fn->name), 
+                                      jx_ob_copy_strong(fn->args), 
+                                      jx_ob_copy_strong(fn->body),
+                                      fn->mode);
+    }
+    break;
+  case JX_META_BIT_BUILTIN_MACRO:
+    {
+      jx_function *fn = ob.data.io.function;
+      return jx_macro_new_with_def(jx_ob_copy_strong(fn->name), 
+                                   jx_ob_copy_strong(fn->args), 
+                                   jx_ob_copy_strong(fn->body));
+    }
+    break;
+  case JX_META_BIT_BUILTIN_OPAQUE_OB:
+    /* TO DO -- do we need a copy function in builtins as well as free? -- I think so.. */
+    break;
+  }
+  return jx_ob_from_null();
+}
+
 /* copying */
 
-jx_ob jx__ob_copy(jx_ob ob)
+jx_ob jx__ob_gc_copy(jx_ob ob)
 {
-  /* on entry, we know the object is GC'd */
+  /* on entry, we know the object is GC'd and that the reference is
+     not weak (otherwise the weak reference itself would have been
+     copied)  */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-    return jx__str_gc_copy(ob.data.io.str);
+    return jx__str_gc_copy_strong(ob.data.io.str);
     break;
   case JX_META_BIT_IDENT:
-    return jx__ident_gc_copy(ob.data.io.str);
+    return jx__ident_gc_copy_strong(ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
-    if(ob.data.io.list->synchronized)
-      return jx_ob_take_weak_ref(ob);
     return jx__list_copy(ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
-    if(ob.data.io.hash->synchronized)
-      return jx_ob_take_weak_ref(ob);
     return jx__hash_copy(ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:
@@ -4841,15 +4795,15 @@ jx_ob jx__ob_copy(jx_ob ob)
   return jx_ob_from_null();
 }
 
-jx_ob jx__ob_copy_strong(jx_ob ob)
+jx_ob jx__ob_gc_copy_strong(jx_ob ob)
 {
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-    return jx__str_gc_copy(ob.data.io.str);
+    return jx__str_gc_copy_strong(ob.data.io.str);
     break;
   case JX_META_BIT_IDENT:
-    return jx__ident_gc_copy(ob.data.io.str);
+    return jx__ident_gc_copy_strong(ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
     return jx__list_copy_strong(ob.data.io.list);
@@ -4858,16 +4812,15 @@ jx_ob jx__ob_copy_strong(jx_ob ob)
     return jx__hash_copy_strong(ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:
-    return jx__builtin_copy(ob);
-   break;
+    return jx__builtin_copy_strong(ob);
+    break;
   }
   return jx_ob_from_null();
 }
 
+#if 0
 jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
 {
-  /* BROKEN CODE - DO NOT USE! */
-
   jx_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_WEAK_REF) {
     switch (bits & JX_META_MASK_TYPE_BITS) {
@@ -4877,15 +4830,21 @@ jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
     case JX_META_BIT_HASH:
       jx__hash_make_strong(ob.data.io.hash);
       break;
+    case JX_META_BIT_STR:
+      jx__str_copy_strong(ob.data.io.hash);
+      break;
+    case JX_META_BIT_IDENT:
+      jx__ident_copy_strong(ob.data.io.hash);
+      break;
     }
   } else {
     /* on entry, we know the object is GC'd */
     switch (bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_STR:
-      return jx__str_gc_copy(ob.data.io.str);
+      return jx__str_gc_copy_strong(ob.data.io.str);
       break;
     case JX_META_BIT_IDENT:
-      return jx__ident_gc_copy(ob.data.io.str);
+      return jx__ident_gc_copy_strong(ob.data.io.str);
       break;
     case JX_META_BIT_LIST:
       return jx__list_copy(ob.data.io.list);
@@ -4900,7 +4859,6 @@ jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
   }
   return ob;
 }
-
 jx_ob jx__ob_only_strong_with_ob(jx_ob ob)
 {
   jx_bits bits = ob.meta.bits;
@@ -4918,6 +4876,7 @@ jx_ob jx__ob_only_strong_with_ob(jx_ob ob)
   }
   return ob;
 }
+#endif
 
 /* thread-local storage for accelerating memory use within a single thread */
 
@@ -5023,29 +4982,6 @@ jx_status jx__tls_vla_free(jx_tls *tls,void **ref)
   return JX_SUCCESS;
 }
 
-void jx_tls_hash_free(jx_tls *tls,jx_hash *hash)
-{
-  if(tls && (tls->n_hash < JX_TLS_MAX)) {
-    jx_tls_chain *chain = (jx_tls_chain*)hash;
-    chain->next = tls->hash_chain;
-    tls->hash_chain = chain;
-    tls->n_hash++;
-  } else {
-    jx_free(hash);
-  }
-}
-
-void jx_tls_list_free(jx_tls *tls,jx_list *I)
-{
-  if(tls && (tls->n_list < JX_TLS_MAX)) {
-    jx_tls_chain *chain = (jx_tls_chain*)I;
-    chain->next = tls->list_chain;
-    tls->list_chain = chain;
-    tls->n_list++;
-  } else {
-    jx_free(I);
-  }
-}
 
 jx_hash *jx_tls_hash_calloc(jx_tls *tls)
 {
@@ -5140,8 +5076,7 @@ jx_ob jx_tls_list_new_with_size(jx_tls *tls,jx_int size)
 jx_ob jx__tls_list_copy(jx_tls *tls, jx_list * I)
 {
   jx_ob result = jx_tls_list_new(tls);
-  jx_status status = I->synchronized ? 
-    jx_os_spinlock_acquire(&I->lock,JX_TRUE) : JX_YES;
+  jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_LIST) {
       jx_list *new_I = result.data.io.list;
@@ -5159,9 +5094,7 @@ jx_ob jx__tls_list_copy(jx_tls *tls, jx_list * I)
         }
       }
     }
-    if(I->synchronized) {
-      status = jx_os_spinlock_release(&I->lock);
-    }
+    jx_gc_unlock(&I->gc);
   }
   return result;
 }
@@ -5171,10 +5104,10 @@ jx_ob jx__tls_ob_copy(jx_tls *tls, jx_ob ob)
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-    return jx__str_gc_copy(ob.data.io.str);
+    return jx__str_gc_copy_strong(ob.data.io.str);
     break;
   case JX_META_BIT_IDENT:
-    return jx__ident_gc_copy(ob.data.io.str);
+    return jx__ident_gc_copy_strong(ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
     return jx__tls_list_copy(tls,ob.data.io.list);
@@ -5331,7 +5264,8 @@ jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode)
     fn->body = body;
     fn->mode = mode;
 
-    //jx_jxon_dump(stdout,"new function name",name);
+    //printf("new function at %p\n",fn);
+    //jx_jxon_dump(stdout,"new function name",jx_ob_from_null(),name);
     //jx_jxon_dump(stdout,"new function args",args);
     //jx_jxon_dump(stdout,"new function code",body);
     //fprintf(stdout,"new function block: %d\n",block);
@@ -5398,8 +5332,11 @@ jx_ob jx_macro_to_impl(jx_ob ob)
 
 /* freeing */
 
-jx_status jx__ob_free(jx_tls *tls, jx_ob ob)
+jx_status jx__ob_gc_free(jx_tls *tls, jx_ob ob)
 { /* on entry, we know ob is GC'd and not weak*/
+  if(ob.data.io.gc->shared) {
+    return JX_STATUS_FREED_SHARED;
+  }
   register jx_bits bits = ob.meta.bits;
   switch (bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:

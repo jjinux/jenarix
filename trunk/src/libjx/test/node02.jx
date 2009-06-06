@@ -70,8 +70,13 @@
 [synchronize queueAB]
 [synchronize queueBC]
 
-(def pipeAB [self,payload] (append queueAB payload));
-(def pipeBC [self,payload] (append queueBC payload));
+(symbols);
+
+[synchronized queueAB]
+[synchronized queueBC]
+
+(def pipeAB [self,payload] [(append queueAB payload)]);
+(def pipeBC [self,payload] [(append queueBC payload)]);
 
 (set (nodeA 2) output pipeAB)
 (set (nodeB 2) output pipeBC)

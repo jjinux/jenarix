@@ -117,6 +117,9 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"synchronize", JX_SELECTOR_SYNCHRONIZE);
   ok = jx_declare(ok,names,"synchronized",  JX_SELECTOR_SYNCHRONIZED);
 
+  ok = jx_declare(ok,names,"share", JX_SELECTOR_SHARE);
+  ok = jx_declare(ok,names,"shared",  JX_SELECTOR_SHARED);
+
   return ok ? JX_SUCCESS : JX_FAILURE;
 }
 

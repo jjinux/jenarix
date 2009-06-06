@@ -86,7 +86,7 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_ob container, jx_ob target, j
     case JX_META_BIT_HASH:
       return jx_hash_set
         (container, 
-         jx_ob_copy(target),
+         jx_ob_not_weak_with_ob(jx_ob_copy(target)),
          jx_ob_not_weak_with_ob( value ));
       break;
     }
@@ -296,6 +296,21 @@ JX_INLINE jx_ob jx_safe_synchronized(jx_ob container, jx_ob payload)
 {
   return jx_ob_from_bool
     (jx_ob_synchronized(jx_list_borrow(payload,0)));
+}
+
+JX_INLINE jx_ob jx_safe_share(jx_ob container, jx_ob payload)
+{
+  jx_ob flag = jx_list_borrow(payload,1);
+  if(jx_null_check(flag)) flag = jx_ob_from_bool(JX_TRUE);
+  return jx_ob_from_status
+    (jx_ob_set_shared(jx_list_borrow(payload,0),
+                       jx_ob_as_bool(flag)));
+}
+
+JX_INLINE jx_ob jx_safe_shared(jx_ob container, jx_ob payload)
+{
+  return jx_ob_from_bool
+    (jx_ob_shared(jx_list_borrow(payload,0)));
 }
 
 JX_INLINE jx_ob jx_safe_fill(jx_ob node, jx_ob payload)
