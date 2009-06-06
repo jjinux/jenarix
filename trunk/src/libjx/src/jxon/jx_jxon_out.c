@@ -599,10 +599,10 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
         }
         break;
       case JX_META_BIT_BUILTIN_OPAQUE_OB:
-        sprintf(buffer,"opaque`%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"opaque`%p",ob.data.io.void_); /* deliberate misread */
         break;
       case JX_META_BIT_BUILTIN_NATIVE_FN:
-        sprintf(buffer,"native_fn`%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"native_fn`%p",ob.data.io.void_); /* deliberate misread */
         break;
       case JX_META_BIT_BUILTIN_FUNCTION:
         {
@@ -611,7 +611,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
             sprintf(buffer,"fn`");
             jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
           } else {
-            sprintf(buffer,"fn`%p",(void*)ob.data.io.vla); /* deliberate misread */
+            sprintf(buffer,"fn`%p",ob.data.io.void_); /* deliberate misread */
           }
         }
         break;
@@ -622,7 +622,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
             sprintf(buffer,"macro`");
             jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
           } else {
-            sprintf(buffer,"macro`%p",(void*)ob.data.io.vla); /* deliberate misread */
+            sprintf(buffer,"macro`%p",ob.data.io.void_); /* deliberate misread */
           }
         }
         break;

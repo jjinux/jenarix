@@ -12,13 +12,11 @@
 #   b[a] = 1
 #   a = a - 1
 
-
 ( while a
   [ (set b a 1)
     (set a (sub a 1))
     ]
   );
-
 
 # print len(b)
 

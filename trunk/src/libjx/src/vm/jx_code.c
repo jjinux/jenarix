@@ -1508,14 +1508,28 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                 jx_list *list = result_vla->data.io.list;
                 if((!list->packed_meta_bits) && 
                    (entity_size = jx_vla_size(&list->data))) { 
-                  jx_ob *entity_ob = list->data.ob_vla;
+                  jx_ob *instance_ob = list->data.ob_vla;
                   /* non-zero, unpacked => vla valid */
-                  if(jx_builtin_entity_check(entity_ob[0])) {
+                  if(jx_builtin_entity_check(instance_ob[0])) {
                     /* first entry in result contains an entity (a class / instance, etc.) */
-                    if(size>1) {
+                    if(size<2) { /* constructor */
+                      jx_ob handle = jx_ob_copy(instance_ob[0]);
+                      jx_ob content = jx_entity_resolve_content(node,handle);
+                      jx_ob attrs = jx_entity_resolve_attrs(node,handle);
+                      if(jx_null_check(content) && jx_null_check(attrs)) {
+                        jx_ob_replace(&result, jx_list_new_with_size(1));
+                        jx_list_replace(result, 0, handle);
+                      } else {
+                        jx_ob_replace(&result, jx_list_new_with_size(3));
+                        jx_list_replace(result, 0, handle);
+                        jx_list_replace(result, 1, content);
+                        jx_list_replace(result, 2, attrs);
+                      }
+                      return result;
+                    } else {
                       /* the entry following the entity -- what is it? */
                       switch(result_vla[1].meta.bits & JX_META_MASK_TYPE_BITS) {
-                      case 0: /* null method == copy constructor? */
+                      case 0: /* null method == constructor? */
                         break;
                       case JX_META_BIT_IDENT: /* identifier? -> 
                                                   method/attr resolution */
@@ -1524,15 +1538,20 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                           jx_ob method;
                           if(entity_size>2) {
                           /* first we look in the member */
-                            method = jx_hash_borrow(entity_ob[2],method_name);
+                            method = jx_hash_borrow(instance_ob[2],method_name);
                           } else 
                             method = jx_ob_from_null();
                           if(jx_null_check(method)) {
-                            /* no luck? then we consult the node's
-                               namespace table using the entity object
-                               as the namespace key */
-                            method = jx_hash_borrow( jx_hash_borrow(node,entity_ob[0]),
-                                                     method_name );
+                            /* no luck? resolve class attr / methods */
+                            jx_ob handle = instance_ob[0];
+                            while(!jx_null_check(handle)) {
+                              jx_ob def = jx_hash_borrow(node,handle);
+                              jx_ob attr = jx_list_borrow(def,2);
+                              method = jx_hash_borrow(attr, method_name);
+                              if(!jx_null_check(method))
+                                break;
+                              handle = jx_list_borrow(def,0);
+                            }
                           }
                           method = jx_ob_take_weak_ref(method);
                           if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */
@@ -1573,7 +1592,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
                         {
                           jx_int index = jx_ob_as_int(result_vla[1]);
                           if((index<entity_size)&&(index>=0)) {
-                            jx_ob member = entity_ob[index];
+                            jx_ob member = instance_ob[index];
                             jx_ob_free(result);
                             return jx_ob_take_weak_ref(member); /* is thie right??? */
                           } else { /* invalid accessor */

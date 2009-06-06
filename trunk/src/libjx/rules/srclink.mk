@@ -20,7 +20,6 @@ direct:
 	ln -sf $(JX_BASE)/src/main/*.[chm]* $(JX_BUILD)/src/
 	ln -sf $(JX_BASE)/src/test/test*.[chm]* $(JX_BUILD)/src/
 	cd $(JX_BUILD)/src;/bin/rm -f $(JX_SRC_QUASH)
-	ln -sf $(JX_BUILD) $(JX_BASE)/bin
 
 remap: 
 	install -d $(JX_BUILD)/src
@@ -36,4 +35,4 @@ remap:
 	cd $(JX_BASE)/src/main; for i in *.[ch]*; do $(JX_BASE)/rules/remap.sh $$i $(JX_BUILD)/src $(JX_PREFIX1) $(JX_PREFIX2) $(JX_PREFIX3); done
 	cd $(JX_BASE)/src/test; for i in *.[ch]*; do $(JX_BASE)/rules/remap.sh $$i $(JX_BUILD)/src $(JX_PREFIX1) $(JX_PREFIX2) $(JX_PREFIX3); done
 	cd $(JX_BUILD)/src;/bin/rm -f $(JX_SRC_QUASH) .nothing
-	ln -sf $(JX_BUILD) $(JX_BASE)/bin
+

@@ -8,7 +8,7 @@
 
 (symbols);
 
-(entity Vector {add:vector_add});
+(entity Vector null null {add:vector_add});
 
 (symbols);
 

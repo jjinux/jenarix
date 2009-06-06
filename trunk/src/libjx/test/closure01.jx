@@ -6,7 +6,7 @@
 
 (set z [3,4,5]);
 
-(def myfn [[x,y],{y:[2,3,4]}] ((x,y,z)));
+(def myfn [[x,y],{y:[2,3,4]}] [(x,y,z)] );
 
 (impl myfn);
 

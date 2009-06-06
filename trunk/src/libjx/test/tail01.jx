@@ -1,8 +1,12 @@
 
 
-(def tail_test [x] ( (output x) (test (lt x 20) (tail (add x 1)) x)));
+(def tail_test [x] [ (output x) (test (lt x 20) (tail (add x 1)) x) x]);
 
 (tail_test 10);
 
+
+(def tail_test [x] [ (output x) (test (lt x 20) (tail_test (add x 1)) x) x] );
+
+(tail_test 10);
 
 

@@ -659,10 +659,10 @@ jx_ob jx__ob_to_str(jx_ob ob)
         sprintf(buffer,"`op:%d",(int)ob.data.io.int_);
         break;
       case JX_META_BIT_BUILTIN_OPAQUE_OB:
-        sprintf(buffer,"opaque`%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"opaque`%p",ob.data.io.void_); 
         break;
       case JX_META_BIT_BUILTIN_NATIVE_FN:
-        sprintf(buffer,"native`%p",(void*)ob.data.io.vla); /* deliberate misread */
+        sprintf(buffer,"native`%p",ob.data.io.void_); 
         break;
       case JX_META_BIT_BUILTIN_FUNCTION:
         {
@@ -671,7 +671,7 @@ jx_ob jx__ob_to_str(jx_ob ob)
             sprintf(buffer,"fn`");
             jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
           } else {
-            sprintf(buffer,"fn`%p",(void*)ob.data.io.vla); /* deliberate misread */
+            sprintf(buffer,"fn`%p",ob.data.io.void_); 
           }
         }
         break;
@@ -682,7 +682,7 @@ jx_ob jx__ob_to_str(jx_ob ob)
             sprintf(buffer,"`macro:");
             jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
           } else {
-            sprintf(buffer,"`macro:%p",(void*)ob.data.io.vla); /* deliberate misread */
+            sprintf(buffer,"`macro:%p",ob.data.io.void_); 
           }
         }
         break;
@@ -2490,6 +2490,9 @@ jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
     else
       return jx__c_str_hash(jx_ob_as_ident(&ob));
   } else if(bits & JX_META_BIT_BUILTIN) {
+    if((bits & JX_META_MASK_BUILTIN_TYPE)==
+       JX_META_BIT_BUILTIN_ENTITY)
+      return jx__c_str_hash(jx_ob_as_ident(&ob)); /* entity handles are merely cloaked identifiers */
     return jx__ob_hash_code(ob);
   } else {
     return 0;                   /* unhashable */
@@ -5214,6 +5217,7 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
     {
       jx_char *left_st = jx_ob_as_ident(&left);
       jx_char *right_st = jx_ob_as_ident(&right);
+      //      printf("[%s]==[%s]  %d\n",left_st,right_st,strcmp(left_st,right_st));
       if(left_st && right_st) {
         return (!strcmp(left_st, right_st));
       }
@@ -5224,6 +5228,20 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
     break;
   case JX_META_BIT_HASH:
     return jx__hash_identical(left.data.io.hash,right.data.io.hash);
+    break;
+  case JX_META_BIT_BUILTIN:
+    switch(left.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
+    case JX_META_BIT_BUILTIN_ENTITY:
+      {
+        jx_char *left_st = jx_ob_as_ident(&left);
+        jx_char *right_st = jx_ob_as_ident(&right);
+        //      printf("[%s]==[%s]  %d\n",left_st,right_st,strcmp(left_st,right_st));
+        if(left_st && right_st) {
+          return (!strcmp(left_st, right_st));
+        }
+      }
+      break;
+    }
     break;
   }
   return JX_FALSE;
@@ -5271,6 +5289,9 @@ jx_bool jx__ob_gc_equal(jx_ob left, jx_ob right)
     break;
   case JX_META_BIT_HASH:
     return jx__hash_equal(left.data.io.hash, right.data.io.hash);
+    break;
+  case JX_META_BIT_BUILTIN:
+    return jx__ob_gc_identical(left,right);
     break;
   }
   return JX_FALSE;

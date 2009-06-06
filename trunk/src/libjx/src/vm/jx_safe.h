@@ -56,23 +56,17 @@ JX_INLINE jx_ob jx_safe_entity(jx_ob node, jx_ob payload)
   jx_ob entity = jx_builtin_new_entity_with_name(jx_ob_copy(name));
   jx_hash_set(node, name, jx_ob_copy(entity));
   {
-    jx_ob methods = JX_OB_NULL;
-    if(!jx_hash_peek(&methods, node, entity)) {   
-      jx_hash_set(node, jx_ob_copy(entity),
-                  jx_ob_not_weak_with_ob( jx_list_remove(payload,1)));
-    } else if(!jx_hash_check(methods)) {
-      jx_hash_set(node, jx_ob_copy(entity),
-                  jx_ob_not_weak_with_ob( jx_list_remove(payload,1)));
-    } else { /* need to merge definitions */
-      jx_ob method_list = jx_list_new_with_hash( jx_list_remove(payload,1) );
-      jx_int i,size = jx_list_size(method_list);
-      for(i=0;i<size;i++) {
-        jx_hash_set(methods, jx_list_remove(method_list,i), 
-                    jx_list_remove(method_list,i+1));;
-      }
-      jx_ob_free(method_list);
-    }
+    jx_ob def = jx_list_new_with_size(3);
+    jx_list_replace(def, 0, 
+                    jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1)));
+    jx_list_replace(def, 1, 
+                    jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)));
+    jx_list_replace(def, 2, 
+                    jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3)));
+    jx_hash_set(node, jx_ob_copy(entity), def);
   }
+  //  jx_ob_dump(stdout,"entity",entity);
+  //printf("%08x [%s]\n",jx_ob_hash_code(entity),jx_ob_as_ident(entity));
   return entity;
 }
 

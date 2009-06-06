@@ -11,7 +11,7 @@
 
 (symbols);
 
-(entity Vector {add:vector.add} );
+(entity Vector null null {add:vector.add});
 
 # defining a Vector inside the function is sufficient 
 # to create the closure
@@ -34,7 +34,7 @@
 
 # but if we obliterate vector addition from the local entity
 
-(entity Vector {add:null});
+(entity Vector null null {add:null});
 
 # then now we can't do it
 

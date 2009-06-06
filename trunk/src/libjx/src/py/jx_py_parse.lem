@@ -820,7 +820,7 @@ term(A) ::= factor(B).
 #endif
 }
 
-term(A) ::= factor(B) ASTERISK factor(C).
+term(A) ::= term(B) ASTERISK factor(C).
 {
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("mul"));

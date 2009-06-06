@@ -18,6 +18,7 @@
 
 [set queue []]
 [synchronize queue]
+
 [set result []]
 [synchronize result]
 

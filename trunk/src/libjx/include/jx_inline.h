@@ -130,7 +130,7 @@ typedef union {
                    note: vla ptr to jx_str header, not first char */
   jx_list *list;
   jx_hash *hash; 
-  void *vla; /* builtin */
+  void *void_; /* builtin */
   jx_function  *function; /* builtin */
   jx_native_fn native_fn; /* builtin */
   jx_opaque_ob *opaque_ob; /* builtin */
@@ -2628,6 +2628,49 @@ JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
   return JX_YES;
 }
 
+JX_INLINE jx_ob jx_entity_resolve_name(jx_ob node,jx_ob handle,jx_ob name)
+{
+  jx_ob result = JX_OB_NULL;
+  while(!jx_null_check(handle)) {
+    jx_ob def = jx_hash_borrow(node,handle);
+    jx_ob attrs = jx_list_borrow(def,2);
+    //    jx_jxon_dump(stdout,"attrs",node,attrs);
+    //    jx_jxon_dump(stdout,"def",def,attrs);
+    result = jx_hash_borrow(attrs, name);
+    if(!jx_null_check(result))
+      break;
+    handle = jx_list_borrow(def,0);
+  }
+  return result;
+}
+
+JX_INLINE jx_ob jx_entity_resolve_content(jx_ob node,jx_ob handle)
+{
+  jx_ob result = JX_OB_NULL;
+  while(!jx_null_check(handle)) {
+    jx_ob def = jx_hash_borrow(node,handle);
+    result = jx_list_borrow(def,1);
+    if(!jx_null_check(result))
+      break;
+    handle = jx_list_borrow(def,0);
+  }
+  return jx_ob_copy(result);
+}
+
+jx_char *jx_ob_as_ident(jx_ob * ob);    
+JX_INLINE jx_ob jx_entity_resolve_attrs(jx_ob node,jx_ob handle)
+{
+  jx_ob result = JX_OB_NULL;
+  if(!jx_null_check(handle)) {
+    //jx_ob_dump(stdout,"handle",handle);
+    //    printf("%08x [%s]\n",jx_ob_hash_code(handle),jx_ob_as_ident(&handle));
+    jx_ob def = jx_hash_borrow(node,handle);
+    //    jx_jxon_dump(stdout,"def",node,def);
+    result = jx_list_borrow(def,2);
+  }
+  return jx_ob_copy(result);
+}
+
 JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *target)
 {
   if(jx_weak_check(*target)) { /* weak reference to actual container? use it */
@@ -2665,11 +2708,9 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
                   } else
                     method = jx_ob_from_null();
                   if(jx_null_check(method)) {
-                    /* no luck? then we consult the node's
-                       namespace table using the entity object
-                       as the namespace key */
-                    method = jx_hash_borrow( jx_hash_borrow(node,entity_ob[0]),
-                                             *target);
+                    //jx_jxon_dump(stdout,"entity_ob", node, entity_ob[0]);
+                    method = jx_entity_resolve_name(node, entity_ob[0], *target);
+                    //jx_jxon_dump(stdout,"method",node,method);
                   }
                   method = jx_ob_take_weak_ref(method);
                   if(tls && jx_builtin_callable_check(method)) { /* method */
