@@ -792,7 +792,7 @@ arith_expr(A) ::= term(B).
 #endif
 }
 
-arith_expr(A) ::= term(B) PLUS term(C).
+arith_expr(A) ::= arith_expr(B) PLUS term(C).
 {
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("add"));
@@ -803,7 +803,7 @@ arith_expr(A) ::= term(B) PLUS term(C).
 #endif
 }
 
-arith_expr(A) ::= term(B) MINUS term(C).
+arith_expr(A) ::= arith_expr(B) MINUS term(C).
 {
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("sub"));
@@ -906,7 +906,6 @@ factor(A) ::= TILDE factor(B).
 
 /* testlist_gexp: test ( gen_for | (',' test)* [','] ) */
 
-/*
 testlist_gexp(A) ::= test(B).
 {
   A = B;
@@ -914,7 +913,6 @@ testlist_gexp(A) ::= test(B).
   printf("testlist(A) ::= test(B).\n"); 
 #endif
 }
-*/
 
 /* power: atom trailer* ['**' factor] */
 
@@ -965,15 +963,15 @@ power(A) ::= atom(B) access_trailer_list(C).
 
 /* we parse numbers as FCON / ICON */
 
-/*
-atom(A) ::= testlist_gexp(B). 
+
+atom(A) ::= OPEN_PAR testlist_gexp(B) CLOSE_PAR.
 { 
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("atom(A) ::= testlist_gexp(B). \n");
 #endif
 }
-*/
+
 
 atom(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
 { 
@@ -1045,6 +1043,36 @@ listmaker(A) ::= listmaker(B) COMMA test(C).
 {
   A = B;
   jx_list_append(A,C);
+}
+
+listmaker(A) ::= listmaker(B) NEWLINE.
+{
+  A = B;
+}
+
+listmaker(A) ::= listmaker(B) INDENT.
+{
+  A = B;
+}
+
+listmaker(A) ::= listmaker(B) DEDENT.
+{
+  A = B;
+}
+
+listmaker(A) ::= listmaker(B) COMMA NEWLINE.
+{
+  A = B;
+}
+
+listmaker(A) ::= listmaker(B) COMMA INDENT.
+{
+  A = B;
+}
+
+listmaker(A) ::= listmaker(B) COMMA DEDENT.
+{
+  A = B;
 }
 
 /* lambdef: 'lambda' [varargslist] ':' test */
