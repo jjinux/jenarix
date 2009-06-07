@@ -74,26 +74,39 @@ int main(int argc, char *argv[])
         status = jx_jxon_scanner_next_ob(&source, scanner);
         switch(status) {
         case JX_YES:
-          if(mode == JX_MODE_CONSOLE) jx_jxon_dump_in_node(stdout, "# source", node, source);
-          {
-            jx_ob code = jx_code_bind_with_source(names, source);
-            source = jx_ob_from_null();
-                      
-            jx_jxon_dump_in_node(stdout, "#   eval", node, code);
+          if((mode == JX_MODE_PARSE_ONLY) || (mode == JX_MODE_TRANSLATE_ONLY)) {
+            jx_ob jxon = jx_ob_to_jxon_in_node(node,source);
+            printf("%s;\n",jx_ob_as_str(&jxon));
+            jx_ob_free(jxon);
+          } else {
+            if(mode == JX_MODE_CONSOLE) 
+              jx_jxon_dump_in_node(stdout, "# source", node, source);
             {
-              jx_ob result = jx_code_eval(node,code);
+              jx_ob code = jx_code_bind_with_source(names, source);
+              source = jx_ob_from_null();
 
-              if(mode == JX_MODE_CONSOLE) {
-                jx_jxon_dump_in_node(stdout, "# result", node, result);
-              } else {
-                jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
+              if(mode == JX_MODE_COMPILE_ONLY) {
+                jx_ob jxon = jx_ob_to_jxon_in_node(node,code);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
+              } else {
+                if(mode == JX_MODE_CONSOLE)
+                  jx_jxon_dump_in_node(stdout, "#   eval", node, code);
+                {
+                  jx_ob result = jx_code_eval(node,code);
+                  
+                  if(mode == JX_MODE_CONSOLE) {
+                    jx_jxon_dump_in_node(stdout, "# result", node, result);
+                  } else if(mode == JX_MODE_EVALUATE) {
+                    jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
+                    printf("%s;\n",jx_ob_as_str(&jxon));
+                    jx_ob_free(jxon);
+                  }
+                  jx_ob_free(result);
+                }
               }
-
-              jx_ob_free(result);
+              jx_ob_free(code);
             }
-            jx_ob_free(code);
           }
           break;
         case JX_NO: /* keep going */

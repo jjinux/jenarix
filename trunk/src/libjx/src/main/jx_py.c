@@ -59,7 +59,9 @@ int main(int argc, char *argv[])
     jx_hash_set(node, jx_builtins(), jx_ob_copy(names));
 
     if(console&&(mode == JX_MODE_CONSOLE))
-      printf("Jenarix Python-like Syntax (JXP):\n");
+      printf(
+"Jenarix Python-like Syntax (JXP) [%d-byte #'s, %d-byte tiny strings, %d-byte jx_ob]\n",
+             (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
 
     {
       jx_ob tree = jx_ob_from_null();
@@ -92,7 +94,6 @@ int main(int argc, char *argv[])
                     jx_ob jxon = jx_ob_to_jxon_in_node(node,code);
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
-                  
                   } else {
                     if(mode == JX_MODE_CONSOLE)
                       jx_jxon_dump_in_node(stdout, "#   eval", node, code);

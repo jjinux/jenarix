@@ -2439,7 +2439,7 @@ static void yy_reduce(
 #line 1132 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
-  jx_list_insert(yygotominor.yy0,0,jx_ob_from_ident("eval"));
+  jx_list_insert(yygotominor.yy0,0,jx_ob_from_ident("pass"));
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
 }
 #line 2447 "jx_py_parse.c"

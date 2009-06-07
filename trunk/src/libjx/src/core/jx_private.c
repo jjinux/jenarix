@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_private.h"
 #include "jx_mem_wrap.h"
+#include "jx_selectors.h"
 
 /* global constants (improve performance) */
 
@@ -45,6 +46,30 @@ jx_ob jx_ob_null = JX_OB_NULL;
 jx_ob jx_ob_int_zero = JX_OB_INT;
 jx_ob jx_ob_float_zero = JX_OB_FLOAT;
 jx_ob jx_ob_bool_false = JX_OB_BOOL;
+
+
+#if (JX_TINY_STR_SIZE <= 6)
+#define JX_OB_RESOLVE  {{{JX_SELECTOR_RESOLVE}}, \
+      {0,JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR}}
+#endif
+#if (JX_TINY_STR_SIZE == 10)
+#define JX_OB_RESOLVE  {{{JX_SELECTOR_RESOLVE}}, \
+      {0,JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR}}
+#endif
+#if (JX_TINY_STR_SIZE == 12)
+#define JX_OB_RESOLVE  {{{JX_SELECTOR_RESOLVE}}, \
+      {0,JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR}}
+#endif
+#if (JX_TINY_STR_SIZE == 14)
+#define JX_OB_RESOLVE  {{{{JX_SELECTOR_RESOLVE,0,0}}}, \
+      {0,JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR}}
+#endif
+#if (JX_TINY_STR_SIZE == 20)
+#define JX_OB_RESOLVE  {{{{JX_SELECTOR_RESOLVE,0}}}, \
+      {0,JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR}}
+#endif
+
+jx_ob jx_ob_resolve = JX_OB_RESOLVE;
 
 JX_INLINE void jx__gc_init(jx_gc * gc)
 {

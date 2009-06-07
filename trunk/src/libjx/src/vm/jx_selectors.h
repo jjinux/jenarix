@@ -67,7 +67,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_CONTINUE  28
 
 #define JX_SELECTOR_PARMAP    29
-
+#define JX_SELECTOR_PASS      30
+#define JX_SELECTOR_BIND      31
 
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */

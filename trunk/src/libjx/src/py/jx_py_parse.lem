@@ -1131,7 +1131,7 @@ access_trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
 subscriptlist(A) ::= subscript(B).
 {
   A = jx_list_new();
-  jx_list_insert(A,0,jx_ob_from_ident("eval"));
+  jx_list_insert(A,0,jx_ob_from_ident("pass"));
   jx_list_append(A,B);
 }
 

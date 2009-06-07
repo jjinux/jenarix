@@ -76,6 +76,8 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_ob container, jx_ob target, j
   //  jx_jxon_dump(stdout,"safe set node",node);
   jx_status status = jx__create_path(&container,&target);
   if(JX_POS(status)) {
+    // jx_jxon_dump(stdout,"container",container);
+    //jx_jxon_dump(stdout,"target",target);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
       return jx_list_replace

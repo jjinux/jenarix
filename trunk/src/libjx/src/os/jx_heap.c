@@ -132,27 +132,31 @@ JX_INLINE jx_status Jx_heapEntryFromPtr(Jx_heapTrackerEntry **result,
   register jx_status status = JX_SUCCESS;
   if(Jx_heapInitialize) Jx_heapInitialize();
   JX_HEAP_LOCK {
-      register Jx_heapTrackerEntry *cur,*entry = ((Jx_heapTrackerEntry *)ptr)-1;
-      register jx_int32 hash_code = JX__HEAP_PTR_TO_HASH_CODE(entry);
-      /* make sure we're initialized */
-      /* see if we can find this pointer in the hash table */
-      cur=jx_heap_Hash[hash_code]; 
-      while(cur) {
-        if(cur == entry) {
-          /* found it -- does it match expectations? */
-          if( (entry->magic != JX__HEAP_MAGIC) ||
-              (entry->type != expected_type)) {
-            status = JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP;
-          } else
-            *result = entry;
-          break;
-        }
-        cur=cur->next;
+    register Jx_heapTrackerEntry *cur,*entry = ((Jx_heapTrackerEntry *)ptr)-1;
+    register jx_int32 hash_code = JX__HEAP_PTR_TO_HASH_CODE(entry);
+    /* make sure we're initialized */
+    /* see if we can find this pointer in the hash table */
+    cur=jx_heap_Hash[hash_code]; 
+    while(cur) {
+      if(cur == entry) {
+        /* found it -- does it match expectations? */
+        if( (entry->magic != JX__HEAP_MAGIC) ||
+            (entry->type != expected_type)) {
+          status = JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP;
+        } else
+          *result = entry;
+        break;
       }
-      if(!cur)
-        status = JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP;
-      JX_HEAP_UNLOCK;
+      cur=cur->next;
     }
+    if(!cur) {
+      status = JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP;
+    }
+    JX_HEAP_UNLOCK;
+    if(!JX_OK(status)) {
+      fprintf(stderr,"HeapTracker-Error: bad free or corrupted heap at %p\n",ptr);
+    }
+  }
   return status;
 }
 
