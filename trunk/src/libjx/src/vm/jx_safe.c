@@ -122,6 +122,6 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
 
   ok = jx_declare(ok,names,"pow",  JX_SELECTOR_POW);
 
-  return ok ? JX_SUCCESS : JX_FAILURE;
+ return ok ? JX_SUCCESS : JX_FAILURE;
 }
 

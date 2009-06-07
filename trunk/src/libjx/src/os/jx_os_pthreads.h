@@ -582,7 +582,18 @@ JX_INLINE jx_status jx__os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool sp
   jx_status status = JX_PTR(spinlock);
   if(JX_OK(status)) {
     if(spin) {
-      while(!jx_os_atomic32_cas(&spinlock->atomic,0,1));
+      jx_int back_off = 0;
+      while(!jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
+        if(back_off<8) {         
+          back_off += 1 + (1&clock()); 
+        } else if(back_off<256) {
+          int c = back_off;
+          while(c--) back_off += 0x1 & jx_os_random();
+        } else {
+          jx__os_usleep(back_off);
+          back_off += 1+back_off;
+        }
+      }
       status = JX_STATUS_YES;
     } else {
       if(jx_os_atomic32_cas(&spinlock->atomic,0,1)) {
@@ -600,6 +611,7 @@ JX_INLINE jx_status jx__os_spinlock_release(jx_os_spinlock *spinlock)
   jx_status status = JX_PTR(spinlock);
   if(JX_OK(status)) {
     while(!jx_os_atomic32_cas(&spinlock->atomic,1,0));
+    //    spinlock->atomic = 0;
   }
   return status;
 }

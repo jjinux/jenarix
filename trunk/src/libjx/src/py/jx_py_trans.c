@@ -43,10 +43,11 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
       return source;
     } else {
       jx_ob ident = jx_list_borrow(source, 0);
-      if(jx_ob_identical(ident,jx_ob_from_ident("len"))) {
+      jx_ob len_ident = jx_ob_from_ident("len");
+      if(jx_ob_identical(ident,len_ident)) {
           jx_list_replace(source,0,jx_ob_from_ident("size"));
       }
-      
+      jx_ob_free(len_ident);
       {
         jx_int size = jx_list_size(source);
         while(size--) {
@@ -74,14 +75,23 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
     }
     break;
   case JX_META_BIT_IDENT:
-    if(jx_ob_identical(source,jx_ob_from_ident("null"))) {
-      jx_ob_replace(&source,jx_ob_from_null());
-    }
-    if(jx_ob_identical(source,jx_ob_from_ident("true"))) {
-      jx_ob_replace(&source,jx_ob_from_bool(1));
-    }
-    if(jx_ob_identical(source,jx_ob_from_ident("false"))) {
-      jx_ob_replace(&source,jx_ob_from_bool(0));
+    {
+      jx_ob null_ident = jx_ob_from_ident("null");
+      jx_ob true_ident = jx_ob_from_ident("true");
+      jx_ob false_ident = jx_ob_from_ident("false");
+      
+      if(jx_ob_identical(source,null_ident)) {
+        jx_ob_replace(&source,jx_ob_from_null());
+      }
+      if(jx_ob_identical(source,true_ident)) {
+        jx_ob_replace(&source,jx_ob_from_bool(1));
+      }
+      if(jx_ob_identical(source,false_ident)) {
+        jx_ob_replace(&source,jx_ob_from_bool(0));
+      }
+      jx_ob_free(null_ident);
+      jx_ob_free(true_ident);
+      jx_ob_free(false_ident);
     }
     return source;
     break;
@@ -138,11 +148,20 @@ jx_status jx_py_expose_python_builtins(jx_ob names)
 
   ok = jx_declare(ok, names, "print", jx_py_print);
 
-  jx_hash_set(names,jx_ob_from_ident("has_key"),
-              jx_hash_get(names,jx_ob_from_ident("has")));
+  {
+    jx_ob has = jx_ob_from_ident("has");
+    jx_hash_set(names,jx_ob_from_ident("has_key"),
+                jx_hash_get(names,has));
+    jx_ob_free(has);
+  }
   
-  jx_hash_set(names,jx_ob_from_ident("xrange"),
-              jx_hash_get(names,jx_ob_from_ident("range")));
+  {
+    jx_ob range = jx_ob_from_ident("range");
+    
+    jx_hash_set(names,jx_ob_from_ident("xrange"),
+                jx_hash_get(names,range));
+    jx_ob_free(range);
+  }
 
   jx_hash_set(names,jx_ob_from_ident("None"),jx_ob_from_null());
 

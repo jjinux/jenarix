@@ -243,14 +243,12 @@ JX_INLINE jx_ob jx_safe_incr(jx_ob container, jx_ob payload)
     jx_ob result = jx_hash_get(container, target);
     switch(size) {
     case 1:
-      jx_hash_set(container,target,jx_ob_add
-                  (jx_ob_copy(result),
-                   jx_ob_from_int(1)));
+      jx_hash_set(container,jx_ob_copy(target),jx_ob_add
+                  (result,jx_ob_from_int(1)));
       break;
     default:
-      jx_hash_set(container,target,jx_ob_add
-                  (jx_ob_copy(result),
-                   jx_list_get(payload,1)));
+      jx_hash_set(container,jx_ob_copy(target),jx_ob_add
+                  (result,jx_list_borrow(payload,1)));
       break;
     }
     return result;
@@ -267,14 +265,12 @@ JX_INLINE jx_ob jx_safe_decr(jx_ob container, jx_ob payload)
     jx_ob result = jx_hash_get(container, target);
     switch(size) {
     case 1:
-      jx_hash_set(container,target,jx_ob_sub
-                  (jx_ob_copy(result),
-                   jx_ob_from_int(1)));
+      jx_hash_set(container,jx_ob_copy(target),jx_ob_sub
+                  (result,jx_ob_from_int(1)));
       break;
     default:
-      jx_hash_set(container,target,jx_ob_sub
-                  (jx_ob_copy(result),
-                   jx_list_get(payload,1)));
+      jx_hash_set(container,jx_ob_copy(target),jx_ob_sub
+                  (result,jx_list_borrow(payload,1)));
       break;
     }
     return result;

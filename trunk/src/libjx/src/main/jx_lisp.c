@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
     jx_bool console = jx_adapt_for_console(input);
     jx_ob names = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
     jx_ob scanner = jx_jxon_scanner_new_with_file(input);
-    jx_ob node = jx_hash_new();
 
+    jx_ob node = jx_hash_new();
 
     if(mode == JX_MODE_AUTOMATIC) {
       if(console)
@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
     }
 
     jx_code_expose_secure_builtins(names);
-    
-    jx_hash_set(node, jx_builtins(), names);
+
+    jx_hash_set(node, jx_builtins(), jx_ob_copy(names));
 
     if(mode == JX_MODE_CONSOLE) 
       printf("Jenarix VM Syntax (JXON) [%d-byte numbers, %d-byte tiny strings, %d-byte jx_ob]\n",
@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
       }
       jx_ob_free(source);
     }
+
     jx_ob_free(node);
     jx_ob_free(scanner);
     jx_ob_free(names);

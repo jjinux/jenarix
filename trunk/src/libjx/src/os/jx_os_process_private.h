@@ -29,13 +29,18 @@ extern "C" {
 
 #ifdef JX_HEAP_TRACKER
 #ifndef JX_OS_FAKE_THREADS
-#define JX_HEAP_TRACKER_MUTEX
+/* either JX_HEAP_TRACKER_MUTEX or JX_HEAP_TRACKER_SPINLOCK
+   ...they both suck, but spinlocks perform better... */
+#define JX_HEAP_TRACKER_SPINLOCK
 #endif
 #endif
 
 struct jx__os_process {
 #ifdef JX_HEAP_TRACKER_MUTEX
   jx_os_mutex heap_mutex;
+#endif
+#ifdef JX_HEAP_TRACKER_SPINLOCK
+  jx_os_spinlock heap_spinlock;
 #endif
   jx_os_tls node_tls; /* TLS key for locating the current node (if any) */
 };

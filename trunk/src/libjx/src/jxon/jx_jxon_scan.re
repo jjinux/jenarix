@@ -577,14 +577,16 @@ typedef struct {
 
 static jx_status jx_jxon_scanner_free(jx_jxon_scanner *scanner) 
 {
-  if(jx_ob_equal(scanner->opaque.magic,
-                 jx_ob_from_str(JX_JXON_SCANNER_MAGIC))) {
+  jx_status result = JX_FAILURE;
+  jx_ob magic = jx_ob_from_str(JX_JXON_SCANNER_MAGIC);
+  if(jx_ob_equal(scanner->opaque.magic,magic)) {
     jx_jxon_scanner_state_purge(&scanner->state);
     jx_ob_free(scanner->opaque.magic);
     jx_free(scanner);
-    return JX_SUCCESS;
+    result = JX_SUCCESS;
   }
-  return JX_FAILURE;
+  jx_ob_free(magic);
+  return result;
 }
 
 jx_ob jx_jxon_scanner_new_with_file(FILE *file)
@@ -610,10 +612,11 @@ jx_ob jx_jxon_scanner_new_with_file(FILE *file)
 
 jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob)
 {
+  jx_ob result = jx_ob_from_null();
+  jx_ob magic = jx_ob_from_str(JX_JXON_SCANNER_MAGIC);
   if(jx_builtin_opaque_ob_check(scanner_ob)) {
     jx_jxon_scanner *scanner = (jx_jxon_scanner*)scanner_ob.data.io.opaque_ob;
-    if(jx_ob_equal(scanner->opaque.magic,
-                   jx_ob_from_str(JX_JXON_SCANNER_MAGIC))) {
+    if(jx_ob_equal(scanner->opaque.magic,magic)) {
       jx_jxon_scanner_state *state = &scanner->state;
       jx_ob list = jx_list_new();
       {
@@ -643,19 +646,20 @@ jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob)
       } else {
         jx_list_append(list, jx_ob_from_str("<-- (at end of input)"));
       }
-      return jx_str_join_with_list(list);
+      result = jx_str_join_with_list(list);
     }
   }
-  return jx_ob_from_null();
+  jx_ob_free(magic);
+  return result;
 }
 
 jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
 {
+  jx_ob magic = jx_ob_from_str(JX_JXON_SCANNER_MAGIC);
   jx_status status = JX_FAILURE;
   if(jx_builtin_opaque_ob_check(scanner_ob)) {
     jx_jxon_scanner *scanner = (jx_jxon_scanner*)scanner_ob.data.io.opaque_ob;
-    if(jx_ob_equal(scanner->opaque.magic,
-                   jx_ob_from_str(JX_JXON_SCANNER_MAGIC))) {
+    if(jx_ob_equal(scanner->opaque.magic,magic)) {
       jx_jxon_scanner_state *state = &scanner->state;
       state->context.status = JX_SUCCESS;
       while(!state->context.status) {    
@@ -678,20 +682,22 @@ jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
       }
     }
   }
+  jx_ob_free(magic);
   return status;
 }
 
 jx_status jx_jxon_scanner_purge_input(jx_ob scanner_ob)
 {
+  jx_ob magic = jx_ob_from_str(JX_JXON_SCANNER_MAGIC);
   jx_status status = JX_FAILURE;
   if(jx_builtin_opaque_ob_check(scanner_ob)) {
     jx_jxon_scanner *scanner = (jx_jxon_scanner*)scanner_ob.data.io.opaque_ob;
-    if(jx_ob_equal(scanner->opaque.magic,
-                   jx_ob_from_str(JX_JXON_SCANNER_MAGIC))) {
+    if(jx_ob_equal(scanner->opaque.magic,magic)) {
       jx_jxon_scanner_state *state = &scanner->state;
       jx_jxon_scanner_state_reset(state);
       status = JX_SUCCESS;
     }
   }
+  jx_ob_free(magic);
   return status;
 }

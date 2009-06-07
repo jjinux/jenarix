@@ -588,6 +588,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
         {
           jx_ob builtins = jx_hash_borrow(node,jx_builtins());
           jx_ob name = jx_hash_get_key(builtins,ob);
+          //          jx_jxon_dump(stdout,"builtins",builtins);
           if(jx_ident_check(name)) {
             sprintf(buffer,"`");
             jx_ob_into_str(buffer+1, JX_STR_TMP_BUF_SIZE-1, name);

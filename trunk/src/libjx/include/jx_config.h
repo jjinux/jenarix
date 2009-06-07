@@ -21,9 +21,12 @@
 #define notJX_64_BIT
 
 /* How many characters do we want to be able to squish into an object
-   so as to avoid touching the heap? (can only be 6, 10, or 14) */
+   so as to avoid touching the heap?  (can only be 6, 10, or 14 in
+   32-bit mode, 12 or 20 in 64-bit mode) */
 
+#ifndef JX_TINY_STR_SIZE
 #define JX_TINY_STR_SIZE 6
+#endif
 
 /* do we want fake threads or real threads? */
 

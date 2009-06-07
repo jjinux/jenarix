@@ -353,9 +353,9 @@ expr_stmt(A) ::= testlist(B) MINUS_EQUALS testlist(C).
 
 expr_stmt(A) ::= testlist(B) EQUALS testlist(C).
 {  
+  jx_ob get = jx_ob_from_ident("get");
   if(jx_list_size(B) &&
-     (jx_ob_identical(jx_list_borrow(B,0),
-                      jx_ob_from_ident("get")))) {
+     (jx_ob_identical(jx_list_borrow(B,0),get))) {
     A = B;
     /* lvalue transformation */
     jx_list_replace(A,0,jx_ob_from_ident("set"));
@@ -366,6 +366,7 @@ expr_stmt(A) ::= testlist(B) EQUALS testlist(C).
     jx_list_append(A,B);
     jx_list_append(A,C);
   }
+  jx_ob_free(get);
 
 #ifdef JX_PY_PARSER_DEBUG
   printf("expr_stmt(A) ::= testlist(B) EQUALS testlist(C).\n");
@@ -656,7 +657,10 @@ not_test(A) ::= comparison(B).
 #endif
 }
 
-/* comparison: expr (comp_op expr)* */
+/* comparison: expr (comp_op expr)*
+
+comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
+ */
   
 comparison(A) ::= expr(B).
 {
@@ -914,6 +918,14 @@ testlist_gexp(A) ::= test(B).
 
 /* power: atom trailer* ['**' factor] */
 
+power(A) ::= atom(B).
+{
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("power(A) ::= atom(B).\n");
+#endif
+}
+
 power(A) ::= atom(B) DOUBLE_ASTERISK factor(C).
 {
   A = jx_list_new();
@@ -925,7 +937,7 @@ power(A) ::= atom(B) DOUBLE_ASTERISK factor(C).
 #endif
 }
 
-power(A) ::= atom(B) call_trailer(C).
+power(A) ::= atom(B) call_trailer_list(C).
 {
   A = C;
   jx_list_unshift(A,B);
@@ -934,33 +946,14 @@ power(A) ::= atom(B) call_trailer(C).
 #endif
 }
 
-power(A) ::= power(B) access_trailer(C).
+power(A) ::= atom(B) access_trailer_list(C).
 {
-  if(jx_ob_identical(jx_list_borrow(B,0),jx_ob_from_ident("get"))) {
-    A=B;
-    jx_list_insert(C,0,jx_ob_from_ident("eval"));
-    jx_list_append(jx_list_borrow(B,1),C);
-  } else {
-    A=jx_list_new();
-    jx_list_append(A,jx_ob_from_ident("get"));
-    {
-      jx_ob tmp = jx_list_new();
-      jx_list_append(tmp,B);
-      jx_list_insert(C,0,jx_ob_from_ident("eval"));
-      jx_list_append(tmp,C);
-      jx_list_append(A,tmp);
-    }
-  }
-#ifdef JX_PY_PARSER_DEBUG
+  A=jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("get"));
+  jx_list_unshift(C,B);
+  jx_list_append(A,C);
+ #ifdef JX_PY_PARSER_DEBUG
   printf("power(A) ::= power(B) access_trailer(C).\n");
-#endif
-}
-
-power(A) ::= atom(B).
-{
-  A = B;
-#ifdef JX_PY_PARSER_DEBUG
-  printf("power(A) ::= atom(B).\n");
 #endif
 }
 
@@ -1074,6 +1067,23 @@ lambdef(A) ::= LAMBDA varargslist(B) COLON test(C).
 
 /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME */
 
+call_trailer_list(A) ::= call_trailer(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("call_trailer_list(A) ::= call_trailer(B).");
+#endif
+}
+
+call_trailer_list(A) ::= call_trailer_list(B) call_trailer(C).
+{
+  A = C;
+  jx_list_unshift(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("call_trailer_list(A) ::= call_trailer_list(B) call_trailer(C).");
+#endif
+}
+
 call_trailer(A) ::= OPEN_PAR CLOSE_PAR.
 {
   A = jx_list_new();
@@ -1090,6 +1100,24 @@ call_trailer(A) ::= OPEN_PAR arglist(B) CLOSE_PAR.
 #endif
 }
 
+access_trailer_list(A) ::= access_trailer(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("access_trailer_list(A) :: = access_trailer(B).");
+#endif
+}
+
+access_trailer_list(A) ::= access_trailer_list(B) access_trailer(C).
+{
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("access_trailer_list(A) :: = access_trailer(B).");
+#endif
+}
+
 access_trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
 {
   A = B;
@@ -1103,6 +1131,7 @@ access_trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
 subscriptlist(A) ::= subscript(B).
 {
   A = jx_list_new();
+  jx_list_insert(A,0,jx_ob_from_ident("eval"));
   jx_list_append(A,B);
 }
 

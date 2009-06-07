@@ -20,6 +20,7 @@ def mmult(rows, cols, m1, m2):
             for k in range( cols ):
                 val += m1[i][k] * m2[k][j]
             m3[i][j] = val
+
     return m3
 
 def main():

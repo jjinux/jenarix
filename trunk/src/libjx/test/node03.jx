@@ -27,7 +27,7 @@
 
 (def _add [self,port,payload] [
   (self.error "_add called")
-  (set a 1000)
+  (set a 2000)
   (while (decr a))
   (self.output 
     (add 
@@ -45,7 +45,7 @@
 
 (def _square [self,port,payload] [
   (self.error ("_square called" payload))
-  (set a 100000)
+  (set a 50000)
   (while (decr a))
   (set value (mul payload payload))
   (append result value)

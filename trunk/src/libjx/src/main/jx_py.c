@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
     jx_py_expose_python_builtins(names);
 
-    jx_hash_set(node, jx_builtins(), names);
+    jx_hash_set(node, jx_builtins(), jx_ob_copy(names));
 
     if(console&&(mode == JX_MODE_CONSOLE))
       printf("Jenarix Python-like Syntax (JXP):\n");
@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
       }
       jx_ob_free(tree);
     }
+
     jx_ob_free(node);
     jx_ob_free(scanner);
     jx_ob_free(names);

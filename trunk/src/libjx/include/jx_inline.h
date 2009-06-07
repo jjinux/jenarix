@@ -50,13 +50,12 @@ extern "C" {
 #endif
 #endif
 
-
 #if (JX_TINY_STR_SIZE < JX_TINY_STR_MIN_SIZE)
 #undef JX_TINY_STR_SIZE
 #define JX_TINY_STR_SIZE JX_TINY_STR_MIN_SIZE
 #endif
 
-#if (JX_TINY_STR_SIZE == 6)
+#if (JX_TINY_STR_SIZE <= 6)
 typedef jx_int32 jx_data_word;
 typedef jx_uint16 jx_bits;
 #define JX_DATA_INIT  {{0}}
@@ -96,9 +95,9 @@ typedef struct jx__tls jx_tls;
 /* header record for gc'd objects */
 
 typedef struct {
+  jx_os_spinlock lock;
   jx_bool shared; /* shared access flag (read_only, immortal, etc.) */
   jx_bool synchronized;
-  jx_os_spinlock lock;
 } jx_gc;
 
 typedef struct { /* get rid of this later on */
@@ -127,7 +126,11 @@ typedef union {
   jx_bool bool_;
   jx_int int_;
   jx_float float_;
+#if (JX_TINY_STR_SIZE > 0)
   jx_char tiny_str[JX_TINY_STR_SIZE-sizeof(jx_bits)];
+#else
+  jx_char tiny_str[1];
+#endif
   jx_gc *gc; /* can be used to access the gc record for any GC'd entity */
   jx_char *str; /* NEVER ACCESS DIRECTLY!
                    note: vla ptr to jx_str header, not first char */
@@ -412,7 +415,7 @@ void jx__hash_dump(FILE *file,jx_hash *I);
 
 JX_INLINE void jx_ob_dump(FILE *f, char *prefix, jx_ob ob)
 {
-#if (JX_TINY_STR_SIZE == 6)
+#if (JX_TINY_STR_SIZE <= 6)
   fprintf(f,"%s: %08x%04x %04x\n",prefix, 
           (unsigned int)ob.data.raw.word,
           (unsigned int)ob.meta.fill, (unsigned int)ob.meta.bits);
@@ -998,7 +1001,7 @@ JX_INLINE jx_bool jx_ob_same(jx_ob left, jx_ob right)
   jx_bits left_bits = left.meta.bits & JX_META_MASK_FOR_HASH;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_FOR_HASH;
 
-#if (JX_TINY_STR_SIZE == 6)
+#if (JX_TINY_STR_SIZE <= 6)
     return ((left_bits == right_bits) &&
             (left.data.raw.word == right.data.raw.word) &&
             (left.meta.fill     == right.meta.fill));
@@ -1044,7 +1047,7 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
   } else if(left_bits & JX_META_BIT_GC) {
     return jx__ob_gc_identical(left, right);
   } else {
-#if (JX_TINY_STR_SIZE == 6)
+#if (JX_TINY_STR_SIZE <= 6)
     return ((left.data.raw.word == right.data.raw.word) &&
             (left.meta.fill     == right.meta.fill));
 #endif
@@ -1632,7 +1635,7 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 
 JX_INLINE jx_uint32 jx__ob_hash_code(jx_ob ob)
 {
-#if (JX_TINY_STR_SIZE == 6)
+#if (JX_TINY_STR_SIZE <= 6)
   register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
                                        JX_META_MASK_FOR_HASH) ^ 
                                       ob.meta.fill)) ^
@@ -1734,8 +1737,13 @@ JX_INLINE jx_int jx_hash_size(jx_ob hash)
 jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value);
 JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
 {
-  return (hash.meta.bits & JX_META_BIT_HASH) ?
+  //  jx_jxon_dump(stdout,"hash set key",key);
+  //  jx_jxon_dump(stdout,"hash set value",value);
+  //  jx_jxon_dump(stdout,"hash before",hash);
+  jx_status result = (hash.meta.bits & JX_META_BIT_HASH) ?
     jx__hash_set(hash.data.io.hash, key, value) : JX_FAILURE;
+  //  jx_jxon_dump(stdout,"hash after",hash);
+  return result;
 }
 
 jx_bool jx__hash_has_key(jx_hash * I, jx_ob key);
@@ -1843,7 +1851,6 @@ JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
   }
   return jx_ob_from_null();
 }
-
 
 JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
 {

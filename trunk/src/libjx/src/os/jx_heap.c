@@ -55,10 +55,26 @@ static void Jx__heapBlockOthersUntilReady(void)
 static void Jx__atExit(void)
 {
   jx_atExitFlag = JX_TRUE;
-  jx_heap_dump(0);
+  jx_heap_dump(JX_HEAP_DUMP_CONTENT_TOO);
 }
 
 extern jx_os_process *jx_os_Process;
+
+#ifdef JX_HEAP_TRACKER_SPINLOCK
+#define JX_HEAP_LOCK_INIT jx__os_process_init(0,NULL)
+#define JX_HEAP_LOCK     if(JX_OK(status = jx_os_spinlock_acquire(&jx_os_Process->heap_spinlock,JX_TRUE)))
+#define JX_HEAP_UNLOCK   jx_os_spinlock_release(&jx_os_Process->heap_spinlock)        
+#else
+#ifdef JX_HEAP_TRACKER_MUTEX
+#define JX_HEAP_LOCK_INIT jx__os_process_init(0,NULL) 
+#define JX_HEAP_LOCK    if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
+#define JX_HEAP_UNLOCK  jx_os_mutex_unlock(&jx_os_Process->heap_mutex)
+#else
+#define JX_HEAP_LOCK_INIT
+#define JX_HEAP_LOCK
+#define JX_HEAP_UNLOCK
+#endif
+#endif
 
 static void Jx__heapInitialize(void)
 {
@@ -68,9 +84,7 @@ static void Jx__heapInitialize(void)
 
   jx_os_memset(jx_heap_Hash,0,sizeof(Jx_heapTrackerEntry*)*JX__HEAP_HASH_SIZE);
 
-#ifdef JX_HEAP_TRACKER_MUTEX
-  jx__os_process_init(0,NULL); 
-#endif
+  JX_HEAP_LOCK_INIT;
 
   if(Jx__heapInitialized) /* uh oh, race on startup...so kill process */
     exit(EXIT_FAILURE);
@@ -87,31 +101,26 @@ JX_INLINE jx_status Jx_heapTrack(Jx_heapTrackerEntry *entry,
   if(Jx_heapInitialize) Jx_heapInitialize();
   if(entry) {
 
-#ifdef JX_HEAP_TRACKER_MUTEX
-    if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
-#endif
-      {
-        register jx_int32 hash_code = JX__HEAP_PTR_TO_HASH_CODE(entry);
-        register Jx_heapTrackerEntry *old_head = jx_heap_Hash[hash_code];
-        jx_os_strncpy(entry->file,file,Jx__FILE_MAX_SIZE);
-        jx_heap_Hash[hash_code]=entry;
-        entry->magic = JX__HEAP_MAGIC;
-        entry->line = line;
-        entry->type = type;
-        entry->next = old_head;
-        entry->prev = NULL;
-        entry->size = size;
-        if(old_head) 
-          old_head->prev = entry;
-        if( (++jx_heap_Count) > jx_heap_MaxCount) {
-          jx_heap_MaxCount = jx_heap_Count;
-        }
-        jx_heap_TotalCount++;
-#ifdef JX_HEAP_TRACKER_MUTEX
-        jx_os_mutex_unlock(&jx_os_Process->heap_mutex);
-#endif
-        status = JX_SUCCESS;
+    JX_HEAP_LOCK {
+      register jx_int32 hash_code = JX__HEAP_PTR_TO_HASH_CODE(entry);
+      register Jx_heapTrackerEntry *old_head = jx_heap_Hash[hash_code];
+      jx_os_strncpy(entry->file,file,Jx__FILE_MAX_SIZE);
+      jx_heap_Hash[hash_code]=entry;
+      entry->magic = JX__HEAP_MAGIC;
+      entry->line = line;
+      entry->type = type;
+      entry->next = old_head;
+      entry->prev = NULL;
+      entry->size = size;
+      if(old_head) 
+        old_head->prev = entry;
+      if( (++jx_heap_Count) > jx_heap_MaxCount) {
+        jx_heap_MaxCount = jx_heap_Count;
       }
+      jx_heap_TotalCount++;
+      JX_HEAP_UNLOCK;
+      status = JX_SUCCESS;
+    }
   }
   return status;
 }
@@ -122,10 +131,7 @@ JX_INLINE jx_status Jx_heapEntryFromPtr(Jx_heapTrackerEntry **result,
 {
   register jx_status status = JX_SUCCESS;
   if(Jx_heapInitialize) Jx_heapInitialize();
-#ifdef JX_HEAP_TRACKER_MUTEX
-  if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
-#endif
-    {
+  JX_HEAP_LOCK {
       register Jx_heapTrackerEntry *cur,*entry = ((Jx_heapTrackerEntry *)ptr)-1;
       register jx_int32 hash_code = JX__HEAP_PTR_TO_HASH_CODE(entry);
       /* make sure we're initialized */
@@ -145,9 +151,7 @@ JX_INLINE jx_status Jx_heapEntryFromPtr(Jx_heapTrackerEntry **result,
       }
       if(!cur)
         status = JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP;
-#ifdef JX_HEAP_TRACKER_MUTEX
-      jx_os_mutex_unlock(&jx_os_Process->heap_mutex);
-#endif
+      JX_HEAP_UNLOCK;
     }
   return status;
 }
@@ -156,10 +160,7 @@ JX_INLINE jx_status Jx_heapUntrack(Jx_heapTrackerEntry *entry)
 {
   register jx_status status = JX_STATUS_NULL_PTR;
   if(entry) {
-#ifdef JX_HEAP_TRACKER_MUTEX
-    if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
-#endif
-      {
+    JX_HEAP_LOCK {
         register Jx_heapTrackerEntry *prev = entry->prev;
         register Jx_heapTrackerEntry *next = entry->next;
         entry->magic = 0; /* destroy magic */
@@ -173,9 +174,7 @@ JX_INLINE jx_status Jx_heapUntrack(Jx_heapTrackerEntry *entry)
         if(next)
           next->prev = prev;
         status = JX_SUCCESS;
-#ifdef JX_HEAP_TRACKER_MUTEX
-      jx_os_mutex_unlock(&jx_os_Process->heap_mutex);
-#endif
+        JX_HEAP_UNLOCK;
       }
   }
   return status;
@@ -250,131 +249,151 @@ jx_size jx_heap_usage(void)
 jx_status jx_heap_dump(jx_int32 flags)
 {
   jx_status status = JX_SUCCESS;
-#ifdef JX_HEAP_TRACKER_MUTEX
-  if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)) || jx_atExitFlag)
-#endif
-    {
-  
-      jx_word a;
-      jx_uint tot = 0;
-      Jx_heapTrackerEntry *rec;
-      jx_char type[]="FV";
-      jx_word cnt=0;
-      
-#ifdef JX__HEAP_DUMP_SORT
-      HeapDumpOutput *output = NULL;
-      jx_uint *index = NULL;
-#endif
-      jx_os_fflush(jx_os_stdout);
-      jx_os_fflush(jx_os_stderr);
-      
-#ifdef JX__HEAP_DUMP_SORT
-      for(a=0;a<JX__HEAP_HASH_SIZE;a++) {
-        rec=jx_heap_Hash[a];
-        while(rec) {
-          rec=rec->next;
-          cnt++;
-        }
-      }
-      output = (HeapDumpOutput*)jx_os_malloc(cnt*sizeof(HeapDumpOutput));
-      index = (jx_uint*)jx_os_malloc(cnt*sizeof(jx_uint));
-      cnt = 0;
-#endif
-      
-      jx_os_fprintf(jx_os_stderr,"Heap: ==============================================================\n");
-      jx_os_fflush(jx_os_stderr);
-      for(a=0;a<JX__HEAP_HASH_SIZE;a++) {
-        rec=jx_heap_Hash[a];
-        while(rec) {
-          tot += rec->size;
+  JX_HEAP_LOCK {};
+  if(JX_OK(status) || jx_atExitFlag) {
+    jx_word a;
+    jx_uint tot = 0;
+    Jx_heapTrackerEntry *rec;
+    jx_char type[]="FV";
+    jx_word cnt=0;
 
-          if(!(flags & JX_HEAP_DUMP_SUMMARY_ONLY)) {
-            if(flags & JX_HEAP_DUMP_NO_ADDRESSES) {
 #ifdef JX__HEAP_DUMP_SORT
-              output[cnt].p=rec;
-              sprintf(output[cnt].text,
+    HeapDumpOutput *output = NULL;
+    jx_uint *index = NULL;
+#endif
+    jx_os_fflush(jx_os_stdout);
+    jx_os_fflush(jx_os_stderr);
+      
+#ifdef JX__HEAP_DUMP_SORT
+    for(a=0;a<JX__HEAP_HASH_SIZE;a++) {
+      rec=jx_heap_Hash[a];
+      while(rec) {
+        rec=rec->next;
+        cnt++;
+      }
+    }
+    output = (HeapDumpOutput*)jx_os_malloc(cnt*sizeof(HeapDumpOutput));
+    index = (jx_uint*)jx_os_malloc(cnt*sizeof(jx_uint));
+    cnt = 0;
+#endif
+      
+    jx_os_fprintf(jx_os_stderr,"Heap: ==============================================================\n");
+    jx_os_fflush(jx_os_stderr);
+    for(a=0;a<JX__HEAP_HASH_SIZE;a++) {
+      rec=jx_heap_Hash[a];
+      while(rec) {
+        tot += rec->size;
+
+        if(!(flags & JX_HEAP_DUMP_SUMMARY_ONLY)) {
+          if(flags & JX_HEAP_DUMP_NO_ADDRESSES) {
+#ifdef JX__HEAP_DUMP_SORT
+            output[cnt].p=rec;
+            sprintf(output[cnt].text,
 #if 0
-                      );
+                    );
 #endif                  
 #else
-              jx_os_fprintf(jx_os_stderr,
+            jx_os_fprintf(jx_os_stderr,
 #endif
-                      "Heap: (%7x) %c %s",(unsigned int)
-                      rec->size,type[rec->type],rec->file);
-            } else {
+                          "Heap: (%7x) %c %s",(unsigned int)
+                          rec->size,type[rec->type],rec->file);
+          } else {
               
 #ifdef JX__HEAP_DUMP_SORT
-              output[cnt].p=rec;
-              sprintf(output[cnt].text,
+            output[cnt].p=rec;
+            sprintf(output[cnt].text,
 #if 0
-                      );
+                    );
 #endif                  
 #else
-              jx_os_fprintf(jx_os_stderr,
+            jx_os_fprintf(jx_os_stderr,
 #endif
-			    "Heap: %12p-%12p (%7x) %c %s:%-4d",
-			    (void*)(rec+1),
-			    (void*)((char*)(rec+1)+rec->size),
-			    (unsigned int)
-			    rec->size,type[rec->type],rec->file,rec->line);
-            }
-            
-            if( flags & JX_HEAP_DUMP_FILES_TOO ) {
-              JX_OS_FILE *f;
-              int line = rec->line;
-              jx_char buffer[1024],*c;
-              f=fopen(rec->file,"r");
-              while(line--)
-                fgets(buffer,2048,f);
-              c=buffer;
-              while(*c && *c<33)
-                c++;
-#ifdef JX__HEAP_DUMP_SORT
-              jx_os_strcat(output[cnt].text,c);
-#else
-              jx_os_fprintf(jx_os_stderr,"%s",c);
-#endif
-              fclose(f);
-            } else {
-#ifdef JX__HEAP_DUMP_SORT
-              jx_os_strcat(output[cnt].text,"\n");
-#else
-              jx_os_fprintf(jx_os_stderr,"\n");
-#endif
-            }
+                          "Heap: %12p-%12p (%7x) %c %s:%-4d",
+                          (void*)(rec+1),
+                          (void*)((char*)(rec+1)+rec->size),
+                          (unsigned int)
+                          rec->size,type[rec->type],rec->file,rec->line);
           }
-
-          rec=rec->next;
-          cnt++;
-        }
-      }
+          if( flags & JX_HEAP_DUMP_CONTENT_TOO ) {
+            jx_int i,size=80;
+            jx_char buffer[21];
+            jx_char *q,*p = (jx_char*)(rec+1);
+            if(size > rec->size)
+              size = rec->size;
+            q = buffer;
+            for(i=0;i<size;i++) {
+              jx_char ch = *(p++);
+              if(ch<32) {
+                if(ch == 0) {
+                  ch = '.';
+                } else {
+                  ch = '?';
+                }
+              }
+              *(q++) = ch;
+            }
+            *q = 0;
 #ifdef JX__HEAP_DUMP_SORT
-      Jx_heapSortOutput(cnt,output,index);
-      for(a=0;a<cnt;a++) {
-        jx_os_fprintf(jx_os_stderr,"%s",output[index[a]].text);
-      }
-      jx_os_free(output);
-      jx_os_free(index);
+            jx_os_strcat(output[cnt].text,buffer);
+#else
+            jx_os_fprintf(jx_os_stderr,buffer);
 #endif
-      jx_os_fprintf(jx_os_stderr,
-                    "Heap: Blocks: tracked %d, expected %d, found %d, peak at %d.\n",
-                    (jx_uint32)jx_heap_TotalCount, 
-                    (jx_int32)jx_heap_Count,
-                    (jx_uint32)cnt,
-                    (jx_uint32)jx_heap_MaxCount);
-      jx_os_fprintf(jx_os_stderr,
-		    "Heap: Summary: remaining memory allocated 0x%x (%0.3f MB).\n",
-                    (unsigned int)tot,
-                    tot/(1024.0*1024));
-      jx_os_fprintf(jx_os_stderr,
-		    "Heap: ==============================================================\n");
-      jx_os_fflush(jx_os_stderr);
-      jx_os_fflush(jx_os_stdout);
+          }
+          if( flags & JX_HEAP_DUMP_FILES_TOO ) {
+            JX_OS_FILE *f;
+            int line = rec->line;
+            jx_char buffer[1024],*c;
+            f=fopen(rec->file,"r");
+            while(line--)
+              fgets(buffer,2048,f);
+            c=buffer;
+            while(*c && *c<33)
+              c++;
+#ifdef JX__HEAP_DUMP_SORT
+            jx_os_strcat(output[cnt].text,c);
+#else
+            jx_os_fprintf(jx_os_stderr,"%s",c);
+#endif
+            fclose(f);
+          } else {
+#ifdef JX__HEAP_DUMP_SORT
+            jx_os_strcat(output[cnt].text,"\n");
+#else
+            jx_os_fprintf(jx_os_stderr,"\n");
+#endif
+          }
+        }
 
-#ifdef JX_HEAP_TRACKER_MUTEX
-      jx_os_mutex_unlock(&jx_os_Process->heap_mutex);
-#endif
+        rec=rec->next;
+        cnt++;
+      }
     }
+#ifdef JX__HEAP_DUMP_SORT
+    Jx_heapSortOutput(cnt,output,index);
+    for(a=0;a<cnt;a++) {
+      jx_os_fprintf(jx_os_stderr,"%s",output[index[a]].text);
+    }
+    jx_os_free(output);
+    jx_os_free(index);
+#endif
+    jx_os_fprintf(jx_os_stderr,
+                  "Heap: Blocks: tracked %d, expected %d, found %d, peak at %d.\n",
+                  (jx_uint32)jx_heap_TotalCount, 
+                  (jx_int32)jx_heap_Count,
+                  (jx_uint32)cnt,
+                  (jx_uint32)jx_heap_MaxCount);
+    jx_os_fprintf(jx_os_stderr,
+                  "Heap: Summary: remaining memory allocated 0x%x (%0.3f MB).\n",
+                  (unsigned int)tot,
+                  tot/(1024.0*1024));
+    jx_os_fprintf(jx_os_stderr,
+                  "Heap: ==============================================================\n");
+    jx_os_fflush(jx_os_stderr);
+    jx_os_fflush(jx_os_stdout);
+
+    if(!jx_atExitFlag) 
+      JX_HEAP_UNLOCK;
+  }
   return status;
 }
 

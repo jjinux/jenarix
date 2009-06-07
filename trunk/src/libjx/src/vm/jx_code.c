@@ -1020,7 +1020,6 @@ static jx_ob jx__code_close_with_args(jx_ob node, jx_ob code, jx_ob args)
       jx_ob ident = jx_list_borrow(unbound,i);
       jx_ob value = jx_ob_from_null();
       if(jx_hash_peek(&value,node,ident)) {
-        jx_ob_dump(stdout,"closing on",value);
         jx_hash_set(closed,jx_ob_copy(ident),jx_ob_copy(value));
         
         while(jx_builtin_entity_check(value)) { /* close on chained entity hashes as well */
@@ -1324,7 +1323,7 @@ jx_ob jx__code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
             break;
           case JX_SELECTOR_FOREACH: /* does not currently support break... */
             {
-              jx_ob expr = (size>1) ? expr_vla[1] : jx_ob_from_null();
+              jx_ob expr = (size>1) ? jx_ob_take_weak_ref(expr_vla[1]) : jx_ob_from_null();
               jx_ob list = (size>2) ? 
                 jx_code_eval_to_weak(tls,flags_,node, expr_vla[2]) :
                 jx_ob_from_null();

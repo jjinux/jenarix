@@ -2634,7 +2634,7 @@ JX_INLINE jx_uint32 jx__new_mask_from_min_size(jx_uint32 min_size)
 
 JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
 {
-#if (JX_TINY_STR_SIZE == 6)
+#if (JX_TINY_STR_SIZE <= 6)
   fprintf(f,"%s: %08x%04x %04x -> %08x%04x %04x",prefix, 
           (unsigned int)key.data.raw.word,
           (unsigned int)key.meta.fill, (unsigned int)key.meta.bits,

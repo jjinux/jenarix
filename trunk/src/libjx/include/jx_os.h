@@ -76,6 +76,8 @@
 #define jx_os_stdout_fileno STDOUT_FILENO
 #define jx_os_stderr_fileno STDERR_FILENO
 
+#define jx_os_random random
+
 #define JX_OS_FILE FILE
 
 #define jx_os_fgets fgets
@@ -161,13 +163,13 @@ typedef float jx_float;
 
 #ifdef __APPLE__
 #if ((0LL+SIZE_T_MAX) == 0x00000000FFFFFFFFLL)
-#define JX_TINY_STR_MIN_SIZE 6
+#define JX_TINY_STR_MIN_SIZE 0
 #else
 #define JX_TINY_STR_MIN_SIZE 12
 #endif
 #else
 #if (UINTPTR_MAX) == (4294967295U)
-#define JX_TINY_STR_MIN_SIZE 6
+#define JX_TINY_STR_MIN_SIZE 0
 #else
 #define JX_TINY_STR_MIN_SIZE 12
 #endif
