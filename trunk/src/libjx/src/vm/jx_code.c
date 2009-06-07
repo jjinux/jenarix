@@ -94,7 +94,7 @@ jx_status jx_code_expose_special_forms(jx_ob names)
   ok = jx_declare(ok, names, "continue", JX_SELECTOR_CONTINUE);
   ok = jx_declare(ok, names, "tail", JX_SELECTOR_TAIL);
 
-  ok = jx_declare(ok, names, "parmap", JX_SELECTOR_PARMAP);
+  ok = jx_declare(ok, names, "paramap", JX_SELECTOR_PARAMAP);
 
   ok = jx_declare(ok, names, "pass", JX_SELECTOR_PASS);
 
@@ -794,7 +794,7 @@ typedef struct {
   jx_ob payload;
 } jx_thread_info;
 
-void *thread_fn(void *id_ptr)
+static void *thread_fn(void *id_ptr)
 {
   jx_thread_info *info = (jx_thread_info*)id_ptr;
   jx_tls *tls = jx_tls_new(); // use stack not heap?
@@ -812,7 +812,7 @@ void *thread_fn(void *id_ptr)
   return NULL;
 }
 
-JX_INLINE jx_ob jx__code_parmap1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob inp) 
+JX_INLINE jx_ob jx__code_paramap1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob callable, jx_ob inp) 
 {
   jx_ob result = jx_ob_from_null();
   jx_int size = jx_list_size(inp);
@@ -1392,7 +1392,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
               }
             }
             break;
-          case JX_SELECTOR_PARMAP: /* [map callable list] */
+          case JX_SELECTOR_PARAMAP: /* [map callable list] */
             {
               jx_ob callable = (size>1) ? jx_tls_code_eval_to_weak
                 (tls, flags_, node, expr_vla[1]) : jx_ob_from_null();
@@ -1401,7 +1401,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
                   jx_ob src_list = (size>2) ? jx_tls_code_eval_to_weak
                     (tls, flags_, node, expr_vla[2]) : 
                     jx_ob_from_null();
-                  return jx__code_parmap1(tls,flags_,node,callable,src_list);
+                  return jx__code_paramap1(tls,flags_,node,callable,src_list);
                 } else if(0) { 
                   /* zipping while mapping -- slower */
                   jx_int i,n = size - 2;

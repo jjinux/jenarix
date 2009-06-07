@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_float_check(hash));
     P1("0 == %d", jx_str_check(hash));
     P1("0 == %d", jx_list_check(hash));
-    P1("1 == %d", jx_hash_check(hash));
+    P1("1 && %d", jx_hash_check(hash));
 
     P1("0 == %d", (int)jx_hash_size(hash));
 
@@ -396,7 +396,7 @@ int main(int argc, char **argv)
       jx_ob_free(jxon);
     }
     {
-      jx_ob jxon = jx_ob_to_jxon_with_flags(hash,JX_JXON_FLAG_JSON_LOSSY,0,0,0);
+      jx_ob jxon = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash,JX_JXON_FLAG_JSON_LOSSY,0,0,0);
       C1("%s", jx_ob_as_str(&jxon));
       jx_ob_free(jxon);
     }

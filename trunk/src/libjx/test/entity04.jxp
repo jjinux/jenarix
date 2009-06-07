@@ -8,7 +8,7 @@ def cl_fn(self):
 def in_fn(self):
     return ["from instance",self[1],self[1][0]]
 
-entity(A,{class_fn:cl_fn})
+entity(A,null,null,{class_fn:cl_fn})
 
 b=[A,[1,2,3],{inst_fn:in_fn}]
 
@@ -21,6 +21,3 @@ print b.inst_fn();
 print c.class_fn();
 
 print c.inst_fn();
-
-
-

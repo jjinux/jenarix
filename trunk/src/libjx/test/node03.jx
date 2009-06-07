@@ -102,7 +102,7 @@
 
 # now use parmap to run the network with a bunch of slave threads
 
-(parmap thread [ 
+(paramap thread [ 
   [true, nodeA, queue, result]
   [false, null, queue, result]
   [false, null, queue, result]

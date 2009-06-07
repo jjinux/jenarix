@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_int_check(list));
     P1("0 == %d", jx_float_check(list));
     P1("0 == %d", jx_str_check(list));
-    P1("1 == %d", jx_list_check(list));
+    P1("1 && %d", jx_list_check(list));
     P1("0 == %d", jx_hash_check(list));
 
     P1("0 == %d", (int)jx_list_size(list));

@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
                   }
+                  //jx_jxon_dump_in_node(stdout,"node",node,node);
                   jx_ob_free(result);
                 }
               }

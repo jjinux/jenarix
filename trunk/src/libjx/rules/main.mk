@@ -23,7 +23,7 @@ tests:
 	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk tests
 
 runtests: tests
-	cd $(JX_BASE)/bin;make -f $(JX_BASE)/rules/test.mk
+	cd $(JX_BUILD);make -f $(JX_BASE)/rules/test.mk
 
 product: lib
 	cd $(JX_BUILD); make -f ../../rules/product.mk	

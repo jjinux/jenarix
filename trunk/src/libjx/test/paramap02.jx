@@ -22,7 +22,7 @@
 (synchronize pipe true);
 (synchronized pipe);
 
-(parmap send_recv [
+(paramap send_recv [
   [true,100000,pipe] 
   [true,100000,pipe] 
   [true,100000,pipe]

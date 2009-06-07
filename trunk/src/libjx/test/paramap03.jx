@@ -36,7 +36,7 @@
 (set pipe []);
 (synchronize pipe true);
 
-(parmap thread [
+(paramap thread [
  [false,pipe,1]
  [false,pipe,2]
  [true,pipe,0]

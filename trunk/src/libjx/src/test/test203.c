@@ -93,7 +93,7 @@ jx_status run_test(void)
     }
     JX_OK_DO( jx_os_thread_array_free( &thread_array ));
   }
-  jx_jxon_dump(stdout,"output",jx_ob_from_null(), list);
+  jx_jxon_dump(stdout,"output", list);
   jx_ob_free(list);
   return status;
 }

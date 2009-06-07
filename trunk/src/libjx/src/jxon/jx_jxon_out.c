@@ -603,14 +603,32 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
         sprintf(buffer,"opaque`%p",ob.data.io.void_); /* deliberate misread */
         break;
       case JX_META_BIT_BUILTIN_NATIVE_FN:
-        sprintf(buffer,"native_fn`%p",ob.data.io.void_); /* deliberate misread */
+        {
+          jx_ob builtins = jx_hash_borrow(node,jx_builtins());
+          jx_ob name = jx_hash_get_key(builtins,ob);
+          if(jx_null_check(name)) {
+            name = jx_hash_get_key(node,ob);
+          }
+          if(jx_ident_check(name)) {
+            sprintf(buffer,"native_fn`");
+            jx_ob_into_str(buffer+10, JX_STR_TMP_BUF_SIZE-10, name);
+          }
+          jx_ob_free(name);
+          if(!buffer[0]) {
+            sprintf(buffer,"native_fn`%p",ob.data.io.void_); /* deliberate misread */
+          }
+        }
         break;
       case JX_META_BIT_BUILTIN_FUNCTION:
         {
           jx_function *fn = ob.data.io.function;
-          if(jx_ident_check(fn->name)) {
+          jx_ob name = fn->name;
+          if(jx_null_check(name)) {
+            name = jx_hash_get_key(node,ob);
+          }
+          if(jx_ident_check(name)) {
             sprintf(buffer,"fn`");
-            jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,fn->name);
+            jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,name);
           } else {
             sprintf(buffer,"fn`%p",ob.data.io.void_); /* deliberate misread */
           }
