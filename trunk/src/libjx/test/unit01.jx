@@ -338,6 +338,13 @@ true;
 
 (assert 10 [get a])
 
+(assert null (del a))
+(assert null (del b))
+(assert null (del c))
+(assert null (del x))
+
+(assert {} (symbols))
+
 # here's where we convince ourselves that weak (borrowed) references
 # [used through as L-values] cannot leak or escape from where they're used.
 
@@ -442,15 +449,21 @@ true;
 
 (assert null [set a 3])
 
+
 # notice how lambda returns the whole expr, unlike def which iterates
 # the expr
 
 (assert [null,9] [apply [lambda null [[set a 9] [get a]]]])
 
-#
+(assert null (del a))
+(assert null (del x))
+(assert null (del y))
+(assert null (del fn))
+(assert null (del test1))
+(assert {} (symbols))
 
-(assert null 
-(def vector_add [v0 v1] [
+(assert null
+ (def vector_add [v0 v1] [
   (if (ne (size v0) (size v1))
     [ (output "Vector size mismatch") ]
     [ (set r [])
@@ -461,7 +474,79 @@ true;
   ])
 )
 
+
 (assert [3,5,7] (vector_add [1,2,3], [2,3,4]))
 
 (assert 1000 (size (vector_add (range 1000) (range 1000))));
+
+(assert null
+(def vector_add [v0 v1] [
+  (if (ne (size v0) (size v1))
+    [ (output "Vector size mismatch") ]
+    [ (map (lambda [x y] (add x y)) v0 v1) ]
+    )
+  ])
+)
+
+(assert [3,5,7] (vector_add [1,2,3], [2,3,4]))
+
+(assert 2000 (size (vector_add (range 2000) (range 2000))));
+
+# tail recursion test
+
+# with tail recursion, result is 20
+
+(assert null (def tail_test [x] [ (output x) (test (lt x 20) (tail (add x 1)) x) x]))
+
+(assert 20 (tail_test 10))
+
+# without tail recursion, result is 10
+
+(assert null (def tail_test [x] [ (output x) (test (lt x 20) (tail_test (add x 1)) x) x] ))
+
+(assert 10 (tail_test 10))
+
+# 'quote' returns the first argument after prebinding but before evaluation
+
+(assert (quote (add 1 2)) (quote (add 1 2)))
+
+# 'eval' is the antidote to quote
+
+(assert 3 (eval (quote (add 1 2))))
+
+# 'raw' returns the first argument without performing any prebinding or evaluation
+# what you get from raw is essentially source code
+
+(assert (raw (add 1 2)) (raw (add 1 2)))
+
+# 'bind' converts the output of raw into prebound code
+
+(assert (quote (add 1 2)) (bind (raw (add 1 2))));
+
+# when combined with eval, you get the full JXON evaluation pipeline
+
+(assert 3 (eval (bind (raw (add 1 2)))))
+
+# result: 3
+
+# the special form 'pass' simply passes the value through (can be used
+# to evaluate forms which return functions without calling the
+# functions and without using get)
+
+(assert null (set fn (lambda [x] 1)))
+
+(assert 1 (fn));
+
+#(pass fn);
+
+# result: fn`0x500d50
+
+# 'nop' gets excised when binding is performed... upon binding, the
+# first argument to nop replaces it
+
+(assert (quote (a,b,c)) (quote (nop (a b c))))
+
+# result: [ (`resolve a), (`resolve b),
+#           (`resolve c)]
+
 

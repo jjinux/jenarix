@@ -2,13 +2,15 @@
 
 # genericize the output to enable  comparisons
 
-TXFM=sed 's/xrange/range/;s/0x[a-f0-9]+/0xX/'
+TXFM=sed 's/xrange/range/g;s/0x[a-f0-9]*/0xXXXXXX/g' < out/tmp.out 
 
 all: 
-	../jx -u unit01.jx | $(TXFM) > out/unit01.out || (cat out/unit01.out; exit 0;)
+	../jx -u unit01.jx > out/tmp.out || (cat out/tmp.out; exit 1;)
+	$(TXFM) > out/unit01.out 
 	diff -q out/unit01.out out/ref || tkdiff out/unit01.out out/ref
 
-	../jxp -u unit02.jxp | $(TXFM) > out/unit02.out || (cat out/unit02.out; exit 0;)
+	../jxp -u unit02.jxp > out/tmp.out || (cat out/tmp.out; exit 1;)
+	$(TXFM) > out/unit02.out 
 	diff -q out/unit02.out out/ref || tkdiff out/unit02.out out/ref
 
 

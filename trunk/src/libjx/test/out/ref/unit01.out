@@ -1055,13 +1055,43 @@ true;
 #                     (`lt (`get a) 10))]]]])
 true;
 
-# here's where we convince ourselves that weak (borrowed) references
-# [used through as L-values] cannot leak or escape from where they're used.
-# first, create a heap object
 # source: (assert 10
 #           (get a))
 #   eval: (`assert 10
 #           (`get a))
+true;
+
+# source: (assert null
+#           (del a))
+#   eval: (`assert null
+#           (`del a))
+true;
+
+# source: (assert null
+#           (del b))
+#   eval: (`assert null
+#           (`del b))
+true;
+
+# source: (assert null
+#           (del c))
+#   eval: (`assert null
+#           (`del c))
+true;
+
+# source: (assert null
+#           (del x))
+#   eval: (`assert null
+#           (`del x))
+true;
+
+# here's where we convince ourselves that weak (borrowed) references
+# [used through as L-values] cannot leak or escape from where they're used.
+# first, create a heap object
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
 true;
 
 # now see what happens when we try to get a borrowed reference
@@ -1364,13 +1394,48 @@ true;
 #           (`set a 3))
 true;
 
-#
 # source: (assert [null,9]
 #           (apply (lambda null
 #               [ (set a 9), (get a)])))
 #   eval: (`assert [null,9]
 #           (`apply (`lambda null
 #               [ (`set a 9), (`get a)])))
+true;
+
+# source: (assert null
+#           (del a))
+#   eval: (`assert null
+#           (`del a))
+true;
+
+# source: (assert null
+#           (del x))
+#   eval: (`assert null
+#           (`del x))
+true;
+
+# source: (assert null
+#           (del y))
+#   eval: (`assert null
+#           (`del y))
+true;
+
+# source: (assert null
+#           (del fn))
+#   eval: (`assert null
+#           (`del fn))
+true;
+
+# source: (assert null
+#           (del test1))
+#   eval: (`assert null
+#           (`del test1))
+true;
+
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
 true;
 
 # source: (assert null
@@ -1412,5 +1477,175 @@ true;
 #   eval: (`assert 1000
 #           (`size [ (`resolve vector_add), (`range 1000),
 #               (`range 1000)]))
+true;
+
+# source: (assert null
+#           (def vector_add
+#             (v0 v1)
+#             [ (if (ne (size v0)
+#                   (size v1))
+#                 [ (output "Vector size mismatch")]
+#                 [ (map (lambda (x y)
+#                       (add x y)) v0 v1)])]))
+#   eval: (`assert null
+#           (`def vector_add
+#             (v0 v1)
+#             [ (`if (`ne (`size (`resolve v0))
+#                   (`size (`resolve v1)))
+#                 [ (`output "Vector size mismatch")]
+#                 [ (`map (`lambda (x y)
+#                       (`add (`resolve x)
+#                         (`resolve y)))
+#                     (`resolve v0)
+#                     (`resolve v1))])]))
+true;
+
+# source: (assert [3, 5, 7]
+#           (vector_add [1, 2, 3]
+#             [2, 3, 4]))
+#   eval: (`assert [3, 5, 7]
+#           [ (`resolve vector_add), [1, 2, 3],
+#             [2, 3, 4]])
+true;
+
+# source: (assert 2000
+#           (size (vector_add (range 2000)
+#               (range 2000))))
+#   eval: (`assert 2000
+#           (`size [ (`resolve vector_add), (`range 2000),
+#               (`range 2000)]))
+true;
+
+# tail recursion test
+# with tail recursion, result is 20
+# source: (assert null
+#           (def tail_test
+#             (x)
+#             [ (output x), (test (lt x 20)
+#                 (tail (add x 1)) x),x]))
+#   eval: (`assert null
+#           (`def tail_test
+#             (x)
+#             [ (`output (`resolve x)), (`test (`lt (`resolve x) 20)
+#                 (`tail (`add (`resolve x) 1))
+#                 (`resolve x)),
+#               (`resolve x)]))
+true;
+
+# without tail recursion, result is 10
+# source: (assert 20
+#           (tail_test 10))
+#   eval: (`assert 20
+#           [ (`resolve tail_test),10])
+10;
+11;
+12;
+13;
+14;
+15;
+16;
+17;
+18;
+19;
+20;
+true;
+
+# source: (assert null
+#           (def tail_test
+#             (x)
+#             [ (output x), (test (lt x 20)
+#                 (tail_test (add x 1)) x),x]))
+#   eval: (`assert null
+#           (`def tail_test
+#             (x)
+#             [ (`output (`resolve x)), (`test (`lt (`resolve x) 20)
+#                 [ (`resolve tail_test), (`add (`resolve x) 1)]
+#                 (`resolve x)),
+#               (`resolve x)]))
+true;
+
+# 'quote' returns the first argument after prebinding but before evaluation
+# source: (assert 10
+#           (tail_test 10))
+#   eval: (`assert 10
+#           [ (`resolve tail_test),10])
+10;
+11;
+12;
+13;
+14;
+15;
+16;
+17;
+18;
+19;
+20;
+true;
+
+# 'eval' is the antidote to quote
+# source: (assert (quote (add 1 2))
+#           (quote (add 1 2)))
+#   eval: (`assert (`quote (`add 1 2))
+#           (`quote (`add 1 2)))
+true;
+
+# 'raw' returns the first argument without performing any prebinding or evaluation
+# what you get from raw is essentially source code
+# source: (assert 3
+#           (eval (quote (add 1 2))))
+#   eval: (`assert 3
+#           (`eval (`quote (`add 1 2))))
+true;
+
+# 'bind' converts the output of raw into prebound code
+# source: (assert (raw (add 1 2))
+#           (raw (add 1 2)))
+#   eval: (`assert (`raw (add 1 2))
+#           (`raw (add 1 2)))
+true;
+
+# source: (assert (quote (add 1 2))
+#           (bind (raw (add 1 2))))
+#   eval: (`assert (`quote (`add 1 2))
+#           (`bind (`raw (add 1 2))))
+true;
+
+# when combined with eval, you get the full JXON evaluation pipeline
+# result: 3
+# the special form 'pass' simply passes the value through (can be used
+# to evaluate forms which return functions without calling the
+# functions and without using get)
+# source: (assert 3
+#           (eval (bind (raw (add 1 2)))))
+#   eval: (`assert 3
+#           (`eval (`bind (`raw (add 1 2)))))
+true;
+
+# source: (assert null
+#           (set fn
+#             (lambda (x) 1)))
+#   eval: (`assert null
+#           (`set fn
+#             (`lambda (x) 1)))
+true;
+
+# source: (assert 1
+#           (fn))
+#   eval: (`assert 1
+#           [ (`resolve fn)])
+true;
+
+#(pass fn);
+# result: fn`0xXXXXXX
+# 'nop' gets excised when binding is performed... upon binding, the
+# first argument to nop replaces it
+# result: [ (`resolve a), (`resolve b),
+#           (`resolve c)]
+# source: (assert (quote (a b c))
+#           (quote (nop (a b c))))
+#   eval: (`assert (`quote [ (`resolve a), (`resolve b),
+#               (`resolve c)])
+#           (`quote [ (`resolve a), (`resolve b),
+#               (`resolve c)]))
 true;
 
