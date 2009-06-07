@@ -3,13 +3,17 @@
 def vector.add(v1,v2):
   [Vector, map(lambda x,y: x+y,v1(1),v2(1))]
 
-entity(Vector, {add:vector.add})
+entity(Vector, null, null, {add:vector.add})
 
 del vector.add
+del vector
+
+symbols()
 
 v1 = [Vector, [1,2,3]]
 
 v2 = [Vector, [2,3,4]]
 
-v1(add,v2)
+v1.add(v2)
 
+v1(add,v2)
