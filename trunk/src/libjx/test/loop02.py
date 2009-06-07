@@ -4,7 +4,7 @@ b = {}
 
 while a:
    b[a] = 1
-   a = a - 1
+   a -= 1
 
 print len(b)
 

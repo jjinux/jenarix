@@ -16,6 +16,7 @@
     (set c 0)
     (map (lambda null (set c [add c [has X [str _]]])) [range n 0 -1])
     c
+    X
     ]
 );
 

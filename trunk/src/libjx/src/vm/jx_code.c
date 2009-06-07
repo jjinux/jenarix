@@ -397,7 +397,7 @@ static jx_status jx__code_unbound_from_code(jx_ob unbound, jx_ob code)
     }
     break;
   }
-  //  jx_jxon_dump(stdout,"unbound",unbound);
+  //jx_jxon_dump(stdout,"unbound",unbound);
   return JX_SUCCESS;
 }
 
@@ -1005,16 +1005,15 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node,
 
 static jx_ob jx__code_close_with_args(jx_ob node, jx_ob code, jx_ob args)
 {
-  jx_ob unbound = jx_ob_from_null();//jx_code_unbound_from_code(code);
+  jx_ob unbound = jx_code_unbound_from_code(code);
   if(jx_list_check(args)) {
     jx_ob closed = jx_hash_new();
     jx_int i,size = jx_list_size(unbound);
-    for(i=size;i<size;i++) {
+    for(i=0;i<size;i++) {
       jx_ob ident = jx_list_borrow(unbound,i);
       jx_ob value = jx_ob_from_null();
       if(jx_hash_peek(&value,node,ident)) {
         jx_hash_set(closed,jx_ob_copy(ident),jx_ob_copy(value));
-        
         while(jx_builtin_entity_check(value)) { /* close on chained entity hashes as well */
           jx_ob ent_def = jx_hash_get(node, value); 
           jx_hash_set(closed, jx_ob_copy(value), ent_def);
@@ -1022,7 +1021,6 @@ static jx_ob jx__code_close_with_args(jx_ob node, jx_ob code, jx_ob args)
         }
       }
     }
- 
     {
       jx_ob kw_args = jx_list_borrow(args,1);
       if(!jx_hash_check(kw_args)) {
@@ -1469,7 +1467,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
           /* ================= END OF SPECIAL FORMS =================*/
         } else { 
           /* not a special form, so continue...*/
-          jx_int i,size = jx__list_size(expr_list);
+          jx_int size = jx__list_size(expr_list);
           jx_ob result = jx_tls_list_new_with_size(tls,size);
 
           //jx_jxon_dump(stdout,"not special",expr);
@@ -1478,68 +1476,50 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
             /* memory exhausted? */
             return result;
           } else {
-            
             /* first we evaluate all containers */
+
             //jx_jxon_dump(stdout,"pre-eval",expr);
             jx_list *result_list = result.data.io.list;
             jx_ob *expr_ob = expr_list->data.ob_vla;
             jx_ob *result_vla = result_list->data.ob_vla;
-            jx_ob *result_ob = result_vla;
+            register jx_ob *result_ob = result_vla;
             jx_ob implicit_method = jx_ob_from_null();
             jx_bool macro_flag = JX_FALSE;
             jx_bool implicit_method_flag = JX_FALSE;
             tls->have_method = JX_FALSE;
-            for(i=0;i<size;i++) {
-              jx_bits expr_bits = expr_ob->meta.bits;
-              if((expr_bits & JX_META_BIT_LIST) && (!macro_flag)) { 
-#if 0
-/* FOR SOME REASON, THIS APPROACH IS SLOWER THAN RECURSION! */
-                /* list entry, not macro processing */
-                jx_list *sub_list = expr_ob->data.io.list;
-                jx_ob *sub_list_vla = sub_list->data.ob_vla;
-                jx_ob target;
-                /* fast resolve */
-                if((!sub_list->packed_meta_bits) &&
-                   (jx__list_size(sub_list) == 2) && 
-                   (jx_ident_check( (target = sub_list_vla[1]) )) &&
-                   (jx_ob_identical(jx_ob_resolve, sub_list_vla[0]))) {
-                  /* fast path for symbol resolution  -- avoids nesting */
-                  jx_ob container = node;
-                  if(JX_POS(jx__resolve_container(tls,&container,&target))) {
-                    *(result_ob++) = jx_ob_take_weak_ref(container);
-                    if(flags_ & JX_EVAL_DEBUG_TRACE) {
-                      jx_jxon_dump_in_node(stderr,"# rsolvd",node, result_ob[-1]);
-                    }
-                  } else if(jx_list_check(sub_list_vla[1])) {
-                    *(result_ob++) = jx_ident_new_from_dotted(sub_list_vla[1]);
-                  } else {
-                    *(result_ob++) = jx_tls_ob_copy(tls,sub_list_vla[1]);
-                  }
-                } else 
-#endif
-                  {
-                  *(result_ob++) = jx_tls_code_eval_to_weak(tls, flags_, node, *expr_ob);
-                  
-                  if((!i)&&tls->have_method) {
-                    /* implicit method call? */
-                    implicit_method_flag = JX_TRUE;
-                    implicit_method = tls->method;
-                    //jx_jxon_dump(stdout,"implicit_method",node,tls->method);
-                  }
-                }
-              } else if((expr_bits & JX_META_BIT_HASH) && (!macro_flag)) {
-                *(result_ob++) = jx_tls_code_eval_to_weak(tls, flags_, node, *expr_ob);                    
-              } else {
-                /* not a container or we're processing a macro */
-                *(result_ob++) = jx_tls_ob_copy(tls,*expr_ob);
+            
+            /* zeroth pass */
+
+            if(expr_ob->meta.bits & (JX_META_BIT_HASH|JX_META_BIT_LIST)) { 
+              *(result_ob++) = jx__tls_code_eval_to_weak(tls, flags_, node, *(expr_ob++));
+            } else { /* not a container */
+              *(result_ob++) = jx_tls_ob_copy(tls,*(expr_ob++));
+            }
+
+            if(tls->have_method) {
+              /* implicit method call? */
+              implicit_method_flag = JX_TRUE;
+              implicit_method = tls->method;
+            } else if(((result_ob[-1].meta.bits & 
+                        (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))==
+                       (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))) {
+              macro_flag = JX_TRUE;
+            }
+          
+            /* remaining passes */
+            if(macro_flag) {
+              jx_int i;
+              for(i=1;i<size;i++) {
+                *(result_ob++) = jx_tls_ob_copy(tls,*(expr_ob++));
               }
-              expr_ob++;
-              
-              if( (!(i||macro_flag)) && 
-                  ((result_ob[-1].meta.bits & 
-                    (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))==
-                   (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))) {
-                macro_flag = JX_TRUE;
+            } else {
+              jx_int i;
+              for(i=1;i<size;i++) {
+                if(expr_ob->meta.bits & (JX_META_BIT_HASH|JX_META_BIT_LIST)) { 
+                  *(result_ob++) = jx__tls_code_eval_to_weak(tls, flags_, node, *(expr_ob++));
+                } else { /* not a container or we're processing a macro */
+                  *(result_ob++) = jx_tls_ob_copy(tls,*(expr_ob++));
+                }
               }
             }
 

@@ -1,9 +1,9 @@
 
 # build a million-element list as fast as you can!
 
-# a = 1000000
+# a = 2000000
 
-(set a 1000000);
+(set a 2000000);
 
 # b = []
 
@@ -13,15 +13,13 @@
 #    b.append(a)
 #    a = a - 1
 
-( while a
-  [ (append b a)
-    (set a (sub a 1))
-    ]
-  );
+( while a (append b (decr a)) );
 
 # print len(b)
 
-(size b)
+(output (get b 0));
+
+(output (size b));
 
 
 

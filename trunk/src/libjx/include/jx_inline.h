@@ -1398,7 +1398,7 @@ JX_INLINE jx_ob jx__list_get_packed_data(jx_list * I, jx_int index)
 
 JX_INLINE jx_ob jx__list_borrow_locked(jx_list * I, jx_int index)
 {
-  jx_int size = jx_vla_size(&I->data.vla);
+  jx_int size = jx_vla_size(&I->data.ob_vla);
   index = (index<0) ? size+index : index;
   if((index >= 0) && (index < size) ) {
     if(I->packed_meta_bits) {
