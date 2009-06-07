@@ -186,7 +186,7 @@ fpdefs(A) ::= NAME(B).
 
 fpdefs(A) ::= fpdefs(B) COMMA NAME(C).
 {
-  B= A;
+  A=B;
   jx_list_append(A,C);
 }
 

@@ -95,7 +95,7 @@ true;
 #             (`resolve a)))
 true;
 
-# equality
+# equalityd
 # source: (assert false
 #           (eq null false))
 #   eval: (`assert false
