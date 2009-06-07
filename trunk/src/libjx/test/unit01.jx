@@ -1,0 +1,467 @@
+
+# unit01.jx
+
+(assert true true);
+(assert false false);
+(assert false [eq true false]);
+(assert false [eq false true]);
+
+# no pre-defined symbols should be returned by symbols 
+
+(assert {} [symbols]);
+
+# identity
+
+(assert true [identical null null]);
+(assert true [identical true true]);
+(assert true [identical false false]);
+(assert false [identical 1 1.0]);
+(assert true  [identical "take" "take"]);
+(assert false [identical true 1]);
+(assert false [identical true 0]);
+(assert false [identical false 1]);
+(assert false [identical false 0]);
+(assert false [identical a b]);
+(assert true  [identical a a]);
+
+# equality
+
+(assert false [eq null false]);
+(assert false [eq null 0]);
+(assert false [eq null true]);
+
+(assert true  [eq false 0]);
+(assert true  [eq false 0.0]);
+(assert true  [eq true 1]);
+(assert true  [eq true 1.0]);
+(assert false [eq false 1]);
+(assert false [eq false 1.0]);
+(assert false [eq true 0]);
+(assert false [eq true 0.0]);
+
+(assert false [eq false ""]);
+(assert false [eq true "1"]);
+
+(assert false [eq false a]);
+(assert false [eq false 1]);
+(assert false [eq false 1.0]);
+(assert false [eq false "1"]);
+
+(assert false [eq false []]);
+
+(assert true [not ""]);
+(assert false [not "0"]);
+
+(assert true  [not []]);
+(assert false [not [0]]);
+
+(assert true  [not {}]);
+(assert false [not {0:0}]);
+
+# numerical comparison
+
+(assert false [eq 1 0]);
+(assert true [eq 1 1 ]);
+(assert true [eq 1 1.0]);
+(assert false [eq 1.0 2.0]);
+
+# string comparison
+
+(assert true [eq "take" "take"]);
+
+(assert {} [symbols]);
+
+(assert null [def fn null _]);
+(assert [1] [fn 1]);
+(assert null [del fn]);
+
+(assert [raw [fn 1]] [fn 1]);
+(assert [raw y] y);
+
+(assert null [def fn null [set y _]]);
+(assert null [fn]);
+
+(assert y []);
+(assert null [fn 9]);
+(assert y [9]);
+(assert null [del y]);
+(assert null [del fn]);
+
+(assert {} [symbols]);
+
+# functions with {} args use their own private namespace
+# with the _ identifier for the payload 
+
+(assert {} [symbols]);
+(assert null [def fn {} [set y_]]);
+(assert [raw y] y);
+
+(assert null [del fn]);
+
+# functions with single ident args use their own private namespace 
+# but receive the entire payload in one symbol
+
+# functions with [ident ...] args have only positional arguments
+
+# functions with [[ident ...],{ident:default,...}] have both a keyword
+# -based default (namespace) and take optional positional args.
+
+#
+# Jason's JXON Test Book
+#
+
+#############################################################################
+#
+# 1.0  Simple types: boolean & existance
+#
+##############################################################################
+
+true;
+(not false);
+(eq true true);
+(eq null null);
+(eq false false);
+(not (eq false true));
+(not (eq false null));
+(not (eq true null));
+(not (eq null ""));
+(not (eq true ""));
+(not (eq false ""));
+(not (eq null ()));
+(not (eq true ()));
+(not (eq false ()));
+(not (eq null -1));
+(not (eq null 0));
+(not (eq null 1));
+(not (eq null 1e5));
+
+
+##############################################################################
+#
+# 1.1 -- Simple Numeric Types
+#
+##############################################################################
+
+# 1.1.1 Numerical In/equality
+(eq 1 1);
+(not (eq 1 2));
+(not (eq -1 1));
+(eq 1.1 1.1);
+(not (eq 1.1 1.0));
+(not (eq 1.1 1));
+
+# 1.1.2 -- Numerical ordering
+# 1.1.2.1 -- less than or equal: le
+(le 1 2);
+(le 1.1 1.2);
+(le -1 10);
+
+# 1.1.2.2 -- gt
+(gt 2 1);
+(gt 2.2 1.1);
+(gt 1e4 1e3);
+
+# 1.1.2.3 -- lt
+(lt 1 2);
+(lt 1e4 1e5);
+(lt -1 1);
+(lt -1 0);
+
+# 1.1.2.4 -- ge
+(ge 3 1);
+(ge 3 -1);
+(ge 1.3 1.2);
+(ge 1e4 1e2);
+
+# 1.1.3 -- operations on numbers
+# 1.1.3.1 -- addition
+(eq (add 1 1) 2);
+(eq (add -1 1) 0);
+(eq (add 1.0 1.0) 2.0);
+(eq (add 1.0 1.0) 2);
+(eq (add 1e3 1e3) 2e3);
+(eq (add 100 -200) -100);
+
+# 1.1.3.2 -- subtraction
+(eq (sub 1 1) 0);
+(eq (sub 1 1) 0.0);
+(eq (sub 200 100) 100);
+(eq (sub -100 -200) 100);
+(eq (sub 100 -200) 300);
+(eq (sub 400 200) 200);
+(eq (sub 2e3 1e3) 1e3);
+
+# 1.1.3.3 -- mult
+(eq (mul 2 2) 4);
+(eq (mul -2 2) -4);
+(eq (mul 0.5 0.5) 0.25);
+(eq (mul 1 0) 0);
+(eq (mul 1 0) 0.0);
+(eq (mul 1 -0) 0);
+(eq (mul 1.0 -4) -4);
+(eq (mul 0 0) 0);
+(eq (mul 1e2 1e2) 1e4);
+
+# 1.1.3.4 -- div
+(eq (div 2 1) 2);
+(eq (div -100 2) -50);
+(eq (div -10 -2) 5);
+
+# 1.1.3.5 -- mod
+(eq (mod 4 2) 0);
+(eq (mod 3 2) 1);
+
+
+##############################################################################
+#
+# 1.2 Simple Strings
+#
+##############################################################################
+
+# 1.2.1 Single quoted
+(eq "A" "A");
+(not (eq "A" "a"));
+
+# 1.2.2 Case sensitivity
+(not (eq "Foo" "foo"));
+# true
+(eq "FoO" "FoO");
+
+
+
+##############################################################################
+#
+# 1.3 Containers
+#
+##############################################################################
+#
+# 1.3.1 -- lists
+(eq () ());
+(eq () []);
+(not (eq () [1]));
+(not (eq [-2] ()));
+(eq (range 10) (range 10));
+
+# 1.3.2 -- nested
+(eq ([][]) ([][]));
+(eq [()()] [()()]);
+(eq ([][]) [()()]);
+(not (eq [(1)()] ([][1])));
+
+# end Jason's stuff
+
+# primitives and dictionarys are passed through unmodified
+
+(assert 0 0);
+(assert -1 -1);
+(assert 1 1);
+(assert 0.0 0.0);
+(assert 1.0 1.0);
+(assert -1.0 -1.0);
+(assert "hi world" "hi world")
+(assert identify identify)
+(assert {} {})
+(assert {1:2} {1:2})
+(assert {1:2,3:4} {1:2,3:4})
+(assert {1:[2,3]} {1:[2,3]})
+
+# top-level lists are iterated -- only the last element is returned
+
+(assert [] [])
+(assert [[]] [[]])
+(assert [[1,2]] [[1,2]])
+
+# lists with identifiers which resolve to code are executed
+
+(assert null [set x 1])
+(assert 1 [get x])
+(assert null [set x 2])
+(assert 2 [get x])
+(assert 3 [add 1 2])
+
+# type promotion is in
+
+(assert 3.0 [add 1 2.0])
+(assert 2 [add true true])
+(assert 0 [sub true true])
+(assert 1 [sub true false])
+
+# we have looping constructs
+
+(assert null [set a 10])
+
+(assert null [set b []])
+
+(assert null [set c {}])
+
+(assert 0 [size [get b]])
+
+# while loop
+
+(assert null
+  [ while [get a] 
+    [ [append b [get a]]
+      [set c [get a] 1]
+      [set a [sub [get a] 1]] ]
+  ]
+)
+
+(assert [10,9,8,7,6,5,4,3,2,1] (get b))
+
+(assert null (output c))
+
+# hash comparison (order-independent of course)
+
+(assert {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1} (get c))
+
+(assert 10 (size [get b]))
+
+(assert 10 (size [get c]))
+
+(assert null [set b []])
+
+(assert null [for [set a 1] [lt [get a] 10] [set a [add [get a] 1]] [(output a) [append b [get a]]]])
+
+(assert [1,2,3,4,5,6,7,8,9] (get b))
+
+# do loops
+
+(assert null (set a 1))
+
+(assert null [do [set a [add 1 [get a]]] [lt [get a] 10] ])
+
+(assert 10 [get a])
+
+(assert null [set a 1])
+
+(assert [[[[null]]]] [[[[[do [set a [add 1 [get a]]] [lt [get a] 10] ]]]]])
+
+(assert 10 [get a])
+
+# here's where we convince ourselves that weak (borrowed) references
+# [used through as L-values] cannot leak or escape from where they're used.
+
+# first, create a heap object
+
+(assert null [set x ["-  -  -  -  -  -  -  -"]])
+
+# now see what happens when we try to get a borrowed reference
+
+(assert ["-  -  -  -  -  -  -  -"] x)
+
+(assert (["-  -  -  -  -  -  -  -"]) [x]);
+
+(assert [["-  -  -  -  -  -  -  -"],["-  -  -  -  -  -  -  -"]] [x,x])
+
+(assert [["-  -  -  -  -  -  -  -"],[["-  -  -  -  -  -  -  -"]]] [x [x]])
+
+(assert [["-  -  -  -  -  -  -  -"],[["-  -  -  -  -  -  -  -"]],
+        [[["-  -  -  -  -  -  -  -"]]]] [x [x] [[x]]]);
+
+(assert ["-  -  -  -  -  -  -  -"] x)
+
+(assert null [append x 1]);
+
+(assert ["-  -  -  -  -  -  -  -",1] x)
+
+(assert null [append x x])
+
+(assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]] [get x])
+
+(assert null [append x [get x]])
+
+(assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
+        ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get x])
+
+(assert null [set y x])
+
+(assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
+        ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get y])
+
+(assert null [del x])
+
+(assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
+        ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get y])
+
+# scopeless function behavior (arguments go into _)
+
+(assert null (set a [1,2,3,4]))
+(assert null (def fn null [(output _) (get (_ 0) 1)]))
+(assert 2 (fn a))
+
+# container emptyness testing
+
+(assert true [test [1,2,{3:4}] true false])
+
+(assert false [test [] true false])
+
+(assert true [test {1:2} true false])
+
+(assert false [test {} true false])
+
+# not this that type of construct does not work because get expects an
+# indentifier (simple or compound)
+
+(assert null [get [1,2,3] 1]);
+
+(assert [unresolved symbols] [unresolved symbols])
+
+(assert null [set a [1.0]])
+
+(assert null [resize a 100 0.5])
+
+(assert [1.0,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5] a)
+
+(assert 100 [size a]);
+
+(assert [resize a 10])
+
+(assert [1.0,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5] [get a]);
+
+(assert 10 [size a]);
+
+(assert null (set fn [lambda null [add [get (_ 0) 1] 2] ]))
+
+(assert 2.5 (fn a))
+
+# scopeless functions inherit their environment (dynamic scoping)
+
+(assert null [def test1 null [get x]])
+
+(assert null [set x 3])
+
+(assert 3 (test1))
+
+# scopefull function with no parameter list
+
+(assert null [def test1 {x:2} [get x]])
+
+(assert 2 [test1])
+
+(assert 8 [apply [lambda null 8]])
+
+(assert null [set a 3])
+
+# notice how lambda returns the whole expr, unlike def which iterates
+# the expr
+
+(assert [null,9] [apply [lambda null [[set a 9] [get a]]]])
+
+#
+
+(assert null 
+(def vector_add [v0 v1] [
+  (if (ne (size v0) (size v1))
+    [ (output "Vector size mismatch") ]
+    [ (set r [])
+      (while v0 (append r (add (shift v0) (shift v1))))
+      r
+      ]
+    )
+  ])
+)
+
+(assert [3,5,7] (vector_add [1,2,3], [2,3,4]))
+
+(assert 1000 (size (vector_add (range 1000) (range 1000))));
+

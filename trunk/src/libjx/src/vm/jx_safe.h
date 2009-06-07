@@ -407,6 +407,20 @@ JX_INLINE jx_ob jx_safe_output(jx_ob node, jx_ob payload)
   return jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx_safe_assert(jx_ob node, jx_ob payload)
+{
+  jx_ob expect = jx_list_borrow(payload,0);  
+  jx_ob actual = jx_list_borrow(payload,1);
+  if(!jx_ob_identical(expect,actual)) {
+    fprintf(stdout,"Error: assertion failure.\n");
+    jx_jxon_dump(stdout,"expect",expect);
+    jx_jxon_dump(stdout,"actual",actual);
+    return jx_ob_from_bool(0);
+  } else {
+    return jx_ob_from_bool(1);
+  }
+}
+
 JX_INLINE jx_ob jx_safe_error(jx_ob node, jx_ob payload)
 {
   /* should check for 'error' in the node namespace and use that
@@ -601,5 +615,6 @@ JX_INLINE jx_ob jx_safe_bool(jx_ob node, jx_ob payload)
 {
   return jx_ob_to_bool(jx_list_borrow(payload,0));
 }
+
 
 #endif

@@ -2,14 +2,6 @@
 # Jason's JXON Test Book
 #
 
-#
-# Instructions: execute this in jx and grep for "eval: false".  Everything
-#               here should evaluate to true.
-#
-# $ jx < ./jv_jx_test0001.jx | grep "^false;"
-# $
-#
-
 #############################################################################
 #
 # 1.0  Simple types: boolean & existance

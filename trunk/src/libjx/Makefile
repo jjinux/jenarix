@@ -145,6 +145,12 @@ tests: .config
 runtests: .config
 	make -f rules/main.mk $@
 
+utests:
+	make -f rules/main.mk $@
+
+utupdate:
+	make -f rules/main.mk $@
+
 clean: .config
 	make -f rules/main.mk $@
 
@@ -178,4 +184,7 @@ max: jx-max
 
 max64: jx-max64
 
+ut: utests
+
+utu: utupdate
 

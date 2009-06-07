@@ -22,8 +22,14 @@ mains:
 tests: 
 	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk tests
 
-runtests: tests
+ctests: tests
 	cd $(JX_BUILD);make -f $(JX_BASE)/rules/test.mk
+
+utests: jx
+	cd $(JX_BASE)/test;make -f $(JX_BASE)/rules/utest.mk
+
+utupdate: 
+	cd $(JX_BASE)/test;make -f $(JX_BASE)/rules/utupdate.mk
 
 product: lib
 	cd $(JX_BUILD); make -f ../../rules/product.mk	

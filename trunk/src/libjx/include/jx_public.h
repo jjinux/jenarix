@@ -426,7 +426,9 @@ jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob *opaque);
 
 /* scanners & parsers */
 
-jx_ob jx_jxon_scanner_new_with_file(FILE *file);
+#define JX_SCANNER_FLAG_ECHO_COMMENTS 0x1000
+
+jx_ob jx_jxon_scanner_new_with_file(FILE *file,jx_int flags);
 jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner);
 jx_status jx_jxon_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_status jx_jxon_scanner_purge_input(jx_ob scanner);
@@ -441,7 +443,7 @@ jx_ob jx_net_scanner_get_error_message(jx_ob scanner);
 jx_status jx_net_scanner_next_ob(jx_ob *result, jx_ob scanner);
 jx_status jx_net_scanner_purge_input(jx_ob scanner);
 
-jx_ob jx_py_scanner_new_with_file(FILE *file);
+jx_ob jx_py_scanner_new_with_file(FILE *file,jx_int flags);
 jx_ob jx_py_scanner_get_error_message(jx_ob scanner);
 jx_ob jx_py_translate_with_tree(jx_ob tree);
 jx_status jx_py_expose_python_builtins(jx_ob names);

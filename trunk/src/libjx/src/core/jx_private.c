@@ -76,10 +76,11 @@ JX_INLINE void jx__gc_init(jx_gc * gc)
   memset(gc, 0, sizeof(jx_gc));
 }
 
-/* having a minimum allocation helps save calls to realloc */
+/* having a minimum allocation wastes memory but can saves calls to
+   realloc */
 
 #define JX_VLA_MIN_ALLOC_CUTOFF 96
-#define JX_VLA_MIN_ALLOC 0
+#define JX_VLA_MIN_ALLOC 2
 
 /* jx_vla routines */
 
@@ -128,6 +129,7 @@ void *jx__vla_copy(void **ref)
     return NULL;
   }
 }
+
 
 
 void *jx__vla_new_from_subset(void **ref, jx_int index, jx_int count)
@@ -1803,14 +1805,14 @@ jx_bool jx__list_identical(jx_list * left, jx_list * right)
   return result;
 }
 
-jx_status jx__list_repack_data_locked(jx_list * I) 
+jx_status jx__tls_list_repack_data_locked(jx_tls *tls, jx_list * I) 
 {
   /* re-homogenize (if possible) */
   register jx_int size = jx_vla_size(&I->data.vla);
   if(!size) {
     I->packed_meta_bits = 0;
     if(I->data.vla) {
-      jx_vla_free(&I->data.vla);
+      jx_tls_vla_free(tls,&I->data.vla);
     }
     return JX_TRUE;
   } else if(I->packed_meta_bits) {
@@ -1840,7 +1842,7 @@ jx_status jx__list_repack_data_locked(jx_list * I)
           void *new_vla = NULL;
           switch (meta_or) {
           case JX_META_BIT_INT:
-            new_vla = jx_vla_new(sizeof(jx_int), size);
+            new_vla = jx_tls_vla_new(tls,sizeof(jx_int), size,JX_FALSE);
             if(new_vla) {
               jx_ob *src = I->data.ob_vla;
               jx_int *dst = (jx_int *) new_vla;
@@ -1851,7 +1853,7 @@ jx_status jx__list_repack_data_locked(jx_list * I)
             }
             break;
           case JX_META_BIT_FLOAT:
-            new_vla = jx_vla_new(sizeof(jx_float), size);
+            new_vla = jx_tls_vla_new(tls,sizeof(jx_float), size,JX_FALSE);
             if(new_vla) {
               jx_ob *src = I->data.ob_vla;
               jx_float *dst = (jx_float *) new_vla;
@@ -1863,7 +1865,7 @@ jx_status jx__list_repack_data_locked(jx_list * I)
             break;
           }
           if(new_vla) {
-            jx_vla_free(&I->data.vla);
+            jx_tls_vla_free(tls,&I->data.vla);
             I->data.vla = new_vla;
             I->packed_meta_bits = meta_or;
             return JX_SUCCESS;
@@ -2364,7 +2366,7 @@ jx_int *jx_list_as_int_vla(jx_ob ob)
     if(ob.meta.bits & JX_META_BIT_LIST) {
       if(I->packed_meta_bits & JX_META_BIT_INT) {
         result = I->data.int_vla;
-      } else if(jx_ok(jx__list_repack_data_locked(I))) {
+      } else if(jx_ok(jx__tls_list_repack_data_locked(JX_NULL,I))) {
         if(I->packed_meta_bits & JX_META_BIT_INT) {
           result = I->data.int_vla;
         } else if(!I->data.vla) {
@@ -2406,7 +2408,7 @@ jx_float *jx_list_as_float_vla(jx_ob ob)
     if(ob.meta.bits & JX_META_BIT_LIST) {
       if(I->packed_meta_bits & JX_META_BIT_FLOAT) {
         result = I->data.float_vla;
-      } else if(jx__list_repack_data_locked(I)) {
+      } else if(jx__tls_list_repack_data_locked(JX_NULL,I)) {
         if(I->packed_meta_bits & JX_META_BIT_FLOAT) {
           result = I->data.float_vla;
         } else if(!I->data.vla) {
@@ -2492,14 +2494,14 @@ jx_ob jx_hash_new(void)
   return jx_ob_from_null();
 }
 
-static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack);
+static jx_bool jx__tls_hash_recondition(jx_tls *tls, jx_hash * I, jx_int mode, jx_bool pack);
 
 jx_ob jx_hash_new_with_flags(jx_int flags)
 {
   jx_ob result = jx_hash_new();
   if(result.meta.bits & JX_META_BIT_HASH) {
     if(flags & JX_HASH_FLAG_BIDIRECTIONAL) {
-      if(!jx__hash_recondition(result.data.io.hash, JX_HASH_ONE_TO_ONE, JX_TRUE)) {
+      if(!jx__tls_hash_recondition(JX_NULL, result.data.io.hash, JX_HASH_ONE_TO_ONE, JX_TRUE)) {
         jx_ob_free(result);
         result = jx_ob_from_null();
       }
@@ -2508,23 +2510,23 @@ jx_ob jx_hash_new_with_flags(jx_int flags)
   return result;
 }
 
-jx_ob jx__hash_copy(jx_hash * hash)
+jx_ob jx__tls_hash_copy(jx_tls *tls, jx_hash * hash)
 {
-  jx_ob result = jx_hash_new();
+  jx_ob result = jx_tls_hash_new(tls);
   jx_status status = jx_gc_lock(&hash->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_HASH) {
       jx_hash *I = result.data.io.hash;
       *I = *hash;
       jx__gc_init(&I->gc);
-      I->info = jx_vla_copy(&I->info);
-      I->key_value = jx_vla_copy(&I->key_value);
+      I->info = jx_tls_vla_copy(tls,&I->info);
+      I->key_value = jx_tls_vla_copy(tls,&I->key_value);
       {
         jx_int i, size = jx_vla_size(&I->key_value);
         jx_ob *ob = I->key_value;
         for(i = 0; i < size; i++) {
           if(ob->meta.bits & JX_META_BIT_GC) {
-            *ob = jx_ob_copy(*ob);
+            *ob = jx_tls_ob_copy(tls,*ob);
           }
           ob++;
         }
@@ -2842,7 +2844,7 @@ void jx__hash_dump(FILE *file,jx_hash *I)
   }
 }
 
-static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
+static jx_bool jx__tls_hash_recondition(jx_tls *tls, jx_hash * I, jx_int mode, jx_bool pack)
 {
   /* note that on recondition we assume that there are no two
      identical keys present in the hash */
@@ -2857,7 +2859,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
     if(min_size < usage)
       min_size = usage;
     if(mode > JX_HASH_LINEAR) {
-      I->info = jx_vla_new(sizeof(jx_uint32), (2 * min_size) + JX_HASH_INFO_SIZE);
+      I->info = jx_tls_vla_new(tls, sizeof(jx_uint32), (2 * min_size) + JX_HASH_INFO_SIZE, JX_TRUE);
       if(I->info) {
         jx_hash_info *info = (jx_hash_info *) I->info;
         info->mode = mode;
@@ -2880,7 +2882,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
 
   if(!I->key_value) {
     if(min_size) {
-      I->key_value = jx_vla_new(sizeof(jx_ob), 0);
+      I->key_value = jx_tls_vla_new(tls,sizeof(jx_ob), 0, JX_TRUE);
     }
   }
   if(!min_size) {
@@ -2894,7 +2896,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
     case JX_HASH_ONE_TO_NIL:
       break;
     default:
-      jx_vla_free(&I->info);
+      jx_tls_vla_free(tls,&I->info);
       break;
     }
   } else {
@@ -2905,14 +2907,14 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
         if(I->key_value) {
           jx_vla_resize(&I->key_value, (usage << 1));
         }
-        jx_vla_free(&I->info);
+        jx_tls_vla_free(tls,&I->info);
         break;
       case JX_HASH_ONE_TO_ANY: /* from */
       case JX_HASH_ONE_TO_ONE:
       case JX_HASH_ONE_TO_NIL:
         {
           jx_hash_info *old_info = (jx_hash_info *) I->info;
-          jx_ob *new_key_value = jx_vla_new(sizeof(jx_ob), (usage << 1));
+          jx_ob *new_key_value = jx_tls_vla_new(tls,sizeof(jx_ob), (usage << 1),JX_TRUE);
           if(new_key_value) {
             jx_ob *old_key_value = I->key_value, *new_kv = new_key_value;
             jx_uint32 *old_hash_entry = old_info->table;
@@ -2930,9 +2932,9 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                 old_hash_entry += 2;
               }
             }
-            jx_vla_free(&I->key_value);
+            jx_tls_vla_free(tls,&I->key_value);
             I->key_value = new_key_value;
-            jx_vla_free(&I->info);
+            jx_tls_vla_free(tls,&I->info);
           }
         }
         break;
@@ -2942,7 +2944,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
       switch (old_mode) {
       case JX_HASH_RAW:        /* from */
         {
-          I->info = jx_vla_new(sizeof(jx_uint32), usage + JX_HASH_INFO_SIZE);
+          I->info = jx_tls_vla_new(tls,sizeof(jx_uint32), usage + JX_HASH_INFO_SIZE,JX_TRUE);
           if(I->info) {
             jx_hash_info *info = (jx_hash_info *) I->info;
             jx_uint32 i = usage;
@@ -2966,9 +2968,9 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
       case JX_HASH_ONE_TO_NIL:
         {
           jx_hash_info *old_info = (jx_hash_info *) I->info;
-          jx_ob *new_key_value = jx_vla_new(sizeof(jx_ob), (usage << 1));
+          jx_ob *new_key_value = jx_tls_vla_new(tls,sizeof(jx_ob), (usage << 1),JX_TRUE);
           jx_hash_info *new_info =
-            (jx_hash_info *) jx_vla_new(sizeof(jx_uint32), usage + JX_HASH_INFO_SIZE);
+            (jx_hash_info *) jx_tls_vla_new(tls,sizeof(jx_uint32), usage + JX_HASH_INFO_SIZE,JX_TRUE);
           if(new_key_value && new_info) {
             jx_ob *old_key_value = I->key_value, *new_kv = new_key_value;
             jx_uint32 *old_hash_entry = old_info->table;
@@ -2991,13 +2993,13 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                 old_hash_entry += 2;
               }
             }
-            jx_vla_free(&I->key_value);
+            jx_tls_vla_free(tls,&I->key_value);
             I->key_value = new_key_value;
-            jx_vla_free(&I->info);
+            jx_tls_vla_free(tls,&I->info);
             I->info = (jx_uint32 *) new_info;
           } else {
-            jx_vla_free(&new_key_value);
-            jx_vla_free(&new_info);
+            jx_tls_vla_free(tls,&new_key_value);
+            jx_tls_vla_free(tls,&new_info);
           }
         }
         break;
@@ -3009,9 +3011,9 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
         jx_uint32 new_mask = jx__new_mask_from_min_size(min_size);
         {
           /* prepare new info block */
-          jx_hash_info *new_info = (jx_hash_info *) jx_vla_new(sizeof(jx_uint32),
+          jx_hash_info *new_info = (jx_hash_info *) jx_tls_vla_new(tls,sizeof(jx_uint32),
                                                                2 * (new_mask + 1) +
-                                                               JX_HASH_INFO_SIZE);
+                                                               JX_HASH_INFO_SIZE,JX_TRUE);
           if(new_info) {
             new_info->mode = mode;
             new_info->usage = usage;
@@ -3039,7 +3041,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                   kv_offset += 2;
                   ob += 2;
                 }
-                jx_vla_free(&I->info);
+                jx_tls_vla_free(tls,&I->info);
                 I->info = (jx_uint32 *) new_info;
                 new_info = NULL;
               }
@@ -3066,7 +3068,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                   } while(index != sentinel);
                   kv_offset += 2;
                 }
-                jx_vla_free(&I->info);
+                jx_tls_vla_free(tls,&I->info);
                 I->info = (jx_uint32 *) new_info;
                 new_info = NULL;
               }
@@ -3078,7 +3080,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                 jx_hash_info *old_info = (jx_hash_info *) I->info;
                 if(pack || (new_mask < old_info->mask)) {
                   /* we're going to pack key_value and eliminate inactive blocks */
-                  jx_ob *new_key_value = jx_vla_new(sizeof(jx_ob), (usage << 1));
+                  jx_ob *new_key_value = jx_tls_vla_new(tls,sizeof(jx_ob), (usage << 1),JX_TRUE);
                   if(new_key_value) {
                     jx_ob *old_key_value = I->key_value;
                     jx_uint32 *old_hash_entry = old_info->table;
@@ -3109,9 +3111,9 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                       }
                       old_hash_entry += 2;
                     }
-                    jx_vla_free(&I->key_value);
+                    jx_tls_vla_free(tls,&I->key_value);
                     I->key_value = new_key_value;
-                    jx_vla_free(&I->info);
+                    jx_tls_vla_free(tls,&I->info);
                     I->info = (jx_uint32 *) new_info;
                     new_info = NULL;
                   }
@@ -3140,7 +3142,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                       old_hash_entry += 2;
                     }
                   }
-                  jx_vla_free(&I->info);
+                  jx_tls_vla_free(tls,&I->info);
                   I->info = (jx_uint32 *) new_info;
                   new_info = JX_NULL;
                 }
@@ -3148,7 +3150,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
               break;
             }
             /* if something went wrong, then we simply free new new info and keep the old */
-            jx_vla_free(&new_info);
+            jx_tls_vla_free(tls,&new_info);
           }
         }
       }
@@ -3159,7 +3161,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
         {
           /* prepare new info block */
           jx_hash_info *new_info =
-            jx_vla_new(sizeof(jx_uint32), 4 * (new_mask + 1) + JX_HASH_INFO_SIZE);
+            jx_tls_vla_new(tls,sizeof(jx_uint32), 4 * (new_mask + 1) + JX_HASH_INFO_SIZE,JX_TRUE);
           if(new_info) {
             new_info->mode = mode;
             new_info->usage = usage;
@@ -3220,7 +3222,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                   ob += 2;
                 }
                 if(result) {
-                  jx_vla_free(&I->info);
+                  jx_tls_vla_free(tls,&I->info);
                   I->info = (jx_uint32 *) new_info;
                   new_info = JX_NULL;
                 }
@@ -3282,7 +3284,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                   ob += 2;
                 }
                 if(result) {
-                  jx_vla_free(&I->info);
+                  jx_tls_vla_free(tls,&I->info);
                   I->info = (jx_uint32 *) new_info;
                   new_info = JX_NULL;
                 }
@@ -3294,7 +3296,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                 jx_hash_info *old_info = (jx_hash_info *) I->info;
                 if(pack || (new_mask < old_info->mask)) {
                   /* we're going to pack key_value and eliminate inactive blocks */
-                  jx_ob *new_key_value = jx_vla_new(sizeof(jx_ob), (usage << 1));
+                  jx_ob *new_key_value = jx_tls_vla_new(tls,sizeof(jx_ob), (usage << 1),JX_TRUE);
                   if(new_key_value) {
                     jx_ob *old_key_value = I->key_value;
                     jx_uint32 *old_hash_entry = old_info->table;
@@ -3361,14 +3363,14 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                       old_hash_entry += 2;
                     }
                     if(result) {
-                      jx_vla_free(&I->key_value);
+                      jx_tls_vla_free(tls,&I->key_value);
                       I->key_value = new_key_value;
                       new_key_value = JX_NULL;
-                      jx_vla_free(&I->info);
+                      jx_tls_vla_free(tls,&I->info);
                       I->info = (jx_uint32 *) new_info;
                       new_info = JX_NULL;
                     }
-                    jx_vla_free(&new_key_value);
+                    jx_tls_vla_free(tls,&new_key_value);
                   }
                 } else if(new_mask > old_info->mask) {
                   /* we copy stale entries too since they point at vacant key_value slots */
@@ -3416,7 +3418,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                     }
                   }
                   if(result) {
-                    jx_vla_free(&I->info);
+                    jx_tls_vla_free(tls,&I->info);
                     I->info = (jx_uint32 *) new_info;
                     new_info = JX_NULL;
                   }
@@ -3428,7 +3430,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                 jx_hash_info *old_info = (jx_hash_info *) I->info;
                 if(pack || (new_mask < old_info->mask)) { /* smaller than before... */
                   /* we're going to pack key_value and eliminate inactive blocks */
-                  jx_ob *new_key_value = jx_vla_new(sizeof(jx_ob), (usage << 1));
+                  jx_ob *new_key_value = jx_tls_vla_new(tls,sizeof(jx_ob), (usage << 1),JX_TRUE);
                   if(new_key_value) {
                     jx_ob *old_key_value = I->key_value;
                     jx_uint32 *old_hash_entry = old_info->table;
@@ -3480,9 +3482,9 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                       }
                       old_hash_entry += 2;
                     }
-                    jx_vla_free(&I->key_value);
+                    jx_tls_vla_free(tls,&I->key_value);
                     I->key_value = new_key_value;
-                    jx_vla_free(&I->info);
+                    jx_tls_vla_free(tls,&I->info);
                     I->info = (jx_uint32 *) new_info;
                     new_info = JX_NULL;
                   }
@@ -3534,7 +3536,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
                       old_hash_entry += 2;
                     }
                   }
-                  jx_vla_free(&I->info);
+                  jx_tls_vla_free(tls,&I->info);
                   I->info = (jx_uint32 *) new_info;
                   new_info = JX_NULL;
                 }
@@ -3542,7 +3544,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
               break;
             }
             /* if something went wrong, then we simply free new new info and keep the old */
-            jx_vla_free(&new_info);
+            jx_tls_vla_free(tls,&new_info);
           }
         }
       }
@@ -3564,7 +3566,7 @@ static jx_bool jx__hash_recondition(jx_hash * I, jx_int mode, jx_bool pack)
 #define JX_HASH_RAW_CUTOFF 4
 #define JX_HASH_LINEAR_CUTOFF 8
 
-jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
+jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
 {
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
@@ -3578,11 +3580,12 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
       } else {
         if(!I->info) {            /* "no info" mode -- search & match objects directly  */
           if(!I->key_value) {
+            jx_ob *ob;
             /* new table, first entry  */
-            I->key_value = jx_vla_new(sizeof(jx_ob), 2);
-            if(I->key_value) {
-              I->key_value[0] = JX_OWN(key);      /* takes ownership */
-              I->key_value[1] = JX_OWN(value);    /* takes ownership */
+            I->key_value = jx_tls_vla_new(tls, sizeof(jx_ob), 2, JX_FALSE);
+            if( (ob = I->key_value) ) {
+              ob[0] = JX_OWN(key);      /* takes ownership */
+              ob[1] = JX_OWN(value);    /* takes ownership */
               status = JX_SUCCESS;
             }
           } else {
@@ -3620,7 +3623,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
                   status = JX_SUCCESS;
                   if(size > (2 * JX_HASH_RAW_CUTOFF)) { 
                     /* switch to linear hash once we have more than N elements */
-                    jx__hash_recondition(I, JX_HASH_LINEAR, JX_FALSE);
+                    jx__tls_hash_recondition(tls, I, JX_HASH_LINEAR, JX_FALSE);
                   }
                 }
               }
@@ -3628,7 +3631,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
           }
         } else {                  /* we have an info record */
           if(!I->key_value) {
-            I->key_value = jx_vla_new(sizeof(jx_ob), 0);
+            I->key_value = jx_tls_vla_new(tls,sizeof(jx_ob), 0,JX_TRUE);
           }
           if(I->key_value && I->info) {
             jx_hash_info *info = (jx_hash_info *) I->info;
@@ -3663,7 +3666,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
                     ob[1] = JX_OWN(value);
                     status = JX_SUCCESS;
                     if(info->usage > JX_HASH_LINEAR_CUTOFF) {
-                      jx__hash_recondition(I, JX_HASH_ONE_TO_ANY, JX_FALSE);     
+                      jx__tls_hash_recondition(tls, I, JX_HASH_ONE_TO_ANY, JX_FALSE);     
                       /* switch to true hash */
                     }
                   }
@@ -3680,7 +3683,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
             case JX_HASH_ONE_TO_NIL:
               {
                 if(info->usage >= ((info->mask<<1)/3)) {     /* more than ~2/3rd's full */
-                  jx__hash_recondition(I, info->mode, JX_FALSE);
+                  jx__tls_hash_recondition(tls, I, info->mode, JX_FALSE);
                   info = (jx_hash_info *) I->info;
                 }
                 {
@@ -3760,7 +3763,7 @@ jx_status jx__hash_set(jx_hash * I, jx_ob key, jx_ob value)
                   status = JX_FAILURE;
                 } else {
                   if((info->usage + 1) > (3 * info->mask) >> 2) { /* more than ~3/4'rs full */
-                    jx__hash_recondition(I, info->mode, JX_FALSE);
+                    jx__tls_hash_recondition(tls, I, info->mode, JX_FALSE);
                     info = (jx_hash_info *) I->info;
                   }
                   {
@@ -4402,10 +4405,10 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
                 {
                   jx_uint32 usage = info->usage;
                   if(!usage) {
-                    jx__hash_recondition(I, JX_HASH_RAW, JX_TRUE);  /* purge empty hash table */
+                    jx__tls_hash_recondition(JX_NULL, I, JX_HASH_RAW, JX_TRUE);  /* purge empty hash table */
                   } else if(found && (info->stale_usage > usage) &&
                             ((usage + info->stale_usage) > ((info->mask) >> 1))) {
-                    jx__hash_recondition(I, info->mode, JX_TRUE);   /* pack & (possibly) shrink */
+                    jx__tls_hash_recondition(JX_NULL,I, info->mode, JX_TRUE);   /* pack & (possibly) shrink */
                   }
                 }
               }
@@ -4456,7 +4459,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
                   jx_uint32 usage = info->usage;
                   if(found && (info->stale_usage > usage) &&
                      ((usage + info->stale_usage) > ((info->mask) >> 1))) {
-                    jx__hash_recondition(I, info->mode, JX_TRUE);   /* pack & (possibly) shrink */
+                    jx__tls_hash_recondition(JX_NULL,I, info->mode, JX_TRUE);   /* pack & (possibly) shrink */
                   }
                 }
               }
@@ -4560,7 +4563,7 @@ jx_status jx__hash_from_list(jx_hash * hash, jx_list * list)
       for(i = 0; i < size; i += 2) {
         jx_ob key = jx_ob_copy(jx__list_borrow_locked(list, i));
         jx_ob value = jx_ob_copy(jx__list_borrow_locked(list, i + 1));
-        if(!jx_ok(jx__hash_set(hash, key, value))) {
+        if(!jx_ok(jx__tls_hash_set(JX_NULL, hash, key, value))) {
           jx_ob_free(key);
           jx_ob_free(value);
           status = JX_FAILURE;
@@ -4645,7 +4648,7 @@ jx_status jx__hash_with_list(jx_hash * hash, jx_list * list)
       for(i = 0; i < size; i += 2) {
         jx_ob key = jx__list_borrow_locked(list, i);
         jx_ob value = jx__list_borrow_locked(list, i + 1);
-        if(!jx_ok(jx__hash_set(hash, key, value))) {
+        if(!jx_ok(jx__tls_hash_set(JX_NULL, hash, key, value))) {
           status = JX_FAILURE;
           break;
         }
@@ -4833,7 +4836,7 @@ jx_ob jx__ob_gc_copy(jx_ob ob)
     return jx__list_copy(ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
-    return jx__hash_copy(ob.data.io.hash);
+    return jx__tls_hash_copy(JX_NULL, ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:
     return jx__builtin_copy(ob);
@@ -4897,7 +4900,7 @@ jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
       return jx__list_copy(ob.data.io.list);
       break;
     case JX_META_BIT_HASH:
-      return jx__hash_copy(ob.data.io.hash);
+      return jx__tls_hash_copy(JX_NULL, ob.data.io.hash);
       break;
     case JX_META_BIT_BUILTIN:
       return jx__builtin_copy(ob);
@@ -4956,7 +4959,7 @@ void *jx__tls_vla_new(jx_tls *tls, jx_int rec_size, jx_int size, jx_bool zero)
       if(jx_ok(jx__vla__resize(&vla, size, JX_TRUE, JX_FALSE))) {
         return vla+1;
       } else {
-        jx_vla_free(&vla);
+        jx_tls_vla_free(tls,&vla);
         return jx_vla_new(rec_size,size);
       }
     }
@@ -4974,12 +4977,11 @@ void *jx__tls_vla_new_with_content(jx_tls *tls, jx_int rec_size, jx_int size, vo
     return NULL;
 }
 
-void *jx__tls_vla_copy(jx_tls* tls, void **ref)
+void *jx__tls_vla_copy(jx_tls *tls, void **ref)
 {
   if(*ref) {
     jx_vla *vla = ((jx_vla *) (*ref)) - 1;
-    jx_vla *result = jx__tls_vla_new_with_content(tls, vla->rec_size, vla->size, (*ref));
-    return result;
+    return jx__tls_vla_new_with_content(tls, vla->rec_size, vla->size, (*ref));
   } else {
     return NULL;
   }
@@ -5160,7 +5162,7 @@ jx_ob jx__tls_ob_copy(jx_tls *tls, jx_ob ob)
     return jx__tls_list_copy(tls,ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
-    return jx__hash_copy(ob.data.io.hash);
+    return jx__tls_hash_copy(tls,ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:
     return jx__builtin_copy(ob);
@@ -5379,8 +5381,8 @@ jx_ob jx_macro_to_impl(jx_ob ob)
 
 /* freeing */
 
-jx_status jx__ob_gc_free(jx_tls *tls, jx_ob ob)
-{ /* on entry, we know ob is GC'd and not weak*/
+jx_status jx__tls_ob_gc_free(jx_tls *tls, jx_ob ob)
+{ /* on entry, we know ob is GC'd */
   if(ob.data.io.gc->shared) {
     return JX_STATUS_FREED_SHARED;
   }

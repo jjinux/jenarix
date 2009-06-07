@@ -34,16 +34,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_jxon_private.h"
 
-#define JX_JXON_SCANNER_MODE_FILE    0 
-#define JX_JXON_SCANNER_MODE_STRING  1
-#define JX_JXON_SCANNER_MODE_CONSOLE 2
+#define JX_JXON_SCANNER_MODE_FILE          0 
+#define JX_JXON_SCANNER_MODE_STRING        1
+#define JX_JXON_SCANNER_MODE_CONSOLE       2
+
 
 typedef struct {
   jx_char *bot, *tok, *ptr, *cur, *pos, *lim, *top, *eof;
   jx_int line;
   jx_int n_tok_parsed;
 
-  jx_int mode;
+  jx_int mode,flags;
   FILE *file;
   jx_jxon_parse_context context;
   jx_ob saved_token;
@@ -218,7 +219,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
 
     [ \t\v\f]+      { goto std; }
 
-    "#"         { goto comment; }
+    "#"         {  goto comment; }
 
     "\n" {
       s->pos = cursor; s->line++;
@@ -244,13 +245,18 @@ comment:
   /*!re2c
     "\n" 
     { 
+      if((s->flags & JX_SCANNER_FLAG_ECHO_COMMENTS) &&
+         (cursor > s->tok)) {
+         fwrite(s->tok,(cursor-s->tok),1,stdout);
+       }
       s->pos = cursor; s->line++;
       s->eof = NULL;
       goto std; 
     }
 
     any 
-    { goto comment; }
+    { 
+      goto comment; }
 */
   
 }
@@ -589,7 +595,7 @@ static jx_status jx_jxon_scanner_free(jx_jxon_scanner *scanner)
   return result;
 }
 
-jx_ob jx_jxon_scanner_new_with_file(FILE *file)
+jx_ob jx_jxon_scanner_new_with_file(FILE *file,jx_int flags)
 {
   jx_ob result = JX_OB_NULL;
   jx_jxon_scanner *scanner = (jx_jxon_scanner*)jx_calloc(1,sizeof(jx_jxon_scanner));
@@ -598,6 +604,7 @@ jx_ob jx_jxon_scanner_new_with_file(FILE *file)
       scanner->opaque.magic = jx_ob_from_str(JX_JXON_SCANNER_MAGIC);
       scanner->opaque.free_fn = (jx_opaque_free_fn)jx_jxon_scanner_free;
       scanner->state.file = file;
+      scanner->state.flags = flags;
       if (isatty((int)fileno(file))) {      
         scanner->state.mode = JX_JXON_SCANNER_MODE_CONSOLE;
       } else {
@@ -617,15 +624,19 @@ jx_ob jx_jxon_scanner_get_error_message(jx_ob scanner_ob)
   if(jx_builtin_opaque_ob_check(scanner_ob)) {
     jx_jxon_scanner *scanner = (jx_jxon_scanner*)scanner_ob.data.io.opaque_ob;
     if(jx_ob_equal(scanner->opaque.magic,magic)) {
-      jx_jxon_scanner_state *state = &scanner->state;
+       jx_jxon_scanner_state *state = &scanner->state;
       jx_ob list = jx_list_new();
-      {
+      if(JX_OK(state->context.status)) {
+        jx_char buffer[50];
+        sprintf(buffer,"Error: failure on or before line %d\n",(int)state->line+1);
+        jx_list_append(list, jx_ob_from_str(buffer));
+      } else {
         jx_char buffer[50];
         sprintf(buffer,"Error: invalid syntax on line %d\n",(int)state->line+1);
         jx_list_append(list, jx_ob_from_str(buffer));
       }
       if(state->bot != state->lim) {
-        if(state->tok > state->pos) {
+        if(state->tok >= state->pos) {
           jx_list_append(list, jx_ob_from_str_with_len(state->pos, state->tok - state->pos));
         } else if(state->tok > state->bot) {
           jx_list_append(list, jx_ob_from_str_with_len(state->bot, state->tok - state->bot));

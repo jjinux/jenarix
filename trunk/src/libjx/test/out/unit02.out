@@ -1,0 +1,350 @@
+# unit02.jxp (Python unit tests)
+# parsed: (set a 1)
+# source: (set a 1)
+#   eval: (`set a 1)
+null;
+
+# parsed: (print a)
+# source: (print a)
+#   eval: ( #native_fn`print (`resolve a))
+1
+null;
+
+# we have literals 
+# parsed: (set b {"some key": [1, 2, 3],3:"some value","another key":"another value",8.4:0})
+# source: (set b {"some key": [1, 2, 3],3:"some value","another key":"another value",8.4:0})
+#   eval: (`set b {"some key": [1, 2, 3],3:"some value","another key":"another value",8.4:0})
+null;
+
+# parsed: (print b
+#           (len b))
+# source: (print b
+#           (size b))
+#   eval: ( #native_fn`print (`resolve b)
+#           (`size (`resolve b)))
+{"some key":[1,2,3],3:"some value","another key":"another value",8.3999996:0} 4
+null;
+
+# REMEMBER, Jenarix uses copy semantics, not reference-taking semantics, so
+# parsed: (set d {"some key":"value"})
+# source: (set d {"some key":"value"})
+#   eval: (`set d {"some key":"value"})
+null;
+
+# parsed: (set c d)
+# source: (set c d)
+#   eval: (`set c
+#           (`resolve d))
+null;
+
+# parsed: (set (c (pass "another key")) "value")
+# source: (set (c (pass "another key")) "value")
+#   eval: (`set (c (`pass "another key")) "value")
+null;
+
+# parsed: (print c)
+# source: (print c)
+#   eval: ( #native_fn`print (`resolve c))
+{"some key":"value","another key":"value"}
+null;
+
+# parsed: (print d)
+# source: (print d)
+#   eval: ( #native_fn`print (`resolve d))
+{"some key":"value"}
+null;
+
+# is NOT how Python works, but it is how JXON works.
+# we have print
+# parsed: (print "hello Python world!!! Can you hear me?")
+# source: (print "hello Python world!!! Can you hear me?")
+#   eval: ( #native_fn`print "hello Python world!!! Can you hear me?")
+hello Python world!!! Can you hear me?
+null;
+
+# we have for loops (simple iterator)
+# we have while loops
+# parsed: (foreach b
+#           (range 3 8)
+#           [ (print b)])
+# source: (foreach b
+#           (range 3 8)
+#           [ (print b)])
+#   eval: (`foreach b
+#           (`range 3 8)
+#           [ ( #native_fn`print (`resolve b))])
+3
+4
+5
+6
+7
+null;
+
+# parsed: (set x 1.3)
+# source: (set x 1.3)
+#   eval: (`set x 1.3)
+null;
+
+# does simple if work?
+# parsed: (while (lt x 9)
+#           [ (set x
+#               (add x 1.1)), (print x)])
+# source: (while (lt x 9)
+#           [ (set x
+#               (add x 1.1)), (print x)])
+#   eval: (`while (`lt (`resolve x) 9)
+#           [ (`set x
+#               (`add (`resolve x) 1.1)), ( #native_fn`print (`resolve x))])
+2.4000001
+3.5
+4.5999999
+5.6999998
+6.7999997
+7.8999996
+9.0
+null;
+
+# we have cascading IF statements
+# parsed: (if 0
+#           [ (print "hi")]
+#           [ (print 1234)])
+# source: (if 0
+#           [ (print "hi")]
+#           [ (print 1234)])
+#   eval: (`if 0
+#           [ ( #native_fn`print "hi")]
+#           [ ( #native_fn`print 1234)])
+1234
+null;
+
+# we have functions
+# parsed: (if 0
+#           [ (print "hi")] 0
+#           [ (print "who")] 1
+#           [ (print "wow")]
+#           [ (print 1234)])
+# source: (if 0
+#           [ (print "hi")] 0
+#           [ (print "who")] 1
+#           [ (print "wow")]
+#           [ (print 1234)])
+#   eval: (`if 0
+#           [ ( #native_fn`print "hi")] 0
+#           [ ( #native_fn`print "who")] 1
+#           [ ( #native_fn`print "wow")]
+#           [ ( #native_fn`print 1234)])
+wow
+null;
+
+# parsed: (def fn
+#           (a b)
+#           [ (print "The sum of" a "and" b "is"
+#               (add a b))])
+# source: (def fn
+#           (a b)
+#           [ (print "The sum of" a "and" b "is"
+#               (add a b))])
+#   eval: (`def fn
+#           (a b)
+#           [ ( #native_fn`print "The sum of"
+#               (`resolve a) "and"
+#               (`resolve b) "is"
+#               (`add (`resolve a)
+#                 (`resolve b)))])
+null;
+
+# parsed: (fn 1 2)
+# source: (fn 1 2)
+#   eval: [ (`resolve fn),1,2]
+The sum of 1 and 2 is 3
+null;
+
+# parsed: (fn 3 6)
+# source: (fn 3 6)
+#   eval: [ (`resolve fn),3,6]
+The sum of 3 and 6 is 9
+null;
+
+# we have map / lambda
+# parsed: (print (map (lambda (x)
+#               (mul x x))
+#             (range 10)))
+# source: (print (map (lambda (x)
+#               (mul x x))
+#             (range 10)))
+#   eval: ( #native_fn`print (`map (`lambda (x)
+#               (`mul (`resolve x)
+#                 (`resolve x)))
+#             (`range 10)))
+[0,1,4,9,16,25,36,49,64,81]
+null;
+
+# but we're still missing a lot of stuff...
+# in particular...
+# keyword arguments
+# list comphrehensions
+# nested loops
+# parsed: (set a 5)
+# source: (set a 5)
+#   eval: (`set a 5)
+null;
+
+# parsed: (set b 5)
+# source: (set b 5)
+#   eval: (`set b 5)
+null;
+
+# parsed: (set c 5)
+# source: (set c 5)
+#   eval: (`set c 5)
+null;
+
+# parsed: (while a
+#           [ (set a
+#               (sub a 1)), (set b a),
+#             (while b
+#               [ (set c b), (set b
+#                   (sub b 1)),
+#                 (while c
+#                   [ (set c
+#                       (sub c 1)), (print a b c)]),
+#                 (while c
+#                   [ []]),
+#                 (set a 0)]),
+#             (print b),
+#             (if 1
+#               (true))])
+# source: (while a
+#           [ (set a
+#               (sub a 1)), (set b a),
+#             (while b
+#               [ (set c b), (set b
+#                   (sub b 1)),
+#                 (while c
+#                   [ (set c
+#                       (sub c 1)), (print a b c)]),
+#                 (while c
+#                   [ []]),
+#                 (set a 0)]),
+#             (print b),
+#             (if 1
+#               [true])])
+#   eval: (`while (`resolve a)
+#           [ (`set a
+#               (`sub (`resolve a) 1)), (`set b
+#               (`resolve a)),
+#             (`while (`resolve b)
+#               [ (`set c
+#                   (`resolve b)), (`set b
+#                   (`sub (`resolve b) 1)),
+#                 (`while (`resolve c)
+#                   [ (`set c
+#                       (`sub (`resolve c) 1)), ( #native_fn`print (`resolve a)
+#                       (`resolve b)
+#                       (`resolve c))]),
+#                 (`while (`resolve c)
+#                   [ []]),
+#                 (`set a 0)]),
+#             ( #native_fn`print (`resolve b)),
+#             (`if 1
+#               [true])])
+4 3 3
+4 3 2
+4 3 1
+4 3 0
+0 2 2
+0 2 1
+0 2 0
+0 1 1
+0 1 0
+0 0 0
+0
+true;
+
+# parsed: (print b)
+# source: (print b)
+#   eval: ( #native_fn`print (`resolve b))
+0
+null;
+
+# parsed: (set c 2)
+# source: (set c 2)
+#   eval: (`set c 2)
+null;
+
+# parsed: (print c)
+# source: (print c)
+#   eval: ( #native_fn`print (`resolve c))
+2
+null;
+
+# parsed: (foreach a
+#           [1, 2]
+#           [ (foreach b
+#               [5, 6]
+#               [ (foreach c
+#                   [7, 6]
+#                   [ (print a b c)])])])
+# source: (foreach a
+#           [1, 2]
+#           [ (foreach b
+#               [5, 6]
+#               [ (foreach c
+#                   [7, 6]
+#                   [ (print a b c)])])])
+#   eval: (`foreach a
+#           [1, 2]
+#           [ (`foreach b
+#               [5, 6]
+#               [ (`foreach c
+#                   [7, 6]
+#                   [ ( #native_fn`print (`resolve a)
+#                       (`resolve b)
+#                       (`resolve c))])])])
+1 5 7
+1 5 6
+1 6 7
+1 6 6
+2 5 7
+2 5 6
+2 6 7
+2 6 6
+null;
+
+# parsed: (set a 0)
+# source: (set a 0)
+#   eval: (`set a 0)
+null;
+
+# parsed: (set b 0)
+# source: (set b 0)
+#   eval: (`set b 0)
+null;
+
+# parsed: (set c 0)
+# source: (set c 0)
+#   eval: (`set c 0)
+null;
+
+# parsed: (while a
+#           [ (while b
+#               [ (while c
+#                   [ []])])])
+# source: (while a
+#           [ (while b
+#               [ (while c
+#                   [ []])])])
+#   eval: (`while (`resolve a)
+#           [ (`while (`resolve b)
+#               [ (`while (`resolve c)
+#                   [ []])])])
+null;
+
+# parsed: (if 0
+#           [ []])
+# source: (if 0
+#           [ []])
+#   eval: (`if 0
+#           [ []])
+null;
+

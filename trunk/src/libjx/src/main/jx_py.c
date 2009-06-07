@@ -41,9 +41,10 @@ int main(int argc, char *argv[])
 
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
     jx_ob names = jx_hash_new();
-    jx_ob scanner = jx_py_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
     jx_bool console = jx_adapt_for_console(input);
+    jx_ob scanner = jx_py_scanner_new_with_file
+      (input, (mode==JX_MODE_UNIT_TESTING) ? JX_SCANNER_FLAG_ECHO_COMMENTS : 0);
 
     if(mode == JX_MODE_AUTOMATIC) {
       if(console)
@@ -76,16 +77,17 @@ int main(int argc, char *argv[])
             printf("%s;\n",jx_ob_as_str(&jxon));
             jx_ob_free(jxon);
           } else {
-            if(mode == JX_MODE_CONSOLE) jx_jxon_dump_in_node(stdout, "# parsed", node, tree);
+            if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
+              jx_jxon_dump_in_node(stdout, "# parsed", node, tree);
             {
               jx_ob source = jx_py_translate_with_tree( jx_ob_copy(tree));
-            
+              
               if(mode == JX_MODE_TRANSLATE_ONLY) {
                 jx_ob jxon = jx_ob_to_jxon_in_node(node,source);
                 printf("%s;\n",jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               } else {
-                if(mode == JX_MODE_CONSOLE) 
+                if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
                   jx_jxon_dump_in_node(stdout, "# source", node, source);
                 {
                   jx_ob code = jx_code_bind_with_source(names, source);
@@ -95,17 +97,29 @@ int main(int argc, char *argv[])
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
                   } else {
-                    if(mode == JX_MODE_CONSOLE)
+                    if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
                       jx_jxon_dump_in_node(stdout, "#   eval", node, code);
                     {
                       jx_ob result = jx_code_eval(node,code);
-                    
+                      
                       if(mode == JX_MODE_CONSOLE) {
                         jx_jxon_dump_in_node(stdout, "# result", node, result);
-                      } else if(mode == JX_MODE_EVALUATE) {
+                      } else if((mode == JX_MODE_EVALUATE) || (mode == JX_MODE_UNIT_TESTING)){
                         jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
                         printf("%s;\n",jx_ob_as_str(&jxon));
                         jx_ob_free(jxon);
+                        if(mode == JX_MODE_UNIT_TESTING) { 
+                          /* all Python unit test exprs must equal null or true */
+                          if((!jx_ob_identical(jx_ob_from_null(),result))&&
+                             (!jx_ob_identical(jx_ob_from_bool(1),result))
+                             ) {
+                            jx_ob message = jx_py_scanner_get_error_message(scanner);
+                            if(jx_str_check(message)) 
+                              printf("%s\n",jx_ob_as_str(&message));
+                            exit(EXIT_FAILURE);
+                          }
+                          printf("\n"); /* add newline after test in output */
+                        }
                       }
                       jx_ob_free(result);
                     }

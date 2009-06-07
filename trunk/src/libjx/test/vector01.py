@@ -5,7 +5,7 @@ def dot(v0,v1):
         print "Vector size mismatch"
     else:
         r = []
-        while len(v0):
+        while v0:
             r.append(v0.pop() + v1.pop())
         r.reverse()
         return r

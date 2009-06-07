@@ -8,9 +8,10 @@
     )
   ]);
 
-(vector_add [1,2,3], [2,3,4]);
+(output (vector_add [1,2,3], [2,3,4]))
 
-(size (vector_add (range 1000000) (range 1000000)));
+(output (size (vector_add (range 2000000) (range 2000000))));
+
 
 
 

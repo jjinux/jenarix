@@ -70,6 +70,7 @@ JX_INLINE jx_bool jx_adapt_for_console(FILE *input)
 #define JX_MODE_TRANSLATE_ONLY 4
 #define JX_MODE_COMPILE_ONLY   5
 #define JX_MODE_EXECUTE        6
+#define JX_MODE_UNIT_TESTING   7
 
 JX_INLINE jx_int jx_main_parse_mode(FILE **input, int argc, char *argv[])
 {
@@ -100,6 +101,9 @@ JX_INLINE jx_int jx_main_parse_mode(FILE **input, int argc, char *argv[])
               break;
             case 'n':
               mode = JX_MODE_CONSOLE;
+              break;
+            case 'u':
+              mode = JX_MODE_UNIT_TESTING;
               break;
             case 'h':
               fprintf(stderr,"usage: ./jx[p] -[cehtx] file\n");
