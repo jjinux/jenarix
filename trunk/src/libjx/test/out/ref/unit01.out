@@ -1,4 +1,5 @@
 # unit01.jx
+# NOTE (assert arg1) is equivalent to (assert arg1 null)
 # source: (assert true true)
 #   eval: (`assert true true)
 true;
@@ -281,10 +282,8 @@ true;
 #           (`symbols))
 true;
 
-# source: (assert null
-#           (def fn null _))
-#   eval: (`assert null
-#           (`def fn null
+# source: (assert (def fn null _))
+#   eval: (`assert (`def fn null
 #             (`resolve _)))
 true;
 
@@ -294,10 +293,8 @@ true;
 #           [ (`resolve fn),1])
 true;
 
-# source: (assert null
-#           (del fn))
-#   eval: (`assert null
-#           (`del fn))
+# source: (assert (del fn))
+#   eval: (`assert (`del fn))
 true;
 
 # source: (assert (raw (fn 1))
@@ -311,19 +308,15 @@ true;
 #           (`resolve y))
 true;
 
-# source: (assert null
-#           (def fn null
+# source: (assert (def fn null
 #             (set y _)))
-#   eval: (`assert null
-#           (`def fn null
+#   eval: (`assert (`def fn null
 #             (`set y
 #               (`resolve _))))
 true;
 
-# source: (assert null
-#           (fn))
-#   eval: (`assert null
-#           [ (`resolve fn)])
+# source: (assert (fn))
+#   eval: (`assert [ (`resolve fn)])
 true;
 
 # source: (assert y
@@ -332,10 +325,8 @@ true;
 #           [])
 true;
 
-# source: (assert null
-#           (fn 9))
-#   eval: (`assert null
-#           [ (`resolve fn),9])
+# source: (assert (fn 9))
+#   eval: (`assert [ (`resolve fn),9])
 true;
 
 # source: (assert y
@@ -344,16 +335,12 @@ true;
 #           [9])
 true;
 
-# source: (assert null
-#           (del y))
-#   eval: (`assert null
-#           (`del y))
+# source: (assert (del y))
+#   eval: (`assert (`del y))
 true;
 
-# source: (assert null
-#           (del fn))
-#   eval: (`assert null
-#           (`del fn))
+# source: (assert (del fn))
+#   eval: (`assert (`del fn))
 true;
 
 # source: (assert {}
@@ -370,11 +357,9 @@ true;
 #           (`symbols))
 true;
 
-# source: (assert null
-#           (def fn {}
+# source: (assert (def fn {}
 #             (set y_)))
-#   eval: (`assert null
-#           (`def fn {}
+#   eval: (`assert (`def fn {}
 #             (`set y_)))
 true;
 
@@ -383,10 +368,8 @@ true;
 #           (`resolve y))
 true;
 
-# source: (assert null
-#           (del fn))
-#   eval: (`assert null
-#           (`del fn))
+# source: (assert (del fn))
+#   eval: (`assert (`del fn))
 true;
 
 # functions with single ident args use their own private namespace 
@@ -842,10 +825,8 @@ true;
 #           [ [1, 2]])
 true;
 
-# source: (assert null
-#           (set x 1))
-#   eval: (`assert null
-#           (`set x 1))
+# source: (assert (set x 1))
+#   eval: (`assert (`set x 1))
 true;
 
 # source: (assert 1
@@ -854,10 +835,8 @@ true;
 #           (`get x))
 true;
 
-# source: (assert null
-#           (set x 2))
-#   eval: (`assert null
-#           (`set x 2))
+# source: (assert (set x 2))
+#   eval: (`assert (`set x 2))
 true;
 
 # source: (assert 2
@@ -898,24 +877,18 @@ true;
 #           (`sub true false))
 true;
 
-# source: (assert null
-#           (set a 10))
-#   eval: (`assert null
-#           (`set a 10))
+# source: (assert (set a 10))
+#   eval: (`assert (`set a 10))
 true;
 
-# source: (assert null
-#           (set b
+# source: (assert (set b
 #             []))
-#   eval: (`assert null
-#           (`set b
+#   eval: (`assert (`set b
 #             []))
 true;
 
-# source: (assert null
-#           (set c {}))
-#   eval: (`assert null
-#           (`set c {}))
+# source: (assert (set c {}))
+#   eval: (`assert (`set c {}))
 true;
 
 # while loop
@@ -925,15 +898,13 @@ true;
 #           (`size (`get b)))
 true;
 
-# source: (assert null
-#           (while (get a)
+# source: (assert (while (get a)
 #             [ (append b
 #                 (get a)), (set c
 #                 (get a) 1),
 #               (set a
 #                 (sub (get a) 1))]))
-#   eval: (`assert null
-#           (`while (`get a)
+#   eval: (`assert (`while (`get a)
 #             [ (`append b
 #                 (`get a)), (`set c
 #                 (`get a) 1),
@@ -948,10 +919,8 @@ true;
 true;
 
 # hash comparison (order-independent of course)
-# source: (assert null
-#           (output c))
-#   eval: (`assert null
-#           (`output (`resolve c)))
+# source: (assert (output c))
+#   eval: (`assert (`output (`resolve c)))
 {2:1,10:1,4:1,8:1,3:1,9:1,6:1,1:1,7:1,5:1};
 true;
 
@@ -973,23 +942,19 @@ true;
 #           (`size (`get c)))
 true;
 
-# source: (assert null
-#           (set b
+# source: (assert (set b
 #             []))
-#   eval: (`assert null
-#           (`set b
+#   eval: (`assert (`set b
 #             []))
 true;
 
-# source: (assert null
-#           (for (set a 1)
+# source: (assert (for (set a 1)
 #             (lt (get a) 10)
 #             (set a
 #               (add (get a) 1))
 #             [ (output a), (append b
 #                 (get a))]))
-#   eval: (`assert null
-#           (`for (`set a 1)
+#   eval: (`assert (`for (`set a 1)
 #             (`lt (`get a) 10)
 #             (`set a
 #               (`add (`get a) 1))
@@ -1013,19 +978,15 @@ true;
 #           (`get b))
 true;
 
-# source: (assert null
-#           (set a 1))
-#   eval: (`assert null
-#           (`set a 1))
+# source: (assert (set a 1))
+#   eval: (`assert (`set a 1))
 true;
 
-# source: (assert null
-#           (do (set a
+# source: (assert (do (set a
 #               (add 1
 #                 (get a)))
 #             (lt (get a) 10)))
-#   eval: (`assert null
-#           (`do (`set a
+#   eval: (`assert (`do (`set a
 #               (`add 1
 #                 (`get a)))
 #             (`lt (`get a) 10)))
@@ -1037,10 +998,8 @@ true;
 #           (`get a))
 true;
 
-# source: (assert null
-#           (set a 1))
-#   eval: (`assert null
-#           (`set a 1))
+# source: (assert (set a 1))
+#   eval: (`assert (`set a 1))
 true;
 
 # source: (assert [ [ [ [null]]]]
@@ -1061,28 +1020,26 @@ true;
 #           (`get a))
 true;
 
-# source: (assert null
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert -17
 #           (del a))
-#   eval: (`assert null
+#   eval: (`assert -17
 #           (`del a))
 true;
 
-# source: (assert null
-#           (del b))
-#   eval: (`assert null
-#           (`del b))
+# source: (assert (del b))
+#   eval: (`assert (`del b))
 true;
 
-# source: (assert null
-#           (del c))
-#   eval: (`assert null
-#           (`del c))
+# source: (assert (del c))
+#   eval: (`assert (`del c))
 true;
 
-# source: (assert null
-#           (del x))
-#   eval: (`assert null
-#           (`del x))
+# source: (assert (del x))
+#   eval: (`assert (`del x))
 true;
 
 # here's where we convince ourselves that weak (borrowed) references
@@ -1095,11 +1052,9 @@ true;
 true;
 
 # now see what happens when we try to get a borrowed reference
-# source: (assert null
-#           (set x
+# source: (assert (set x
 #             ["-  -  -  -  -  -  -  -"]))
-#   eval: (`assert null
-#           (`set x
+#   eval: (`assert (`set x
 #             ["-  -  -  -  -  -  -  -"]))
 true;
 
@@ -1141,10 +1096,8 @@ true;
 #           (`resolve x))
 true;
 
-# source: (assert null
-#           (append x 1))
-#   eval: (`assert null
-#           (`append x 1))
+# source: (assert (append x 1))
+#   eval: (`assert (`append x 1))
 true;
 
 # source: (assert ["-  -  -  -  -  -  -  -",1] x)
@@ -1152,10 +1105,8 @@ true;
 #           (`resolve x))
 true;
 
-# source: (assert null
-#           (append x x))
-#   eval: (`assert null
-#           (`append x
+# source: (assert (append x x))
+#   eval: (`assert (`append x
 #             (`resolve x)))
 true;
 
@@ -1167,11 +1118,9 @@ true;
 #           (`get x))
 true;
 
-# source: (assert null
-#           (append x
+# source: (assert (append x
 #             (get x)))
-#   eval: (`assert null
-#           (`append x
+#   eval: (`assert (`append x
 #             (`get x)))
 true;
 
@@ -1187,10 +1136,8 @@ true;
 #           (`get x))
 true;
 
-# source: (assert null
-#           (set y x))
-#   eval: (`assert null
-#           (`set y
+# source: (assert (set y x))
+#   eval: (`assert (`set y
 #             (`resolve x)))
 true;
 
@@ -1206,10 +1153,8 @@ true;
 #           (`get y))
 true;
 
-# source: (assert null
-#           (del x))
-#   eval: (`assert null
-#           (`del x))
+# source: (assert (del x))
+#   eval: (`assert (`del x))
 true;
 
 # scopeless function behavior (arguments go into _)
@@ -1225,19 +1170,15 @@ true;
 #           (`get y))
 true;
 
-# source: (assert null
-#           (set a
+# source: (assert (set a
 #             [1, 2, 3, 4]))
-#   eval: (`assert null
-#           (`set a
+#   eval: (`assert (`set a
 #             [1, 2, 3, 4]))
 true;
 
-# source: (assert null
-#           (def fn null
+# source: (assert (def fn null
 #             [ (output _), (get (_ 0) 1)]))
-#   eval: (`assert null
-#           (`def fn null
+#   eval: (`assert (`def fn null
 #             [ (`output (`resolve _)), (`get (_ 0) 1)]))
 true;
 
@@ -1275,10 +1216,8 @@ true;
 #           (`test {} true false))
 true;
 
-# source: (assert null
-#           (get [1, 2, 3] 1))
-#   eval: (`assert null
-#           (`get [1, 2, 3] 1))
+# source: (assert (get [1, 2, 3] 1))
+#   eval: (`assert (`get [1, 2, 3] 1))
 true;
 
 # source: (assert (unresolved symbols)
@@ -1287,18 +1226,14 @@ true;
 #           [ (`resolve unresolved), (`resolve symbols)])
 true;
 
-# source: (assert null
-#           (set a
+# source: (assert (set a
 #             [1.0]))
-#   eval: (`assert null
-#           (`set a
+#   eval: (`assert (`set a
 #             [1.0]))
 true;
 
-# source: (assert null
-#           (resize a 100 0.5))
-#   eval: (`assert null
-#           (`resize (`resolve a) 100 0.5))
+# source: (assert (resize a 100 0.5))
+#   eval: (`assert (`resize (`resolve a) 100 0.5))
 true;
 
 # source: (assert [1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5] a)
@@ -1328,12 +1263,10 @@ true;
 #           (`size (`resolve a)))
 true;
 
-# source: (assert null
-#           (set fn
+# source: (assert (set fn
 #             (lambda null
 #               (add (get (_ 0) 1) 2))))
-#   eval: (`assert null
-#           (`set fn
+#   eval: (`assert (`set fn
 #             (`lambda null
 #               (`add (`get (_ 0) 1) 2))))
 true;
@@ -1345,18 +1278,14 @@ true;
 #           [ (`resolve fn), (`resolve a)])
 true;
 
-# source: (assert null
-#           (def test1 null
+# source: (assert (def test1 null
 #             (get x)))
-#   eval: (`assert null
-#           (`def test1 null
+#   eval: (`assert (`def test1 null
 #             (`get x)))
 true;
 
-# source: (assert null
-#           (set x 3))
-#   eval: (`assert null
-#           (`set x 3))
+# source: (assert (set x 3))
+#   eval: (`assert (`set x 3))
 true;
 
 # scopefull function with no parameter list
@@ -1366,11 +1295,9 @@ true;
 #           [ (`resolve test1)])
 true;
 
-# source: (assert null
-#           (def test1 {x:2}
+# source: (assert (def test1 {x:2}
 #             (get x)))
-#   eval: (`assert null
-#           (`def test1 {x:2}
+#   eval: (`assert (`def test1 {x:2}
 #             (`get x)))
 true;
 
@@ -1388,10 +1315,8 @@ true;
 
 # notice how lambda returns the whole expr, unlike def which iterates
 # the expr
-# source: (assert null
-#           (set a 3))
-#   eval: (`assert null
-#           (`set a 3))
+# source: (assert (set a 3))
+#   eval: (`assert (`set a 3))
 true;
 
 # source: (assert [null,9]
@@ -1402,34 +1327,24 @@ true;
 #               [ (`set a 9), (`get a)])))
 true;
 
-# source: (assert null
-#           (del a))
-#   eval: (`assert null
-#           (`del a))
+# source: (assert (del a))
+#   eval: (`assert (`del a))
 true;
 
-# source: (assert null
-#           (del x))
-#   eval: (`assert null
-#           (`del x))
+# source: (assert (del x))
+#   eval: (`assert (`del x))
 true;
 
-# source: (assert null
-#           (del y))
-#   eval: (`assert null
-#           (`del y))
+# source: (assert (del y))
+#   eval: (`assert (`del y))
 true;
 
-# source: (assert null
-#           (del fn))
-#   eval: (`assert null
-#           (`del fn))
+# source: (assert (del fn))
+#   eval: (`assert (`del fn))
 true;
 
-# source: (assert null
-#           (del test1))
-#   eval: (`assert null
-#           (`del test1))
+# source: (assert (del test1))
+#   eval: (`assert (`del test1))
 true;
 
 # source: (assert {}
@@ -1438,8 +1353,7 @@ true;
 #           (`symbols))
 true;
 
-# source: (assert null
-#           (def vector_add
+# source: (assert (def vector_add
 #             (v0 v1)
 #             [ (if (ne (size v0)
 #                   (size v1))
@@ -1449,8 +1363,7 @@ true;
 #                     (append r
 #                       (add (shift v0)
 #                         (shift v1)))),r])]))
-#   eval: (`assert null
-#           (`def vector_add
+#   eval: (`assert (`def vector_add
 #             (v0 v1)
 #             [ (`if (`ne (`size (`resolve v0))
 #                   (`size (`resolve v1)))
@@ -1479,16 +1392,14 @@ true;
 #               (`range 1000)]))
 true;
 
-# source: (assert null
-#           (def vector_add
+# source: (assert (def vector_add
 #             (v0 v1)
 #             [ (if (ne (size v0)
 #                   (size v1))
 #                 [ (output "Vector size mismatch")]
 #                 [ (map (lambda (x y)
 #                       (add x y)) v0 v1)])]))
-#   eval: (`assert null
-#           (`def vector_add
+#   eval: (`assert (`def vector_add
 #             (v0 v1)
 #             [ (`if (`ne (`size (`resolve v0))
 #                   (`size (`resolve v1)))
@@ -1516,15 +1427,17 @@ true;
 #               (`range 2000)]))
 true;
 
-# tail recursion test
+# TAIL RECURSION
 # with tail recursion, result is 20
-# source: (assert null
-#           (def tail_test
+# source: (assert (del vector_add))
+#   eval: (`assert (`del vector_add))
+true;
+
+# source: (assert (def tail_test
 #             (x)
 #             [ (output x), (test (lt x 20)
 #                 (tail (add x 1)) x),x]))
-#   eval: (`assert null
-#           (`def tail_test
+#   eval: (`assert (`def tail_test
 #             (x)
 #             [ (`output (`resolve x)), (`test (`lt (`resolve x) 20)
 #                 (`tail (`add (`resolve x) 1))
@@ -1550,13 +1463,11 @@ true;
 20;
 true;
 
-# source: (assert null
-#           (def tail_test
+# source: (assert (def tail_test
 #             (x)
 #             [ (output x), (test (lt x 20)
 #                 (tail_test (add x 1)) x),x]))
-#   eval: (`assert null
-#           (`def tail_test
+#   eval: (`assert (`def tail_test
 #             (x)
 #             [ (`output (`resolve x)), (`test (`lt (`resolve x) 20)
 #                 [ (`resolve tail_test), (`add (`resolve x) 1)]
@@ -1564,7 +1475,6 @@ true;
 #               (`resolve x)]))
 true;
 
-# 'quote' returns the first argument after prebinding but before evaluation
 # source: (assert 10
 #           (tail_test 10))
 #   eval: (`assert 10
@@ -1582,6 +1492,18 @@ true;
 20;
 true;
 
+# source: (assert (del tail_test))
+#   eval: (`assert (`del tail_test))
+true;
+
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# SPECIAL FORMS
+# 'quote' returns the first argument after prebinding but before evaluation
 # 'eval' is the antidote to quote
 # source: (assert (quote (add 1 2))
 #           (quote (add 1 2)))
@@ -1621,11 +1543,9 @@ true;
 #           (`eval (`bind (`raw (add 1 2)))))
 true;
 
-# source: (assert null
-#           (set fn
+# source: (assert (set fn
 #             (lambda (x) 1)))
-#   eval: (`assert null
-#           (`set fn
+#   eval: (`assert (`set fn
 #             (`lambda (x) 1)))
 true;
 
@@ -1635,8 +1555,12 @@ true;
 #           [ (`resolve fn)])
 true;
 
-#(pass fn);
-# result: fn`0xXXXXXX
+# source: (assert (output (pass fn)))
+#   eval: (`assert (`output (`pass (`resolve fn))))
+fn`0xXXXXXX;
+true;
+
+# output: fn`0xXXXXXX
 # 'nop' gets excised when binding is performed... upon binding, the
 # first argument to nop replaces it
 # result: [ (`resolve a), (`resolve b),
@@ -1647,5 +1571,442 @@ true;
 #               (`resolve c)])
 #           (`quote [ (`resolve a), (`resolve b),
 #               (`resolve c)]))
+true;
+
+# source: (assert (del fn))
+#   eval: (`assert (`del fn))
+true;
+
+# closure01
+# Jenarix functions statically close on free variables using the
+# surrounding scope
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# source: (assert (set x
+#             [1, 2, 3]))
+#   eval: (`assert (`set x
+#             [1, 2, 3]))
+true;
+
+# source: (assert (set z
+#             [3, 4, 5]))
+#   eval: (`assert (`set z
+#             [3, 4, 5]))
+true;
+
+# source: (assert (def myfn
+#             [ (x y), {y: [2, 3, 4]}]
+#             [ (x y z)]))
+#   eval: (`assert (`def myfn
+#             [ (x y), {y: [2, 3, 4]}]
+#             [ [ (`resolve x), (`resolve y),
+#                 (`resolve z)]]))
+true;
+
+# source: (assert (output (impl myfn)))
+#   eval: (`assert (`output (`impl (`resolve myfn))))
+[myfn,[[x,y],{x:[1,2,3],z:[3,4,5],y:[2,3,4]}],[[[`resolve,x],[`resolve,y],[`resolve,z]]],true];
+true;
+
+# source: (assert [ [1, 2, 3], [2, 3, 4],
+#             [3, 4, 5]]
+#           (myfn))
+#   eval: (`assert [ [1, 2, 3], [2, 3, 4],
+#             [3, 4, 5]]
+#           [ (`resolve myfn)])
+true;
+
+# source: (assert [1, [2, 3, 4],
+#             [3, 4, 5]]
+#           (myfn 1))
+#   eval: (`assert [1, [2, 3, 4],
+#             [3, 4, 5]]
+#           [ (`resolve myfn),1])
+true;
+
+# source: (assert [1,2,
+#             [3, 4, 5]]
+#           (myfn 1 2))
+#   eval: (`assert [1,2,
+#             [3, 4, 5]]
+#           [ (`resolve myfn),1,2])
+true;
+
+# source: (assert (del x))
+#   eval: (`assert (`del x))
+true;
+
+# source: (assert (del z))
+#   eval: (`assert (`del z))
+true;
+
+# source: (assert (del myfn))
+#   eval: (`assert (`del myfn))
+true;
+
+# closure02
+# another illustration of how Jenarix closures work
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# source: (assert (def fnbuilder
+#             (y)
+#             (lambda [] y)))
+#   eval: (`assert (`def fnbuilder
+#             (y)
+#             (`lambda []
+#               (`resolve y))))
+true;
+
+# source: (assert (set newfn
+#             (fnbuilder 2)))
+#   eval: (`assert (`set newfn
+#             [ (`resolve fnbuilder),2]))
+true;
+
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{newfn:fn`0xXXXXXX,fnbuilder:fn`fnbuilder};
+true;
+
+# source: (assert 2
+#           (newfn))
+#   eval: (`assert 2
+#           [ (`resolve newfn)])
+true;
+
+# source: (assert (set v
+#             [1, 2]))
+#   eval: (`assert (`set v
+#             [1, 2]))
+true;
+
+# source: (assert (set newfn
+#             (fnbuilder v)))
+#   eval: (`assert (`set newfn
+#             [ (`resolve fnbuilder), (`resolve v)]))
+true;
+
+# note that value of v was closed on (copied) at the time of function
+# creation.  Changing v later has no effect on the function.
+# source: (assert [1, 2]
+#           (newfn))
+#   eval: (`assert [1, 2]
+#           [ (`resolve newfn)])
+true;
+
+# source: (assert (append v 3))
+#   eval: (`assert (`append v 3))
+true;
+
+# source: (assert [1, 2, 3] v)
+#   eval: (`assert [1, 2, 3]
+#           (`resolve v))
+true;
+
+# source: (assert [1, 2]
+#           (newfn))
+#   eval: (`assert [1, 2]
+#           [ (`resolve newfn)])
+true;
+
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{v:[1,2,3],fnbuilder:fn`fnbuilder,newfn:fn`0xXXXXXX};
+true;
+
+# source: (assert (del v))
+#   eval: (`assert (`del v))
+true;
+
+# source: (assert (del fnbuilder))
+#   eval: (`assert (`del fnbuilder))
+true;
+
+# source: (assert (del newfn))
+#   eval: (`assert (`del newfn))
+true;
+
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{};
+true;
+
+# closure03
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# source: (assert (def vector.add
+#             (v1 v2)
+#             [ [ (v1 0), (map (lambda (x y)
+#                     (add x y))
+#                   (v1 1)
+#                   (v2 1))]]))
+#   eval: (`assert (`def vector.add
+#             (v1 v2)
+#             [ [ [ (`resolve v1),0], (`map (`lambda (x y)
+#                     (`add (`resolve x)
+#                       (`resolve y)))
+#                   [ (`resolve v1),1]
+#                   [ (`resolve v2),1])]]))
+true;
+
+# source: (assert (output (impl vector.add)))
+#   eval: (`assert (`output (`impl (`resolve (vector add)))))
+[vector.add,[[v1,v2],{}],[[[[`resolve,v1],0],[`map,[`lambda,[x,y],[`add,[`resolve,x],[`resolve,y]]],[[`resolve,v1],1],[[`resolve,v2],1]]]],true];
+true;
+
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{vector:{add:fn`vector.add}};
+true;
+
+# source: (assert (entity VectorBase null null {add:vector.add}) VectorBase)
+#   eval: (`assert (`entity VectorBase null null {add: (`resolve (vector add))})
+#           (`resolve VectorBase))
+true;
+
+# referring to Vector inside the function is sufficient to create the
+# closure
+# source: (assert (entity Vector VectorBase null null) Vector)
+#   eval: (`assert (`entity Vector
+#             (`resolve VectorBase) null null)
+#           (`resolve Vector))
+true;
+
+# notice how the Vector definition is in the function's implementation
+# source: (assert (def myfn
+#             (a b)
+#             [ (Vector), (a add b)]))
+#   eval: (`assert (`def myfn
+#             (a b)
+#             [ [ (`resolve Vector)], [ (`resolve a), (`resolve add),
+#                 (`resolve b)]]))
+true;
+
+# if we create some vector instances
+# source: (assert (output (impl myfn)))
+#   eval: (`assert (`output (`impl (`resolve myfn))))
+[myfn,[[a,b],{Vector:.Vector,.Vector:[.VectorBase,null,null],.VectorBase:[null,null,{add:fn`vector.add}]}],[[[`resolve,Vector]],[[`resolve,a],[`resolve,add],[`resolve,b]]],true];
+true;
+
+# source: (assert (set v1
+#             (Vector [1, 2, 3])))
+#   eval: (`assert (`set v1
+#             [ (`resolve Vector), [1, 2, 3]]))
+true;
+
+# both the function and the local entity methods work on them
+# source: (assert (set v2
+#             (Vector [2, 3, 4])))
+#   eval: (`assert (`set v2
+#             [ (`resolve Vector), [2, 3, 4]]))
+true;
+
+# source: (assert (Vector [3, 5, 7])
+#           (myfn v1 v2))
+#   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
+#           [ (`resolve myfn), (`resolve v1),
+#             (`resolve v2)])
+true;
+
+# strictly speaking however, we can instead rely upon dynamic
+# referencing of the class at the point of method invocation
+# source: (assert (Vector [3, 5, 7])
+#           (v1 add v2))
+#   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
+#           [ (`resolve v1), (`resolve add),
+#             (`resolve v2)])
+true;
+
+# source: (assert (def myfn2
+#             (a b)
+#             [ (a add b)]))
+#   eval: (`assert (`def myfn2
+#             (a b)
+#             [ [ (`resolve a), (`resolve add),
+#                 (`resolve b)]]))
+true;
+
+# source: (assert (output (impl myfn2)))
+#   eval: (`assert (`output (`impl (`resolve myfn2))))
+[myfn2,[[a,b],{}],[[[`resolve,a],[`resolve,add],[`resolve,b]]],true];
+true;
+
+# but that only works if the class is present and bound in the caller's namespace
+# if we've nuked it 
+# source: (assert (Vector [3, 5, 7])
+#           (myfn2 v1 v2))
+#   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
+#           [ (`resolve myfn2), (`resolve v1),
+#             (`resolve v2)])
+true;
+
+# source: (assert (del [ (pass Vector)]))
+#   eval: (`assert (`del [ (`pass (`resolve Vector))]))
+true;
+
+# source: (assert (del Vector))
+#   eval: (`assert (`del Vector))
+true;
+
+# then that doesn't work
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{myfn2:fn`myfn2,vector:{add:fn`vector.add},VectorBase:.VectorBase,.VectorBase:[null,null,{add:fn`vector.add}],null:null,null:null,myfn:fn`myfn,v1:[.Vector,[1,2,3]],v2:[.Vector,[2,3,4]]};
+true;
+
+# whereas the function with closed entity definitions still works
+# source: (assert (myfn2 v1 v2))
+#   eval: (`assert [ (`resolve myfn2), (`resolve v1),
+#             (`resolve v2)])
+true;
+
+# source: (assert (output (myfn v1 v2)))
+#   eval: (`assert (`output [ (`resolve myfn), (`resolve v1),
+#               (`resolve v2)]))
+[.Vector,[3,5,7]];
+true;
+
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{myfn2:fn`myfn2,vector:{add:fn`vector.add},VectorBase:.VectorBase,.VectorBase:[null,null,{add:fn`vector.add}],null:null,null:null,myfn:fn`myfn,v1:[.Vector,[1,2,3]],v2:[.Vector,[2,3,4]]};
+true;
+
+# source: (assert (del v1))
+#   eval: (`assert (`del v1))
+true;
+
+# source: (assert (del v2))
+#   eval: (`assert (`del v2))
+true;
+
+# source: (assert (del vector.add))
+#   eval: (`assert (`del (vector add)))
+true;
+
+# source: (assert (del vector))
+#   eval: (`assert (`del vector))
+true;
+
+# source: (assert (del myfn2))
+#   eval: (`assert (`del myfn2))
+true;
+
+# source: (assert (del myfn))
+#   eval: (`assert (`del myfn))
+true;
+
+# source: (assert (del [ (pass VectorBase)]))
+#   eval: (`assert (`del [ (`pass (`resolve VectorBase))]))
+true;
+
+# source: (assert (del VectorBase))
+#   eval: (`assert (`del VectorBase))
+true;
+
+# source: (assert (output (symbols)))
+#   eval: (`assert (`output (`symbols)))
+{};
+true;
+
+# continue
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# source: (assert (set a 10))
+#   eval: (`assert (`set a 10))
+true;
+
+# entity02
+# here's an example vector addition function
+# source: (assert 5
+#           (while (decr a)
+#             [ (output a), (test (gt a 5)
+#                 (continue) a),
+#               (break)]))
+#   eval: (`assert 5
+#           (`while (`decr a)
+#             [ (`output (`resolve a)), (`test (`gt (`resolve a) 5)
+#                 (`continue)
+#                 (`resolve a)),
+#               (`break)]))
+9;
+8;
+7;
+6;
+5;
+true;
+
+# source: (assert (def vector_add
+#             (v1 v2)
+#             [ [ (v1 0), (map (lambda (x y)
+#                     (add x y))
+#                   (v1 1)
+#                   (v2 1))]]))
+#   eval: (`assert (`def vector_add
+#             (v1 v2)
+#             [ [ [ (`resolve v1),0], (`map (`lambda (x y)
+#                     (`add (`resolve x)
+#                       (`resolve y)))
+#                   [ (`resolve v1),1]
+#                   [ (`resolve v2),1])]]))
+true;
+
+# source: (assert (entity Vector null null {add:vector_add}) Vector)
+#   eval: (`assert (`entity Vector null null {add: (`resolve vector_add)})
+#           (`resolve Vector))
+true;
+
+# source: (assert (del vector_add))
+#   eval: (`assert (`del vector_add))
+true;
+
+# source: (assert (set v1
+#             (Vector [1, 2, 3])))
+#   eval: (`assert (`set v1
+#             [ (`resolve Vector), [1, 2, 3]]))
+true;
+
+# entity-based invocation
+# source: (assert (set v2
+#             (Vector [2, 3, 4])))
+#   eval: (`assert (`set v2
+#             [ (`resolve Vector), [2, 3, 4]]))
+true;
+
+# dot-based invocation
+# source: (assert (Vector [3, 5, 7])
+#           (v1 add v2))
+#   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
+#           [ (`resolve v1), (`resolve add),
+#             (`resolve v2)])
+true;
+
+# source: (assert (Vector [3, 5, 7])
+#           (v1.add v2))
+#   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
+#           [ (`resolve (v1 add)), (`resolve v2)])
+true;
+
+# source: (assert (Vector [0.6,13,"hiyou"])
+#           [ (Vector [0.3,4,"hi"]),add,
+#             (Vector [0.3,9,"you"])])
+#   eval: (`assert [ (`resolve Vector), [0.6,13,"hiyou"]]
+#           [ [ (`resolve Vector), [0.3,4,"hi"]], (`resolve add),
+#             [ (`resolve Vector), [0.3,9,"you"]]])
 true;
 

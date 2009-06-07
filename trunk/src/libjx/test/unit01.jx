@@ -1,6 +1,8 @@
 
 # unit01.jx
 
+# NOTE (assert arg1) is equivalent to (assert arg1 null)
+
 (assert true true);
 (assert false false);
 (assert false [eq true false]);
@@ -71,21 +73,21 @@
 
 (assert {} [symbols]);
 
-(assert null [def fn null _]);
+(assert [def fn null _]);
 (assert [1] [fn 1]);
-(assert null [del fn]);
+(assert [del fn]);
 
 (assert [raw [fn 1]] [fn 1]);
 (assert [raw y] y);
 
-(assert null [def fn null [set y _]]);
-(assert null [fn]);
+(assert [def fn null [set y _]]);
+(assert [fn]);
 
 (assert y []);
-(assert null [fn 9]);
+(assert [fn 9]);
 (assert y [9]);
-(assert null [del y]);
-(assert null [del fn]);
+(assert [del y]);
+(assert [del fn]);
 
 (assert {} [symbols]);
 
@@ -93,10 +95,10 @@
 # with the _ identifier for the payload 
 
 (assert {} [symbols]);
-(assert null [def fn {} [set y_]]);
+(assert [def fn {} [set y_]]);
 (assert [raw y] y);
 
-(assert null [del fn]);
+(assert [del fn]);
 
 # functions with single ident args use their own private namespace 
 # but receive the entire payload in one symbol
@@ -273,9 +275,9 @@ true;
 
 # lists with identifiers which resolve to code are executed
 
-(assert null [set x 1])
+(assert [set x 1])
 (assert 1 [get x])
-(assert null [set x 2])
+(assert [set x 2])
 (assert 2 [get x])
 (assert 3 [add 1 2])
 
@@ -288,17 +290,17 @@ true;
 
 # we have looping constructs
 
-(assert null [set a 10])
+(assert [set a 10])
 
-(assert null [set b []])
+(assert [set b []])
 
-(assert null [set c {}])
+(assert [set c {}])
 
 (assert 0 [size [get b]])
 
 # while loop
 
-(assert null
+(assert
   [ while [get a] 
     [ [append b [get a]]
       [set c [get a] 1]
@@ -308,7 +310,7 @@ true;
 
 (assert [10,9,8,7,6,5,4,3,2,1] (get b))
 
-(assert null (output c))
+(assert (output c))
 
 # hash comparison (order-independent of course)
 
@@ -318,30 +320,31 @@ true;
 
 (assert 10 (size [get c]))
 
-(assert null [set b []])
+(assert [set b []])
 
-(assert null [for [set a 1] [lt [get a] 10] [set a [add [get a] 1]] [(output a) [append b [get a]]]])
+(assert [for [set a 1] [lt [get a] 10] [set a [add [get a] 1]] [(output a) [append b [get a]]]])
 
 (assert [1,2,3,4,5,6,7,8,9] (get b))
 
 # do loops
 
-(assert null (set a 1))
+(assert (set a 1))
 
-(assert null [do [set a [add 1 [get a]]] [lt [get a] 10] ])
+(assert [do [set a [add 1 [get a]]] [lt [get a] 10] ])
 
 (assert 10 [get a])
 
-(assert null [set a 1])
+(assert [set a 1])
 
 (assert [[[[null]]]] [[[[[do [set a [add 1 [get a]]] [lt [get a] 10] ]]]]])
 
 (assert 10 [get a])
 
-(assert null (del a))
-(assert null (del b))
-(assert null (del c))
-(assert null (del x))
+(assert (del a))
+(assert -17 (del a))
+(assert (del b))
+(assert (del c))
+(assert (del x))
 
 (assert {} (symbols))
 
@@ -350,7 +353,7 @@ true;
 
 # first, create a heap object
 
-(assert null [set x ["-  -  -  -  -  -  -  -"]])
+(assert [set x ["-  -  -  -  -  -  -  -"]])
 
 # now see what happens when we try to get a borrowed reference
 
@@ -367,33 +370,33 @@ true;
 
 (assert ["-  -  -  -  -  -  -  -"] x)
 
-(assert null [append x 1]);
+(assert [append x 1]);
 
 (assert ["-  -  -  -  -  -  -  -",1] x)
 
-(assert null [append x x])
+(assert [append x x])
 
 (assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]] [get x])
 
-(assert null [append x [get x]])
+(assert [append x [get x]])
 
 (assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
         ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get x])
 
-(assert null [set y x])
+(assert [set y x])
 
 (assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
         ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get y])
 
-(assert null [del x])
+(assert [del x])
 
 (assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
         ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get y])
 
 # scopeless function behavior (arguments go into _)
 
-(assert null (set a [1,2,3,4]))
-(assert null (def fn null [(output _) (get (_ 0) 1)]))
+(assert (set a [1,2,3,4]))
+(assert (def fn null [(output _) (get (_ 0) 1)]))
 (assert 2 (fn a))
 
 # container emptyness testing
@@ -409,13 +412,13 @@ true;
 # not this that type of construct does not work because get expects an
 # indentifier (simple or compound)
 
-(assert null [get [1,2,3] 1]);
+(assert [get [1,2,3] 1]);
 
 (assert [unresolved symbols] [unresolved symbols])
 
-(assert null [set a [1.0]])
+(assert [set a [1.0]])
 
-(assert null [resize a 100 0.5])
+(assert [resize a 100 0.5])
 
 (assert [1.0,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5] a)
 
@@ -427,27 +430,27 @@ true;
 
 (assert 10 [size a]);
 
-(assert null (set fn [lambda null [add [get (_ 0) 1] 2] ]))
+(assert (set fn [lambda null [add [get (_ 0) 1] 2] ]))
 
 (assert 2.5 (fn a))
 
 # scopeless functions inherit their environment (dynamic scoping)
 
-(assert null [def test1 null [get x]])
+(assert [def test1 null [get x]])
 
-(assert null [set x 3])
+(assert [set x 3])
 
 (assert 3 (test1))
 
 # scopefull function with no parameter list
 
-(assert null [def test1 {x:2} [get x]])
+(assert [def test1 {x:2} [get x]])
 
 (assert 2 [test1])
 
 (assert 8 [apply [lambda null 8]])
 
-(assert null [set a 3])
+(assert [set a 3])
 
 
 # notice how lambda returns the whole expr, unlike def which iterates
@@ -455,14 +458,14 @@ true;
 
 (assert [null,9] [apply [lambda null [[set a 9] [get a]]]])
 
-(assert null (del a))
-(assert null (del x))
-(assert null (del y))
-(assert null (del fn))
-(assert null (del test1))
+(assert (del a))
+(assert (del x))
+(assert (del y))
+(assert (del fn))
+(assert (del test1))
 (assert {} (symbols))
 
-(assert null
+(assert
  (def vector_add [v0 v1] [
   (if (ne (size v0) (size v1))
     [ (output "Vector size mismatch") ]
@@ -479,7 +482,7 @@ true;
 
 (assert 1000 (size (vector_add (range 1000) (range 1000))));
 
-(assert null
+(assert
 (def vector_add [v0 v1] [
   (if (ne (size v0) (size v1))
     [ (output "Vector size mismatch") ]
@@ -492,19 +495,26 @@ true;
 
 (assert 2000 (size (vector_add (range 2000) (range 2000))));
 
-# tail recursion test
+(assert (del vector_add))
+
+# TAIL RECURSION
 
 # with tail recursion, result is 20
 
-(assert null (def tail_test [x] [ (output x) (test (lt x 20) (tail (add x 1)) x) x]))
+(assert (def tail_test [x] [ (output x) (test (lt x 20) (tail (add x 1)) x) x]))
 
 (assert 20 (tail_test 10))
 
 # without tail recursion, result is 10
 
-(assert null (def tail_test [x] [ (output x) (test (lt x 20) (tail_test (add x 1)) x) x] ))
+(assert (def tail_test [x] [ (output x) (test (lt x 20) (tail_test (add x 1)) x) x] ))
 
 (assert 10 (tail_test 10))
+
+(assert (del tail_test));
+(assert {} (symbols));
+
+# SPECIAL FORMS
 
 # 'quote' returns the first argument after prebinding but before evaluation
 
@@ -533,13 +543,13 @@ true;
 # to evaluate forms which return functions without calling the
 # functions and without using get)
 
-(assert null (set fn (lambda [x] 1)))
+(assert (set fn (lambda [x] 1)))
 
 (assert 1 (fn));
 
-#(pass fn);
+(assert (output (pass fn)));
 
-# result: fn`0x500d50
+# output: fn`0x500d50
 
 # 'nop' gets excised when binding is performed... upon binding, the
 # first argument to nop replaces it
@@ -548,5 +558,180 @@ true;
 
 # result: [ (`resolve a), (`resolve b),
 #           (`resolve c)]
+
+(assert (del fn))
+(assert {} [symbols])
+
+# closure01
+
+# Jenarix functions statically close on free variables using the
+# surrounding scope
+
+(assert (set x [1,2,3]))
+
+(assert (set z [3,4,5]))
+
+(assert (def myfn [[x,y],{y:[2,3,4]}] [(x,y,z)] ));
+
+(assert (output (impl myfn)));
+
+(assert [ [1, 2, 3], [2, 3, 4],[3, 4, 5]] (myfn))
+
+(assert [1, [2, 3, 4], [3, 4, 5]] (myfn 1))
+
+(assert [1,2, [3, 4, 5]] (myfn 1 2))
+
+(assert (del x))
+(assert (del z))
+(assert (del myfn))
+
+(assert {} [symbols])
+
+# closure02
+
+# another illustration of how Jenarix closures work
+
+(assert (def fnbuilder [y] (lambda [] y)))
+
+(assert (set newfn (fnbuilder 2)))
+
+(assert (output (symbols)))
+
+(assert 2 (newfn))
+
+(assert (set v [1,2]))
+
+(assert (set newfn (fnbuilder v)))
+
+(assert [1,2] (newfn))
+
+# note that value of v was closed on (copied) at the time of function
+# creation.  Changing v later has no effect on the function.
+
+(assert (append v 3))
+
+(assert [1,2,3] v)
+
+(assert [1,2] (newfn))
+
+(assert (output (symbols)))
+(assert (del v))
+(assert (del fnbuilder))
+(assert (del newfn))
+(assert (output (symbols)))
+(assert {} [symbols])
+
+# closure03
+
+(assert (def vector.add [v1 v2] [
+  [(v1 0)
+    (map (lambda [x y] (add x y)) (v1 1) (v2 1)) ]
+  ]));
+
+(assert (output (impl vector.add)))
+
+(assert (output (symbols)))
+ 
+(assert (entity VectorBase null null {add:vector.add}) VectorBase)
+
+(assert (entity Vector VectorBase null null) Vector)
+
+# referring to Vector inside the function is sufficient to create the
+# closure
+
+(assert (def myfn [a,b] ([Vector], (a add b))))
+
+# notice how the Vector definition is in the function's implementation
+
+(assert (output (impl myfn)))
+
+# if we create some vector instances
+
+(assert (set v1 [Vector, [1 2 3]]))
+
+(assert (set v2 [Vector, [2,3,4]]))
+
+# both the function and the local entity methods work on them
+
+(assert [Vector,[3,5,7]] (myfn v1 v2))
+
+(assert [Vector,[3,5,7]] (v1 add v2))
+
+# strictly speaking however, we can instead rely upon dynamic
+
+# referencing of the class at the point of method invocation
+
+(assert (def myfn2 [a,b] [(a add b)]))
+
+(assert (output (impl myfn2)))
+
+(assert [Vector,[3,5,7]] (myfn2 v1 v2))
+
+# but that only works if the class is present and bound in the caller's namespace
+
+# if we've nuked it 
+
+(assert (del ((pass Vector))))
+(assert (del Vector))
+
+(assert (output (symbols)))
+
+# then that doesn't work
+
+(assert (myfn2 v1 v2))
+
+# whereas the function with closed entity definitions still works
+
+(assert (output (myfn v1 v2)))
+
+(assert (output (symbols)))
+(assert (del v1))
+(assert (del v2))
+(assert (del vector.add))
+(assert (del vector))
+(assert (del myfn2))
+(assert (del myfn))
+
+(assert (del ((pass VectorBase))))
+(assert (del VectorBase))
+
+(assert (output (symbols)))
+(assert {} [symbols])
+
+# continue
+
+(assert (set a 10))
+
+(assert 5 (while (decr a) ((output a) (test (gt a 5) (continue) a) (break))))
+
+# entity02
+
+# here's an example vector addition function
+
+(assert (def vector_add [v1 v2] [
+  [(v1 0)
+    (map (lambda [x y] (add x y)) (v1 1) (v2 1))
+  ]]))
+
+(assert (entity Vector null null {add:vector_add}) Vector);
+
+(assert (del vector_add))
+
+(assert (set v1 [Vector, [1 2 3]]))
+
+(assert (set v2 [Vector, [2,3,4]]))
+
+# entity-based invocation
+
+(assert [Vector, [3,5,7]] (v1 add v2))
+
+# dot-based invocation
+
+(assert [Vector, [3,5,7]] (v1.add v2))
+
+(assert [Vector,[0.6,13,"hiyou"]]
+  ([Vector, [0.3 4 "hi"]] add [Vector, [0.3 9 "you"]]));
+
+
 
 
