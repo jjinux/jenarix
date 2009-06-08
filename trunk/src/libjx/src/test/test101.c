@@ -62,10 +62,18 @@ Core 2 Duo-32 bit:
 
   The C version is ONLY 3x faster
 
-  Why is that?  Is our hash table a dog? Profiling with Shark reveals
-  that a full 40% of wall time is consumed with the hash table's
-  hashcode-based random-access memory fetch operation.  Amazing.
-  Unfortunately, prefetching doesn't seem to help.
+  Why is that?  Is our hash table a dog?  
+
+  Profiling with Shark reveals that a full 40% of wall time is
+  consumed with the hash table's hashcode-based random-access memory
+  fetch operation.  Wow.  A memory-local hashing function might speed
+  things up by a factor of 1/0.4 = 2.5!
+
+  For comparison, a simple C program using our hashing function
+  requires 17 seconds to perform 200M random-access memory read/write
+  combos over a GB of RAM.  Thus, our hash table is only 4X slower
+  than the theoretical random-access max, and VM + hash table is slowing
+  things down by a factor of 12x.
 
 */
 
