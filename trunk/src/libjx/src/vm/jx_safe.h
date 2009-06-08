@@ -409,12 +409,12 @@ JX_INLINE jx_ob jx_safe_output(jx_ob node, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_assert(jx_ob node, jx_ob payload)
 {
-  jx_ob expect = jx_list_borrow(payload,0);  
-  jx_ob actual = jx_list_borrow(payload,1);
-  if(!jx_ob_identical(expect,actual)) {
+  jx_ob first = jx_list_borrow(payload,0);  
+  jx_ob second = jx_list_borrow(payload,1);
+  if(!jx_ob_identical(first,second)) {
     fprintf(stdout,"Error: assertion failure.\n");
-    jx_jxon_dump(stdout,"expect",expect);
-    jx_jxon_dump(stdout,"actual",actual);
+    jx_jxon_dump(stdout," first",first);
+    jx_jxon_dump(stdout,"second",second);
     return jx_ob_from_bool(0);
   } else {
     return jx_ob_from_bool(1);
@@ -589,9 +589,21 @@ JX_INLINE jx_ob jx_safe_impl(jx_ob node, jx_ob payload)
 JX_INLINE jx_ob jx_safe_symbols(jx_ob node, jx_ob payload)
 {
   jx_ob result = jx_ob_copy(node);
-  if(!jx_ob_as_bool(jx_list_borrow(payload,0))) {
+  if(!jx_ob_as_bool(jx_list_borrow(payload,0)))  {
     /* hide builtin symbols unless specifically asked for them */
     jx_hash_delete(result, jx_builtins());
+  }
+  if(jx_null_check(jx_list_borrow(payload,0))) {
+    /* hide entity definitions too */
+    jx_ob keys = jx_hash_keys(result);
+    jx_int i,size = jx_list_size(keys);
+    for(i=0;i<size;i++) {
+      jx_ob key = jx_list_borrow(keys,i);
+      if(jx_builtin_entity_check(key)) {
+        jx_hash_delete(result,key);
+      }
+    }
+    jx_ob_free(keys);
   }
   return result;
 }

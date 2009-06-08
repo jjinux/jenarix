@@ -10,7 +10,7 @@
 
 # no pre-defined symbols should be returned by symbols 
 
-(assert {} [symbols]);
+(assert {} (symbols false));
 
 # identity
 
@@ -71,7 +71,7 @@
 
 (assert true [eq "take" "take"]);
 
-(assert {} [symbols]);
+(assert {} (symbols false));
 
 (assert [def fn null _]);
 (assert [1] [fn 1]);
@@ -89,25 +89,88 @@
 (assert [del y]);
 (assert [del fn]);
 
-(assert {} [symbols]);
+(assert {} (symbols false));
+
+# basic namespace actions: get, set, has, del, take
+
+(assert (set name 1))
+(assert 1 (get name));
+(assert true (has name))
+(assert (del name))
+(assert name name)
+       
+(assert (set name 2))
+(assert 2 (take name))
+(assert name name)
+
+(assert {} (symbols false));
+
 
 # functions with {} args use their own private namespace
 # with the _ identifier for the payload 
 
-(assert {} [symbols]);
+(assert {} (symbols false));
 (assert [def fn {} [set y_]]);
 (assert [raw y] y);
 
 (assert [del fn]);
 
-# functions with single ident args use their own private namespace 
-# but receive the entire payload in one symbol
+# ======================================================================
+# - LISP-like functional expression definition "defun" and evaluation with a
+#   conventional ordinary argument list
 
-# functions with [ident ...] args have only positional arguments
+(assert (defun my_expr [x y z] (x y z)))
 
-# functions with [[ident ...],{ident:default,...}] have both a keyword
-# -based default (namespace) and take optional positional args.
+(assert [1,2,3] (my_expr 1 2 3))
 
+# - Python-like code definition "def" and evaluation using an ordinary
+#   argument list.
+
+(assert (def my_code [x y z] (x y z)))
+
+(assert 3 (my_code 1 2 3))
+
+(assert (del my_code))
+(assert (del my_expr))
+
+# ======================================================================
+# - List manipulations, assuming that the list is bound to a top-level
+# symbol.  NOTE: Jenarix list indices are zero-based (like C/Python)
+
+#   - from front: shift, unshift
+
+(assert (set x [2,3]))
+(assert (unshift x 4))
+(assert [4,2,3] x)
+
+#   - from end: pop, push & append (synonyms), 
+
+(assert (append x 6))
+(assert [4,2,3,6] x)
+
+#   - copying an entry: get
+
+(assert 4 (get x 0))
+
+#   - replacing an entry: set
+
+(assert (set x 3 5))
+
+(assert [4,2,3,5] x)
+
+#   - removing and returning: take
+
+(assert 2 (take x 1))
+
+#   - deleting an entry without returning: del
+
+(assert (del x 0))
+(assert [3,5] x)
+
+#   - getting the size of a list
+
+(assert 2 (size x));
+ 
 #
 # Jason's JXON Test Book
 #
@@ -346,7 +409,7 @@ true;
 (assert (del c))
 (assert (del x))
 
-(assert {} (symbols))
+(assert {} (symbols false))
 
 # here's where we convince ourselves that weak (borrowed) references
 # [used through as L-values] cannot leak or escape from where they're used.
@@ -392,6 +455,15 @@ true;
 
 (assert ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1],
         ["-  -  -  -  -  -  -  -",1,["-  -  -  -  -  -  -  -",1]]] [get y])
+
+
+# functions with single ident args use their own private namespace 
+# but receive the entire payload in one symbol
+
+# functions with [ident ...] args have only positional arguments
+
+# functions with [[ident ...],{ident:default,...}] have both a keyword
+# -based default (namespace) and take optional positional args.
 
 # scopeless function behavior (arguments go into _)
 
@@ -463,7 +535,7 @@ true;
 (assert (del y))
 (assert (del fn))
 (assert (del test1))
-(assert {} (symbols))
+(assert {} (symbols false))
 
 (assert
  (def vector_add [v0 v1] [
@@ -512,7 +584,7 @@ true;
 (assert 10 (tail_test 10))
 
 (assert (del tail_test));
-(assert {} (symbols));
+(assert {} (symbols false));
 
 # SPECIAL FORMS
 
@@ -560,7 +632,7 @@ true;
 #           (`resolve c)]
 
 (assert (del fn))
-(assert {} [symbols])
+(assert {} (symbols false))
 
 # closure01
 
@@ -585,7 +657,7 @@ true;
 (assert (del z))
 (assert (del myfn))
 
-(assert {} [symbols])
+(assert {} (symbols false))
 
 # closure02
 
@@ -595,7 +667,7 @@ true;
 
 (assert (set newfn (fnbuilder 2)))
 
-(assert (output (symbols)))
+(assert (output (symbols false)))
 
 (assert 2 (newfn))
 
@@ -614,12 +686,12 @@ true;
 
 (assert [1,2] (newfn))
 
-(assert (output (symbols)))
+(assert (output (symbols false)))
 (assert (del v))
 (assert (del fnbuilder))
 (assert (del newfn))
-(assert (output (symbols)))
-(assert {} [symbols])
+(assert (output (symbols false)))
+(assert {} (symbols false))
 
 # closure03
 
@@ -630,7 +702,7 @@ true;
 
 (assert (output (impl vector.add)))
 
-(assert (output (symbols)))
+(assert (output (symbols false)))
  
 (assert (entity VectorBase null null {add:vector.add}) VectorBase)
 
@@ -674,7 +746,7 @@ true;
 (assert (del ((pass Vector))))
 (assert (del Vector))
 
-(assert (output (symbols)))
+(assert (output (symbols false)))
 
 # then that doesn't work
 
@@ -684,7 +756,7 @@ true;
 
 (assert (output (myfn v1 v2)))
 
-(assert (output (symbols)))
+(assert (output (symbols false)))
 (assert (del v1))
 (assert (del v2))
 (assert (del vector.add))
@@ -695,8 +767,8 @@ true;
 (assert (del ((pass VectorBase))))
 (assert (del VectorBase))
 
-(assert (output (symbols)))
-(assert {} [symbols])
+(assert (output (symbols false)))
+(assert {} (symbols false))
 
 # continue
 
@@ -704,17 +776,17 @@ true;
 
 (assert 5 (while (decr a) ((output a) (test (gt a 5) (continue) a) (break))))
 
-(assert (output (symbols)))
+(assert (output (symbols false)))
 (assert (del a))
-(assert (output (symbols)))
-(assert {} [symbols])
+(assert (output (symbols false)))
+(assert {} (symbols false))
 
 # entity02
 
 # here's an example vector addition function
 
 
-(assert {} [symbols])
+(assert {} (symbols false))
 
 (assert (def vector_add [v1 v2] [
   [(v1 0)
@@ -745,7 +817,7 @@ true;
 (assert (del v2))
 (assert (del ((pass Vector))))
 (assert (del Vector))
-(assert {} [symbols])
+(assert {} (symbols false))
 
 # entity03
 
@@ -788,7 +860,7 @@ true;
 (assert (del B))
 (assert (del poly_fn))
 (assert (del poly_disp))
-(assert {} [symbols]);
+(assert {} (symbols false));
 
 # experimenting with dot notation for calling methods on entity
 
@@ -811,7 +883,7 @@ true;
 (assert (del b))
 (assert (del ((pass A))))
 (assert (del A))
-(assert {} [symbols])
+(assert {} (symbols false))
 
 
 # verify access to attributes
@@ -859,6 +931,164 @@ true;
 (assert (mat 3))
 
 
+(assert (del dim))
+(assert (del ((pass Matrix))))
+(assert (del Matrix))
+(assert (del mat))
+(assert {} (symbols false))
+
+# test construction
+
+(assert (def _method [self,x] ((self 1),x)))
+
+(assert (entity MatrixBase null null { dim:[] , method:_method } ) MatrixBase)
+
+(assert (del _method))
+
+(assert (entity Matrix33f MatrixBase
+  [ 1.0 0.0 0.0 
+    0.0 1.0 0.0 
+    0.0 0.0 1.0 ],
+  {dim:[3,3]}) Matrix33f)
+
+(assert (output (symbols false)));
+
+# new instances can be automatically created by resolving the entity handle and then
+# calling it as a function 
+
+(assert (set m1 ((Matrix33f)) ))
+
+(assert [Matrix33f, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}] 
+  m1)
+
+(assert (del ((pass MatrixBase))))
+(assert (del MatrixBase))
+(assert (del ((pass Matrix33f))))
+(assert (del Matrix33f))
+(assert (del m1))
+(assert {} (symbols false))
 
 
+# delaring an entity effectively reserves the identifier for use by the entity
+
+(assert (entity Vector) Vector);
+
+# result: .Vector
+
+# Notice that two entries are created in the symbol table, one which
+# binds the entity name (Vector) to the builtin entity handle
+# (.Vector) and a second which binds the handle to the attribute table
+# (which can be null)
+
+(assert (output (symbols false)))
+
+# creating an instance the manual way...
+
+(assert (set vect1,
+  [ Vector, [ 1,0,0,0,1,0,0,0,1 ],
+    { take_first_two : (lambda [self] (cutout (self 1) 0 2)) }
+  ]))
+
+(assert (output vect1))
+
+# Bound methods ends up calling the associated function
+
+(assert [1,0] (vect1 take_first_two))
+
+# calling an unbound method currently acts like a nop -- this should
+# probably be changed to either return null or throw an error
+
+(assert (vect1 length))
+
+# entity-wide methods are stored in the entity definition
+
+(assert (entity Vector null null
+  { length : (lambda [self] (size (self 1))) })
+  Vector)
+
+(assert (output (symbols false)))
+
+# result: { ..., Vector: {length:fn`0x600ed8}, ... }
+
+# newly-defined class methods are available to all instances in the namespace
+
+(assert 7 (vect1 length))
+
+# result: 7
+
+(assert (del ((pass Vector))))
+(assert (del Vector))
+(assert (del vect1))
+(assert {} (symbols false))
+
+# functions returning functions
+
+(assert (def addN [x] (lambda [y] (add x y))))
+
+(assert (set add2 (addN 2)))
+
+(assert 7 (add2 5))
+
+(assert (del addN))
+(assert (del add2))
+(assert {} (symbols false))
+
+# build a list
+
+(assert (set a 2000))
+
+(assert (set b []))
+
+(assert null (while a (append b (decr a)) ))
+
+(assert 2000 (get b 0))
+
+(assert 2000 (size b))
+
+# build a hash
+
+# build a million-element hash as fast as you can!
+
+(assert (set a 1000))
+
+(assert (set b {}))
+
+(assert null ( while a (set b (decr a) 1) ))
+
+(assert 1000 (size b))
+
+(assert (del a))
+(assert (del b))
+
+# hash test
+
+(assert (def main1 {} [
+    (set n 1000)
+    (set X {})
+    (map (lambda null (set X [str _] _)) [range 1 [add n 1]])
+    (set c 0)
+    (map (lambda null (set c [add c [has X [str _]]])) [range n 0 -1])
+    c
+    ]
+))
+
+(assert (def main2 {} [
+    (set X {})
+    (for [set i 0] [lt i 1000] [set i (add i 1)] (set X [str i] i))
+    (set c 0)
+    (for [set i 1000] [ge i 0] [set i (sub i 1)] (set c [add c [has X [str i]]]))
+    c
+    ]
+))
+
+(assert 1000 (main1))
+(assert 1000 (main2))
+
+(assert (del main1))
+(assert (del main2))
+
+
+# confirm clean namespace
+
+(assert {} (symbols false))
 
