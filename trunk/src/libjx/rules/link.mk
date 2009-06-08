@@ -23,7 +23,7 @@ CFLAGS=$(ARCH_CFLAGS)
 .p.o:
 	cc $*.m $(CFLAGS) -c -o $@
 
-tests: \
+ctests: \
 	test001.a \
 	test002.a \
 	test003.a \
@@ -33,8 +33,13 @@ tests: \
 	test007.a \
 	test008.a \
     test009.a \
-	test010.a \
+	test010.a 
+
+x1tests: \
 	test100.a \
+	test101.a 
+
+x2tests: \
 	test200.a \
 	test201.a \
 	test202.a \

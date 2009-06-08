@@ -164,6 +164,12 @@ ctests: .config
 utests:
 	make -f rules/main.mk $@
 
+x1tests:
+	make -f rules/main.mk $@
+
+x2tests:
+	make -f rules/main.mk $@
+
 utupdate:
 	make -f rules/main.mk $@
 
@@ -203,6 +209,10 @@ max64: jx-max64
 ut: utests
 
 ct: ctests
+
+x1: x1tests
+
+x2: x2tests
 
 utu: utupdate
 

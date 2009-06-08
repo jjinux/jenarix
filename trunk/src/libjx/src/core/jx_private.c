@@ -2721,12 +2721,13 @@ jx_int jx__hash_size(jx_hash * I)
 JX_INLINE jx_uint32 jx__new_mask_from_min_size(jx_uint32 min_size)
 {
   jx_uint32 new_mask = 0;
-  jx_uint32 tmp_usage = ((3 * min_size) >> 1);
+  jx_uint32 threshold = ((3 * min_size) >> 1);
+  jx_uint32 tmp_usage = threshold;
   while(tmp_usage) {
     new_mask = (new_mask << 1) + 1;
     tmp_usage = (tmp_usage >> 1);
   }
-  while(new_mask < min_size) {
+  while(new_mask < threshold) {
     new_mask = (new_mask << 1);
   }
   return new_mask;
@@ -3082,6 +3083,8 @@ static jx_bool jx__tls_hash_recondition(jx_tls *tls, jx_hash * I, jx_int mode, j
     case JX_HASH_ONE_TO_NIL:
       {
         jx_uint32 new_mask = jx__new_mask_from_min_size(min_size);
+        //        printf("recondition new mask %x\n",new_mask);
+
         {
           /* prepare new info block */
           jx_hash_info *new_info = (jx_hash_info *) jx_tls_vla_new(tls,sizeof(jx_uint32),
@@ -3651,7 +3654,8 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
       if(!hash_code) {            /* unhashable key */
         status = JX_STATUS_OB_NOT_HASHABLE;
       } else {
-        if(!I->info) {            /* "no info" mode -- search & match objects directly  */
+        jx_hash_info *info;
+        if(! (info = (jx_hash_info*)I->info) ) {            /* "no info" mode -- search & match objects directly  */
           if(!I->key_value) {
             jx_ob *ob;
             /* new table, first entry  */
@@ -3663,59 +3667,63 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
             }
           } else {
             jx_uint32 size = jx_vla_size(&I->key_value);
-            if(1) {
-              jx_bool found = JX_FALSE;
-              register jx_uint32 i = (size >> 1);
-              register jx_ob *ob = I->key_value;
-              while(i--) {
+            jx_bool found = JX_FALSE;
+            register jx_uint32 i = (size >> 1);
+            register jx_ob *ob = I->key_value;
+            while(i--) {
 #if 0
-                fprintf(stderr, "%08x %04x %04x == %08x %04x %04x %d\n",
-                        (unsigned int) ob[0].data.raw.word,
-                        (unsigned int) ob[0].meta.fill,
-                        (unsigned int) ob[0].meta.bits,
-                        (unsigned int) key.data.raw.word,
-                        (unsigned int) key.meta.fill,
-                        (unsigned int) key.meta.bits, jx_ob_identical(ob[0], key)
-                        );
+              fprintf(stderr, "%08x %04x %04x == %08x %04x %04x %d\n",
+                      (unsigned int) ob[0].data.raw.word,
+                      (unsigned int) ob[0].meta.fill,
+                      (unsigned int) ob[0].meta.bits,
+                      (unsigned int) key.data.raw.word,
+                      (unsigned int) key.meta.fill,
+                      (unsigned int) key.meta.bits, jx_ob_identical(ob[0], key)
+                      );
 #endif
-                if(jx_ob_identical(ob[0], key)) {
-                  found = JX_TRUE;
-                  jx_ob_free(ob[0]);
-                  jx_ob_free(ob[1]);
-                  ob[0] = JX_OWN(key);    /* takes ownership */
-                  ob[1] = JX_OWN(value);  /* takes ownership */
-                  status = JX_SUCCESS;
-                  break;
-                }
-                ob += 2;
+              if(jx_ob_identical(ob[0], key)) {
+                found = JX_TRUE;
+                jx_ob_free(ob[0]);
+                jx_ob_free(ob[1]);
+                ob[0] = JX_OWN(key);    /* takes ownership */
+                ob[1] = JX_OWN(value);  /* takes ownership */
+                status = JX_SUCCESS;
+                break;
               }
-              if(!found) {
-                if(jx_ok(jx_vla_grow_check(&I->key_value, size + 1))) {
-                  I->key_value[size] = key;
-                  I->key_value[size + 1] = value;
-                  status = JX_SUCCESS;
-                  if(size > (2 * JX_HASH_RAW_CUTOFF)) { 
-                    /* switch to linear hash once we have more than N elements */
-                    jx__tls_hash_recondition(tls, I, JX_HASH_LINEAR, JX_FALSE);
-                  }
+              ob += 2;
+            }
+            if(!found) {
+              if(jx_ok(jx_vla_grow_check(&I->key_value, size + 1))) {
+                I->key_value[size] = key;
+                I->key_value[size + 1] = value;
+                status = JX_SUCCESS;
+                if(size > (2 * JX_HASH_RAW_CUTOFF)) { 
+                  /* switch to linear hash once we have more than N elements */
+                  jx__tls_hash_recondition(tls, I, JX_HASH_LINEAR, JX_FALSE);
                 }
               }
             }
           }
-        } else {                  /* we have an info record */
+        } else { /* we have an info record */
+          jx_uint32 index, mask = info->mask;
+          jx_uint32 *hash_table = info->table;
+          register jx_uint32 *hash_entry = hash_table + ((index = (mask & hash_code)) << 1);
+          /* the following instruction seems to have no beneficial impact... */
+#ifdef __GNUC__
+          __builtin_prefetch(hash_entry+1,0,0);
+#endif
           if(!I->key_value) {
             I->key_value = jx_tls_vla_new(tls,sizeof(jx_ob), 0,JX_TRUE);
           }
-          if(I->key_value && I->info) {
-            jx_hash_info *info = (jx_hash_info *) I->info;
+          if(I->key_value) {
             switch (info->mode) {
             case JX_HASH_LINEAR:
               {
                 register jx_uint32 i = info->usage;
-                register jx_uint32 *hash_entry = info->table;
                 register jx_ob *ob = I->key_value;
-                
                 jx_bool found = JX_FALSE;
+                hash_entry = info->table;
+
                 while(i--) {
                   if(*hash_entry == hash_code) {
                     if(jx_ob_identical(ob[0], key)) {
@@ -3755,22 +3763,22 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
             case JX_HASH_ONE_TO_ANY:
             case JX_HASH_ONE_TO_NIL:
               {
-                if(info->usage >= ((info->mask<<1)/3)) {     /* more than ~2/3rd's full */
+                if(info->usage > ((info->mask<<1)/3)) { /* more than ~2/3rd's full */
                   jx__tls_hash_recondition(tls, I, info->mode, JX_FALSE);
                   info = (jx_hash_info *) I->info;
+                  mask = info->mask;
+                  index = mask & hash_code;
+                  hash_table = info->table;
+                  hash_entry = hash_table + (index << 1);
                 }
                 {
-                  register jx_uint32 mask = info->mask;
-                  jx_uint32 *hash_table = info->table;
-                  register jx_uint32 index = mask & hash_code;
                   jx_uint32 usage = info->usage;
                   jx_ob *key_value = I->key_value;
-                  register jx_uint32 *hash_entry = hash_table + (index << 1);
                   jx_bool found = JX_FALSE;
-                  jx_uint32 *dest_ptr = JX_NULL;
-                  register jx_uint32 hash_entry_1 = hash_entry[1];
-                  jx_bool dest_virgin = JX_FALSE;
                   register jx_uint32 sentinel = index;
+                  jx_uint32 *dest_ptr = JX_NULL;
+                  jx_bool dest_virgin = JX_FALSE;
+                  register jx_uint32 hash_entry_1 = hash_entry[1];
                   do {
                     index = (index + 1) & mask;
                     if(!hash_entry_1) {
@@ -3838,6 +3846,10 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
                   if((info->usage + 1) > (3 * info->mask) >> 2) { /* more than ~3/4'rs full */
                     jx__tls_hash_recondition(tls, I, info->mode, JX_FALSE);
                     info = (jx_hash_info *) I->info;
+                    mask = info->mask;
+                    index = mask & hash_code;
+                    hash_table = info->table;
+                    hash_entry = hash_table + (index << 1);
                   }
                   {
                     jx_uint32 mask = info->mask;
@@ -3849,31 +3861,27 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
                     jx_bool reverse_found = JX_FALSE;
                     jx_bool virgin_forward = JX_FALSE;
                     jx_bool virgin_reverse = JX_FALSE;
-                    {
-                      jx_uint32 *hash_table = info->table;
-                      jx_uint32 index = mask & hash_code;
-                      jx_uint32 sentinel = index;
-                      do {
-                        jx_uint32 *hash_entry = hash_table + (index << 1);
-                        if(!hash_entry[1]) {
-                          if(!dest_forward_ptr) {
-                            dest_forward_ptr = hash_entry;
-                            virgin_forward = JX_TRUE;
-                          }
-                          break;
-                        } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
-                          if(!dest_forward_ptr)
-                            dest_forward_ptr = hash_entry;
-                        } else if((hash_entry[0] == hash_code) &&
-                                  jx_ob_identical(key_value
-                                                  [hash_entry[1] &
-                                                   JX_HASH_ENTRY_KV_OFFSET_MASK], key)) {
-                          forward_found = JX_TRUE;
-                          break;
+                    jx_uint32 sentinel = index;
+                    do {
+                      jx_uint32 *hash_entry = hash_table + (index << 1);
+                      if(!hash_entry[1]) {
+                        if(!dest_forward_ptr) {
+                          dest_forward_ptr = hash_entry;
+                          virgin_forward = JX_TRUE;
                         }
-                        index = (index + 1) & mask;
-                      } while(index != sentinel);
-                    }
+                        break;
+                      } else if(!(hash_entry[1] & JX_HASH_ENTRY_ACTIVE)) {
+                        if(!dest_forward_ptr)
+                          dest_forward_ptr = hash_entry;
+                      } else if((hash_entry[0] == hash_code) &&
+                                jx_ob_identical(key_value
+                                                [hash_entry[1] &
+                                                 JX_HASH_ENTRY_KV_OFFSET_MASK], key)) {
+                        forward_found = JX_TRUE;
+                        break;
+                      }
+                      index = (index + 1) & mask;
+                    } while(index != sentinel);
                     {
                       jx_uint32 *hash_table = info->table + ((mask + 1) << 1);
                       jx_uint32 index = mask & reverse_hash_code;

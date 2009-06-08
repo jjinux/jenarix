@@ -2023,7 +2023,7 @@ true;
 # then that doesn't work
 # source: (assert (output (symbols false)))
 #   eval: (`assert (`output (`symbols false)))
-{myfn:fn`myfn,VectorBase:.VectorBase,vector:{add:fn`vector.add},.VectorBase:[null,null,{add:fn`vector.add}],v2:[.Vector,[2,3,4]],v1:[.Vector,[1,2,3]],myfn2:fn`myfn2};
+{VectorBase:.VectorBase,vector:{add:fn`vector.add},.VectorBase:[null,null,{add:fn`vector.add}],myfn:fn`myfn,v1:[.Vector,[1,2,3]],v2:[.Vector,[2,3,4]],myfn2:fn`myfn2};
 true;
 
 # whereas the function with closed entity definitions still works
@@ -2040,7 +2040,7 @@ true;
 
 # source: (assert (output (symbols false)))
 #   eval: (`assert (`output (`symbols false)))
-{myfn:fn`myfn,VectorBase:.VectorBase,vector:{add:fn`vector.add},.VectorBase:[null,null,{add:fn`vector.add}],v2:[.Vector,[2,3,4]],v1:[.Vector,[1,2,3]],myfn2:fn`myfn2};
+{VectorBase:.VectorBase,vector:{add:fn`vector.add},.VectorBase:[null,null,{add:fn`vector.add}],myfn:fn`myfn,v1:[.Vector,[1,2,3]],v2:[.Vector,[2,3,4]],myfn2:fn`myfn2};
 true;
 
 # source: (assert (del v1))
@@ -2632,7 +2632,7 @@ true;
 # newly-defined class methods are available to all instances in the namespace
 # source: (assert (output (symbols false)))
 #   eval: (`assert (`output (`symbols false)))
-{vect1:[.Vector,[0,0,1,0,0,0,1],{take_first_two:fn`0xXXXXXX}],Vector:.Vector,.Vector:[null,null,{length:fn`0xXXXXXX}]};
+{Vector:.Vector,.Vector:[null,null,{length:fn`0xXXXXXX}],vect1:[.Vector,[0,0,1,0,0,0,1],{take_first_two:fn`0xXXXXXX}]};
 true;
 
 # result: 7

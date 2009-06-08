@@ -20,14 +20,18 @@ mains:
 	echo
 	echo # "Executables built! ./jx, ./jxs , etc."
 
-tests: 
-	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk tests
-
-ctests: tests
+ctests: 
+	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk ctests
 	cd $(JX_BUILD);make -f $(JX_BASE)/rules/test.mk
 
 utests: jx
 	cd $(JX_BASE)/test;make -f $(JX_BASE)/rules/utest.mk
+
+x1tests: 
+	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk x1tests
+
+x2tests: 
+	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk x2tests
 
 utupdate: 
 	cd $(JX_BASE)/test;make -f $(JX_BASE)/rules/utupdate.mk

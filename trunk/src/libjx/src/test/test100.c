@@ -35,19 +35,33 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define N_THREAD 5
 
-/* performance comparison versus test/loop01.jx --
+/* list container performance comparison versus test/loop01.jx
 
-How much overhead does the VM and namespace impose?
+How much overhead do symbols, the VM, and namespace impose?
 
-G5-32: -O3
+JXON version:
 
-2M cycles in VM = 2.25 sec
+(set a 2000000);
+(set b []);
+(while a (append b (decr a)) );
+(output (get b 0));
+(output (size b));
 
-20M cycles in C = 1.58 sec
+G5-32 bit: -O3
 
-The C version is 14.2x faster on a G5
+  2M cycles in VM = 2.3 sec
 
+  20M cycles in C = 1.8 sec
 
+  The C version is 13x faster 
+
+Core 2 Duo-32 bit:
+
+  2M cycles in VM = 1.5 sec
+
+  20M cycles in C = 1.1 sec
+
+  The C version is 13x faster
 
 */
 
@@ -57,7 +71,7 @@ jx_status run_test(void)
   jx_ob counter = jx_ob_from_int(20000000);
   jx_ob one = jx_ob_from_int(1);
   while(jx_ob_as_int(counter)) {
-    jx_list_append(list,counter);
+    jx_list_append(list,jx_ob_copy(counter));
     jx_ob_replace(&counter, jx_ob_sub(counter, one));
   }
   {

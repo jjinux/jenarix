@@ -1,20 +1,10 @@
 # build a million-element hash as fast as you can!
 
-# a = 2000000
-
 (set a 2000000);
-
-# b = {}
 
 (set b {});
 
-#while a:
-#   b[a] = 1
-#   a = a - 1
-
-( while a (set b (decr a) 1) );
-
-# print len(b)
+(while a (set b (decr a) 1) );
 
 (size b);
 
