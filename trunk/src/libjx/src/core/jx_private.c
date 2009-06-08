@@ -2492,7 +2492,7 @@ jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
     if((bits & JX_META_MASK_BUILTIN_TYPE)==
        JX_META_BIT_BUILTIN_ENTITY)
       return jx__c_str_hash(jx_ob_as_ident(&ob)); /* entity handles are merely cloaked identifiers */
-    return jx__ob_hash_code(ob);
+    return jx__ob_non_gc_hash_code(ob);
   } else {
     return 0;                   /* unhashable */
   }

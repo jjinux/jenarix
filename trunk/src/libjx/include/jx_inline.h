@@ -1667,8 +1667,12 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
 
 /* hashing */
 
-JX_INLINE jx_uint32 jx__ob_hash_code(jx_ob ob)
+JX_INLINE jx_uint32 jx__ob_non_gc_hash_code(jx_ob ob)
 {
+#if 1
+  /* conventional approach: scramble well enough to approximate ideal
+     hashing */
+
 #if (JX_TINY_STR_SIZE <= 6)
   register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
                                        JX_META_MASK_FOR_HASH) ^ 
@@ -1704,12 +1708,63 @@ JX_INLINE jx_uint32 jx__ob_hash_code(jx_ob ob)
                                        ob.meta.fill)) ^
                           ((jx_uint32)(tmp ^ (tmp>>32))));
 #endif
+
   a += ~(a << 15);
   a ^= (a >> 10);
   a += (a << 3);
   a ^= (a >> 6);
   a += ~(a << 11);
   a ^= (a >> 16);
+
+#else
+
+/* alternate approach: simply sum and fold.  Goal: improve memory
+   locality for closely-related entries (makes sequential-int key use
+   about 2X faster) Doing this right would however require adoption of
+   a hash-code-dependent probe pattern to avoid collisions... */
+
+#if (JX_TINY_STR_SIZE <= 6)
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) +
+                                      ob.meta.fill)) +
+                          ((jx_uint32) ob.data.raw.word));
+#endif
+#if (JX_TINY_STR_SIZE == 10)
+  register jx_int64 tmp = ob.data.raw.word;
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) +
+                                       ob.meta.fill)) +
+                          ((jx_uint32)(tmp + (tmp>>32))));
+#endif
+#if (JX_TINY_STR_SIZE == 12)
+  register jx_int64 tmp = ob.data.raw.word;
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) +
+                                       ob.meta.fill)) +
+                          ((jx_uint32)(tmp + (tmp>>32))));
+#endif
+#if (JX_TINY_STR_SIZE == 14)
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) +
+                                       ob.meta.fill)) +
+                          ((jx_uint32)(ob.data.raw.word[0] +
+                                       ob.data.raw.word[1] +
+                                       ob.data.raw.word[2])));
+#endif
+#if (JX_TINY_STR_SIZE == 20)
+  register jx_uint64 tmp = (ob.data.raw.word[0] ^ ob.data.raw.word[1]);
+  register jx_uint32 a = (((jx_uint32)((ob.meta.bits & 
+                                       JX_META_MASK_FOR_HASH) +
+                                       ob.meta.fill)) +
+                          ((jx_uint32)(tmp + (tmp>>32))));
+#endif
+
+  a += (a>>24);
+  a += (a>>16);
+  a += (a>>8);
+
+#endif
+
   return (a ? a : 1);           /* zero is reserved as the hash code of an
                                    unhashable object */
 }
@@ -1718,7 +1773,7 @@ jx_uint32 jx__ob_gc_hash_code(jx_ob);
 JX_INLINE jx_uint32 jx_ob_hash_code(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
-    jx__ob_gc_hash_code(ob) : jx__ob_hash_code(ob);
+    jx__ob_gc_hash_code(ob) : jx__ob_non_gc_hash_code(ob);
 }
 
 jx_ob jx_hash_new(void);
