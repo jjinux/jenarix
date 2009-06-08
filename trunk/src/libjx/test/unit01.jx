@@ -746,7 +746,7 @@ true;
 (assert (del ((pass Vector))))
 (assert (del Vector))
 
-(assert (output (symbols false)))
+# (assert (output (symbols false)))
 
 # then that doesn't work
 
@@ -756,7 +756,8 @@ true;
 
 (assert (output (myfn v1 v2)))
 
-(assert (output (symbols false)))
+# (assert (output (symbols false)))
+
 (assert (del v1))
 (assert (del v2))
 (assert (del vector.add))
@@ -1006,7 +1007,7 @@ true;
   { length : (lambda [self] (size (self 1))) })
   Vector)
 
-(assert (output (symbols false)))
+#(assert (output (symbols false)))
 
 # result: { ..., Vector: {length:fn`0x600ed8}, ... }
 

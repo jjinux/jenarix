@@ -88,28 +88,32 @@ true;
 #             (sender cnt)
 #             [ (if sender
 #                 [ (while (decr cnt)
-#                     (append pipe true)), (append pipe false),
+#                     (append pipe false)), (append pipe true),
 #                   (size pipe)]
 #                 [ (set wait 7), (while wait
-#                     (test (shift pipe)
-#                       (incr cnt)
-#                       (decr wait))),cnt])]))
+#                     [ (set payload
+#                         (shift pipe)), (test (eq payload false)
+#                         (incr cnt)),
+#                       (test (eq payload true)
+#                         (decr wait))]),cnt])]))
 #   eval: (`assert (`def send_recv
 #             (sender cnt)
 #             [ (`if (`resolve sender)
 #                 [ (`while (`decr cnt)
-#                     (`append pipe true)), (`append pipe false),
+#                     (`append pipe false)), (`append pipe true),
 #                   (`size (`resolve pipe))]
 #                 [ (`set wait 7), (`while (`resolve wait)
-#                     (`test (`shift (`resolve pipe))
-#                       (`incr cnt)
-#                       (`decr wait))),
+#                     [ (`set payload
+#                         (`shift (`resolve pipe))), (`test (`eq (`resolve payload) false)
+#                         (`incr cnt)),
+#                       (`test (`eq (`resolve payload) true)
+#                         (`decr wait))]),
 #                   (`resolve cnt)])]))
 true;
 
 # source: (assert (output (impl send_recv)))
 #   eval: (`assert (`output (`impl (`resolve send_recv))))
-[send_recv,[[sender,cnt],{pipe:[]}],[[`if,[`resolve,sender],[[`while,[`decr,cnt],[`append,pipe,true]],[`append,pipe,false],[`size,[`resolve,pipe]]],[[`set,wait,7],[`while,[`resolve,wait],[`test,[`shift,[`resolve,pipe]],[`incr,cnt],[`decr,wait]]],[`resolve,cnt]]]],true];
+[send_recv,[[sender,cnt],{pipe:[]}],[[`if,[`resolve,sender],[[`while,[`decr,cnt],[`append,pipe,false]],[`append,pipe,true],[`size,[`resolve,pipe]]],[[`set,wait,7],[`while,[`resolve,wait],[[`set,payload,[`shift,[`resolve,pipe]]],[`test,[`eq,[`resolve,payload],false],[`incr,cnt]],[`test,[`eq,[`resolve,payload],true],[`decr,wait]]]],[`resolve,cnt]]]],true];
 true;
 
 # source: (assert (set result

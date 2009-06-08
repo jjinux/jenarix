@@ -3707,11 +3707,15 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
         } else { /* we have an info record */
           jx_uint32 index, mask = info->mask;
           jx_uint32 *hash_table = info->table;
-          register jx_uint32 *hash_entry = hash_table + ((index = (mask & hash_code)) << 1);
-          /* the following instruction seems to have no beneficial impact... */
+          register jx_uint32 *hash_entry = hash_table +
+            ((index = (mask & hash_code)) << 1); /* prefetch? */
+#if 0
+          /* the following instruction doesn't help the way it should... */
 #ifdef __GNUC__
           __builtin_prefetch(hash_entry+1,0,0);
 #endif
+#endif
+
           if(!I->key_value) {
             I->key_value = jx_tls_vla_new(tls,sizeof(jx_ob), 0,JX_TRUE);
           }

@@ -37,11 +37,13 @@
 
 (assert (def send_recv [sender,cnt] [
   (if sender 
-    ( (while (decr cnt) (append pipe true))
-      (append pipe false)
+    ( (while (decr cnt) (append pipe false))
+      (append pipe true)
       (size pipe))
     ( (set wait 7)
-      (while wait (test (shift pipe) (incr cnt) (decr wait)))
+      (while wait [(set payload (shift pipe))
+                   (test (eq payload false) (incr cnt))
+                   (test (eq payload true) (decr wait))])
       cnt))
   ]))
 

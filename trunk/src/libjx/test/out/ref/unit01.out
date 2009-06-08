@@ -2016,14 +2016,10 @@ true;
 #   eval: (`assert (`del [ (`pass (`resolve Vector))]))
 true;
 
+# (assert (output (symbols false)))
+# then that doesn't work
 # source: (assert (del Vector))
 #   eval: (`assert (`del Vector))
-true;
-
-# then that doesn't work
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{VectorBase:.VectorBase,vector:{add:fn`vector.add},.VectorBase:[null,null,{add:fn`vector.add}],myfn:fn`myfn,v1:[.Vector,[1,2,3]],v2:[.Vector,[2,3,4]],myfn2:fn`myfn2};
 true;
 
 # whereas the function with closed entity definitions still works
@@ -2032,15 +2028,11 @@ true;
 #             (`resolve v2)])
 true;
 
+# (assert (output (symbols false)))
 # source: (assert (output (myfn v1 v2)))
 #   eval: (`assert (`output [ (`resolve myfn), (`resolve v1),
 #               (`resolve v2)]))
 [.Vector,[3,5,7]];
-true;
-
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{VectorBase:.VectorBase,vector:{add:fn`vector.add},.VectorBase:[null,null,{add:fn`vector.add}],myfn:fn`myfn,v1:[.Vector,[1,2,3]],v2:[.Vector,[2,3,4]],myfn2:fn`myfn2};
 true;
 
 # source: (assert (del v1))
@@ -2621,18 +2613,14 @@ true;
 #   eval: (`assert [ (`resolve vect1), (`resolve length)])
 true;
 
+#(assert (output (symbols false)))
+# result: { ..., Vector: {length:fn`0xXXXXXX}, ... }
+# newly-defined class methods are available to all instances in the namespace
 # source: (assert (entity Vector null null {length: (lambda (self)
 #               (size (self 1)))}) Vector)
 #   eval: (`assert (`entity Vector null null {length: (`lambda (self)
 #               (`size [ (`resolve self),1]))})
 #           (`resolve Vector))
-true;
-
-# result: { ..., Vector: {length:fn`0xXXXXXX}, ... }
-# newly-defined class methods are available to all instances in the namespace
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{Vector:.Vector,.Vector:[null,null,{length:fn`0xXXXXXX}],vect1:[.Vector,[0,0,1,0,0,0,1],{take_first_two:fn`0xXXXXXX}]};
 true;
 
 # result: 7
