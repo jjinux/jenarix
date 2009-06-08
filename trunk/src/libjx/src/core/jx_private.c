@@ -4893,7 +4893,7 @@ jx_ob jx__builtin_copy_strong(jx_ob ob)
 
 /* copying */
 
-jx_ob jx__ob_gc_copy(jx_ob ob)
+jx_ob jx__tls_ob_gc_copy(jx_tls *tls, jx_ob ob)
 {
   /* on entry, we know the object is GC'd and that the reference is
      not weak (otherwise the weak reference itself would have been

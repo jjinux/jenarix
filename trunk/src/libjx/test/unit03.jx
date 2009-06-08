@@ -26,25 +26,22 @@
 
 # now we're creating a queue and sending data through the queue asynchronously
 
+# synchronizing a container disables copy semantics for the container
+# and replaces it with weak reference taking.  This will enable each 
+# functions to close on and reference the same container
+
 (assert (set pipe []))
 
 (assert (synchronize pipe true))
 (assert true (synchronized pipe))
 
-# synchronizing a container disables copy semantics for the container
-# and replaces it with weak reference taking.  This will enable each 
-# function to reference the same container
-
-(assert (def send_recv [sender,cnt,pipe] [
-#  (output pipe)
+(assert (def send_recv [sender,cnt] [
   (if sender 
-
-    ( (while (decr cnt) (append pipe sender))
-      (append pipe -1)
+    ( (while (decr cnt) (append pipe true))
+      (append pipe false)
       (size pipe))
-
     ( (set wait 7)
-      (while wait (test (ge (shift pipe) 0) (incr cnt) (decr wait)))
+      (while wait (test (shift pipe) (incr cnt) (decr wait)))
       cnt))
   ]))
 
@@ -52,17 +49,25 @@
 
 (assert (set result
   (paramap send_recv [
-    [true,1000,pipe] 
-    [true,1000,pipe] 
-    [true,1000,pipe]
-    [true,1000,pipe]
-    [true,1000,pipe]
-    [true,1000,pipe]
-    [true,1000,pipe]
-    [false,0,pipe]
+    [true,1000] 
+    [true,1000] 
+    [true,1000]
+    [true,1000]
+    [true,1000]
+    [true,1000]
+    [true,1000]
+    [false,0]
   ])))
+
+(assert (output result));
 
 (assert 8 (size result))
 
 (assert 7000 (get result -1))
+
+(assert (del send_recv))
+(assert (del pipe))
+(assert (del result))
+
+(assert {} (symbols))
 

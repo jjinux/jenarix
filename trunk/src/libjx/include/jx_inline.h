@@ -311,6 +311,17 @@ struct jx__tls {
 
 #define JX_NULLIFY(x) jx_os_memset((void*) &(x), 0, sizeof(x));
 
+/* weak references... */
+
+JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
+{
+  jx_bits bits = ob.meta.bits; 
+  if(bits & JX_META_BIT_GC) {
+    ob.meta.bits = bits | JX_META_BIT_WEAK_REF;
+  }
+  return ob;
+}
+
 /* thread-local-state (TLS) prototypes -- reuse blocks for faster memory access, etc. */
 
 void jx_tls_free(jx_tls *tls);
@@ -325,11 +336,12 @@ jx_ob jx_tls_list_new(jx_tls *tls);
 jx_ob jx_tls_list_new_with_size(jx_tls *tls,jx_int size);
 jx_list *jx_tls_list_calloc(jx_tls *tls);
 
-jx_ob jx__tls_ob_copy(jx_tls *tls, jx_ob ob);
+jx_ob jx__tls_ob_gc_copy(jx_tls *tls, jx_ob ob);
 JX_INLINE jx_ob jx_tls_ob_copy(jx_tls *tls, jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
-    jx__tls_ob_copy(tls,ob) : ob;
+    ((ob.data.io.gc->synchronized || ob.data.io.gc->shared) ?
+     jx_ob_take_weak_ref(ob) : jx__tls_ob_gc_copy(tls,ob)) : ob;
 }
 
 #define   jx_tls_vla_new(t,r,s,z)           jx__tls_vla_new(t,r,s,z)
@@ -554,14 +566,6 @@ JX_INLINE jx_status jx_float_vla_free(jx_float ** ref)
 
 
 
-JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
-{
-  jx_bits bits = ob.meta.bits; 
-  if(bits & JX_META_BIT_GC) {
-    ob.meta.bits = bits | JX_META_BIT_WEAK_REF;
-  }
-  return ob;
-}
 
 void jx_jxon_dump_in_node(FILE *f, char *prefix, jx_ob node, jx_ob ob);
 JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
@@ -569,14 +573,11 @@ JX_INLINE void jx_jxon_dump(FILE *f, char *prefix, jx_ob ob)
   jx_jxon_dump_in_node(f,prefix,jx_ob_from_null(),ob);
 }
 
-jx_ob jx__ob_gc_copy(jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
 {
-  /* by default, shared and synchronized objects are copied as weak
-     references */
   return ((ob.meta.bits & JX_META_BIT_GC) ?
           ((ob.data.io.gc->synchronized || ob.data.io.gc->shared) ?
-           jx_ob_take_weak_ref(ob) : jx__ob_gc_copy(ob)) : ob);
+           jx_ob_take_weak_ref(ob) : jx__tls_ob_gc_copy(JX_NULL,ob)) : ob);
 }
 
 jx_ob jx__tls_ob_gc_copy_strong(jx_tls *tls,jx_ob ob);
