@@ -1,5 +1,0 @@
-
-
-(def fn null (1 2 (return) 3));
-
-(fn);

@@ -1,7 +1,0 @@
-# functions returning functions
-
-(def addN [x] (lambda [y] (add x y)));
-
-(set add2 (addN 2));
-
-(add2 5);

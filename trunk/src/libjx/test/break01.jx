@@ -1,7 +1,0 @@
-
-(set a 10);
-
-(while 1 ((test (decr a) () (break)) (output a)));
-
-a;
-
