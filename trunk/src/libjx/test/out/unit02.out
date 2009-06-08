@@ -1,4 +1,4 @@
-# unit02.jxp (Python unit tests)
+# unit02.jxp -- basic Python unit tests (no threads)
 # parsed: (set a 1)
 # source: (set a 1)
 #   eval: (`set a 1)

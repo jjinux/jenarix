@@ -322,19 +322,27 @@ jx_status jx_heap_dump(jx_int32 flags)
             jx_int i,size=80;
             jx_char buffer[21];
             jx_char *q,*p = (jx_char*)(rec+1);
+            jx_bool last_was_zero = JX_FALSE;
             if(size > rec->size)
               size = rec->size;
             q = buffer;
             for(i=0;i<size;i++) {
+              jx_bool advance = JX_TRUE;
               jx_char ch = *(p++);
               if(ch<32) {
                 if(ch == 0) {
                   ch = '.';
+                  if(last_was_zero)
+                    advance = JX_FALSE;
+                  last_was_zero = JX_TRUE;
                 } else {
+                  last_was_zero = JX_FALSE;
                   ch = '?';
                 }
-              }
-              *(q++) = ch;
+              } else 
+                last_was_zero = JX_FALSE;
+              if(advance)
+                *(q++) = ch;
             }
             *q = 0;
 #ifdef JX__HEAP_DUMP_SORT

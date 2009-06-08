@@ -1020,6 +1020,16 @@ static jx_ob jx__code_close_with_args(jx_ob node, jx_ob code, jx_ob args)
       jx_ob ident = jx_list_borrow(unbound,i);
       jx_ob value = jx_ob_from_null();
       if(jx_hash_peek(&value,node,ident)) {
+        /* one important thing to be aware of: shared and synchronized
+           containers are closed by reference.  Delete the container
+           and you invalidate the reference, which will generate a segfault.
+
+           JUST SO YOU KNOW!
+           
+           By the way, you should seriously consider implementing
+           reference counting for shared and synchronized containers.
+        */
+           
         jx_hash_set(closed,jx_ob_copy(ident),jx_ob_copy(value));
         while(jx_builtin_entity_check(value)) { /* close on chained entity hashes as well */
           jx_ob ent_def = jx_hash_get(node, value); 

@@ -35,17 +35,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
+  int exit_status = EXIT_FAILURE;
   FILE *input = stdin;
   jx_int mode = jx_main_parse_mode(&input, argc, argv);
 
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
     jx_bool console = jx_adapt_for_console(input);
+    jx_ob node = jx_hash_new();
     jx_ob names = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
     jx_ob scanner = jx_jxon_scanner_new_with_file
       (input, (mode==JX_MODE_UNIT_TESTING) ? JX_SCANNER_FLAG_ECHO_COMMENTS : 0);
-
-
-    jx_ob node = jx_hash_new();
+    exit_status = EXIT_SUCCESS;
 
     if(mode == JX_MODE_AUTOMATIC) {
       if(console)
@@ -111,7 +111,9 @@ int main(int argc, char *argv[])
                         jx_ob message = jx_jxon_scanner_get_error_message(scanner);
                         if(jx_str_check(message)) 
                           printf("%s\n",jx_ob_as_str(&message));
-                        exit(EXIT_FAILURE);
+                        jx_ob_free(message);
+                        exit_status = EXIT_FAILURE;
+                        done = JX_TRUE;
                       }
                       printf("\n"); /* add newline after test in output */
                     }
@@ -154,8 +156,7 @@ int main(int argc, char *argv[])
     jx_ob_free(names);
 
     jx_os_process_complete();
-    return EXIT_SUCCESS;
   }
-  return EXIT_FAILURE;
+  return exit_status;
 }
 

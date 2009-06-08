@@ -1,4 +1,4 @@
-# unit01.jx
+# unit01.jx -- basic JXON tests (no threads)
 # NOTE (assert arg1) is equivalent to (assert arg1 null)
 # source: (assert true true)
 #   eval: (`assert true true)

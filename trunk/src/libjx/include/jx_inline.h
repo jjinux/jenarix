@@ -2482,6 +2482,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
           } else {
             inv_node = jx_tls_hash_new(tls);
           }
+          //          jx_ob_dump(stdout,"source",jx_hash_borrow(kwds,jx_ob_from_ident("pipe")));
+          //          jx_ob_dump(stdout,"invnod",jx_hash_borrow(inv_node,jx_ob_from_ident("pipe")));
           /* bring along base entities */
           {
             jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);

@@ -2540,7 +2540,6 @@ jx_ob jx__tls_hash_copy(jx_tls *tls, jx_hash * hash)
       jx__gc_init(&I->gc);
       I->info = jx_tls_vla_copy(tls,&hash->info);
       I->key_value = jx_tls_vla_copy(tls,&hash->key_value);
-
       {
         jx_hash_info *info = (jx_hash_info *) I->info;
         if((!info) || (info->mode == JX_HASH_LINEAR)) {

@@ -1,5 +1,5 @@
 
-# unit02.jxp (Python unit tests)
+# unit02.jxp -- basic Python unit tests (no threads)
 
 a = 1
 
