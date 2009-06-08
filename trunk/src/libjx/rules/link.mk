@@ -34,6 +34,7 @@ tests: \
 	test008.a \
     test009.a \
 	test010.a \
+	test100.a \
 	test200.a \
 	test201.a \
 	test202.a \
