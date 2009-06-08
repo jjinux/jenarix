@@ -15,4 +15,5 @@ all:
 	../jx -u unit03.jx > out/tmp.out || (cat out/tmp.out; exit 1;)
 	$(TXFM) > out/unit03.out 
 	diff -q out/unit03.out out/ref || tkdiff out/unit03.out out/ref
-
+	echo
+	echo # Tests completed successfully!

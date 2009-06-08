@@ -43,7 +43,7 @@ void *thread_fn(void *id_ptr)
 {
   thread_info *info = (thread_info*)id_ptr;
 
-  printf("thread %d started\n",info->id);
+  printf("# thread %d started\n",info->id);
 
   {
     jx_int i;
@@ -56,7 +56,7 @@ void *thread_fn(void *id_ptr)
     }
   }
 
-  printf("thread %d complete\n",info->id);
+  printf("# thread %d complete\n",info->id);
   return NULL;
 }
 
@@ -93,7 +93,7 @@ jx_status run_test(void)
     }
     JX_OK_DO( jx_os_thread_array_free( &thread_array ));
   }
-  jx_jxon_dump(stdout,"output", list);
+  jx_jxon_dump(stdout,"# output", list);
   jx_ob_free(list);
   return status;
 }

@@ -44,7 +44,7 @@ void *thread_fn(void *id_ptr)
 {
   thread_info *info = (thread_info*)id_ptr;
 
-  printf("thread %d started\n",info->id);
+  printf("# thread %d started\n",info->id);
 
   {
     jx_int i;
@@ -56,7 +56,7 @@ void *thread_fn(void *id_ptr)
     }
   }
 
-  printf("thread %d complete\n",info->id);
+  printf("# thread %d complete\n",info->id);
   return NULL;
 }
 

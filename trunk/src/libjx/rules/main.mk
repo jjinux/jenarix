@@ -17,7 +17,8 @@ lib: depbuild
 
 mains: 
 	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk mains
-	exit 0 # "Executables built! ./jx, ./jxs , etc."
+	echo
+	echo # "Executables built! ./jx, ./jxs , etc."
 
 tests: 
 	cd $(JX_BUILD)/src;make -j8 -f ../../../rules/link.mk tests

@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void *thread_fn(void *id_ptr)
 {
   int id = (int)id_ptr;
-  printf("thread %d run.\n",id);
+  printf("# thread %d run.\n",id);
   return NULL;
 }
 

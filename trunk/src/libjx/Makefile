@@ -14,7 +14,8 @@ jx:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo 
+	echo # Jenarix configured -- you can now run 'make'
 
 # quick-build devel -- unoptimized builds with heap trackng
 
@@ -26,7 +27,8 @@ jx-dev:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 # quick-build 64-bit devel --  unoptimized 64 bit builds with heap trackng
 
@@ -38,7 +40,8 @@ jx-dev64:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 # run mode -- max optimized builds with no heap tracking
 
@@ -50,7 +53,8 @@ jx-run:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 # run mode -- max optimized builds with no heap tracking
 
@@ -62,7 +66,8 @@ jx-run64:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 # mixed run mode (32 bit data, 64-bit arch)
 # -- max optimized builds with no heap tracking
@@ -75,7 +80,8 @@ jx-mixed:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 # max mode -- max optimized builds with no heap tracking and no symbols
 
@@ -87,7 +93,8 @@ jx-max:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 # max mode -- max optimized builds with no heap tracking and no symbols
 
@@ -99,7 +106,8 @@ jx-max64:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	make -f rules/srclink.mk direct
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 xx:
 	echo "JX_ARCH="`uname`-`uname -m` | sed 's/ /_/g' > .config
@@ -108,7 +116,8 @@ xx:
 	echo "JX_PREFIX2=XX" >> .config
 	echo "JX_PREFIX3=xx" >> .config
 	make -f rules/srclink.mk remap 
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 ov:
 	echo "JX_ARCH="`uname`-`uname -m` | sed 's/ /_/g' > .config
@@ -117,13 +126,20 @@ ov:
 	echo "JX_PREFIX2=OV" >> .config
 	echo "JX_PREFIX3=Ov" >> .config
 	make -f rules/srclink.mk remap 
-	exit 0 # Jenarix configured -- you can now run 'make'
+	echo
+	echo # Jenarix configured -- you can now run 'make'
 
 .config: 
-	sleep 0 # "To configure the build, issue:     make jx"
-	sleep 0 # "Thereafter, you can simply issue:  make"
-	sleep 0 # "and after SVN updates always run:  make restart"
-	sleep 0 # " to recreate the build directory"
+	echo
+	sleep 0 # To configure a default build, issue: make jx
+	sleep 0 # Alternate targets (on some platforms):
+	echo    #    dev dev64 run run64 max max64 mixed
+	sleep 0 # Thereafter, you can simply issue:    make
+	sleep 0 # and after SVN updates always run:    make restart
+	echo    #  to recreate the build directory"
+	sleep 0 # Once libjx and executables are built...
+	sleep 0 # C-based test programs can be run with: make ct"
+	echo    # JXON-based unit tests can be run with: make ut"
 	exit 1
 
 # defaults
@@ -142,7 +158,7 @@ mains: .config
 tests: .config
 	make -f rules/main.mk $@
 
-runtests: .config
+ctests: .config
 	make -f rules/main.mk $@
 
 utests:
@@ -185,6 +201,8 @@ max: jx-max
 max64: jx-max64
 
 ut: utests
+
+ct: ctests
 
 utu: utupdate
 

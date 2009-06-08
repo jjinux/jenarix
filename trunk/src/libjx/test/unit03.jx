@@ -59,8 +59,6 @@
     [false,0]
   ])))
 
-(assert (output result));
-
 (assert 8 (size result))
 
 (assert 7000 (get result -1))

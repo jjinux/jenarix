@@ -45,7 +45,7 @@ void *thread_fn(void *id_ptr)
 {
   thread_info *info = (thread_info*)id_ptr;
 
-  printf("thread %d started\n",info->id);
+  printf("# thread %d started\n",info->id);
 
   {
     jx_int i;
@@ -63,8 +63,8 @@ void *thread_fn(void *id_ptr)
             jx_ob new_ob = jx_ob_add(ob,ob);
             jx_list_append(info->list, new_ob); 
           } else {
-            printf("count: %d\n",cnt);
-            jx_jxon_dump(stdout, "output", ob);
+            printf("# count: %d\n",cnt);
+            jx_jxon_dump(stdout, "# output", ob);
           }
           if(cnt==N_PACKETS)
             break;
@@ -73,7 +73,7 @@ void *thread_fn(void *id_ptr)
     }
   }
 
-  printf("thread %d complete\n",info->id);
+  printf("# thread %d complete\n",info->id);
   return NULL;
 }
 
