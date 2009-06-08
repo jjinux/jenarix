@@ -766,9 +766,9 @@ true;
 # now we define a scopeless function that can use the hash
 
 (assert (def poly_fn null
- (apply (get poly_disp ((get _ 0) 0)) _)))
+ (apply (get poly_disp ((get _ 0) 0)) _)));
 
-(assert (output (impl poly_fn))
+(assert (output (impl poly_fn)));
 
 # finally, to show off, we create one entity of each type
 
@@ -777,8 +777,8 @@ true;
 
 # and use the polymorphic function on those entities :)!
 
-(assert (poly_fn a 1))
-(assert (poly_fn b 2))
+(assert [ ["A called with",1]](poly_fn a 1))
+(assert [ ["B called with",2]] (poly_fn b 2))
 
 (assert (del a))
 (assert (del b))
@@ -788,6 +788,77 @@ true;
 (assert (del B))
 (assert (del poly_fn))
 (assert (del poly_disp))
+(assert {} [symbols]);
+
+# experimenting with dot notation for calling methods on entity
+
+(assert (entity A null null {class_fn:(lambda [self] ("from class",(get (self 1) 2)))}) A);
+
+(assert (set b [A, [1,2,3], {inst_fn:(lambda [self] ("from instance",(get (self 1) 2)))}]))
+
+# the pseudo-LISP way
+
+(assert ["from instance",3] (b inst_fn))
+
+(assert ["from class",3] (b class_fn))
+
+# the pseudo-Python way
+
+(assert ["from instance",3] (b.inst_fn))
+
+(assert ["from class",3] (b.class_fn))
+
+(assert (del b))
+(assert (del ((pass A))))
+(assert (del A))
 (assert {} [symbols])
+
+
+# verify access to attributes
+
+(assert (entity Matrix) Matrix)
+
+(assert (set mat (Matrix, [ 0 0 0 0 0 0 0 0 0 ], {dim:[3,3]})))
+
+# conventional attribute resolution
+
+(assert [3,3] (mat dim));
+
+(assert (append (mat dim) 1))
+
+# note that we've modified dim
+
+(assert (output mat))
+
+(assert [3,3,1] (mat dim));
+
+# dot-based attribute resolution
+
+(assert 1 (pop mat.dim))
+
+(assert (output mat))
+
+# note that in both cases, we're returned a weak reference to the
+# attributes which can be directly operated upon
+
+# a copy isn't made until we assign
+
+(assert (set dim mat.dim))
+
+(assert (append dim 1))
+
+(assert [3,3,1] dim)
+
+(assert [3,3] mat.dim)
+
+# double-check our ability to access entity components
+
+(assert Matrix (mat 0))
+(assert [ 0 0 0 0 0 0 0 0 0 ] (mat 1))
+(assert {dim:[3,3]} (mat 2))
+(assert (mat 3))
+
+
+
 
 

@@ -2104,7 +2104,132 @@ true;
 #               (`resolve _))))
 true;
 
+# source: (assert (output (impl poly_fn)))
+#   eval: (`assert (`output (`impl (`resolve poly_fn))))
+[poly_fn,null,[`apply,[`get,poly_disp,[[`get,_,0],0]],[`resolve,_]],true];
+true;
+
 # finally, to show off, we create one entity of each type
+# source: (assert (set a
+#             (A)))
+#   eval: (`assert (`set a
+#             [ (`resolve A)]))
+true;
+
 # and use the polymorphic function on those entities :)!
-Error: invalid syntax on line 794
-<-- (at end of input)
+# source: (assert (set b
+#             (B)))
+#   eval: (`assert (`set b
+#             [ (`resolve B)]))
+true;
+
+# source: (assert [ ["A called with",1]]
+#           (poly_fn a 1))
+#   eval: (`assert [ ["A called with",1]]
+#           [ (`resolve poly_fn), (`resolve a),1])
+true;
+
+# source: (assert [ ["B called with",2]]
+#           (poly_fn b 2))
+#   eval: (`assert [ ["B called with",2]]
+#           [ (`resolve poly_fn), (`resolve b),2])
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert (del b))
+#   eval: (`assert (`del b))
+true;
+
+# source: (assert (del [ (pass A)]))
+#   eval: (`assert (`del [ (`pass (`resolve A))]))
+true;
+
+# source: (assert (del [ (pass B)]))
+#   eval: (`assert (`del [ (`pass (`resolve B))]))
+true;
+
+# source: (assert (del A))
+#   eval: (`assert (`del A))
+true;
+
+# source: (assert (del B))
+#   eval: (`assert (`del B))
+true;
+
+# source: (assert (del poly_fn))
+#   eval: (`assert (`del poly_fn))
+true;
+
+# source: (assert (del poly_disp))
+#   eval: (`assert (`del poly_disp))
+true;
+
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# experimenting with dot notation for calling methods on entity
+# source: (assert (entity A null null {class_fn: (lambda (self)
+#               ["from class", (get (self 1) 2)])}) A)
+#   eval: (`assert (`entity A null null {class_fn: (`lambda (self)
+#               ["from class", (`get (self 1) 2)])})
+#           (`resolve A))
+true;
+
+# the pseudo-LISP way
+# source: (assert (set b
+#             (A [1, 2, 3] {inst_fn: (lambda (self)
+#                 ["from instance", (get (self 1) 2)])})))
+#   eval: (`assert (`set b
+#             [ (`resolve A), [1, 2, 3], {inst_fn: (`lambda (self)
+#                 ["from instance", (`get (self 1) 2)])}]))
+true;
+
+# source: (assert ["from instance",3]
+#           (b inst_fn))
+#   eval: (`assert ["from instance",3]
+#           [ (`resolve b), (`resolve inst_fn)])
+true;
+
+# the pseudo-Python way
+# source: (assert ["from class",3]
+#           (b class_fn))
+#   eval: (`assert ["from class",3]
+#           [ (`resolve b), (`resolve class_fn)])
+true;
+
+# source: (assert ["from instance",3]
+#           (b.inst_fn))
+#   eval: (`assert ["from instance",3]
+#           [ (`resolve (b inst_fn))])
+true;
+
+# source: (assert ["from class",3]
+#           (b.class_fn))
+#   eval: (`assert ["from class",3]
+#           [ (`resolve (b class_fn))])
+true;
+
+# source: (assert (del b))
+#   eval: (`assert (`del b))
+true;
+
+# source: (assert (del [ (pass A)]))
+#   eval: (`assert (`del [ (`pass (`resolve A))]))
+true;
+
+# source: (assert (del A))
+#   eval: (`assert (`del A))
+true;
+
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
