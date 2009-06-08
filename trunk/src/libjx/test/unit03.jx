@@ -1,0 +1,68 @@
+
+# unit03.jx JXON threading tests
+
+(assert (def delay [id,x] (
+  (set sum 0) 
+  (while (decr x) (incr sum (idiv x 100)))
+  (id,sum))));
+
+(assert (set result (paramap delay [
+  [1,1000]
+  [2,2000] 
+  [3,3000]
+  [4,4000]
+  [5,5000]
+  [6,6000]
+  [7,7000]
+  [8,8000]])));
+
+(assert [[1,4500],[2,19000],[3,43500],[4,78000],[5,122500],[6,177000],[7,241500],[8,316000]] 
+        result);
+
+(assert (del delay))
+(assert (del result))
+
+(assert {} (symbols))
+
+# now we're creating a queue and sending data through the queue asynchronously
+
+(assert (set pipe []))
+
+(assert (synchronize pipe true))
+(assert true (synchronized pipe))
+
+# synchronizing a container disables copy semantics for the container
+# and replaces it with weak reference taking.  This will enable each 
+# function to reference the same container
+
+(assert (def send_recv [sender,cnt,pipe] [
+#  (output pipe)
+  (if sender 
+
+    ( (while (decr cnt) (append pipe sender))
+      (append pipe -1)
+      (size pipe))
+
+    ( (set wait 7)
+      (while wait (test (ge (shift pipe) 0) (incr cnt) (decr wait)))
+      cnt))
+  ]))
+
+(assert (output (impl send_recv)))
+
+(assert (set result
+  (paramap send_recv [
+    [true,1000,pipe] 
+    [true,1000,pipe] 
+    [true,1000,pipe]
+    [true,1000,pipe]
+    [true,1000,pipe]
+    [true,1000,pipe]
+    [true,1000,pipe]
+    [false,0,pipe]
+  ])))
+
+(assert 8 (size result))
+
+(assert 7000 (get result -1))
+
