@@ -2471,22 +2471,31 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         jx_tls_ob_free(tls,inv_node);
         payload = jx_ob_from_null();
       } else if(jx_list_check(args)) { /* parameter list exists */
-        jx_ob ob_null = jx_ob_from_null();
         jx_ob inv_node;
         jx_list *args_list = args.data.io.list;
-        jx_ob sub_list = jx__list_borrow(args_list,0);
+        jx_ob sub_args = jx__list_borrow(args_list,0);
         jx_ob kwd_hash = jx_ob_from_null();
-        if(jx_list_check(sub_list)) { /* have both positional and keyword defaults */
+
+        if(jx_list_check(sub_args)) { 
+          /* actually, have both positional and keyword defaults */
           jx_ob kwds = jx__list_borrow(args_list,1);
           if(jx_hash_check(kwds)) {
             inv_node = jx__tls_hash_copy(tls,kwds.data.io.hash);
           } else {
             inv_node = jx_tls_hash_new(tls);
           }
-          //          jx_ob_dump(stdout,"source",jx_hash_borrow(kwds,jx_ob_from_ident("pipe")));
-          //          jx_ob_dump(stdout,"invnod",jx_hash_borrow(inv_node,jx_ob_from_ident("pipe")));
-          /* bring along base entities */
+          args = sub_args;
+          args_list = args.data.io.list;
+        } else {
+          inv_node = jx_tls_hash_new(tls); /* assemble namespace from scratch */
+        }
+        //          jx_ob_dump(stdout,"source",jx_hash_borrow(kwds,jx_ob_from_ident("pipe")));
+        //          jx_ob_dump(stdout,"invnod",jx_hash_borrow(inv_node,jx_ob_from_ident("pipe")));
+
+        if(jx_list_check(payload)) {
           {
+            /* bring along base entities */
+            
             jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
             //jx_jxon_dump(stdout,"entity",node,payload);
             //jx_jxon_dump(stdout,"entity",node,entity);
@@ -2494,74 +2503,61 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
               jx_entity_carry_into(inv_node, node, entity);
             }
           }
-          if(jx_list_check(payload)) {
-            jx_list *args_list2 = sub_list.data.io.list;
-            jx_list *payload_list = payload.data.io.list;
-            jx_int i,size = jx_list_size(sub_list);
-            jx_int size2 = jx_list_size(payload);
-            if(size2<size) size = size2;
-            for(i=0;i<size;i++) {
-              jx_tls_hash_set(tls,inv_node,jx__list_borrow_weak(args_list2,i),
-                              jx__list_swap_with_null(payload_list,i));
-            }
-            if(size2>size) { /* keyword args also provided in payload? */
-              kwd_hash = jx__list_borrow(payload_list,size);
-            }
-          } else if(jx_list_size(sub_list)) { /* payload primitive -> [x] */
-            jx_tls_hash_set(tls,inv_node, jx_list_borrow_weak(sub_list,0), payload);
-            payload = jx_ob_from_null();
-          }
-        } else { /* only positional arguments */
-          inv_node = jx_tls_hash_new(tls);
-          /* bring along base entities */
           {
-            jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
-            //jx_jxon_dump(stdout,"entity",node,payload);
-            //jx_jxon_dump(stdout,"entity",node,entity);
-            if(jx_builtin_entity_check(entity)) {
-              jx_entity_carry_into(inv_node, node, entity);
-            }
-          }
-          if(jx_list_check(payload)) {
-            jx_list *args_list = args.data.io.list;
             jx_list *payload_list = payload.data.io.list;
             jx_int i,size = jx_list_size(args);
             jx_int size2 = jx_list_size(payload);
+            if(size2<size) size = size2;
             for(i=0;i<size;i++) {
-              jx_tls_hash_set(tls, inv_node,jx__list_borrow_weak(args_list,i),
+              jx_tls_hash_set(tls,inv_node,jx__list_borrow_weak(args_list,i),
                               jx__list_swap_with_null(payload_list,i));
             }
-            if(size2>size) { /* keyword args also provided in payload? */
+            if(size2>size) { /* keyword args also provided in
+                                payload? (dictionary provided after
+                                last expected argument) */
               kwd_hash = jx__list_borrow(payload_list,size);
             }
-          } else if(jx_list_size(args)) { /* payload primitive -> [x] */
-            jx_tls_hash_set(tls, inv_node, jx_list_borrow_weak(args,0), payload);
           }
+        } else if(jx_hash_check(payload)) { /* keyword args (only) */
+          kwd_hash = payload;
+          payload = jx_ob_from_null();
+        } else if(jx_list_size(args)) { /* naked primitive -> [first-arg] */
+          jx_tls_hash_set(tls,inv_node, jx_list_borrow_weak(args,0), payload);
         }
-        /* process keyword argument hash, if present (THIS STRATEGY WILL CHANGE) */
+        
+        /* process keyword argument hash, if present */
         if(jx_hash_check(kwd_hash)) {
-          jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
-          if(jx_list_check(kwd_list)) {
-            jx_list *args_list3 = kwd_list.data.io.list;
-            jx_int i,size3 = jx__list_size(args_list3);
-            for(i=0;i<size3;i+=2) {
-              jx_hash_set(inv_node,jx__list_swap(args_list3,i, ob_null),
-                          jx__list_swap(args_list3,i+1, ob_null));
+          if(!jx_hash_size(inv_node)) { /* no symbols yet? */
+            jx_ob_free(inv_node);
+            inv_node = kwd_hash; /* just use the namespace itself */
+          } else {
+            jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
+            if(jx_list_check(kwd_list)) {
+              jx_list *args_list3 = kwd_list.data.io.list;
+              jx_int i,size3 = jx__list_size(args_list3);
+              for(i=0;i<size3;i+=2) {
+                jx_hash_set(inv_node,jx__list_swap_with_null(args_list3,i),
+                            jx__list_swap_with_null(args_list3,i+1));
+              }
             }
+            jx_tls_ob_free(tls, kwd_list);
           }
-          jx_tls_ob_free(tls, kwd_list);
         }
+
         /* expose function to itself */
         jx_tls_hash_set(tls,inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+
         /* call */
         result = fn->mode ? jx_tls_code_exec(tls,0, inv_node,fn->body) : 
           jx_tls_code_eval(tls, 0, inv_node,fn->body);
+
+        /* free function namespace */
         jx_tls_ob_free(tls, inv_node);
       } else {
         /* args declaration is a primitive */
         jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
         //      jx_jxon_dump(stdout,"args",args);
-
+        
         /* expose fn to itself */
         jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
         /* bring along base entities */
@@ -2661,72 +2657,65 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       }
       return result;
     } else if(jx_list_check(args)) { /* parameter list exists */
-      jx_ob ob_null = jx_ob_from_null();
       jx_ob result;
       jx_ob inv_node;
       jx_list *args_list = args.data.io.list;
-      jx_ob sub_list = jx__list_borrow(args_list,0);
+      jx_ob sub_args = jx__list_borrow(args_list,0);
       jx_ob kwd_hash = jx_ob_from_null();
-      if(jx_list_check(sub_list)) { /* have both positional and keyword defaults */
+      if(jx_list_check(sub_args)) { /* have both positional and keyword defaults */
         jx_ob kwds = jx__list_borrow(args_list,1);
         if(jx_hash_check(kwds)) {
           inv_node = jx__tls_hash_copy(tls,kwds.data.io.hash);
         } else {
           inv_node = jx_tls_hash_new(tls);
         }
-        if(jx_list_check(payload)) {
-          jx_list *args_list2 = sub_list.data.io.list;
-          jx_list *payload_list = payload.data.io.list;
-          jx_int i,size = jx_list_size(sub_list);
-          jx_int size2 = jx_list_size(payload);
-          if(size2<size) size = size2;
-          for(i=0;i<size;i++) {
-            jx_hash_set(inv_node,jx__list_borrow_weak(args_list2,i),
-                        jx__list_swap(payload_list,i, ob_null));
-          }
-          if(size2>size) { /* keyword args also provided in payload? */
-            kwd_hash = jx__list_borrow(payload_list,size);
-          }
-        } else if(jx_list_size(sub_list)) { /* payload primitive -> [x] */
-          jx_hash_set(inv_node, jx_list_borrow_weak(sub_list,0), payload);
-        }
-      } else { /* only positional arguments */
+        args = sub_args;
+        args_list = args.data.io.list;
+      } else {
         inv_node = jx_tls_hash_new(tls);
-        if(jx_list_check(payload)) {
-          jx_list *args_list = args.data.io.list;
-          jx_list *payload_list = payload.data.io.list;
-          jx_int i,size = jx_list_size(args);
-          jx_int size2 = jx_list_size(payload);
-          for(i=0;i<size;i++) {
-            jx_hash_set(inv_node,jx__list_borrow_weak(args_list,i),
-                        jx__list_swap(payload_list,i, ob_null));
-          }
-          if(size2>size) { /* keyword args also provided in payload? */
-            kwd_hash = jx__list_borrow(payload_list,size);
-          }
-        } else if(jx_list_size(args)) { /* payload primitive -> [x] */
-          jx_hash_set(inv_node, jx_list_borrow_weak(args,0), payload);
-        }
       }
-      /* process keyword argument hash, if present (THIS STRATEGY WILL CHANGE) */
-      if(jx_hash_check(kwd_hash)) {
-        jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
-        if(jx_list_check(kwd_list)) {
-          jx_list *args_list3 = kwd_list.data.io.list;
-          jx_int i,size3 = jx__list_size(args_list3);
-          for(i=0;i<size3;i+=2) {
-            jx_hash_set(inv_node,jx__list_swap(args_list3,i, ob_null),
-                        jx__list_swap(args_list3,i+1, ob_null));
-          }
+      if(jx_list_check(payload)) {
+        jx_list *payload_list = payload.data.io.list;
+        jx_int i,size = jx_list_size(args);
+        jx_int size2 = jx_list_size(payload);
+        if(size2<size) size = size2;
+        for(i=0;i<size;i++) {
+          jx_hash_set(inv_node,jx__list_borrow_weak(args_list,i),
+                      jx__list_swap_with_null(payload_list,i));
         }
-        jx_tls_ob_free(tls,kwd_list);
+        if(size2>size) { /* keyword args also provided in payload? */
+          kwd_hash = jx__list_borrow(payload_list,size);
+        }
+      } else if(jx_hash_check(payload)) { /* keyword args (only) */
+        kwd_hash = payload;
+        payload = jx_ob_from_null();
+      } else if(jx_list_size(args)) { /* payload primitive -> [x] */
+        jx_hash_set(inv_node, jx_list_borrow_weak(args,0), payload);
+      }
+      /* process keyword argument hash, if present  */
+      if(jx_hash_check(kwd_hash)) {
+        if(!jx_hash_size(inv_node)) { /* no symbols yet? */
+          jx_ob_free(inv_node);
+          inv_node = kwd_hash; /* just use the namespace itself */
+        } else {
+          jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
+          if(jx_list_check(kwd_list)) {
+            jx_list *args_list3 = kwd_list.data.io.list;
+            jx_int i,size3 = jx__list_size(args_list3);
+            for(i=0;i<size3;i+=2) {
+              jx_hash_set(inv_node,jx__list_swap_with_null(args_list3,i),
+                          jx__list_swap_with_null(args_list3,i+1));
+            }
+          }
+          jx_tls_ob_free(tls,kwd_list);
+        }
       }
       //      jx_jxon_dump(stdout,"inv_node",inv_node);
       //      jx_jxon_dump(stdout,"body",fn->body);
       {
         jx_ob ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         //        jx_jxon_dump(stdout,"node",node);
-        //        jx_jxon_dump(stdout,"ob",ob);
+                jx_jxon_dump(stdout,"ob",ob);
         result = jx_tls_code_eval(tls, 0, node, ob);
         jx_tls_ob_free(tls, ob);
         jx_tls_ob_free(tls, payload);

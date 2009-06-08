@@ -1,0 +1,18 @@
+(set max 100001);
+
+(defun abs [x] (test (lt x 0) (neg x) (x)));
+
+(def tst1 [x y] [
+  (test (eq x max)
+	x
+      (tail (sub x (add (mul y 2) (idiv x (abs y))))
+	    (sub y (add (mul x 2) (idiv y (abs x)))))
+    )
+  ])
+
+(def run () [(output (tst1 1 1))])
+
+(abs -1)
+
+(run)
+
