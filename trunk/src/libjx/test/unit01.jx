@@ -704,9 +704,17 @@ true;
 
 (assert 5 (while (decr a) ((output a) (test (gt a 5) (continue) a) (break))))
 
+(assert (output (symbols)))
+(assert (del a))
+(assert (output (symbols)))
+(assert {} [symbols])
+
 # entity02
 
 # here's an example vector addition function
+
+
+(assert {} [symbols])
 
 (assert (def vector_add [v1 v2] [
   [(v1 0)
@@ -733,5 +741,53 @@ true;
   ([Vector, [0.3 4 "hi"]] add [Vector, [0.3 9 "you"]]));
 
 
+(assert (del v1))
+(assert (del v2))
+(assert (del ((pass Vector))))
+(assert (del Vector))
+(assert {} [symbols])
+
+# entity03
+
+# polymorphic functions can be created as follows
+
+# first, we define two entity classes 
+
+(assert (entity A) A)
+
+(assert (entity B) B)
+
+# then we create and populate a hash that will act as a dispatch table
+
+(assert (set poly_disp {}))
+(assert (set poly_disp A (lambda [self x] [("A called with",x)])))
+(assert (set poly_disp B (lambda [self x] [("B called with",x)])))
+
+# now we define a scopeless function that can use the hash
+
+(assert (def poly_fn null
+ (apply (get poly_disp ((get _ 0) 0)) _)))
+
+(assert (output (impl poly_fn))
+
+# finally, to show off, we create one entity of each type
+
+(assert (set a [A]))
+(assert (set b [B]))
+
+# and use the polymorphic function on those entities :)!
+
+(assert (poly_fn a 1))
+(assert (poly_fn b 2))
+
+(assert (del a))
+(assert (del b))
+(assert (del ((pass A))))
+(assert (del ((pass B))))
+(assert (del A))
+(assert (del B))
+(assert (del poly_fn))
+(assert (del poly_disp))
+(assert {} [symbols])
 
 

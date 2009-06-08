@@ -97,7 +97,10 @@ int main(int argc, char *argv[])
                 {
                   jx_ob result = jx_code_eval(node,code);
                   
-                  if(mode == JX_MODE_CONSOLE)  {
+                  if(jx_opcode_check(result) && 
+                     (jx_ob_identical(result,jx_ob_from_opcode(JX_OPCODE_RETURN,0)))) {
+                    done = JX_TRUE;
+                  } else if(mode == JX_MODE_CONSOLE)  {
                     jx_jxon_dump_in_node(stdout, "# result", node, result);
                   } else if((mode == JX_MODE_EVALUATE)||(mode == JX_MODE_UNIT_TESTING)) {
                     jx_ob jxon = jx_ob_to_jxon_in_node(node,result);

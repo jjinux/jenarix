@@ -64,9 +64,13 @@ typedef struct jx__ob jx_ob;
    non-error informative status >=0
 */
 
+
 #define JX_STATUS_YES                    JX_TRUE
 #define JX_STATUS_NO                    JX_FALSE
 #define JX_STATUS_SUCCESS               JX_FALSE
+
+/* NOTE: if you change any of these numbers, then be prepared to
+   update the unit tests as well! */
 
 #define JX_STATUS_FREED_WEAK                   2
 #define JX_STATUS_FREED_SHARED                 3
@@ -74,21 +78,22 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_FAILURE                     -1
 #define JX_STATUS_NULL_PTR                    -2
 #define JX_STATUS_OUT_OF_MEMORY               -3
-#define JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP     -4
-#define JX_STATUS_EXHAUSTED                   -5
-#define JX_STATUS_SYNTAX_ERROR                -6
-#define JX_STATUS_OS_THREAD_CREATION_FAILURE  -7
-#define JX_STATUS_OS_THREADING_ERROR          -8
-#define JX_STATUS_OS_MUTEX_ERROR              -9
-#define JX_STATUS_OS_COND_ERROR              -10
-#define JX_STATUS_OS_RLOCK_ERROR             -11
-#define JX_STATUS_OS_ERROR                   -12
-#define JX_STATUS_OS_TLS_ERROR               -13
-#define JX_STATUS_OS_SPINLOCK_ERROR          -14
-#define JX_STATUS_PERMISSION_DENIED          -15
+#define JX_STATUS_OS_THREAD_CREATION_FAILURE  -4
+#define JX_STATUS_OS_THREADING_ERROR          -5
+#define JX_STATUS_OS_MUTEX_ERROR              -6
+#define JX_STATUS_OS_COND_ERROR               -7
+#define JX_STATUS_OS_RLOCK_ERROR              -8
+#define JX_STATUS_OS_ERROR                    -9
+#define JX_STATUS_OS_TLS_ERROR               -10
+#define JX_STATUS_OS_SPINLOCK_ERROR          -11
+#define JX_STATUS_BAD_PTR_OR_CORRUPT_HEAP    -12
+#define JX_STATUS_OVERFLOW                   -13
+#define JX_STATUS_PERMISSION_DENIED          -14
+#define JX_STATUS_INVALID_CONTAINER          -15
 #define JX_STATUS_OB_NOT_HASHABLE            -16
-#define JX_STATUS_OVERFLOW                   -17
-#define JX_STATUS_INVALID_CONTAINER          -18
+#define JX_STATUS_NOT_FOUND                  -17
+#define JX_STATUS_EXHAUSTED                  -18
+#define JX_STATUS_SYNTAX_ERROR               -19
 
 /* shortcuts */
 

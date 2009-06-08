@@ -153,7 +153,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
   jx_int old_size = vla->size;
   if(new_size != old_size) {
     jx_int old_alloc = vla->alloc;
-    if((new_size > old_alloc) || force_padding) {
+    if((new_size > old_alloc) || (new_size && force_padding)) {
       jx_int new_alloc = new_size + (new_size >> 1);    /* 50% margin for growth */
       jx_int new_bytes = (new_alloc - old_alloc) * vla->rec_size;
       jx_int padding = (((char *) vla) - ((char *) vla->ptr));
@@ -189,7 +189,7 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
           (*vla_ptr) = vla;
         }
       }
-    } else {
+    } else if(new_size) {
       vla->size = new_size;
       {
         jx_int padding = (((char *) vla) - ((char *) vla->ptr));
@@ -219,6 +219,14 @@ static jx_status jx__vla__resize(jx_vla ** vla_ptr, jx_int new_size,
           (*vla_ptr) = vla;
         }
       }
+    } else { /* new size is zero -- simply return insertion point to front of array */
+      jx_int rec_size = vla->rec_size;
+      vla = vla->ptr;
+      vla->ptr = vla;
+      vla->size = 0;
+      vla->rec_size = rec_size;
+      vla->alloc = old_alloc;
+      *(vla_ptr) = vla;
     }
     if(old_size < new_size) {   /* zero new memory */
       jx_char *base = (jx_char *) (vla + 1);
@@ -907,16 +915,23 @@ jx_char *jx_ob_as_str(jx_ob * ob)
 
 jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int right_len)
 {
-  jx_ob result = jx_ob_from_null();
-  jx_int total_size = left_len + right_len + 1;
-  jx_char *vla = jx_vla_new(1, total_size + sizeof(jx_str));
-  if(vla) {
-    jx_os_memcpy(vla + sizeof(jx_str), left, left_len);
-    jx_os_memcpy(vla + sizeof(jx_str) + left_len, right, right_len + 1);
-    result.data.io.str = vla;
-    result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
+  jx_int total_len = left_len + right_len;
+  if(total_len < JX_TINY_STR_SIZE) {
+    jx_char buffer[JX_TINY_STR_SIZE];
+    jx_os_memcpy(buffer, left, left_len);
+    jx_os_memcpy(buffer + left_len, right, right_len);
+    return jx_ob_from_str_with_len(buffer,total_len);
+  } else {
+    jx_ob result = jx_ob_from_null();
+    jx_char *vla = jx_vla_new(1, total_len + sizeof(jx_str) + 1); /* will be zero initialized */
+    if(vla) {
+      jx_os_memcpy(vla + sizeof(jx_str), left, left_len);
+      jx_os_memcpy(vla + sizeof(jx_str) + left_len, right, right_len);
+      result.data.io.str = vla;
+      result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
+    }
+    return result;
   }
-  return result;
 }
 
 jx_ob jx__str_concat(jx_ob left, jx_ob right)
@@ -1681,8 +1696,9 @@ jx_bool jx__list_equal(jx_list * left, jx_list * right)
             int i;
             for(i = 0; i < left_size; i++) {
               if(!jx_ob_equal(jx__list_borrow_locked(left, i),
-                              jx__list_borrow_locked(right, i)))
+                              jx__list_borrow_locked(right, i))) {
                 goto unlock_both;
+              }
             }
             result = JX_TRUE;
           } else if(left->packed_meta_bits) {
@@ -1755,8 +1771,9 @@ jx_bool jx__list_identical(jx_list * left, jx_list * right)
             int i;
             for(i = 0; i < left_size; i++) {
               if(!jx_ob_identical(jx__list_borrow_locked(left, i), 
-                                  jx__list_borrow_locked(right, i)))
+                                  jx__list_borrow_locked(right, i))) {
                 goto unlock_both;
+              }
             }
             result = JX_TRUE;
           } else if(left->packed_meta_bits) {
@@ -2514,21 +2531,49 @@ jx_ob jx__tls_hash_copy(jx_tls *tls, jx_hash * hash)
 {
   jx_ob result = jx_tls_hash_new(tls);
   jx_status status = jx_gc_lock(&hash->gc);
+  //  printf("hash copy %d %d\n",hash->info ? ((jx_hash_info*)hash->info)->usage : -1,
+  //         hash->info ? -1 : jx_vla_size(&hash->key_value));
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_HASH) {
       jx_hash *I = result.data.io.hash;
       *I = *hash;
       jx__gc_init(&I->gc);
-      I->info = jx_tls_vla_copy(tls,&I->info);
-      I->key_value = jx_tls_vla_copy(tls,&I->key_value);
+      I->info = jx_tls_vla_copy(tls,&hash->info);
+      I->key_value = jx_tls_vla_copy(tls,&hash->key_value);
+
       {
-        jx_int i, size = jx_vla_size(&I->key_value);
-        jx_ob *ob = I->key_value;
-        for(i = 0; i < size; i++) {
-          if(ob->meta.bits & JX_META_BIT_GC) {
-            *ob = jx_tls_ob_copy(tls,*ob);
+        jx_hash_info *info = (jx_hash_info *) I->info;
+        if((!info) || (info->mode == JX_HASH_LINEAR)) {
+          jx_int i, size = jx_vla_size(&I->key_value);
+          jx_ob *ob = I->key_value;
+          for(i = 0; i < size; i++) {
+            if(ob->meta.bits & JX_META_BIT_GC) {
+              *ob = jx_tls_ob_copy(tls,*ob);
+            }
+            ob++;
           }
-          ob++;
+        } else {
+          switch (info->mode) {
+          case JX_HASH_ONE_TO_ANY:
+          case JX_HASH_ONE_TO_ONE:
+          case JX_HASH_ONE_TO_NIL:
+            {
+              jx_uint32 mask = info->mask;
+              jx_uint32 *hash_table = info->table;
+              jx_ob *key_value = I->key_value;
+              jx_uint32 index = 0;
+              do {
+                jx_uint32 *hash_entry = hash_table + (index << 1);
+                if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
+                  jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                  kv_ob[0] = jx_tls_ob_copy(tls,kv_ob[0]);                  
+                  kv_ob[1] = jx_tls_ob_copy(tls,kv_ob[1]);                  
+                }
+                index++;
+              } while(index <= mask);
+            }
+            break;
+          }
         }
       }
     }
@@ -2537,25 +2582,51 @@ jx_ob jx__tls_hash_copy(jx_tls *tls, jx_hash * hash)
   return result;
 }
 
-jx_ob jx__hash_copy_strong(jx_hash * hash)
+jx_ob jx__tls_hash_copy_strong(jx_tls *tls, jx_hash * hash)
 {
-  jx_ob result = jx_hash_new();
+  jx_ob result = jx_tls_hash_new(tls);
   jx_status status = jx_gc_lock(&hash->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_HASH) {
       jx_hash *I = result.data.io.hash;
       *I = *hash;
       jx__gc_init(&I->gc);
-      I->info = jx_vla_copy(&I->info);
-      I->key_value = jx_vla_copy(&I->key_value);
+      I->info = jx_tls_vla_copy(tls,&hash->info);
+      I->key_value = jx_tls_vla_copy(tls,&hash->key_value);
+
       {
-        jx_int i, size = jx_vla_size(&I->key_value);
-        jx_ob *ob = I->key_value;
-        for(i = 0; i < size; i++) {
-          if(ob->meta.bits & JX_META_BIT_GC) {
-            *ob = jx_ob_copy_strong(*ob);
+        jx_hash_info *info = (jx_hash_info *) I->info;
+        if((!info) || (info->mode == JX_HASH_LINEAR)) {
+          jx_int i, size = jx_vla_size(&I->key_value);
+          jx_ob *ob = I->key_value;
+          for(i = 0; i < size; i++) {
+            if(ob->meta.bits & JX_META_BIT_GC) {
+              *ob = jx_tls_ob_copy_strong(tls,*ob);
+            }
+            ob++;
           }
-          ob++;
+        } else {
+          switch (info->mode) {
+          case JX_HASH_ONE_TO_ANY:
+          case JX_HASH_ONE_TO_ONE:
+          case JX_HASH_ONE_TO_NIL:
+            {
+              jx_uint32 mask = info->mask;
+              jx_uint32 *hash_table = info->table;
+              jx_ob *key_value = I->key_value;
+              jx_uint32 index = 0;
+              do {
+                jx_uint32 *hash_entry = hash_table + (index << 1);
+                if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
+                  jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                  kv_ob[0] = jx_tls_ob_copy_strong(tls,kv_ob[0]);                  
+                  kv_ob[1] = jx_tls_ob_copy_strong(tls,kv_ob[1]);                  
+                }
+                index++;
+              } while(index <= mask);
+            }
+            break;
+          }
         }
       }
     }
@@ -2563,6 +2634,9 @@ jx_ob jx__hash_copy_strong(jx_hash * hash)
   }
   return result;
 }
+
+
+
 #if 0
 static void jx__hash_make_strong(jx_hash * I)
 { 
@@ -2685,7 +2759,7 @@ JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
           (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #endif
 
-#if (JX_TINE_STR_SIZE == 14)
+#if (JX_TINY_STR_SIZE == 14)
   fprintf(f,"%s: %08x%08x%08x%08x%08x %08x -> %08x%08x%08x%08x%08x %08x",prefix, 
           (unsigned int)(key.data.raw.word[0]), (unsigned int)(key.data.raw.word[1]),
           (unsigned int)(key.data.raw.word[2]), 
@@ -2695,7 +2769,7 @@ JX_INLINE void jx__pair_dump(FILE *f, char *prefix, jx_ob key, jx_ob value)
           (unsigned int)value.meta.fill, (unsigned int)value.meta.bits);
 #endif
 
-#if (JX_TINE_STR_SIZE == 20)
+#if (JX_TINY_STR_SIZE == 20)
   fprintf(f,"%s: %08x%08x%08x%08x%08x %08x -> %08x%08x%08x%08x%08x %08x",prefix, 
           (unsigned int)(key.data.raw.word[0]), (unsigned int)(key.data.raw.word[0]>>32),
           (unsigned int)(key.data.raw.word[1]), (unsigned int)(key.data.raw.word[1]>>32),
@@ -4327,6 +4401,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
               found = JX_TRUE;
               jx_ob_free(ob[0]);    /* key */
               *result = ob[1];      /* value ownership returned */
+
               if(size > 2) {
                 ob[0] = I->key_value[size - 2];
                 ob[1] = I->key_value[size - 1];
@@ -4391,7 +4466,7 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
                       hash_entry[1] = (kv_offset | JX_HASH_ENTRY_DELETED);
                       jx_ob_free(ob[0]);
                       *result = ob[1];
-                      memset(ob, 0, sizeof(jx_ob) * 2);
+                      memset(ob, 0, sizeof(jx_ob) * 2); /* paranoia? */
                       info->usage--;
                       info->stale_usage++;
                       found = JX_TRUE;
@@ -4401,7 +4476,6 @@ jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key)
                     break;
                   index = (index + 1) & mask;
                 } while(index != sentinel);
-
                 {
                   jx_uint32 usage = info->usage;
                   if(!usage) {
@@ -4845,7 +4919,7 @@ jx_ob jx__ob_gc_copy(jx_ob ob)
   return jx_ob_from_null();
 }
 
-jx_ob jx__ob_gc_copy_strong(jx_ob ob)
+jx_ob jx__tls_ob_gc_copy_strong(jx_tls *tls, jx_ob ob)
 {
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
@@ -4859,7 +4933,7 @@ jx_ob jx__ob_gc_copy_strong(jx_ob ob)
     return jx__list_copy_strong(ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
-    return jx__hash_copy_strong(ob.data.io.hash);
+    return jx__tls_hash_copy_strong(tls,ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:
     return jx__builtin_copy_strong(ob);

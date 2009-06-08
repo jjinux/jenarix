@@ -579,12 +579,19 @@ JX_INLINE jx_ob jx_ob_copy(jx_ob ob)
            jx_ob_take_weak_ref(ob) : jx__ob_gc_copy(ob)) : ob);
 }
 
-jx_ob jx__ob_gc_copy_strong(jx_ob ob);
+jx_ob jx__tls_ob_gc_copy_strong(jx_tls *tls,jx_ob ob);
 JX_INLINE jx_ob jx_ob_copy_strong(jx_ob ob)
 {
   //  jx_jxon_dump(stdout,"ob",jx_ob_from_null(),ob);
   return (ob.meta.bits & JX_META_BIT_GC) ?
-    jx__ob_gc_copy_strong(ob) : ob;
+    jx__tls_ob_gc_copy_strong(JX_NULL,ob) : ob;
+}
+
+JX_INLINE jx_ob jx_tls_ob_copy_strong(jx_tls *tls, jx_ob ob)
+{
+  //  jx_jxon_dump(stdout,"ob",jx_ob_from_null(),ob);
+  return (ob.meta.bits & JX_META_BIT_GC) ?
+    jx__tls_ob_gc_copy_strong(tls,ob) : ob;
 }
 
 JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
@@ -1043,6 +1050,8 @@ JX_INLINE jx_bool jx_ob_identical(jx_ob left, jx_ob right)
   jx_bits left_bits = left.meta.bits & JX_META_MASK_FOR_HASH;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_FOR_HASH;
 
+  //  jx_ob_dump(stdout," left",left);
+  //  jx_ob_dump(stdout,"right",right);
   if(left_bits != right_bits) {
     return JX_FALSE;
   } else if(left_bits & JX_META_BIT_GC) {
@@ -1850,12 +1859,13 @@ JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
     jx_ob result = jx_ob_from_null();
+    //    jx_jxon_dump(stdout,"hash",hash);
     if(jx__hash_remove(&result, hash.data.io.hash, key)) {
       jx_ob_free(result);
       return JX_SUCCESS;
     }
   }
-  return JX_FAILURE;
+  return JX_STATUS_NOT_FOUND;
 }
 
 jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value);
