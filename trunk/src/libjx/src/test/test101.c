@@ -48,19 +48,24 @@ JXON version:
 
 G5-32 bit: -O3
 
-  2M cycles in VM =  sec
+  2M cycles in VM = 3.4 sec
 
-  20M cycles in C =  sec
+  20M cycles in C = 12.1 sec
 
-  The C version is x faster 
+  The C version is less than ~3x faster 
 
 Core 2 Duo-32 bit:
 
-  2M cycles in VM = 2.0 sec
+  2M cycles in VM = 2.0 sec (versus 1.7 for Python)
 
   20M cycles in C = 6.8 sec
 
-  The C version is 3x faster
+  The C version is ONLY 3x faster
+
+  Why is that?  Is our hash table a dog? Profiling with Shark reveals
+  that a full 40% of wall time is consumed with the hash table's
+  hashcode-based random-access memory fetch operation.  Amazing.
+  Unfortunately, prefetching doesn't seem to help.
 
 */
 
