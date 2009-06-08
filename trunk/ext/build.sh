@@ -11,6 +11,10 @@ fi
 install -d ${BASE}/bin
 install -d ${BASE}/build
 
+cd ${BASE}/bin
+gunzip < ${BASE}/src/tkdiff.gz > tkdiff
+chmod 755 tkdiff
+
 cd ${BASE}/build
 
 tar zxvf ../src/lemon.tgz
@@ -29,6 +33,7 @@ cd re2c-0.12.3
 make 
 make install
 make distclean
+
 
 echo "Jenarix EXT build complete"
 

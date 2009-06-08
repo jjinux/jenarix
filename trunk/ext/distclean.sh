@@ -10,7 +10,7 @@ fi
 
 /bin/rm -f ${BASE}/bin/lemon \
     ${BASE}/bin/re2c \
-    ${BASE}/bin/re2c \
+    ${BASE}/bin/tkdiff \
     ${BASE}/share/man/man1/re2c.1
 
 /bin/rm -rf ${BASE}/build
