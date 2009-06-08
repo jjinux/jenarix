@@ -1,0 +1,164 @@
+# unit03.jx JXON threading tests
+# source: (assert (def delay
+#             (id x)
+#             [ (set sum 0), (while (decr x)
+#                 (incr sum
+#                   (idiv x 100))),
+#               (id sum)]))
+#   eval: (`assert (`def delay
+#             (id x)
+#             [ (`set sum 0), (`while (`decr x)
+#                 (`incr sum
+#                   (`idiv (`resolve x) 100))),
+#               [ (`resolve id), (`resolve sum)]]))
+true;
+
+# source: (assert (set result
+#             (paramap delay
+#               [ [1, 1000], [2, 2000],
+#                 [3, 3000],
+#                 [4, 4000],
+#                 [5, 5000],
+#                 [6, 6000],
+#                 [7, 7000],
+#                 [8, 8000]])))
+#   eval: (`assert (`set result
+#             (`paramap (`resolve delay)
+#               [ [1, 1000], [2, 2000],
+#                 [3, 3000],
+#                 [4, 4000],
+#                 [5, 5000],
+#                 [6, 6000],
+#                 [7, 7000],
+#                 [8, 8000]])))
+true;
+
+# source: (assert [ [1, 4500], [2, 19000],
+#             [3, 43500],
+#             [4, 78000],
+#             [5, 122500],
+#             [6, 177000],
+#             [7, 241500],
+#             [8, 316000]] result)
+#   eval: (`assert [ [1, 4500], [2, 19000],
+#             [3, 43500],
+#             [4, 78000],
+#             [5, 122500],
+#             [6, 177000],
+#             [7, 241500],
+#             [8, 316000]]
+#           (`resolve result))
+true;
+
+# source: (assert (del delay))
+#   eval: (`assert (`del delay))
+true;
+
+# source: (assert (del result))
+#   eval: (`assert (`del result))
+true;
+
+# now we're creating a queue and sending data through the queue asynchronously
+# synchronizing a container disables copy semantics for the container
+# and replaces it with weak reference taking.  This will enable each 
+# functions to close on and reference the same container
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
+# source: (assert (set pipe
+#             []))
+#   eval: (`assert (`set pipe
+#             []))
+true;
+
+# source: (assert (synchronize pipe true))
+#   eval: (`assert (`synchronize (`resolve pipe) true))
+true;
+
+# source: (assert true
+#           (synchronized pipe))
+#   eval: (`assert true
+#           (`synchronized (`resolve pipe)))
+true;
+
+# source: (assert (def send_recv
+#             (sender cnt)
+#             [ (if sender
+#                 [ (while (decr cnt)
+#                     (append pipe true)), (append pipe false),
+#                   (size pipe)]
+#                 [ (set wait 7), (while wait
+#                     (test (shift pipe)
+#                       (incr cnt)
+#                       (decr wait))),cnt])]))
+#   eval: (`assert (`def send_recv
+#             (sender cnt)
+#             [ (`if (`resolve sender)
+#                 [ (`while (`decr cnt)
+#                     (`append pipe true)), (`append pipe false),
+#                   (`size (`resolve pipe))]
+#                 [ (`set wait 7), (`while (`resolve wait)
+#                     (`test (`shift (`resolve pipe))
+#                       (`incr cnt)
+#                       (`decr wait))),
+#                   (`resolve cnt)])]))
+true;
+
+# source: (assert (output (impl send_recv)))
+#   eval: (`assert (`output (`impl (`resolve send_recv))))
+[send_recv,[[sender,cnt],{pipe:[]}],[[`if,[`resolve,sender],[[`while,[`decr,cnt],[`append,pipe,true]],[`append,pipe,false],[`size,[`resolve,pipe]]],[[`set,wait,7],[`while,[`resolve,wait],[`test,[`shift,[`resolve,pipe]],[`incr,cnt],[`decr,wait]]],[`resolve,cnt]]]],true];
+true;
+
+# source: (assert (set result
+#             (paramap send_recv
+#               [ [true,1000], [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [false,0]])))
+#   eval: (`assert (`set result
+#             (`paramap (`resolve send_recv)
+#               [ [true,1000], [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [true,1000],
+#                 [false,0]])))
+true;
+
+# source: (assert 8
+#           (size result))
+#   eval: (`assert 8
+#           (`size (`resolve result)))
+true;
+
+# source: (assert 7000
+#           (get result -1))
+#   eval: (`assert 7000
+#           (`get result -1))
+true;
+
+# source: (assert (del send_recv))
+#   eval: (`assert (`del send_recv))
+true;
+
+# source: (assert (del pipe))
+#   eval: (`assert (`del pipe))
+true;
+
+# source: (assert (del result))
+#   eval: (`assert (`del result))
+true;
+
+# source: (assert {}
+#           (symbols))
+#   eval: (`assert {}
+#           (`symbols))
+true;
+
