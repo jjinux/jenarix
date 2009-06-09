@@ -31,6 +31,7 @@ JX_SELECTOR_SPECIAL_FORMS_LIMIT = 32L
 # normal selectors
 
 JX_SELECTOR_ADD = 32L
+JX_SELECTOR_OUTPUT = 33L
 
 # jx_ob is simply a native Python object with a native Python
 # BooleanType, IntType, FloatType, StringType, ListType, or
@@ -61,13 +62,15 @@ class jx_jxon_scanner:
             text = self.file.readline()
             if not len(text):
                 sys.exit(0)
-            if len(text.strip()):
+            text = text.strip()
+            if len(text):
                 break
         last = ''
         while text!=last:
             last = text
             text = ident_re.sub(r"\1('\2',)\3",text)
-        text = text[:-2] # strip semicolon
+        if text[-1:]==';':
+            text = text[:-1] # strip semicolon
         return (JX_YES,eval(text))
 
 def jx_ob(status):
@@ -123,6 +126,7 @@ def jx_code_expose_secure_builtins(names):
     names[('add',)] = JX_SELECTOR_ADD
     names[('set',)] = JX_SELECTOR_SET
     names[('get',)] = JX_SELECTOR_GET
+    names[('output',)] = JX_SELECTOR_OUTPUT
 
 def jx_code_bind_with_source(names,source):
     if jx_list_check(source):
@@ -145,7 +149,7 @@ def jx_code_bind_with_source(names,source):
                     code.append(entry)
                     unresolved = unresolved - 1
             else:
-                code.append(entry)
+                code.append(jx_code_bind_with_source(names,entry))
         return code
     else:
         return source
@@ -167,7 +171,7 @@ def jx_code_eval_to_weak(node, expr):
                 return {
                     JX_SELECTOR_RESOLVE : lambda : node.get(expr[1],expr[1]),
                     JX_SELECTOR_SET : lambda : node.__setitem__(expr[1],jx_code_eval(node,expr[2])),
-                    JX_SELECTOR_GET : lambda : node.__getitem__(expr[1])
+                    JX_SELECTOR_GET : lambda : node.__getitem__(expr[1]),
                     }[expr[0]]()
 
         # evaluate sub-expressions
@@ -178,7 +182,8 @@ def jx_code_eval_to_weak(node, expr):
 
         if jx_builtin_selector_check( result[0] ):
             return {
-                JX_SELECTOR_ADD : lambda : result[1]+result[2]
+                JX_SELECTOR_ADD : lambda : result[1]+result[2],
+                JX_SELECTOR_OUTPUT : lambda : sys.stdout.write(repr(result[1])+";\n")
                 }[result[0]]()
         
         # otherwise, simply return
