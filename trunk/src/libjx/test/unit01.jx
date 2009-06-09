@@ -952,7 +952,7 @@ true;
     0.0 0.0 1.0 ],
   {dim:[3,3]}) Matrix33f)
 
-(assert (output (symbols false)));
+#(assert (output (symbols false)));
 
 # new instances can be automatically created by resolving the entity handle and then
 # calling it as a function 

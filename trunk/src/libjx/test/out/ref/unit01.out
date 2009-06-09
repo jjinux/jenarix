@@ -2517,6 +2517,9 @@ true;
 #   eval: (`assert (`del _method))
 true;
 
+#(assert (output (symbols false)));
+# new instances can be automatically created by resolving the entity handle and then
+# calling it as a function 
 # source: (assert (entity Matrix33f MatrixBase
 #             [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] {dim: [3, 3]}) Matrix33f)
 #   eval: (`assert (`entity Matrix33f
@@ -2525,13 +2528,6 @@ true;
 #           (`resolve Matrix33f))
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{Matrix33f:.Matrix33f,.Matrix33f:[.MatrixBase,[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],{dim:[3,3]}],MatrixBase:.MatrixBase,.MatrixBase:[null,null,{dim:[],method:fn`_method}]};
-true;
-
-# new instances can be automatically created by resolving the entity handle and then
-# calling it as a function 
 # source: (assert (set m1
 #             [ (Matrix33f)]))
 #   eval: (`assert (`set m1

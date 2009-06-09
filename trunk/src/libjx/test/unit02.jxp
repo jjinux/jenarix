@@ -9,7 +9,9 @@ print a
 
 b = {"some key":[1,2,3], 3:"some value", "another key":"another value",8.4:0}
 
-print b, len(b)
+###print b, len(b)
+
+print len(b)
 
 # REMEMBER, Jenarix uses copy semantics, not reference-taking semantics, so
 
@@ -36,10 +38,10 @@ for b in range(3,8):
 
 # we have while loops
 
-x=1.3
+x=1
 
 while x<9:
-    x=x+1.1
+    x=x+1
     print x
 
 # does simple if work?
