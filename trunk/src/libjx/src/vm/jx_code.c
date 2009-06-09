@@ -214,16 +214,16 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source, jx_int unres
             if(jx_builtin_selector_check(builtin)) { 
               switch(builtin.data.io.int_) {              
               case JX_SELECTOR_BREAK:
-                entry = jx_ob_from_opcode(JX_OPCODE_BREAK,0);
+                jx_ob_replace(&entry, jx_ob_from_opcode(JX_OPCODE_BREAK,0));
                 break;
               case JX_SELECTOR_CONTINUE:
-                entry = jx_ob_from_opcode(JX_OPCODE_CONTINUE,0);
+                jx_ob_replace(&entry, jx_ob_from_opcode(JX_OPCODE_CONTINUE,0));
                 break;
               case JX_SELECTOR_RETURN: 
                 jx_ob_replace(&entry, jx_ob_from_opcode(JX_OPCODE_RETURN,0));
                 break;
               case JX_SELECTOR_TAIL: 
-                entry = jx_ob_from_opcode(JX_OPCODE_TAIL_CALL,0);
+                jx_ob_replace(&entry, jx_ob_from_opcode(JX_OPCODE_TAIL_CALL,0));
                 break;
               default:
                 {
