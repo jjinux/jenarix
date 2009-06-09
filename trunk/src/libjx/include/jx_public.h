@@ -192,6 +192,7 @@ jx_char *jx_ob_as_ident(jx_ob * ob);      /* returns borrowed (volatile)
 #define JX_JXON_FLAG_NOT_NEWLINE    0x01000000
 #define JX_JXON_FLAG_NO_ROUNDED     0x00800000
 #define JX_JXON_FLAG_APPROX_FLOAT   0x00400000
+#define JX_JXON_FLAG_SORT_HASHES    0x00200000
 #define JX_JXON_FLAG_TAB_MASK       0x000F0000
 #define JX_JXON_FLAG_WIDTH_MASK     0x0000FF00
 #define JX_JXON_FLAG_INDENT_MASK    0x000000FF
@@ -361,6 +362,7 @@ jx_int jx_list_index(jx_ob list, jx_ob ob);
 jx_status jx_list_delete(jx_ob list, jx_int index); /* frees entry at index */
 jx_status jx_list_reset(jx_ob list);
 jx_status jx_list_reverse(jx_ob list);
+jx_status jx_list_sort(jx_ob list);
 
 /* homogenous lists with variable length arrays (vla's)  */
 

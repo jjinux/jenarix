@@ -1039,6 +1039,38 @@ jx_ob jx__ob_mul(jx_ob left, jx_ob right)
   return jx_ob_from_null();
 }
 
+jx_int jx__ob_compare(jx_ob left, jx_ob right)
+{
+  /* on entry, we know the types aren't matched */
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits merge_bits = left_bits | right_bits;
+  switch(merge_bits) {
+  case JX_META_BIT_BOOL | JX_META_BIT_INT:
+    return ((jx_ob_as_int(left) < jx_ob_as_int(right)) ? -1 :
+            (jx_ob_as_int(left) != jx_ob_as_int(right)) ? 1 : 
+            ((left_bits < right_bits) ? -1 :
+             (left_bits == right_bits) ? 0 : 1));        
+    break;
+  case JX_META_BIT_BOOL | JX_META_BIT_FLOAT:
+  case JX_META_BIT_INT  | JX_META_BIT_FLOAT:
+    return ((jx_ob_as_float(left) < jx_ob_as_float(right)) ? -1 :
+            (jx_ob_as_float(left) != jx_ob_as_float(right)) ? 1 : 
+            ((left_bits < right_bits) ? -1 :
+             (left_bits == right_bits) ? 0 : 1));
+    break;
+  default: /* uncomparable items: fall back on bit mask values */
+    if((left_bits)&&(!right_bits))
+      return 1;
+    if((!left_bits)&&(right_bits))
+      return -1;
+    return ((left_bits < right_bits) ? -1 :
+            (left_bits == right_bits) ? 0 : 1);
+    break;
+  }
+  return JX_FALSE;
+}
+
 jx_bool jx__ob_lt(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
@@ -1283,6 +1315,103 @@ jx_ob jx_list_new_with_float_vla(jx_float ** ref)
   }
   return result;
 }
+
+/* This public-domain C quick_sort implementation by Darel Rex Finley
+ (DarelRex@gmail.com) with modifications by Warren L. DeLano */
+#define  JX_QS_MAX_LEVELS  300
+JX_INLINE void jx_quick_sort_int(int *arr, int elements) {
+  jx_int  piv, beg[JX_QS_MAX_LEVELS], end[JX_QS_MAX_LEVELS], i=0, L, R, swap;
+  beg[0]=0; end[0]=elements;
+  while (i>=0) {
+    L=beg[i]; R=end[i]-1;
+    if (L<R) {
+      piv=arr[L];
+      while (L<R) {
+        while ((arr[R]>=piv) && L<R) R--; if (L<R) arr[L++]=arr[R];
+        while ((arr[L]<=piv) && L<R) L++; if (L<R) arr[R--]=arr[L]; 
+      }
+      arr[L]=piv; beg[i+1]=L+1; end[i+1]=end[i]; end[i++]=L;
+      if ((end[i]-beg[i])>(end[i-1]-beg[i-1])) {
+        swap=beg[i]; beg[i]=beg[i-1]; beg[i-1]=swap;
+        swap=end[i]; end[i]=end[i-1]; end[i-1]=swap; 
+      }
+    } else {
+      i--; 
+    }
+  }
+}
+JX_INLINE void jx_quick_sort_float(float *arr, int elements) {
+
+  #define  MAX_LEVELS  300
+  jx_int beg[JX_QS_MAX_LEVELS], end[JX_QS_MAX_LEVELS], i=0, L, R, swap;
+  jx_float piv;
+  beg[0]=0; end[0]=elements;
+  while (i>=0) {
+    L=beg[i]; R=end[i]-1;
+    if (L<R) {
+      piv=arr[L];
+      while (L<R) {
+        while ((arr[R]>=piv) && L<R) R--; if (L<R) arr[L++]=arr[R];
+        while ((arr[L]<=piv) && L<R) L++; if (L<R) arr[R--]=arr[L]; 
+      }
+      arr[L]=piv; beg[i+1]=L+1; end[i+1]=end[i]; end[i++]=L;
+      if ((end[i]-beg[i])>(end[i-1]-beg[i-1])) {
+        swap=beg[i]; beg[i]=beg[i-1]; beg[i-1]=swap;
+        swap=end[i]; end[i]=end[i-1]; end[i-1]=swap; 
+      }
+    } else {
+      i--; 
+    }
+  }
+}
+JX_INLINE void jx_quick_sort_ob(jx_ob *arr, int elements) {
+  jx_int beg[JX_QS_MAX_LEVELS], end[JX_QS_MAX_LEVELS], i=0, L, R, swap;
+  jx_ob piv;
+  beg[0]=0; end[0]=elements;
+  while (i>=0) {
+    L=beg[i]; R=end[i]-1;
+    if (L<R) {
+      piv=arr[L];
+      while (L<R) {
+        while ((jx_ob_compare(arr[R],piv)>=0) && L<R) R--;
+        if (L<R) arr[L++]=arr[R];
+        while ((jx_ob_compare(arr[L],piv)<=0) && L<R) L++; 
+        if (L<R) arr[R--]=arr[L]; 
+      }
+      arr[L]=piv; beg[i+1]=L+1; end[i+1]=end[i]; end[i++]=L;
+      if ((end[i]-beg[i])>(end[i-1]-beg[i-1])) {
+        swap=beg[i]; beg[i]=beg[i-1]; beg[i-1]=swap;
+        swap=end[i]; end[i]=end[i-1]; end[i-1]=swap; 
+      }
+    } else {
+      i--; 
+    }
+  }
+}
+
+jx_status jx__list_sort_locked(jx_list * I)
+{
+  jx_int size = jx_vla_size(&I->data.vla);
+  if(I->packed_meta_bits && (size>1)) {
+    switch(I->packed_meta_bits & JX_META_MASK_TYPE_BITS) {
+    case JX_META_BIT_INT:
+      jx_quick_sort_int(I->data.int_vla,size);
+      return JX_SUCCESS;
+      break;
+    case JX_META_BIT_FLOAT:
+      jx_quick_sort_float(I->data.float_vla,size);
+      return JX_SUCCESS;
+      break;
+    default:
+      return JX_FAILURE;
+      break;
+    }
+  }
+  jx_quick_sort_ob(I->data.ob_vla,size);
+  return JX_SUCCESS;
+}
+
+
 
 jx_ob jx__list_copy(jx_list * I)
 {
@@ -4835,6 +4964,41 @@ jx_status jx__ob_gc_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool rec
     break;
   }
   return JX_SUCCESS;
+}
+
+jx_int jx__builtin_compare(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_BUILTIN_TYPE;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_BUILTIN_TYPE;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case JX_META_BIT_BUILTIN_ENTITY:
+      return jx__str__compare(jx_ob_as_ident(&left),jx_ob_as_ident(&right));
+      break;
+    case JX_META_BIT_BUILTIN_SELECTOR:
+      return ((left.data.io.int_ < right.data.io.int_) ? -1 :
+              (left.data.io.int_ == right.data.io.int_) ? 0 : 1);              
+      break;
+    case JX_META_BIT_BUILTIN_OPAQUE_OB:
+    case JX_META_BIT_BUILTIN_MACRO:
+    case JX_META_BIT_BUILTIN_NATIVE_FN:
+    case JX_META_BIT_BUILTIN_FUNCTION:
+      return ((left.data.io.void_ < right.data.io.void_) ? -1 :
+              (left.data.io.void_ == right.data.io.void_) ? 0 : 1);              
+      break;
+    default:
+      return 0;
+      break;
+    }
+  } else {
+    if((left_bits)&&(!right_bits))
+      return 1;
+    if((!left_bits)&&(right_bits))
+      return -1;
+    return ((left_bits < right_bits) ? -1 :
+            (left_bits == right_bits) ? 0 : 1);
+  }
+  return 0;
 }
 
 jx_ob jx__builtin_copy(jx_ob ob)

@@ -1074,14 +1074,14 @@ true;
 true;
 
 # hash comparison (order-independent of course)
-# source: (assert (output c))
-#   eval: (`assert (`output (`resolve c)))
-{2:1,10:1,4:1,8:1,3:1,9:1,6:1,1:1,7:1,5:1};
+# source: (assert (dump c))
+#   eval: (`assert (`dump (`resolve c)))
+#  dump: # {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1}
 true;
 
-# source: (assert {2:1,4:1,10:1,8:1,3:1,1:1,6:1,9:1,5:1,7:1}
+# source: (assert {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1}
 #           (get c))
-#   eval: (`assert {2:1,4:1,10:1,8:1,3:1,1:1,6:1,9:1,5:1,7:1}
+#   eval: (`assert {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1}
 #           (`get c))
 true;
 
@@ -1831,9 +1831,9 @@ true;
 #             [ (`resolve fnbuilder),2]))
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{newfn:fn`0xXXXXXX,fnbuilder:fn`fnbuilder};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {fnbuilder:fn`fnbuilder,newfn:fn`0xXXXXXX}
 true;
 
 # source: (assert 2
@@ -1877,9 +1877,9 @@ true;
 #           [ (`resolve newfn)])
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{v:[1,2,3],fnbuilder:fn`fnbuilder,newfn:fn`0xXXXXXX};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {fnbuilder:fn`fnbuilder,newfn:fn`0xXXXXXX,v: [1, 2, 3]}
 true;
 
 # source: (assert (del v))
@@ -1894,9 +1894,9 @@ true;
 #   eval: (`assert (`del newfn))
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {}
 true;
 
 # closure03
@@ -1926,9 +1926,9 @@ true;
 [vector.add,[[v1,v2],{}],[[[[`resolve,v1],0],[`map,[`lambda,[x,y],[`add,[`resolve,x],[`resolve,y]]],[[`resolve,v1],1],[[`resolve,v2],1]]]],true];
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{vector:{add:fn`vector.add}};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {vector: {add:fn`vector.add}}
 true;
 
 # source: (assert (entity VectorBase null null {add:vector.add}) VectorBase)
@@ -2016,10 +2016,14 @@ true;
 #   eval: (`assert (`del [ (`pass (`resolve Vector))]))
 true;
 
-# (assert (output (symbols false)))
-# then that doesn't work
 # source: (assert (del Vector))
 #   eval: (`assert (`del Vector))
+true;
+
+# then that doesn't work
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {VectorBase:.VectorBase,myfn:fn`myfn,myfn2:fn`myfn2,v1: [.Vector, [1, 2, 3]],v2: [.Vector, [2, 3, 4]],vector: {add:fn`vector.add},.VectorBase: [null,null, {add:fn`vector.add}]}
 true;
 
 # whereas the function with closed entity definitions still works
@@ -2028,11 +2032,15 @@ true;
 #             (`resolve v2)])
 true;
 
-# (assert (output (symbols false)))
 # source: (assert (output (myfn v1 v2)))
 #   eval: (`assert (`output [ (`resolve myfn), (`resolve v1),
 #               (`resolve v2)]))
 [.Vector,[3,5,7]];
+true;
+
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {VectorBase:.VectorBase,myfn:fn`myfn,myfn2:fn`myfn2,v1: [.Vector, [1, 2, 3]],v2: [.Vector, [2, 3, 4]],vector: {add:fn`vector.add},.VectorBase: [null,null, {add:fn`vector.add}]}
 true;
 
 # source: (assert (del v1))
@@ -2067,9 +2075,9 @@ true;
 #   eval: (`assert (`del VectorBase))
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {}
 true;
 
 # continue
@@ -2101,18 +2109,18 @@ true;
 5;
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{a:5};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {a:5}
 true;
 
 # source: (assert (del a))
 #   eval: (`assert (`del a))
 true;
 
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {}
 true;
 
 # entity02
@@ -2517,9 +2525,6 @@ true;
 #   eval: (`assert (`del _method))
 true;
 
-#(assert (output (symbols false)));
-# new instances can be automatically created by resolving the entity handle and then
-# calling it as a function 
 # source: (assert (entity Matrix33f MatrixBase
 #             [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] {dim: [3, 3]}) Matrix33f)
 #   eval: (`assert (`entity Matrix33f
@@ -2528,6 +2533,13 @@ true;
 #           (`resolve Matrix33f))
 true;
 
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {Matrix33f:.Matrix33f,MatrixBase:.MatrixBase,.Matrix33f: [.MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}],.MatrixBase: [null,null, {dim: [],method:fn`_method}]}
+true;
+
+# new instances can be automatically created by resolving the entity handle and then
+# calling it as a function 
 # source: (assert (set m1
 #             [ (Matrix33f)]))
 #   eval: (`assert (`set m1
@@ -2577,9 +2589,9 @@ true;
 # (.Vector) and a second which binds the handle to the attribute table
 # (which can be null)
 # creating an instance the manual way...
-# source: (assert (output (symbols false)))
-#   eval: (`assert (`output (`symbols false)))
-{Vector:.Vector,.Vector:[null,null,null]};
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {Vector:.Vector,.Vector: [null,null,null]}
 true;
 
 # source: (assert (set vect1
@@ -2609,14 +2621,17 @@ true;
 #   eval: (`assert [ (`resolve vect1), (`resolve length)])
 true;
 
-#(assert (output (symbols false)))
-# result: { ..., Vector: {length:fn`0xXXXXXX}, ... }
-# newly-defined class methods are available to all instances in the namespace
 # source: (assert (entity Vector null null {length: (lambda (self)
 #               (size (self 1)))}) Vector)
 #   eval: (`assert (`entity Vector null null {length: (`lambda (self)
 #               (`size [ (`resolve self),1]))})
 #           (`resolve Vector))
+true;
+
+# newly-defined class methods are available to all instances in the namespace
+# source: (assert (dump (symbols false)))
+#   eval: (`assert (`dump (`symbols false)))
+#  dump: {Vector:.Vector,vect1: [.Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}],.Vector: [null,null, {length:fn`0xXXXXXX}]}
 true;
 
 # result: 7
@@ -3099,14 +3114,10 @@ true;
 0;
 true;
 
-# confirm clean namespace
+# sort order & relative rankings
 # source: (assert (del i))
 #   eval: (`assert (`del i))
 true;
 
-# source: (assert {}
-#           (symbols false))
-#   eval: (`assert {}
-#           (`symbols false))
-true;
-
+Error: invalid syntax on line 1205
+    [],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[set],"","x","y","y",x,y,(lambda fn),(entity Base) -->)<-- );

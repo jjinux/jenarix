@@ -373,7 +373,7 @@ true;
 
 (assert [10,9,8,7,6,5,4,3,2,1] (get b))
 
-(assert (output c))
+(assert (dump c))
 
 # hash comparison (order-independent of course)
 
@@ -667,7 +667,7 @@ true;
 
 (assert (set newfn (fnbuilder 2)))
 
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 
 (assert 2 (newfn))
 
@@ -686,11 +686,11 @@ true;
 
 (assert [1,2] (newfn))
 
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 (assert (del v))
 (assert (del fnbuilder))
 (assert (del newfn))
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 (assert {} (symbols false))
 
 # closure03
@@ -702,7 +702,7 @@ true;
 
 (assert (output (impl vector.add)))
 
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
  
 (assert (entity VectorBase null null {add:vector.add}) VectorBase)
 
@@ -746,7 +746,7 @@ true;
 (assert (del ((pass Vector))))
 (assert (del Vector))
 
-# (assert (output (symbols false)))
+(assert (dump (symbols false)))
 
 # then that doesn't work
 
@@ -756,7 +756,7 @@ true;
 
 (assert (output (myfn v1 v2)))
 
-# (assert (output (symbols false)))
+(assert (dump (symbols false)))
 
 (assert (del v1))
 (assert (del v2))
@@ -768,7 +768,7 @@ true;
 (assert (del ((pass VectorBase))))
 (assert (del VectorBase))
 
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 (assert {} (symbols false))
 
 # continue
@@ -777,9 +777,9 @@ true;
 
 (assert 5 (while (decr a) ((output a) (test (gt a 5) (continue) a) (break))))
 
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 (assert (del a))
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 (assert {} (symbols false))
 
 # entity02
@@ -952,7 +952,7 @@ true;
     0.0 0.0 1.0 ],
   {dim:[3,3]}) Matrix33f)
 
-#(assert (output (symbols false)));
+(assert (dump (symbols false)));
 
 # new instances can be automatically created by resolving the entity handle and then
 # calling it as a function 
@@ -981,7 +981,7 @@ true;
 # (.Vector) and a second which binds the handle to the attribute table
 # (which can be null)
 
-(assert (output (symbols false)))
+(assert (dump (symbols false)))
 
 # creating an instance the manual way...
 
@@ -1007,9 +1007,8 @@ true;
   { length : (lambda [self] (size (self 1))) })
   Vector)
 
-#(assert (output (symbols false)))
+(assert (dump (symbols false)))
 
-# result: { ..., Vector: {length:fn`0x600ed8}, ... }
 
 # newly-defined class methods are available to all instances in the namespace
 
@@ -1199,6 +1198,35 @@ true;
 (assert (while (decr i) (output i)))
 (assert (del i))
 
+# sort order & relative rankings
+
+(assert (set a 
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},
+    [],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[set],"","x","y","y",x,y,(lambda fn),(entity Base)));
+
+(assert (set b a))
+(assert (set c a))
+
+(assert (reverse b))
+
+(assert (output a))
+
+(assert (output b))
+
+(assert (sort a))
+
+(assert (sort b))
+
+(assert (output a))
+
+(assert (output b))
+
+(assert a c)
+(assert b c)
+       
+(assert (del a))
+(assert (del b))
+(assert (del c))
 
 # confirm clean namespace
 

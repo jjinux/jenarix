@@ -152,39 +152,46 @@ struct jx__ob {
   jx_meta meta;
 };
 
+
 /* meta flag bits */
 
 #define JX_META_BIT_WEAK_REF           0x8000
+
+/* bit pattern for memory matching a non object (nonsense pattern =
+   weak ref bit with no type bits set) */
+
+#define JX_META_NOT_AN_OB              0x8000
+
 /* set in weak references */
 
 #define JX_META_BIT_GC                 0x4000
 /* set if object has garbage collected resourcese */
 
-/* Jenarix primitive types (note that null has none of the type bits
-   set and corresponds to zero'd memory */
+/* note that the ordering of bit values here has to match the sort
+   ordering for heterogenous compares (other than those involving
+   numbers) */
 
-#define JX_META_BIT_BOOL               0x2000
-#define JX_META_BIT_INT                0x1000
-#define JX_META_BIT_FLOAT              0x0800
-#define JX_META_BIT_STR                0x0400
-#define JX_META_BIT_LIST               0x0200
+/* Jenarix primitive types (note that null has no meta bits set and
+   thus corresponds to zero'd memory) */
+
+#define JX_META_BIT_BOOL               0x0020
+#define JX_META_BIT_INT                0x0040
+#define JX_META_BIT_FLOAT              0x0080
 #define JX_META_BIT_HASH               0x0100
+#define JX_META_BIT_LIST               0x0200
+#define JX_META_BIT_STR                0x0400
 
 /* JXON identifiers */
 
-#define JX_META_BIT_IDENT              0x0080
+#define JX_META_BIT_IDENT              0x0800
 
 /* JXON VM opcodes */
 
-#define JX_META_BIT_OPCODE             0x0040
-
-/* bit pattern for memory matching no object */
-
-#define JX_META_NOT_AN_OB              0x8000
+#define JX_META_BIT_OPCODE             0x1000
 
 /* pointers to built-in entities (runtime-only, not serializable) */
 
-#define JX_META_BIT_BUILTIN            0x0020
+#define JX_META_BIT_BUILTIN            0x2000
 
 #define JX_META_MASK_TINY_STR_SIZE     0x001F
 
@@ -1305,6 +1312,28 @@ JX_INLINE jx_status jx_list_reverse(jx_ob list)
     JX_FAILURE;
 }
 
+jx_status jx__list_sort_locked(jx_list * I);
+JX_INLINE jx_status jx__list_sort(jx_list * I)
+{
+  jx_bool synchronized = I->gc.synchronized;
+  jx_status status = synchronized ? jx_gc_lock(&I->gc): JX_YES;
+  if(JX_POS(status)) {
+    status = jx__list_sort_locked(I);
+    if(synchronized) {
+      jx_gc_unlock(&I->gc);
+    }
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx_list_sort(jx_ob list)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_sort(list.data.io.list) :
+    JX_FAILURE;
+}
+
+
 jx_status jx__list_unpack_data_locked(jx_list * I);
 JX_INLINE jx_status jx__list_unpack_data(jx_list * I)
 {
@@ -2262,7 +2291,88 @@ JX_INLINE jx_ob jx_str_join_from_list_sep(jx_ob list, jx_ob sep)
   return jx_ob_from_null();
 }
 
+jx_char *jx_ob_as_ident(jx_ob * ob);    
+
 /* comparison operators */
+
+jx_int jx__builtin_compare(jx_ob left, jx_ob right);
+jx_int jx__ob_compare(jx_ob left, jx_ob right);
+JX_INLINE jx_int jx_ob_compare(jx_ob left, jx_ob right)
+{
+  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  if(left_bits == right_bits) {
+    switch(left_bits) {
+    case 0: /* null vs. null */
+      return 0;
+      break;
+    case JX_META_BIT_BOOL:
+      return ((left.data.io.bool_ < right.data.io.bool_) ? -1 : 
+              (left.data.io.bool_ == right.data.io.bool_) ? 0 : 1);
+      break;
+    case JX_META_BIT_INT:
+      return ((left.data.io.int_ < right.data.io.int_) ? -1 :
+              (left.data.io.int_ == right.data.io.int_) ? 0 : 1);              
+      break;
+    case JX_META_BIT_FLOAT:
+      return ((left.data.io.float_ < right.data.io.float_) ? -1 :
+              (left.data.io.float_ == right.data.io.float_) ? 0 : 1);                       
+      break;
+    case JX_META_BIT_HASH:
+      {
+        jx_ob left_keys = jx_hash_keys(left);
+        jx_ob right_keys = jx_hash_keys(right);
+        jx_list_sort(left_keys);
+        jx_list_sort(right_keys);
+        {
+          jx_int cmp = jx_ob_compare(left_keys,right_keys);
+          if(!cmp) { /* ugh -- now need to compare values in sorted key-order */
+            jx_int i=0,left_size = jx_list_size(left_keys);
+            for(i=0;i<left_size;i++) {
+              jx_ob left_value = jx_hash_borrow(left,jx_list_borrow(left_keys,i));
+              jx_ob right_value = jx_hash_borrow(right,jx_list_borrow(right_keys,i));
+              cmp = jx_ob_compare(left_value, right_value);
+              if(!cmp)
+                break;
+            }
+          }
+          jx_ob_free(left_keys);
+          jx_ob_free(right_keys);
+          return cmp;
+        }
+      }
+      break;
+    case JX_META_BIT_LIST:
+      {
+        jx_int i=0,left_size = jx_list_size(left),right_size=jx_list_size(right);
+        while(1) {
+          if((i<left_size)&&(i<right_size)) {
+            jx_int cmp = jx_ob_compare(jx_list_borrow(left,i),jx_list_borrow(right,i));
+            if(cmp) return cmp; else i++;
+          } else {
+            return ((left_size == right_size) ? 0 :
+                    (left_size<right_size) ? -1 : 1);
+          }
+        }
+      }
+      break;
+     case JX_META_BIT_STR:
+      return jx__str__compare(jx_ob_as_str(&left),jx_ob_as_str(&right));
+      break;
+    case JX_META_BIT_IDENT:
+      return jx__str__compare(jx_ob_as_ident(&left),jx_ob_as_ident(&right));
+      break;
+    case JX_META_BIT_BUILTIN:
+      return jx__builtin_compare(left,right);
+      break;
+    case JX_META_BIT_OPCODE:
+      return ((left_bits < right_bits) ? -1 :
+              (left_bits == right_bits) ? 0 : 1);
+      break;
+    }
+  }
+  return jx__ob_compare(left,right);
+}
 
 jx_bool jx__ob_lt(jx_ob left, jx_ob right);
 JX_INLINE jx_bool jx_ob_lt(jx_ob left, jx_ob right)
@@ -2889,7 +2999,6 @@ JX_INLINE jx_ob jx_entity_resolve_content(jx_ob node,jx_ob handle)
   return jx_ob_copy(result);
 }
 
-jx_char *jx_ob_as_ident(jx_ob * ob);    
 JX_INLINE jx_ob jx_entity_resolve_attrs(jx_ob node,jx_ob handle)
 {
   jx_ob result = jx_ob_from_null();

@@ -220,7 +220,7 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source, jx_int unres
                 entry = jx_ob_from_opcode(JX_OPCODE_CONTINUE,0);
                 break;
               case JX_SELECTOR_RETURN: 
-                entry = jx_ob_from_opcode(JX_OPCODE_RETURN,0);
+                jx_ob_replace(&entry, jx_ob_from_opcode(JX_OPCODE_RETURN,0));
                 break;
               case JX_SELECTOR_TAIL: 
                 entry = jx_ob_from_opcode(JX_OPCODE_TAIL_CALL,0);
@@ -588,6 +588,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
       case JX_SELECTOR_REVERSE:
         jx_tls_ob_replace(tls, &payload, jx_safe_reverse(node, payload));
         break;
+      case JX_SELECTOR_SORT:
+        jx_tls_ob_replace(tls, &payload, jx_safe_sort(node, payload));
+        break;
       case JX_SELECTOR_IMPL:
         jx_tls_ob_replace(tls, &payload, jx_safe_impl(node, payload));
         break;
@@ -635,6 +638,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
         break;
       case JX_SELECTOR_ASSERT:
         jx_tls_ob_replace(tls, &payload, jx_safe_assert(node, payload));
+        break;
+      case JX_SELECTOR_DUMP:
+        jx_tls_ob_replace(tls, &payload, jx_safe_dump(node, payload));
         break;
       default: /* unrecognized selector? purge weak */
         jx_ob_free(callable);

@@ -407,6 +407,12 @@ JX_INLINE jx_ob jx_safe_output(jx_ob node, jx_ob payload)
   return jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx_safe_dump(jx_ob node, jx_ob payload)
+{
+  jx_jxon_dump_in_node(stdout, "#  dump", node, jx_list_borrow(payload,0));
+  return jx_ob_from_null();
+}
+
 JX_INLINE jx_ob jx_safe_assert(jx_ob node, jx_ob payload)
 {
   jx_ob first = jx_list_borrow(payload,0);  
@@ -463,6 +469,16 @@ JX_INLINE jx_ob jx_safe_reverse(jx_ob container, jx_ob payload)
   if(JX_POS(jx__resolve_container(NULL,&container,&target))) {
     return jx_ob_from_status
       ( jx_list_reverse( container ));
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_safe_sort(jx_ob container, jx_ob payload)
+{ /* TO DO: support a comparison function */
+  jx_ob target =  jx_list_borrow(payload,0);
+  if(JX_POS(jx__resolve_container(NULL,&container,&target))) {
+    return jx_ob_from_status
+      ( jx_list_sort( container ));
   }
   return jx_ob_from_null();
 }

@@ -96,6 +96,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"slice", JX_SELECTOR_SLICE);
   ok = jx_declare(ok,names,"cutout", JX_SELECTOR_CUTOUT);
   ok = jx_declare(ok,names,"reverse", JX_SELECTOR_REVERSE);
+  ok = jx_declare(ok,names,"sort", JX_SELECTOR_SORT);
   
   ok = jx_declare(ok,names,"incr", JX_SELECTOR_INCR);
   ok = jx_declare(ok,names,"decr", JX_SELECTOR_DECR);
@@ -123,6 +124,7 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"pow",  JX_SELECTOR_POW);
 
   ok = jx_declare(ok,names,"assert",  JX_SELECTOR_ASSERT);
+  ok = jx_declare(ok,names,"dump", JX_SELECTOR_DUMP);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

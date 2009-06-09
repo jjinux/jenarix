@@ -236,70 +236,94 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
   flags = autowrap(ref,flags,space_left,1);
   jx_vla_append_c_str(ref, "{"); 
   if(size) {
-    jx_hash_info *info = (jx_hash_info *) I->info;
-    if((!info) || (info->mode == JX_HASH_LINEAR)) {
-      register jx_int i = (info ? info->usage : (size >> 1));
-      register jx_ob *ob = I->key_value;
-      while(i--) {
+    if(flags & JX_JXON_FLAG_SORT_HASHES) {
+      jx_ob keys = jx__hash_copy_members(I, JX__HASH_COPY_KEYS);
+      jx_int i,list_size = jx_list_size(keys);
+      jx_list_sort(keys);
+      for(i=0;i<list_size;i++) {
+        jx_ob key = jx_list_swap_with_null(keys,i);
         if(comma) {
           flags = autowrap(ref,flags,space_left,1);
           jx_vla_append_c_str(ref, ",");
         } else {
           comma = JX_TRUE;
         }
-#if 0
-        if((flags & JX_JXON_FLAG_JSON_LOSSY) && 
-           !(ob[0].meta.bits &
-             (JX_META_BIT_STR|JX_META_BIT_IDENT|JX_META_BIT_BUILTIN))) {
-          jx_vla_append_ob_str(ref, jx_ob_from_str("\""));
-          jx_vla_append_ob_str(ref, key);                 
-          jx_vla_append_ob_str(ref, jx_ob_from_str("\""));
-        } else {
-          jx_vla_append_ob_str(ref, key);
-        }
-#endif
-
-        jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[0], ref, flags, space_left) );
+        jx_ob_free( jx__ob_to_jxon_with_flags(node, key, ref, flags, space_left) );
         flags = autowrap(ref,flags,space_left,1);
-        jx_vla_append_c_str(ref, ":");
-        jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[1], ref, flags, space_left) );
-        ob += 2;
-      }
-    } else {
-      switch (info->mode) {
-      case JX_HASH_ONE_TO_ANY:
-      case JX_HASH_ONE_TO_ONE:
-      case JX_HASH_ONE_TO_NIL:
+        jx_vla_append_c_str(ref, ":");        
         {
-          jx_uint32 mask = info->mask;
-          jx_uint32 *hash_table = info->table;
-          jx_ob *key_value = I->key_value;
-          jx_uint32 index = 0;
-          do {
-            jx_uint32 *hash_entry = hash_table + (index << 1);
-            if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {        /* active slot with matching hash code */
-              jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
-              if(comma) {
-              flags = autowrap(ref,flags,space_left,1);
-                jx_vla_append_c_str(ref, ",");
-              } else {
-                comma = JX_TRUE;
-              }
-              jx_ob_free( jx__ob_to_jxon_with_flags
-                          (node, key_value[kv_offset], ref, flags, space_left) );
-              flags = autowrap(ref,flags,space_left,1);
-              jx_vla_append_c_str(ref, ":");
-              jx_ob_free( jx__ob_to_jxon_with_flags
-                          (node, key_value[kv_offset + 1], ref, flags, space_left) );
-            }
-            index++;
-          } while(index <= mask);
+          jx_ob value = jx_ob_from_null();
+          jx__hash_peek(&value, I, key);
+          jx_ob_free( jx__ob_to_jxon_with_flags(node, value, ref, flags, space_left) );
         }
-        break;
+        jx_ob_free(key);
+      }
+      jx_ob_free(keys);
+    } else {
+      jx_hash_info *info = (jx_hash_info *) I->info;
+      if((!info) || (info->mode == JX_HASH_LINEAR)) {
+        register jx_int i = (info ? info->usage : (size >> 1));
+        register jx_ob *ob = I->key_value;
+        while(i--) {
+          if(comma) {
+            flags = autowrap(ref,flags,space_left,1);
+            jx_vla_append_c_str(ref, ",");
+          } else {
+            comma = JX_TRUE;
+          }
+#if 0
+          if((flags & JX_JXON_FLAG_JSON_LOSSY) && 
+             !(ob[0].meta.bits &
+               (JX_META_BIT_STR|JX_META_BIT_IDENT|JX_META_BIT_BUILTIN))) {
+            jx_vla_append_ob_str(ref, jx_ob_from_str("\""));
+            jx_vla_append_ob_str(ref, key);                 
+            jx_vla_append_ob_str(ref, jx_ob_from_str("\""));
+          } else {
+            jx_vla_append_ob_str(ref, key);
+          }
+#endif
+          jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[0], ref, flags, space_left) );
+          flags = autowrap(ref,flags,space_left,1);
+          jx_vla_append_c_str(ref, ":");
+          jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[1], ref, flags, space_left) );
+          ob += 2;
+        }
+      } else {
+        switch (info->mode) {
+        case JX_HASH_ONE_TO_ANY:
+        case JX_HASH_ONE_TO_ONE:
+        case JX_HASH_ONE_TO_NIL:
+          {
+            jx_uint32 mask = info->mask;
+            jx_uint32 *hash_table = info->table;
+            jx_ob *key_value = I->key_value;
+            jx_uint32 index = 0;
+            do {
+              jx_uint32 *hash_entry = hash_table + (index << 1);
+              if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {        /* active slot with matching hash code */
+                jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
+                if(comma) {
+                  flags = autowrap(ref,flags,space_left,1);
+                  jx_vla_append_c_str(ref, ",");
+                } else {
+                  comma = JX_TRUE;
+                }
+                jx_ob_free( jx__ob_to_jxon_with_flags
+                            (node, key_value[kv_offset], ref, flags, space_left) );
+                flags = autowrap(ref,flags,space_left,1);
+                jx_vla_append_c_str(ref, ":");
+                jx_ob_free( jx__ob_to_jxon_with_flags
+                            (node, key_value[kv_offset + 1], ref, flags, space_left) );
+              }
+              index++;
+            } while(index <= mask);
+          }
+          break;
+        }
       }
     }
   }
-              flags = autowrap(ref,flags,space_left,1);
+  flags = autowrap(ref,flags,space_left,1);
   jx_vla_append_c_str(ref, "}");
   return JX_SUCCESS;
 }
@@ -714,7 +738,8 @@ void jx_jxon_dump_in_node(FILE *f, char *prefix, jx_ob node, jx_ob ob)
   {
     jx_ob jxon = jx_ob_to_jxon_with_flags(node, ob,
                                           JX_JXON_FLAG_COMMENT | 
-                                          JX_JXON_FLAG_PRETTY |  
+                                          JX_JXON_FLAG_PRETTY |        
+                                          JX_JXON_FLAG_SORT_HASHES |
                                           //JX_JXON_FLAG_NO_ROUNDED |
                                           JX_JXON_FLAG_APPROX_FLOAT |
                                           JX_JXON_FLAG_SHOW_WEAK | 
