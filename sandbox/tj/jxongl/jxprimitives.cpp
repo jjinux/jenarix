@@ -10,7 +10,7 @@ jx_ob Jenarix::parseJXON(bool process)
     jx_ob scanner = jx_jxon_scanner_new_with_file(stdin);
     jx_ob node = jx_hash_new();
 
-    jx_code_expose_secure_builtins(anamespace);
+    //jx_code_expose_secure_builtins(anamespace);
 
     {
       jx_ob source = JX_OB_NULL;
