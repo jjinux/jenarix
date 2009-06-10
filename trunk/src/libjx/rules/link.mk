@@ -37,7 +37,8 @@ ctests: \
 
 x1tests: \
 	test100.a \
-	test101.a 
+	test101.a \
+	test102.a 
 
 x2tests: \
 	test200.a \
