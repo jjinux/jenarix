@@ -1319,7 +1319,7 @@ jx_ob jx_list_new_with_float_vla(jx_float ** ref)
 /* This public-domain C quick_sort implementation by Darel Rex Finley
  (DarelRex@gmail.com) with modifications by Warren L. DeLano */
 #define  JX_QS_MAX_LEVELS  300
-JX_INLINE void jx_quick_sort_int(int *arr, int elements) {
+JX_INLINE void jx_quick_sort_int(jx_int *arr, jx_int elements) {
   jx_int  piv, beg[JX_QS_MAX_LEVELS], end[JX_QS_MAX_LEVELS], i=0, L, R, swap;
   beg[0]=0; end[0]=elements;
   while (i>=0) {
@@ -1340,7 +1340,7 @@ JX_INLINE void jx_quick_sort_int(int *arr, int elements) {
     }
   }
 }
-JX_INLINE void jx_quick_sort_float(float *arr, int elements) {
+JX_INLINE void jx_quick_sort_float(jx_float *arr, jx_int elements) {
 
   #define  MAX_LEVELS  300
   jx_int beg[JX_QS_MAX_LEVELS], end[JX_QS_MAX_LEVELS], i=0, L, R, swap;
@@ -1364,7 +1364,7 @@ JX_INLINE void jx_quick_sort_float(float *arr, int elements) {
     }
   }
 }
-JX_INLINE void jx_quick_sort_ob(jx_ob *arr, int elements) {
+JX_INLINE void jx_quick_sort_ob(jx_ob *arr, jx_int elements) {
   jx_int beg[JX_QS_MAX_LEVELS], end[JX_QS_MAX_LEVELS], i=0, L, R, swap;
   jx_ob piv;
   beg[0]=0; end[0]=elements;
@@ -4236,6 +4236,7 @@ jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
       if((!info) || (info->mode == JX_HASH_LINEAR)) {
         register jx_int i = (info ? info->usage : (size >> 1));
         register jx_ob *ob = I->key_value;
+        jx_int cnt = 0;
         while(i--) {
           if(flags & JX__HASH_COPY_KEYS)
             jx_list_append(result, jx_ob_copy(ob[0]));

@@ -74,6 +74,7 @@ JX_INLINE jx_status jx__os_process_complete(void)
 {
   jx_status status = JX_PTR(jx_os_Process);  
 #ifdef JX_HEAP_TRACKER_MUTEX
+  // actually, we don't want to delete this because of the atexit call...
   if(JX_OK(status)) status = jx_os_mutex_destroy(&jx_os_Process->heap_mutex);
 #endif
   if(JX_OK(status)) status = jx_os_tls_destroy(&jx_os_Process->node_tls);

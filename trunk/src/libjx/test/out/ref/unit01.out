@@ -3119,5 +3119,112 @@ true;
 #   eval: (`assert (`del i))
 true;
 
-Error: invalid syntax on line 1205
-    [],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[set],"","x","y","y",x,y,(lambda fn),(entity Base) -->)<-- );
+# source: (assert (set a
+#             [null,-1,-1.0,false,0,0.0,true,1,1.0, {}, {-1:0}, {0:-1}, {0:0}, {0:1}, {1:0},
+#               [],
+#               [-1],
+#               [0],
+#               [0, -1],
+#               [0, 0],
+#               [0, 1],
+#               [1],
+#               [1.0],
+#               ["x"],
+#               (quote (set)),"","x","y","y",x,y,
+#               (entity Base)]))
+#   eval: (`assert (`set a
+#             [null,-1,-1.0,false,0,0.0,true,1,1.0, {}, {-1:0}, {0:-1}, {0:0}, {0:1}, {1:0},
+#               [],
+#               [-1],
+#               [0],
+#               [0, -1],
+#               [0, 0],
+#               [0, 1],
+#               [1],
+#               [1.0],
+#               ["x"],
+#               (`quote (`set)),"","x","y","y",
+#               (`resolve x),
+#               (`resolve y),
+#               (`entity Base)]))
+true;
+
+# source: (assert (set b a))
+#   eval: (`assert (`set b
+#             (`resolve a)))
+true;
+
+# source: (assert (set c a))
+#   eval: (`assert (`set c
+#             (`resolve a)))
+true;
+
+# source: (assert (reverse b))
+#   eval: (`assert (`reverse (`resolve b)))
+true;
+
+# source: (assert (output a))
+#   eval: (`assert (`output (`resolve a)))
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,.Base];
+true;
+
+# source: (assert (output b))
+#   eval: (`assert (`output (`resolve b)))
+[.Base,y,x,"y","y","x","",[`set],["x"],[1.0],[1],[0,1],[0,0],[0,-1],[0],[-1],[],{1:0},{0:1},{0:0},{0:-1},{-1:0},{},1.0,1,true,0.0,0,false,-1.0,-1,null];
+true;
+
+# source: (assert (sort a))
+#   eval: (`assert (`sort (`resolve a)))
+true;
+
+# source: (assert (sort b))
+#   eval: (`assert (`sort (`resolve b)))
+true;
+
+# source: (assert (output a))
+#   eval: (`assert (`output (`resolve a)))
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,.Base];
+true;
+
+# source: (assert (output b))
+#   eval: (`assert (`output (`resolve b)))
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,.Base];
+true;
+
+# source: (assert a c)
+#   eval: (`assert (`resolve a)
+#           (`resolve c))
+true;
+
+# source: (assert b c)
+#   eval: (`assert (`resolve b)
+#           (`resolve c))
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert (del b))
+#   eval: (`assert (`del b))
+true;
+
+# source: (assert (del c))
+#   eval: (`assert (`del c))
+true;
+
+# source: (assert (del [ (pass Base)]))
+#   eval: (`assert (`del [ (`pass (`resolve Base))]))
+true;
+
+# confirm clean namespace
+# source: (assert (del Base))
+#   eval: (`assert (`del Base))
+true;
+
+# source: (assert {}
+#           (symbols false))
+#   eval: (`assert {}
+#           (`symbols false))
+true;
+

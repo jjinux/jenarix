@@ -569,6 +569,7 @@ true;
 
 (assert (del vector_add))
 
+
 # TAIL RECURSION
 
 # with tail recursion, result is 20
@@ -1200,9 +1201,10 @@ true;
 
 # sort order & relative rankings
 
+
 (assert (set a 
 [null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},
-    [],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[set],"","x","y","y",x,y,(lambda fn),(entity Base)));
+    [],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],(quote (set)),"","x","y","y",x,y,(entity Base)]));
 
 (assert (set b a))
 (assert (set c a))
@@ -1227,6 +1229,8 @@ true;
 (assert (del a))
 (assert (del b))
 (assert (del c))
+(assert (del ((pass Base))))
+(assert (del Base))
 
 # confirm clean namespace
 

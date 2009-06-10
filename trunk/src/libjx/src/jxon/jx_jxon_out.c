@@ -236,7 +236,7 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
   flags = autowrap(ref,flags,space_left,1);
   jx_vla_append_c_str(ref, "{"); 
   if(size) {
-    if(flags & JX_JXON_FLAG_SORT_HASHES) {
+    if( flags & JX_JXON_FLAG_SORT_HASHES) {
       jx_ob keys = jx__hash_copy_members(I, JX__HASH_COPY_KEYS);
       jx_int i,list_size = jx_list_size(keys);
       jx_list_sort(keys);

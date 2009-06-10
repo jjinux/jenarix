@@ -67,7 +67,7 @@ extern jx_os_process *jx_os_Process;
 #else
 #ifdef JX_HEAP_TRACKER_MUTEX
 #define JX_HEAP_LOCK_INIT jx__os_process_init(0,NULL) 
-#define JX_HEAP_LOCK    if(JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
+#define JX_HEAP_LOCK    if(jx_atExitFlag || JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
 #define JX_HEAP_UNLOCK  jx_os_mutex_unlock(&jx_os_Process->heap_mutex)
 #else
 #define JX_HEAP_LOCK_INIT
@@ -253,8 +253,8 @@ jx_size jx_heap_usage(void)
 jx_status jx_heap_dump(jx_int32 flags)
 {
   jx_status status = JX_SUCCESS;
-  JX_HEAP_LOCK {};
-  if(JX_OK(status) || jx_atExitFlag) {
+  if(!jx_atExitFlag) { JX_HEAP_LOCK {}}
+  if(JX_OK(status) ) {
     jx_word a;
     jx_uint tot = 0;
     Jx_heapTrackerEntry *rec;

@@ -107,7 +107,9 @@ int main(int argc, char *argv[])
                     printf("%s;\n",jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
                     if(mode == JX_MODE_UNIT_TESTING) { /* all unit test exprs must equal true */
-                      if(!jx_ob_identical(jx_ob_from_bool(1),result)) {
+                      if(jx_opcode_check(result))
+                        done = JX_TRUE;
+                      else if(!jx_ob_identical(jx_ob_from_bool(1),result)) {
                         jx_ob message = jx_jxon_scanner_get_error_message(scanner);
                         if(jx_str_check(message)) 
                           printf("%s\n",jx_ob_as_str(&message));
@@ -151,12 +153,13 @@ int main(int argc, char *argv[])
       jx_ob_free(source);
     }
 
-    jx_ob_free(node);
     jx_ob_free(scanner);
     jx_ob_free(names);
+    jx_ob_free(node);
 
     jx_os_process_complete();
   }
+
   return exit_status;
 }
 
