@@ -1,19 +1,20 @@
-#ifndef GLWEB_H
-#define GLWEB_H
+#ifndef JXDOCK_H
+#define JXDOCK_H
 
 #include <QWidget>
 #include <QtGui>
+#include <QObject>
 #include <QWebView>
 
 #include "glwidget.h"
 
 
-class GLWeb : public QWidget
+class GLDock : public QWidget
 {
     Q_OBJECT
 
 public:
-    GLWeb(QWidget *parent = 0);
+    GLDock(QWidget *parent = 0);
     GLWidget * glWidget;
     QPlainTextEdit * cmdOutput;
     QWidget * cmdWidget;
@@ -21,6 +22,8 @@ public:
     QWidget * webWidget;
     QWebView * webView;
     QLineEdit * webURL;
+    QDockWidget * cmdDock;
+    QDockWidget * webDock;
 
 private slots:
     void openUrl();

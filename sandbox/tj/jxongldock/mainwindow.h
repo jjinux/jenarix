@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "glweb.h"
+#include "jxdock.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -17,6 +17,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
 
+
 private slots:
     void open();
     void openUrl();
@@ -28,8 +29,10 @@ private slots:
 
 //! [1]
 private:
-    GLWeb *centralWidget;
+    GLWidget * glWidget;
+    GLDock *glDock;
     QMenu *fileMenu;
+    QMenu *viewMenu;
     QMenu *helpMenu;
     QAction *openAct;
     QAction *openUrlAct;

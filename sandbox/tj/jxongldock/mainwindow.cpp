@@ -1,18 +1,27 @@
 #include <QtGui>
 #include <QtWebKit>
 #include "mainwindow.h"
+#include "glwidget.h"
 
 //! [0]
 MainWindow::MainWindow()
 {
+    glWidget = new GLWidget;
+    setCentralWidget(glWidget);
+    glDock = new GLDock(this);
     createActions();
     createMenus();
-    centralWidget = new GLWeb(this);
-    setCentralWidget(centralWidget);
 
-    connect(centralWidget->webView, SIGNAL(loadFinished(bool)),
+    addDockWidget(Qt::RightDockWidgetArea, glDock->cmdDock);
+    viewMenu->addAction(glDock->cmdDock->toggleViewAction());
+    addDockWidget(Qt::RightDockWidgetArea, glDock->webDock);
+    viewMenu->addAction(glDock->webDock->toggleViewAction());
+
+
+    connect(glDock->webView, SIGNAL(loadFinished(bool)),
         this, SLOT(updateTextEdit()));
     //setStartupText();
+    resize(1000,600);
 
 }
 //! [0]
@@ -61,6 +70,8 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
+    viewMenu = menuBar()->addMenu(tr("&View"));
+
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -73,13 +84,12 @@ void MainWindow::createMenus()
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About Application"),
-        tr("This <b>glweb</b> example demonstrates how to "
-           "show a [ [glWidget+commandWidget] + WebKitWidget] "
-           "using split frames for resizing."));
+        tr("This <b>jxdock</b> example demonstrates how to "
+           "use dock widgets with OpenGL, webkit and command text"));
 }
 void MainWindow::aboutWebKit()
 {
-    centralWidget->webView->load( QUrl("http://webkit.org/") );
+    glDock->webView->load( QUrl("http://webkit.org/") );
 }
 //! [3]
 
@@ -101,7 +111,7 @@ void MainWindow::open()
         QString output = out.readAll();
 
         // display contents
-        centralWidget->cmdOutput->setPlainText(output);
+        glDock->cmdOutput->setPlainText(output);
     }
 }
 //! [4]
@@ -114,8 +124,8 @@ void MainWindow::openUrl()
                   tr("URL:"), QLineEdit::Normal, "http://", &ok);
 
     if (ok && !url.isEmpty()) {
-        centralWidget->webView->setUrl(url);
-        centralWidget->webURL->setText(url);
+        glDock->webView->setUrl(url);
+        glDock->webURL->setText(url);
     }
 }
 //! [5]
@@ -123,7 +133,7 @@ void MainWindow::openUrl()
 //! [6]
 void MainWindow::save()
 {
-    QString content = centralWidget->cmdOutput->toPlainText();
+    QString content = glDock->cmdOutput->toPlainText();
     QString fileName = QFileDialog::getSaveFileName(this);
 
     if (!fileName.isEmpty()) {
@@ -145,9 +155,9 @@ void MainWindow::save()
 //! [7]
 void MainWindow::updateTextEdit()
 {
-    QWebFrame *mainFrame = centralWidget->webView->page()->mainFrame();
+    QWebFrame *mainFrame = glDock->webView->page()->mainFrame();
     QString frameText = mainFrame->toHtml();
-    //centralWidget->plainTextEdit->setPlainText(frameText);
+    //glDock->plainTextEdit->setPlainText(frameText);
 }
 //! [7]
 
@@ -158,6 +168,6 @@ void MainWindow::setStartupText()
                      " <p>This example shows you how to use QWebView to"
                      " view HTML data.</p>"
                      " </body></html>";
-    centralWidget->webView->setHtml(string);
+    glDock->webView->setHtml(string);
 }
 //! [8]

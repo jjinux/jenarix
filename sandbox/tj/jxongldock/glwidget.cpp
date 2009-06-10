@@ -29,7 +29,7 @@ GLWidget::~GLWidget()
 //! [2]
 QSize GLWidget::minimumSizeHint() const
 {
-    return QSize(50, 50);
+    return QSize(200, 200);
 }
 //! [2]
 

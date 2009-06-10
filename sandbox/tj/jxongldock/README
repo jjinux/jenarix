@@ -1,17 +1,17 @@
 Sample app using qt4 to create a main window containing
 a menubar, opengl widget, command i/o widget and webkit widget.
 The app reads and display json jenarix graphics primitive on stdin on startup.
-For example: python ../sdf2json.py <../drugs.sdf  | ./glweb
-or           ./glweb < drug.json
+For example: python ../sdf2json.py <../drugs.sdf  | ./jxdock
+or           ./jxdock < ../drug.json
 The webkit widget is a custom widget containing a text line
 input for a url and a webview widget to display the web page.
 The widgets are arranged using two "slider" frames to allow
 the widgets to be easily resized within the main window.
 
 To make this app, you need to have installed qt4.
-Type 'qmake' to process the glweb.pro file containing the
+Type 'qmake' to process the jxdock.pro file containing the
 info about which .h and .cpp files pertain to this project.
-This makes a Makefile.  Then type 'make' to create the glweb executable
+This makes a Makefile.  Then type 'make' to create the jxdock executable
 (and assorted other moc_* and *.o files).
 
 The menubar functions to:
@@ -28,14 +28,14 @@ a dummy output string to the command output widget.
 
 Files:
 README:         this file.
-glweb.pro:      file processed by qmake describing the name of
+jxdock.pro:     file processed by qmake describing the name of
                 the project (exe file) and required files (.h and .cpp).
 main.cpp:       simple main program, totally standard qt4.
 mainwindow.cpp: creates the mainWindow widget containing
                 the menuBar (a standard part of a mainWindow widget)
                 and creates a GLWeb widget, a composite widget
-                defined in glweb.cpp
-glweb.cpp:      defines and creates a custom widget named GLWeb containing
+                defined in jxdock.cpp
+jxdock.cpp:     defines and creates a custom widget named GLWeb containing
                 a gl widget, command (PlainText) widget and a WebKit widget
                 layed out using two "splitter" frames.
 glwidget.cpp:   a custom widget based onthe QGLWidget and containing methods
@@ -46,4 +46,4 @@ drug.json:      sample input file
 *.h:            assorted header files associated with .cpp files
 moc_*.cpp:      created my qmake/make; totally standard/invisible qt4 stuff. 
 ../jsoncpp/src/*.o:    json reader and writer
-Makefile:       created by qmake processing the glweb.pro file
+Makefile:       created by qmake processing the jxdock.pro file

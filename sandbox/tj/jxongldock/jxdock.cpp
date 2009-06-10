@@ -1,28 +1,16 @@
-#include "glweb.h"
+#include "jxdock.h"
 #include "glwidget.h"
 
-GLWeb::GLWeb(QWidget *parent)
+GLDock::GLDock(QWidget *parent)
     : QWidget(parent)
 {
 
-    glWidget = new GLWidget;
-    cmdOutput = new QPlainTextEdit;
-    cmdWidget = new QWidget;
-    cmdInput = new QLineEdit;
-    webWidget = new QWidget;
-    webURL = new QLineEdit;
-    webView = new QWebView;
-    QHBoxLayout * mainLayout = new QHBoxLayout(this);
+    //glWidget = new GLWidget;
 
-// gl command and gl widget
-    QSplitter * glSplitter = new QSplitter;
-    glSplitter->addWidget(cmdWidget);
-    glSplitter->addWidget(glWidget);
-    glSplitter->setOrientation(Qt::Vertical);
-    QList<int> sizes;
-    sizes.append(100); sizes.append(500);
-    glSplitter->setSizes(sizes);
 //  command is composite widget for output and input
+    cmdWidget = new QWidget;
+    cmdOutput = new QPlainTextEdit(cmdWidget);
+    cmdInput = new QLineEdit(cmdWidget);
     QVBoxLayout * cmdLayout = new QVBoxLayout;
     cmdLayout->addWidget(cmdOutput);
     cmdLayout->addWidget(cmdInput);
@@ -30,21 +18,29 @@ GLWeb::GLWeb(QWidget *parent)
     cmdLayout->setSpacing(0);
     cmdOutput->setReadOnly(true);
     cmdWidget->setLayout(cmdLayout);
+    cmdOutput->setMinimumSize(300,300);
+    cmdInput->setMinimumWidth(300);
+    cmdDock = new QDockWidget("Command", this);
+    cmdDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    cmdDock->setWidget(cmdWidget);
+
 
 // web url and view
+    webWidget = new QWidget;
+    webView = new QWebView(webWidget);
+    webURL = new QLineEdit(webWidget);
     QVBoxLayout * webLayout = new QVBoxLayout;
     webLayout->addWidget(webURL);
     webLayout->addWidget(webView);
     webLayout->setContentsMargins(0,0,0,0);
+    webLayout->setSpacing(0);
     webWidget->setLayout(webLayout);
-
-// main split widget
-    QSplitter * mainSplitter = new QSplitter;
-    mainSplitter->addWidget(glSplitter);
-    mainSplitter->addWidget(webWidget);
-    sizes[0] = 500; sizes[1] = 300;
-    mainSplitter->setSizes(sizes);
-    mainLayout->addWidget(mainSplitter);
+    webDock = new QDockWidget(tr("Web"));
+    webView->setMinimumSize(300,300);
+    webURL->setMinimumWidth(300);
+    webView->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    webDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    webDock->setWidget(webWidget);
 
 // initial values
     QString url = QString("http://www.pdb.org");
@@ -60,12 +56,12 @@ GLWeb::GLWeb(QWidget *parent)
 
 }
 
-void GLWeb::openUrl() {
+void GLDock::openUrl() {
    QString url = webURL->text();
    webView->setUrl(url);
 }
 
-void GLWeb::doCmd() {
+void GLDock::doCmd() {
    QString cmd = cmdInput->text();
    cmdOutput->appendPlainText(cmd);
    cmdOutput->appendPlainText(tr("output from command"));
