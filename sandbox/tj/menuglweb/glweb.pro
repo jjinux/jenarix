@@ -1,9 +1,10 @@
 HEADERS       = glwidget.h \
                 mainwindow.h \
                 glweb.h \
+                ../../../trunk/src/libjx/include/jx_public.h  \
                 jenarix.h
 
-INCLUDEPATH   = ../jsoncpp/include/
+INCLUDEPATH   = ../../../trunk/src/libjx/include/
 
 SOURCES       = glwidget.cpp \
                 mainwindow.cpp \
@@ -11,9 +12,7 @@ SOURCES       = glwidget.cpp \
                 glweb.cpp \
 		jxprimitives.cpp
 
-OBJECTS       += ../jsoncpp/src/json_reader.o \
-                 ../jsoncpp/src/json_value.o \
-                 ../jsoncpp/src/json_writer.o
+LIBS         += ../../../trunk/src/libjx/libjx.a
 
 QT           += opengl \
                 webkit

@@ -1,129 +1,177 @@
-#include <json/json.h>
 #include <stdio.h>
 #include <assert.h>
 #include "jenarix.h"
 
-#if defined(_MSC_VER)  &&  _MSC_VER >= 1310
-# pragma warning( disable: 4996 )     // disable fopen deprecation warning
-#endif
-bool
-
-Jenarix::parseJSON( Json::Value &root )
+jx_ob Jenarix::parseJXON(bool process)
 {
-   Json::Reader reader;
-   bool parsingSuccessful = reader.parse( std::cin, root );
-   if ( !parsingSuccessful )
-   {
-      printf( "Failed to parse <stdin> %s\n", 
-              reader.getFormatedErrorMessages().c_str() );
-      return false;
-   }
+    jx_ob result;
+  
+    jx_ob anamespace = jx_hash_new();
+    jx_ob scanner = jx_jxon_scanner_new_with_file(stdin);
+    jx_ob node = jx_hash_new();
 
-   return true;
+    //jx_code_expose_secure_builtins(anamespace);
+
+    {
+      jx_ob source = JX_OB_NULL;
+      jx_status status;
+      jx_bool done = JX_FALSE;
+      while( !done ) {
+        status = jx_jxon_scanner_next_ob(&source, scanner);
+        switch(status) {
+        case JX_YES:
+          {
+            jx_ob code = jx_code_bind_with_source(anamespace, source);
+            source = jx_ob_from_null();
+            result = jx_code_eval(node,code);
+            //printf("status = %d\n", status);
+            //show_ob(result,0);
+            //jx_ob_free(result);
+            jx_ob_free(code);
+            if (process) {
+              processJXON(result);
+            } else {
+              return result;
+            }
+          }
+          break;
+        case JX_STATUS_SYNTAX_ERROR: /* catch this error */
+          {
+            jx_ob message = jx_jxon_scanner_get_error_message(scanner);
+            printf("Error: invalid syntax\n");
+            if(jx_str_check(message))
+              printf("%s\n",jx_ob_as_str(&message));
+              jx_jxon_scanner_purge_input(scanner);
+              jx_ob_free(message);
+          }
+          break;
+        default: /* about on all other errors */
+          done = JX_TRUE;
+          break;
+        }
+      }
+      jx_ob_free(source);
+    }
+    jx_ob_free(node);
+    jx_ob_free(scanner);
+    jx_ob_free(anamespace);
+
+    return result;
 }
 
 int
-Jenarix::processJSON( Json::Value &value )
+Jenarix::processJXON( jx_ob ob )
 {
-/* expect an array of primitives,
+/* expect a list of primitives,
  * each with a name, followed by an array of values
  */
-   assert (value.type() == Json::arrayValue);
-   int nval = value.size();
+   assert (jx_list_check(ob));
+   int nval = jx_list_size(ob);
    int nprimitives = 0;
    for ( int index = 0; index < nval; ++index ) {
-      assert (value[index].type() == Json::stringValue);
+      //jx_ob item = jx_list_get(ob,index);
+      jx_ob item = jx_list_shift(ob);
+      assert (jx_str_check(item));
+      std::string ptype = jx_ob_as_str(&item);
       
-      if ( !value[index].asString().compare("cylinder") ) {
+      if ( ptype == "cylinder" ) {
         ++index;
         //color(0.25, 1.0, 0.5, 0.0);
-        Jenarix::cylinder( value[index] );
-      } else if ( !value[index].asString().compare("sphere") ) {
+        Jenarix::cylinder( jx_list_shift(ob) );
+
+      } else if ( ptype == "sphere" ) {
         ++index;
         //color(0.5, 0.5, 1.0, 0.0);
-        Jenarix::sphere( value[index] );
-      } else if ( !value[index].asString().compare("colorsphere") ) {
+        Jenarix::sphere( jx_list_shift(ob) );
+
+      } else if ( ptype == "colorsphere" ) {
         ++index;
-        Jenarix::colorsphere( value[index] );
-      } else if ( !value[index].asString().compare("triangle") ) {
+        Jenarix::colorsphere( jx_list_shift(ob) );
+
+      } else if ( ptype == "triangle" ) {
         ++index;
-        Jenarix::triangle( value[index], false );
-      } else if ( !value[index].asString().compare("cctriangle") ) {
+        Jenarix::triangle( jx_list_shift(ob), true );
+
+      } else if ( ptype == "cctriangle" ) {
         ++index;
-        Jenarix::triangle( value[index], false );
-      } else if ( !value[index].asString().compare("cwtriangle") ) {
+        Jenarix::triangle( jx_list_shift(ob), false );
+
+      } else if ( ptype == "cwtriangle" ) {
         ++index;
-        Jenarix::triangle( value[index], true );
-      } else if ( !value[index].asString().compare("trianglenormal") ) {
+        Jenarix::triangle( jx_list_shift(ob), true );
+
+      } else if ( ptype == "trianglenormal" ) {
         ++index;
-        Jenarix::trianglenormal( value[index], false );
-      } else if ( !value[index].asString().compare("cctrianglenormal") ) {
+        Jenarix::trianglenormal( jx_list_shift(ob), true );
+
+      } else if ( ptype == "cctrianglenormal" ) {
         ++index;
-        Jenarix::trianglenormal( value[index], false );
-      } else if ( !value[index].asString().compare("cwtrianglenormal") ) {
+        Jenarix::trianglenormal( jx_list_shift(ob), false );
+
+      } else if ( ptype == "cwtrianglenormal" ) {
         ++index;
-        Jenarix::trianglenormal( value[index], true );
+        Jenarix::trianglenormal( jx_list_shift(ob), true );
+
       } else {
-        printf ("unrecognized primitive type '%s'\n", value[index].asString().c_str() );
+        printf ("unrecognized primitive type '%s'\n", ptype.c_str() );
       }
       ++nprimitives;
-      //printf("%d\n", index);
 
    }
 
   return nprimitives;
 }
 
-int get_real( Json::Value &value, GLdouble &q ) {
-    assert (value.type() == Json::realValue);
-    q = value.asDouble();
-    return 0;
+GLdouble get_real( jx_ob ob ) {
+    assert (jx_float_check(ob));
+    return jx_ob_as_float(ob);
 }
 
-int get_point( Json::Value &value, GLdouble xyz[3] ) {
+int get_point( jx_ob ob, GLdouble xyz[3] ) {
 
-    assert (value.type() == Json::arrayValue);
-    assert (value.size() == 3);
+    assert (jx_list_check(ob));
+    assert (jx_list_size(ob) == 3);
     for (unsigned int index=0; index < 3; ++index) {
-      xyz[index] = value[index].asDouble();
+      xyz[index] = get_real(jx_list_shift(ob));
     }
 
-  return value.size();
+  return 3;
 }
 
-int get_point_normal( Json::Value &value, GLdouble xyz[3], GLdouble nml[3] ) {
+int get_point_normal( jx_ob ob, GLdouble xyz[3], GLdouble nml[3] ) {
 
-    assert (value.type() == Json::arrayValue);
-    assert (value.size() == 2);
+    assert (jx_list_check(ob));
+    assert (jx_list_size(ob) == 2);
     unsigned int ivertex = 0;
     unsigned int inormal = 1;
-    get_point( value[ivertex], xyz );
-    get_point( value[inormal], nml );
+    get_point( jx_list_get(ob,ivertex), xyz );
+    get_point( jx_list_get(ob,inormal), nml );
 
-  return value.size();
+  return 2;
 }
 
-int Jenarix::sphere( Json::Value &value )
+int Jenarix::sphere( jx_ob ob )
 {
 
     GLdouble xyz[3], r;
     unsigned int ixyz = 0;
     unsigned int irad = 1;
-    assert (value.type() == Json::arrayValue);
-    int nval = value.size();
+    assert (jx_list_check(ob));
+    int nval = jx_list_size(ob);
     //printf ("%d sphere\n", nval);
 
     for ( int index = 0; index < nval; ++index ) {
+      jx_ob xyz_rad = jx_list_shift(ob);
       glPushMatrix();
       //printf ("%d\n", value[index].size());
-      get_point((value[index])[ixyz], xyz);
+      get_point(jx_list_get(xyz_rad, ixyz), xyz);
       glTranslated(xyz[0], xyz[1], xyz[2]);
       GLUquadricObj* quadric = gluNewQuadric();
       gluQuadricDrawStyle(quadric, GLU_FILL);
       gluQuadricOrientation(quadric, GLU_OUTSIDE);
       gluQuadricNormals(quadric, GLU_SMOOTH);
       //printf ("%f %f %f\n", xyz[0], xyz[1], xyz[2]);
-      get_real((value[index])[irad], r);
+      r = get_real(jx_list_get(xyz_rad, irad));
       gluSphere(quadric, r, 20, 20);
       //printf ("%f\n", r);
       gluDeleteQuadric(quadric);
@@ -133,19 +181,20 @@ int Jenarix::sphere( Json::Value &value )
    return nval;
 }
 
-int Jenarix::triangle( Json::Value &value, bool clockwise)
+int Jenarix::triangle( jx_ob ob, bool clockwise)
 {
 
     GLdouble xyz[3][3];
-    assert (value.type() == Json::arrayValue);
-    int nval = value.size();
+    assert (jx_list_check(ob));
+    int nval = jx_list_size(ob);
     //printf ("%d triangle\n", nval);
 
     glBegin(GL_TRIANGLES);
     for ( int index = 0; index < nval; ++index ) {
+      jx_ob triangle = jx_list_shift(ob);
       //printf ("%d\n", value[index].size());
       for (unsigned int itri=0; itri<3; ++itri) {
-        get_point(value[index][itri], xyz[itri]);
+        get_point(jx_list_get(triangle, itri), xyz[itri]);
       }
       for (unsigned int itri=0; itri<3; ++itri) {
         if (clockwise) {
@@ -161,19 +210,20 @@ int Jenarix::triangle( Json::Value &value, bool clockwise)
 
 }
 
-int Jenarix::trianglenormal( Json::Value &value, bool clockwise)
+int Jenarix::trianglenormal( jx_ob ob, bool clockwise)
 {
 
     GLdouble xyz[3][3], nml[3][3];
-    assert (value.type() == Json::arrayValue);
-    int nval = value.size();
+    assert (jx_list_check(ob));
+    int nval = jx_list_size(ob);
     //printf ("%d trianglenormal\n", nval);
 
     glBegin(GL_TRIANGLES);
     for ( int index = 0; index < nval; ++index ) {
+      jx_ob triangle_nml = jx_list_shift(ob);
       //printf ("%d\n", value[index].size());
       for (unsigned int itri=0; itri<3; ++itri) {
-        get_point_normal(value[index][itri], xyz[itri], nml[itri]);
+        get_point_normal(jx_list_get(triangle_nml, itri), xyz[itri], nml[itri]);
       }
       for (unsigned int itri=0; itri<3; ++itri) {
         if (clockwise) {
@@ -191,30 +241,31 @@ int Jenarix::trianglenormal( Json::Value &value, bool clockwise)
 
 }
 
-int Jenarix::colorsphere( Json::Value &value )
+int Jenarix::colorsphere( jx_ob ob )
 {
 
     GLdouble xyz[3], r, rgb[3];
     unsigned int ixyz = 0;
     unsigned int irgb = 1;
     unsigned int irad = 2;
-    assert (value.type() == Json::arrayValue);
-    int nval = value.size();
+    assert (jx_list_check(ob));
+    int nval = jx_list_size(ob);
     //printf ("%d sphere\n", nval);
 
     for ( int index = 0; index < nval; ++index ) {
+      jx_ob xyz_rgb_rad = jx_list_shift(ob);
       glPushMatrix();
       //printf ("%d\n", value[index].size());
-      get_point((value[index])[ixyz], xyz);
+      get_point(jx_list_get(xyz_rgb_rad, ixyz), xyz);
       glTranslated(xyz[0], xyz[1], xyz[2]);
-      get_point((value[index])[irgb], rgb);
+      get_point(jx_list_get(xyz_rgb_rad, irgb), rgb);
       color(rgb[0], rgb[1], rgb[2], 0.0);
       GLUquadricObj* quadric = gluNewQuadric();
       gluQuadricDrawStyle(quadric, GLU_FILL);
       gluQuadricOrientation(quadric, GLU_OUTSIDE);
       gluQuadricNormals(quadric, GLU_SMOOTH);
       //printf ("%f %f %f\n", xyz[0], xyz[1], xyz[2]);
-      get_real((value[index])[irad], r);
+      r = get_real(jx_list_get(xyz_rgb_rad, irad));
       gluSphere(quadric, r, 20, 20);
       //printf ("%f\n", r);
       gluDeleteQuadric(quadric);
@@ -224,7 +275,7 @@ int Jenarix::colorsphere( Json::Value &value )
    return nval;
 }
 
-int Jenarix::cylinder( Json::Value &value )
+int Jenarix::cylinder( jx_ob ob) 
 {
     GLdouble bxyz[3], txyz[3], r;
     GLdouble dx, dy, dz, h;
@@ -232,14 +283,15 @@ int Jenarix::cylinder( Json::Value &value )
     unsigned int ibxyz = 0;
     unsigned int itxyz = 1;
     unsigned int irad = 2;
-    assert (value.type() == Json::arrayValue);
-    int nval = value.size();
+    assert (jx_list_check(ob));
+    int nval = jx_list_size(ob);
     //printf ("%d cylinder\n", nval);
     for ( int index = 0; index < nval; ++index ) {
+      jx_ob base_tip_rad = jx_list_shift(ob);
       //printf ("%d\n", value[index].size());
-      get_point((value[index])[ibxyz], bxyz);
+      get_point(jx_list_get(base_tip_rad,ibxyz), bxyz);
       //printf ("%f %f %f\n", bxyz[0], bxyz[1], bxyz[2]);
-      get_point((value[index])[itxyz], txyz);
+      get_point(jx_list_get(base_tip_rad,itxyz), txyz);
       //printf ("%f %f %f\n", txyz[0], txyz[1], txyz[2]);
       dx = txyz[0] - bxyz[0];
       dy = txyz[1] - bxyz[1];
@@ -251,7 +303,7 @@ int Jenarix::cylinder( Json::Value &value )
       gluQuadricDrawStyle(quadric, GLU_FILL);
       gluQuadricOrientation(quadric, GLU_OUTSIDE);
       gluQuadricNormals(quadric, GLU_SMOOTH);
-      get_real((value[index])[irad], r);
+      r = get_real(jx_list_get(base_tip_rad, irad));
       //printf ("%f\n", r);
       gluCylinder(quadric, r, r, h, 20, 20);
       gluDeleteQuadric(quadric);

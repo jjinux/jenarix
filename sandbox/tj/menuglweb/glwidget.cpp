@@ -1,47 +1,10 @@
-/****************************************************************************
-**
-** Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies).
-** Contact: Qt Software Information (qt-info@nokia.com)
-**
-** This file is part of the example classes of the Qt Toolkit.
-**
-** Commercial Usage
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
-**
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License versions 2.0 or 3.0 as published by the Free
-** Software Foundation and appearing in the file LICENSE.GPL included in
-** the packaging of this file.  Please review the following information
-** to ensure GNU General Public Licensing requirements will be met:
-** http://www.fsf.org/licensing/licenses/info/GPLv2.html and
-** http://www.gnu.org/copyleft/gpl.html.  In addition, as a special
-** exception, Nokia gives you certain additional rights. These rights
-** are described in the Nokia Qt GPL Exception version 1.3, included in
-** the file GPL_EXCEPTION.txt in this package.
-**
-** Qt for Windows(R) Licensees
-** As a special exception, Nokia, as the sole copyright holder for Qt
-** Designer, grants users of the Qt/Eclipse Integration plug-in the
-** right for the Qt/Eclipse Integration to link to functionality
-** provided by Qt Designer and its related libraries.
-**
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at qt-sales@nokia.com.
-**
-****************************************************************************/
-
 #include <QtGui>
 #include <QtOpenGL>
 
 #include <math.h>
 
-#include "glwidget.h"
 #include "jenarix.h"
+#include "glwidget.h"
 
 //! [0]
 GLWidget::GLWidget(QWidget *parent)
@@ -79,34 +42,43 @@ QSize GLWidget::sizeHint() const
 //! [4]
 
 //! [5]
-void GLWidget::setXRotation(int angle)
+void GLWidget::setXRotation(int angle) {
+    doXRotation(angle,1);
+}
+void GLWidget::setYRotation(int angle) {
+    doYRotation(angle,1);
+}
+void GLWidget::setZRotation(int angle) {
+    doZRotation(angle,1);
+}
+void GLWidget::doXRotation(int angle, int update)
 {
     normalizeAngle(&angle);
     if (angle != xRot) {
         xRot = angle;
         emit xRotationChanged(angle);
-        updateGL();
+        if (update) updateGL();
     }
 }
 //! [5]
 
-void GLWidget::setYRotation(int angle)
+void GLWidget::doYRotation(int angle, int update)
 {
     normalizeAngle(&angle);
     if (angle != yRot) {
         yRot = angle;
         emit yRotationChanged(angle);
-        updateGL();
+        if (update) updateGL();
     }
 }
 
-void GLWidget::setZRotation(int angle)
+void GLWidget::doZRotation(int angle, int update)
 {
     normalizeAngle(&angle);
     if (angle != zRot) {
         zRot = angle;
         emit zRotationChanged(angle);
-        updateGL();
+        if (update) updateGL();
     }
 }
 
@@ -181,13 +153,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     int dy = event->y() - lastPos.y();
 
     if (event->buttons() & Qt::LeftButton) {
-        setXRotation(xRot + 8 * dy);
-        setYRotation(yRot + 8 * dx);
+        doXRotation(xRot + 8 * dy,0);
+        doYRotation(yRot + 8 * dx,0);
     } else if (event->buttons() & Qt::RightButton) {
-        setXRotation(xRot + 8 * dy);
-        setZRotation(zRot + 8 * dx);
+        doXRotation(xRot + 8 * dy,0);
+        doZRotation(zRot + 8 * dx,0);
     }
     lastPos = event->pos();
+    if (dx || dy) updateGL();
 }
 //! [10]
 
@@ -199,9 +172,8 @@ GLuint GLWidget::makeObject()
     // define a default color
     Jenarix::color(0.25, 1.0, 0.5, 0.0);
 
-    Json::Value tree;
-    Jenarix::parseJSON(tree);
-    Jenarix::processJSON(tree);
+    Jenarix::parseJXON(true);
+    //Jenarix::processJXON(tree);
 
     glEndList();
     return list;
