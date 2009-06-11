@@ -1,0 +1,39 @@
+
+(entity Splitter);
+
+(entity HSplitter Splitter);
+(entity VSplitter Splitter);
+
+(entity MenuBar);
+(entity OpenGLContext);
+(entity Navigator);
+
+# end-user-defined widget
+
+(entity MyWidget)
+
+( set gui 
+  ( VSplitter
+    [
+      ( MenuBar )
+      ( HSplitter
+        [
+          ( OpenGLContext )
+          ( VSplitter 
+            [
+              ( Navigator )
+              ( MyWidget )
+              ( MyWidget )
+              ( MyWidget )
+            ]
+            { width: 200 }
+          )
+        ]
+      )
+    ]
+  )
+)
+
+# the C++ app should resolve the "gui" symbol and go from there...
+
+
