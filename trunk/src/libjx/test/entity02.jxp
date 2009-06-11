@@ -1,7 +1,7 @@
 # here's an example vector addition function
 
 def vector.add(v1,v2):
-  [Vector, map(lambda x,y: x+y,v1(1),v2(1))]
+  [get(v1,0), map(lambda x,y: x+y, get(v1,1), get(v2,1))]
 
 entity(Vector, null, null, {add:vector.add})
 
@@ -16,4 +16,3 @@ v2 = [Vector, [2,3,4]]
 
 v1.add(v2)
 
-v1(add,v2)

@@ -38,9 +38,10 @@ int main(int argc, char *argv[])
 {
   int exit_status = EXIT_FAILURE;
   FILE *input = stdin;
-  jx_int mode = jx_main_parse_mode(&input, argc, argv);
-
-  if(input && jx_ok(jx_os_process_init(argc, argv))) {
+  jx_int mode = 0;
+  jx_int status = jx_main_parse_mode(&mode, &input, argc, argv);
+  
+  if(jx_ok(status) && input && jx_ok(jx_os_process_init(argc, argv))) {
     jx_ob names = jx_hash_new();
     jx_ob node = jx_hash_new();
     jx_bool console = jx_adapt_for_console(input);

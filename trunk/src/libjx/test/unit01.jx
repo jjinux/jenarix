@@ -486,7 +486,7 @@ true;
 
 (assert [get [1,2,3] 1]);
 
-(assert [unresolved symbols] [unresolved symbols])
+#(assert [unresolved symbols] [unresolved symbols])
 
 (assert [set a [1.0]])
 
@@ -569,7 +569,6 @@ true;
 
 (assert (del vector_add))
 
-
 # TAIL RECURSION
 
 # with tail recursion, result is 20
@@ -637,6 +636,7 @@ true;
 
 # closure01
 
+
 # Jenarix functions statically close on free variables using the
 # surrounding scope
 
@@ -696,9 +696,8 @@ true;
 
 # closure03
 
-(assert (def vector.add [v1 v2] [
-  [(v1 0)
-    (map (lambda [x y] (add x y)) (v1 1) (v2 1)) ]
+(assert (def vector.add [v1 v2] [ 
+        [(get v1 0) (map (lambda [x y] (add x y)) v1. v2.)]
   ]));
 
 (assert (output (impl vector.add)))
@@ -712,7 +711,7 @@ true;
 # referring to Vector inside the function is sufficient to create the
 # closure
 
-(assert (def myfn [a,b] ([Vector], (a add b))))
+(assert (def myfn [a,b] ([Vector], (a.add b))))
 
 # notice how the Vector definition is in the function's implementation
 
@@ -728,13 +727,13 @@ true;
 
 (assert [Vector,[3,5,7]] (myfn v1 v2))
 
-(assert [Vector,[3,5,7]] (v1 add v2))
+(assert [Vector,[3,5,7]] (v1.add v2))
 
 # strictly speaking however, we can instead rely upon dynamic
 
 # referencing of the class at the point of method invocation
 
-(assert (def myfn2 [a,b] [(a add b)]))
+(assert (def myfn2 [a,b] [(a.add b)]))
 
 (assert (output (impl myfn2)))
 
@@ -751,7 +750,7 @@ true;
 
 # then that doesn't work
 
-(assert (myfn2 v1 v2))
+(assert (dump (myfn2 v1 v2)))
 
 # whereas the function with closed entity definitions still works
 
@@ -791,8 +790,8 @@ true;
 (assert {} (symbols false))
 
 (assert (def vector_add [v1 v2] [
-  [(v1 0)
-    (map (lambda [x y] (add x y)) (v1 1) (v2 1))
+  [(get v1 0)
+    (map (lambda [x y] (add x y)) v1. v2.)
   ]]))
 
 (assert (entity Vector null null {add:vector_add}) Vector);
@@ -803,17 +802,9 @@ true;
 
 (assert (set v2 [Vector, [2,3,4]]))
 
-# entity-based invocation
-
-(assert [Vector, [3,5,7]] (v1 add v2))
-
 # dot-based invocation
 
 (assert [Vector, [3,5,7]] (v1.add v2))
-
-(assert [Vector,[0.6,13,"hiyou"]]
-  ([Vector, [0.3 4 "hi"]] add [Vector, [0.3 9 "you"]]));
-
 
 (assert (del v1))
 (assert (del v2))
@@ -840,14 +831,17 @@ true;
 # now we define a scopeless function that can use the hash
 
 (assert (def poly_fn null
- (apply (get poly_disp ((get _ 0) 0)) _)));
+ (apply (get poly_disp (get (_ 0 0))) _)));
 
 (assert (output (impl poly_fn)));
 
 # finally, to show off, we create one entity of each type
 
-(assert (set a [A]))
-(assert (set b [B]))
+(assert (set a (new A)))
+(assert (set b (new B)))
+
+(assert [A] a);
+(assert [B] b);
 
 # and use the polymorphic function on those entities :)!
 
@@ -866,17 +860,9 @@ true;
 
 # experimenting with dot notation for calling methods on entity
 
-(assert (entity A null null {class_fn:(lambda [self] ("from class",(get (self 1) 2)))}) A);
+(assert (entity A null null {class_fn:(lambda [self] ("from class",(get self. 2)))}) A);
 
-(assert (set b [A, [1,2,3], {inst_fn:(lambda [self] ("from instance",(get (self 1) 2)))}]))
-
-# the pseudo-LISP way
-
-(assert ["from instance",3] (b inst_fn))
-
-(assert ["from class",3] (b class_fn))
-
-# the pseudo-Python way
+(assert (set b [A, [1,2,3], {inst_fn:(lambda [self] ("from instance",(get self. 2)))}]))
 
 (assert ["from instance",3] (b.inst_fn))
 
@@ -896,15 +882,15 @@ true;
 
 # conventional attribute resolution
 
-(assert [3,3] (mat dim));
+(assert [3,3] mat.dim);
 
-(assert (append (mat dim) 1))
+(assert (append mat.dim 1));
 
 # note that we've modified dim
 
 (assert (output mat))
 
-(assert [3,3,1] (mat dim));
+(assert [3,3,1] mat.dim);
 
 # dot-based attribute resolution
 
@@ -927,10 +913,10 @@ true;
 
 # double-check our ability to access entity components
 
-(assert Matrix (mat 0))
-(assert [ 0 0 0 0 0 0 0 0 0 ] (mat 1))
-(assert {dim:[3,3]} (mat 2))
-(assert (mat 3))
+(assert Matrix (get mat 0))
+(assert [ 0 0 0 0 0 0 0 0 0 ] (get mat 1))
+(assert {dim:[3,3]} (get mat 2))
+(assert (get mat 3))
 
 
 (assert (del dim))
@@ -958,10 +944,9 @@ true;
 # new instances can be automatically created by resolving the entity handle and then
 # calling it as a function 
 
-(assert (set m1 ((Matrix33f)) ))
+(assert (set m1 (new Matrix33f)))
 
-(assert [Matrix33f, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}] 
-  m1)
+(assert [Matrix33f, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]] m1);
 
 (assert (del ((pass MatrixBase))))
 (assert (del MatrixBase))
@@ -970,12 +955,11 @@ true;
 (assert (del m1))
 (assert {} (symbols false))
 
-
 # delaring an entity effectively reserves the identifier for use by the entity
 
 (assert (entity Vector) Vector);
 
-# result: .Vector
+# result: $Vector
 
 # Notice that two entries are created in the symbol table, one which
 # binds the entity name (Vector) to the builtin entity handle
@@ -988,32 +972,29 @@ true;
 
 (assert (set vect1,
   [ Vector, [ 1,0,0,0,1,0,0,0,1 ],
-    { take_first_two : (lambda [self] (cutout (self 1) 0 2)) }
+    { take_first_two : (lambda [self] (cutout self. 0 2)) }
   ]))
 
 (assert (output vect1))
 
 # Bound methods ends up calling the associated function
 
-(assert [1,0] (vect1 take_first_two))
+(assert [1,0] (vect1.take_first_two))
 
-# calling an unbound method currently acts like a nop -- this should
-# probably be changed to either return null or throw an error
+# unbound attributes resolve to null
 
-(assert (vect1 length))
+(assert (null) (vect1.length))
 
 # entity-wide methods are stored in the entity definition
 
-(assert (entity Vector null null
-  { length : (lambda [self] (size (self 1))) })
-  Vector)
+(assert (entity Vector null null 
+        { length : (lambda [self] (size self.)) }) Vector)
 
 (assert (dump (symbols false)))
 
-
 # newly-defined class methods are available to all instances in the namespace
 
-(assert 7 (vect1 length))
+(assert 7 (vect1.length))
 
 # result: 7
 

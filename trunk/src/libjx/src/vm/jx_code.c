@@ -54,6 +54,8 @@ jx_status jx_code_expose_special_forms(jx_ob names)
 {
   jx_bool ok = JX_TRUE;
 
+  ok = jx_declare(ok, names, "builtins", JX_SELECTOR_BUILTINS);
+
   ok = jx_declare(ok, names, "nop", JX_SELECTOR_NOP);
 
   ok = jx_declare(ok, names, "if", JX_SELECTOR_IF);
@@ -170,7 +172,6 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source, jx_int unres
             case JX_SELECTOR_SET:
             case JX_SELECTOR_INCR:
             case JX_SELECTOR_DECR:
-            case JX_SELECTOR_APPEND:
             case JX_SELECTOR_FOREACH:
               resolution = JX_RESOLUTION_LVALUE;
               unresolved = 2;
@@ -366,8 +367,13 @@ static jx_status jx__code_unbound_from_code(jx_ob unbound, jx_ob code)
         jx_ob first = jx_list_borrow(code,0);
         if(jx_builtin_selector_check(first)) { 
           switch(first.data.io.int_) {
-            /* all functions which accept symbols need to be included here */
-          case JX_SELECTOR_APPEND:
+            /* all functions which (only) accept symbols need to be included here */
+          case JX_SELECTOR_HAS:
+          case JX_SELECTOR_GET:
+          case JX_SELECTOR_TAKE:
+          case JX_SELECTOR_DEL:
+          case JX_SELECTOR_INCR:
+          case JX_SELECTOR_DECR:
           case JX_SELECTOR_RESOLVE:
             {
               jx_ob sym = jx_list_get(code,1);
@@ -641,6 +647,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
         break;
       case JX_SELECTOR_DUMP:
         jx_tls_ob_replace(tls, &payload, jx_safe_dump(node, payload));
+        break;
+      case JX_SELECTOR_NEW:
+        jx_tls_ob_replace(tls, &payload, jx_safe_new(node, payload));
         break;
       default: /* unrecognized selector? purge weak */
         jx_ob_free(callable);
@@ -1109,6 +1118,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
           jx_int size = jx_vla_size(&expr_vla);
           //          printf("found special form %d\n",expr_vla->data.io.int_);
           switch (expr_vla->data.io.int_) {
+          case JX_SELECTOR_BUILTINS: /* return available builtin functions */
+            return jx_hash_get(node,jx_builtins());
+            break;
           case JX_SELECTOR_QUOTE:
           case JX_SELECTOR_RAW:
             {
@@ -1506,9 +1518,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
             jx_ob *expr_ob = expr_list->data.ob_vla;
             jx_ob *result_vla = result_list->data.ob_vla;
             register jx_ob *result_ob = result_vla;
-            jx_ob implicit_method = jx_ob_from_null();
+            jx_ob method = jx_ob_from_null();
             jx_bool macro_flag = JX_FALSE;
-            jx_bool implicit_method_flag = JX_FALSE;
+            jx_bool method_flag = JX_FALSE;
             tls->have_method = JX_FALSE;
             
             /* zeroth pass */
@@ -1521,8 +1533,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
 
             if(tls->have_method) {
               /* implicit method call? */
-              implicit_method_flag = JX_TRUE;
-              implicit_method = tls->method;
+              method_flag = JX_TRUE;
+              method = tls->method;
+              tls->have_method = JX_FALSE;
             } else if(((result_ob[-1].meta.bits & 
                         (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))==
                        (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))) {
@@ -1558,9 +1571,11 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
               return jx__macro_call(tls,node,macro,result);
             }
 
-            if(implicit_method_flag) { /* transform implict method 
-                                 call into a standard evaluation */
-              jx__list_insert(result_list,0,implicit_method);
+            if(method_flag) { /* transform implict method
+                                 call into a standard evaluation where
+                                 the function is the first entry
+                                 [method-fn self args] */
+              jx__list_insert(result_list,0,method);
               //              jx_jxon_dump(stdout,"result",node,result);
               result_vla = result_list->data.ob_vla;
             }
@@ -1579,14 +1594,18 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
               return result;
             } else if(!jx_builtin_callable_check(result_vla[0])) {
               /* first entry in list is not callable...but it is an Jenaric Entity? */
+#if 0
+              //              WHOOPS -- this approach is unworkable 
               if(jx_list_check(result_vla[0])) {
                 jx_int entity_size;
                 jx_list *list = result_vla->data.io.list;
                 if((!list->packed_meta_bits) && 
                    (entity_size = jx_vla_size(&list->data))) { 
-                  jx_ob *instance_ob = list->data.ob_vla;
                   /* non-zero, unpacked => vla valid */
+
+                  jx_ob *instance_ob = list->data.ob_vla;
                   if(jx_builtin_entity_check(instance_ob[0])) {
+
                     /* first entry in result contains an entity (a class / instance, etc.) */
                     if(size<2) { /* constructor */
                       jx_ob handle = jx_ob_copy(instance_ob[0]);
@@ -1686,7 +1705,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
                   }
                 }
               }
-              
+#endif              
               /* strengthen result unless weak-nesting is permitted
                  (transient weak references become real copies)  */
 
@@ -1700,7 +1719,6 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
 
               /* return the evaluated value */
               return result;
-              
             } else { 
               /* known callable */
               switch(result_vla->meta.bits & JX_META_MASK_BUILTIN_TYPE) {
@@ -1859,6 +1877,9 @@ jx_ob jx__tls_code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
     jx_tls *tls = jx_tls_new(); // use stack not heap?
     tls->builtins = jx_hash_borrow(node,jx_builtins());
     result = jx_ob_not_weak_with_ob(jx__tls_code_eval_to_weak(tls,flags,node,code));    
+    if(tls->have_method) { 
+      jx_ob_replace(&result,jx_ob_not_weak_with_ob(tls->method));
+    }
     jx_tls_free(tls);
   }
   return result;

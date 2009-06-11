@@ -37,16 +37,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* special forms (built into "eval" for max. performance) */
 
-#define JX_SELECTOR_NOP        0
-#define JX_SELECTOR_IF         1
-#define JX_SELECTOR_WHILE      2
-#define JX_SELECTOR_DO         3
-#define JX_SELECTOR_FOR        4
-#define JX_SELECTOR_QUOTE      5
-#define JX_SELECTOR_DEF        6
-#define JX_SELECTOR_CODE       7
-#define JX_SELECTOR_APPLY      8
-#define JX_SELECTOR_INVOKE     9
+#define JX_SELECTOR_BUILTINS   0
+#define JX_SELECTOR_NOP        1
+#define JX_SELECTOR_IF         2
+#define JX_SELECTOR_WHILE      3
+#define JX_SELECTOR_DO         4
+#define JX_SELECTOR_FOR        5
+#define JX_SELECTOR_QUOTE      6
+#define JX_SELECTOR_DEF        7
+#define JX_SELECTOR_CODE       8
+#define JX_SELECTOR_APPLY      9
+#define JX_SELECTOR_INVOKE    10
 
 #define JX_SELECTOR_RESOLVE   11
 #define JX_SELECTOR_MAP       12
@@ -73,7 +74,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
 
-#define JX_SELECTOR_SPECIAL_FORMS_LIMIT 32
+#define JX_SELECTOR_SPECIAL_FORMS_LIMIT 45
 
 /* The next batch of selectors (through 1024?) are reserved for "safe"
    functions which only involve internal actions performed within the
@@ -89,6 +90,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /* symbols */
+#define JX_SELECTOR_NEW         46
 
 #define JX_SELECTOR_TAIL        47
 #define JX_SELECTOR_RETURN      48
@@ -170,5 +172,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_SORT       120
 
 #define JX_SELECTOR_DUMP       121
+
 
 #endif

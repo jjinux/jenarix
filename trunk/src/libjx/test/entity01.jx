@@ -19,31 +19,32 @@
 # creating an instance the manual way...
 
 (set vect1,
-  [ Vector, [ 1,0,0,0,1,0,0,0,1 ],
-    { take_first_two : (lambda [self] (cutout (self 1) 0 2)) }
+  [ Vector, [ 1,0,0,0,1,0,0,0,1 ],  
+    { take_first_two : (lambda [self] (cutout self. 0 2)) }
   ]);
 
+# note:  self. (self followed by a period) refers to the inner content list of the instance
+ 
 vect1;
 
 # result: [.Vector, [1, 0, 0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0x6010e8}]
 
 # Bound methods ends up calling the associated function
 
-(vect1 take_first_two);
+(vect1.take_first_two);
 
 # result: [1, 0]
 
-# calling an unbound method currently acts like a nop -- this should
-# probably be changed to either return null or throw an error
+# unbound attributes resolve to null
 
-(vect1 length);
+(vect1.length);
 
 # result: null
 
 # entity-wide methods are stored in the entity definition
 
 (entity Vector null null
-  { length : (lambda [self] (size (self 1))) }
+  { length : (lambda [self] (size self.)) }
   );
 
 (symbols);
@@ -52,9 +53,13 @@ vect1;
 
 # newly-defined class methods are available to all instances in the namespace
 
-(vect1 length);
+(vect1.length);
 
 # result: 7
+
+vect1;
+
+vect1.length;
 
 
 

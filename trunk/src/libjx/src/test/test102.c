@@ -33,182 +33,142 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_main_tools.h"
 
-void get_symbol_from_node(jx_ob node, jx_char *name)
+typedef struct {
+  jx_ob hSplitterType;
+  jx_ob vSplitterType;
+  jx_ob menuBarType;
+  jx_ob openglContextType;
+  jx_ob navigatorType;
+} Knowns;
+
+static void processComponents(jx_ob component, Knowns *known);
+
+
+static void processHSplitter(jx_ob splitter, Knowns *known)
 {
-  jx_ob tmp = jx_ob_from_str(name);
-  symbol = jx_hash_get(node,tmp);
+  jx_ob pane = jx_list_borrow(splitter,1);
+  jx_int i,size = jx_list_size(pane);
+  printf("processing horizontal splitter widget...\n");
+  for(i=0;i<size;i++) {
+    processComponents(jx_list_borrow(pane,i),known);
+  }
+}
+
+static void processVSplitter(jx_ob splitter, Knowns *known)
+{
+  jx_ob pane = jx_list_borrow(splitter,1);
+  jx_int i,size = jx_list_size(pane);
+    printf("processing vertical splitter widget...\n");
+  for(i=0;i<size;i++) {
+    processComponents(jx_list_borrow(pane,i),known);
+  }
+}
+
+static void processComponents(jx_ob component, Knowns *known)
+{
+  jx_ob comp_type = jx_list_borrow(component,0);
+
+  if(jx_ob_identical(comp_type, known->hSplitterType)) {
+
+    processHSplitter(component, known);
+
+  } else if(jx_ob_identical(comp_type, known->vSplitterType)) {
+
+    processVSplitter(component, known);    
+
+  } else if(jx_ob_identical(comp_type, known->menuBarType)) {
+    
+    printf("processing menu bar widget...\n");
+
+  } else if(jx_ob_identical(comp_type, known->openglContextType)) {
+    
+    printf("processing opengl context widget...\n");
+
+  } else if(jx_ob_identical(comp_type, known->navigatorType)) {
+    
+    printf("processing navigator widget...\n");
+
+  } else { 
+
+    printf("processing generic widget...\n");
+
+  }
+}
+
+static jx_ob get_symbol_from_node(jx_ob node, jx_char *ident)
+{
+  jx_ob tmp = jx_ob_from_ident(ident);
+  jx_ob symbol = jx_hash_get(node,tmp);
   jx_ob_free(tmp);
   return symbol;
 }
 
-typedef {
-  jx_ob menuBarEntity;
-  jx_ob openGLEntity;
-  jx_ob hSplitter;
-  jx_ob vSplitter;
-} Knowns;
-
-void process_splitter ()
+static jx_status locateKnowns(jx_ob node, Knowns *known)
 {
-  /* what is it? */
-  if(jx_ob_identical(current, known.menuBarEntity)) {
+  jx_os_memset(known,0,sizeof(Knowns));
 
-  } else if(jx_ob_identical(current, known.openGLEntity)) {
-    
-  } else { /* treat asgeneric */
-  }
+  known->vSplitterType = get_symbol_from_node(node, "VSplitter");
+  known->hSplitterType = get_symbol_from_node(node, "HSplitter");
+  known->menuBarType = get_symbol_from_node(node, "MenuBar");
+  known->openglContextType = get_symbol_from_node(node, "OpenGLContext");
+  known->navigatorType = get_symbol_from_node(node, "Navigator");
+
+  return JX_SUCCESS;
 }
 
-void traverse_gui(jx_ob gui_node, Knowns *known)
+static freeKnowns(Knowns *known)
 {
-  jx_ob current = jx_list_shift(gui_node);
-  if(jx_ob_identical(current, known.hSplitter)) {
-    process_splitter(current, known, HORIZ);
-  } else if(jx_ob_identical(current, known.vSplitter)) {
-    process_splitter(current, known);    
-  }
+  jx_ob_free(known->vSplitterType);
+  jx_ob_free(known->hSplitterType);
+  jx_ob_free(known->menuBarType);
+  jx_ob_free(known->openglContextType);
+  jx_ob_free(known->navigatorType);
 }
 
-void process_gui(jx_ob node)
+static void gui_run_from_node(jx_ob node)
 {
   Knowns known;
-
-  /* get entity handles for the things we know about and expect */
-
-  known.menuBarEntity = get_symbol_from_node("MenuBar");
-  known.openGLEntity = get_symbol_from_node("OpenGL");
   
-  /* get the gui */
+  if(jx_ok( locateKnowns(node, &known) )) {  
 
-  jx_ob gui = get_symbol_from_node("gui");
+    /* get the root gui component */
 
-  /* traverse the gui */
-  traverse_gui(gui,&known);
+    jx_ob gui = get_symbol_from_node(node, "gui");
+    
+    /* dump graph for debuggin' */
+    
+    jx_jxon_dump(stdout,"gui",gui);
+    
+    /* traverse the graph nondestructively, processing each component in turn */
+    
+    printf("processing components...\n");
+    
+    processComponents(gui,&known);
+    
+    /* would now run the GUI */
+    
+    /* when done...free what we took */
 
+    jx_ob_free(gui);
+
+    freeKnowns(&known);
+  }
 }
-
-
 
 int main(int argc, char *argv[])
 {
   int exit_status = EXIT_FAILURE;
-  FILE *input = stdin;
-  jx_int mode = jx_main_parse_mode(&input, argc, argv);
 
-  if(input && jx_ok(jx_os_process_init(argc, argv))) {
-    jx_bool console = jx_adapt_for_console(input);
-    jx_ob node = jx_hash_new();
-    jx_ob names = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
-    jx_ob scanner = jx_jxon_scanner_new_with_file
-      (input, (mode==JX_MODE_UNIT_TESTING) ? JX_SCANNER_FLAG_ECHO_COMMENTS : 0);
+  if(jx_ok( jx_os_process_init(argc,argv) )) {
     exit_status = EXIT_SUCCESS;
 
-    if(mode == JX_MODE_AUTOMATIC) {
-      if(console)
-        mode = JX_MODE_CONSOLE;
-      else
-        mode = JX_MODE_EXECUTE;
+    jx_ob node = jx_hash_new();
+    
+    if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
+      gui_run_from_node(node);
     }
-
-    jx_code_expose_secure_builtins(names);
-
-    jx_hash_set(node, jx_builtins(), jx_ob_copy(names));
-
-    if(mode == JX_MODE_CONSOLE) 
-      printf("Jenarix VM Syntax (JXON) [%d-byte numbers, %d-byte tiny strings, %d-byte jx_ob]\n",
-             (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
-
-    {
-      jx_ob source = jx_ob_from_null();
-      jx_status status;
-      jx_bool done = JX_FALSE;
-      while( !done ) {
-        status = jx_jxon_scanner_next_ob(&source, scanner);
-        switch(status) {
-        case JX_YES:
-          if((mode == JX_MODE_PARSE_ONLY) || (mode == JX_MODE_TRANSLATE_ONLY)) {
-            jx_ob jxon = jx_ob_to_jxon_in_node(node,source);
-            printf("%s;\n",jx_ob_as_str(&jxon));
-            jx_ob_free(jxon);
-          } else {
-            if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
-              jx_jxon_dump_in_node(stdout, "# source", node, source);
-            {
-              jx_ob code = jx_code_bind_with_source(names, source);
-              source = jx_ob_from_null();
-
-              if(mode == JX_MODE_COMPILE_ONLY) {
-                jx_ob jxon = jx_ob_to_jxon_in_node(node,code);
-                printf("%s;\n",jx_ob_as_str(&jxon));
-                jx_ob_free(jxon);
-              } else {
-                if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
-                  jx_jxon_dump_in_node(stdout, "#   eval", node, code);
-                {
-                  jx_ob result = jx_code_eval(node,code);
-                  
-                  if(jx_opcode_check(result) && 
-                     (jx_ob_identical(result,jx_ob_from_opcode(JX_OPCODE_RETURN,0)))) {
-                    done = JX_TRUE;
-                  } else if(mode == JX_MODE_CONSOLE)  {
-                    jx_jxon_dump_in_node(stdout, "# result", node, result);
-                  } else if((mode == JX_MODE_EVALUATE)||(mode == JX_MODE_UNIT_TESTING)) {
-                    jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
-                    printf("%s;\n",jx_ob_as_str(&jxon));
-                    jx_ob_free(jxon);
-                    if(mode == JX_MODE_UNIT_TESTING) { /* all unit test exprs must equal true */
-                      if(!jx_ob_identical(jx_ob_from_bool(1),result)) {
-                        jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-                        if(jx_str_check(message)) 
-                          printf("%s\n",jx_ob_as_str(&message));
-                        jx_ob_free(message);
-                        exit_status = EXIT_FAILURE;
-                        done = JX_TRUE;
-                      }
-                      printf("\n"); /* add newline after test in output */
-                    }
-                  }
-                  //jx_jxon_dump_in_node(stdout,"node",node,node);
-                  jx_ob_free(result);
-                }
-              }
-              jx_ob_free(code);
-            }
-          }
-          break;
-        case JX_NO: /* keep going */
-          break;
-        case JX_STATUS_SYNTAX_ERROR: /* catch this error */
-          {
-            jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-            if(jx_str_check(message)) 
-              printf("%s\n",jx_ob_as_str(&message));
-            else
-              printf("Error: invalid syntax\n");
-
-            if(!mode == JX_MODE_CONSOLE)
-              done = JX_TRUE;
-            else
-              jx_jxon_scanner_purge_input(scanner);
-            jx_ob_free(message);
-          }
-          break;
-        default: /* about on all other errors */
-          done = JX_TRUE;
-          break;
-        }
-      }
-      jx_ob_free(source);
-    }
-
-    jx_jxon_dump_in_node(stdout,"node",node,node);
-
-    process_gui(node);
-
+    
     jx_ob_free(node);
-    jx_ob_free(scanner);
-    jx_ob_free(names);
-
     jx_os_process_complete();
   }
   return exit_status;

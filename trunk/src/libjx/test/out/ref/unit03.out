@@ -100,7 +100,7 @@ true;
 #             (sender cnt)
 #             [ (`if (`resolve sender)
 #                 [ (`while (`decr cnt)
-#                     (`append pipe false)), (`append pipe true),
+#                     (`append (`resolve pipe) false)), (`append (`resolve pipe) true),
 #                   (`size (`resolve pipe))]
 #                 [ (`set wait 7), (`while (`resolve wait)
 #                     [ (`set payload
@@ -113,7 +113,7 @@ true;
 
 # source: (assert (output (impl send_recv)))
 #   eval: (`assert (`output (`impl (`resolve send_recv))))
-[send_recv,[[sender,cnt],{pipe:[]}],[[`if,[`resolve,sender],[[`while,[`decr,cnt],[`append,pipe,false]],[`append,pipe,true],[`size,[`resolve,pipe]]],[[`set,wait,7],[`while,[`resolve,wait],[[`set,payload,[`shift,[`resolve,pipe]]],[`test,[`eq,[`resolve,payload],false],[`incr,cnt]],[`test,[`eq,[`resolve,payload],true],[`decr,wait]]]],[`resolve,cnt]]]],true];
+[send_recv,[[sender,cnt],{pipe:[]}],[[`if,[`resolve,sender],[[`while,[`decr,cnt],[`append,[`resolve,pipe],false]],[`append,[`resolve,pipe],true],[`size,[`resolve,pipe]]],[[`set,wait,7],[`while,[`resolve,wait],[[`set,payload,[`shift,[`resolve,pipe]]],[`test,[`eq,[`resolve,payload],false],[`incr,cnt]],[`test,[`eq,[`resolve,payload],true],[`decr,wait]]]],[`resolve,cnt]]]],true];
 true;
 
 # source: (assert (set result

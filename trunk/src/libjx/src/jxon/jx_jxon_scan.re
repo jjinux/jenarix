@@ -173,6 +173,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
     O   = [0-7];
     D   = [0-9];
     L   = [a-zA-Z_];
+    II  = "@" [0-9]+;
     LD  = L (L|D)*;
     H   = [a-fA-F0-9];
     E   = [Ee] [+-]? D+;
@@ -202,7 +203,9 @@ static int jx_scan(jx_jxon_scanner_state *s)
     "false"     { RET(JX_JXON_FALSE); }
     "null"      { RET(JX_JXON_NULL); }
     
-    LD ("." LD)* { RET(JX_JXON_IDENT); }
+    "."         { RET(JX_JXON_IDENT); } /* isolated dot is the blank identifier */
+
+    LD ("." LD)* "."? { RET(JX_JXON_IDENT); }
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JXON_ICON); }
 

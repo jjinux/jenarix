@@ -33,133 +33,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_main_tools.h"
 
+
 int main(int argc, char *argv[])
 {
   int exit_status = EXIT_FAILURE;
-  FILE *input = stdin;
-  jx_int mode = jx_main_parse_mode(&input, argc, argv);
 
-  if(input && jx_ok(jx_os_process_init(argc, argv))) {
-    jx_bool console = jx_adapt_for_console(input);
-    jx_ob node = jx_hash_new();
-    jx_ob names = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
-    jx_ob scanner = jx_jxon_scanner_new_with_file
-      (input, (mode==JX_MODE_UNIT_TESTING) ? JX_SCANNER_FLAG_ECHO_COMMENTS : 0);
+  if(jx_ok( jx_os_process_init(argc,argv) )) {
     exit_status = EXIT_SUCCESS;
 
-    if(mode == JX_MODE_AUTOMATIC) {
-      if(console)
-        mode = JX_MODE_CONSOLE;
-      else
-        mode = JX_MODE_EXECUTE;
+    jx_ob node = jx_hash_new();
+    
+    if(!jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
+      exit_status = EXIT_FAILURE;
     }
-
-    jx_code_expose_secure_builtins(names);
-
-    jx_hash_set(node, jx_builtins(), jx_ob_copy(names));
-
-    if(mode == JX_MODE_CONSOLE) 
-      printf("Jenarix VM Syntax (JXON) [%d-byte numbers, %d-byte tiny strings, %d-byte jx_ob]\n",
-             (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
-
-#if 0
-    jx_jxon_dump_in_node(stdout,"names",node,names);
-    printf("jx_data %d jx_data_io %d jx_meta %d \n",
-           (int)sizeof(jx_data),(int)sizeof(jx_data_io),(int)sizeof(jx_meta));
-#endif
-
-    {
-      jx_ob source = jx_ob_from_null();
-      jx_status status;
-      jx_bool done = JX_FALSE;
-      while( !done ) {
-        status = jx_jxon_scanner_next_ob(&source, scanner);
-        switch(status) {
-        case JX_YES:
-          if((mode == JX_MODE_PARSE_ONLY) || (mode == JX_MODE_TRANSLATE_ONLY)) {
-            jx_ob jxon = jx_ob_to_jxon_in_node(node,source);
-            printf("%s;\n",jx_ob_as_str(&jxon));
-            jx_ob_free(jxon);
-          } else {
-            if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
-              jx_jxon_dump_in_node(stdout, "# source", node, source);
-            {
-              jx_ob code = jx_code_bind_with_source(names, source);
-              source = jx_ob_from_null();
-
-              if(mode == JX_MODE_COMPILE_ONLY) {
-                jx_ob jxon = jx_ob_to_jxon_in_node(node,code);
-                printf("%s;\n",jx_ob_as_str(&jxon));
-                jx_ob_free(jxon);
-              } else {
-                if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
-                  jx_jxon_dump_in_node(stdout, "#   eval", node, code);
-                {
-                  jx_ob result = jx_code_eval(node,code);
-                  
-                  if(jx_opcode_check(result) && 
-                     (jx_ob_identical(result,jx_ob_from_opcode(JX_OPCODE_RETURN,0)))) {
-                    done = JX_TRUE;
-                  } else if(mode == JX_MODE_CONSOLE)  {
-                    jx_jxon_dump_in_node(stdout, "# result", node, result);
-                  } else if((mode == JX_MODE_EVALUATE)||(mode == JX_MODE_UNIT_TESTING)) {
-                    jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
-                    printf("%s;\n",jx_ob_as_str(&jxon));
-                    jx_ob_free(jxon);
-                    if(mode == JX_MODE_UNIT_TESTING) { /* all unit test exprs must equal true */
-                      if(jx_opcode_check(result))
-                        done = JX_TRUE;
-                      else if(!jx_ob_identical(jx_ob_from_bool(1),result)) {
-                        jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-                        if(jx_str_check(message)) 
-                          printf("%s\n",jx_ob_as_str(&message));
-                        jx_ob_free(message);
-                        exit_status = EXIT_FAILURE;
-                        done = JX_TRUE;
-                      }
-                      printf("\n"); /* add newline after test in output */
-                    }
-                  }
-                  //jx_jxon_dump_in_node(stdout,"node",node,node);
-                  jx_ob_free(result);
-                }
-              }
-              jx_ob_free(code);
-            }
-          }
-          break;
-        case JX_NO: /* keep going */
-          break;
-        case JX_STATUS_SYNTAX_ERROR: /* catch this error */
-          {
-            jx_ob message = jx_jxon_scanner_get_error_message(scanner);
-            if(jx_str_check(message)) 
-              printf("%s\n",jx_ob_as_str(&message));
-            else
-              printf("Error: invalid syntax\n");
-
-            if(!mode == JX_MODE_CONSOLE)
-              done = JX_TRUE;
-            else
-              jx_jxon_scanner_purge_input(scanner);
-            jx_ob_free(message);
-          }
-          break;
-        default: /* about on all other errors */
-          done = JX_TRUE;
-          break;
-        }
-      }
-      jx_ob_free(source);
-    }
-
-    jx_ob_free(scanner);
-    jx_ob_free(names);
+    
     jx_ob_free(node);
-
     jx_os_process_complete();
   }
-
   return exit_status;
 }
 

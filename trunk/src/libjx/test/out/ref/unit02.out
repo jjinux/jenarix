@@ -11,9 +11,9 @@ null;
 null;
 
 # we have literals 
-# parsed: (set b {3:"some value",8.4:0,"another key":"another value","some key": [1, 2, 3]})
-# source: (set b {3:"some value",8.4:0,"another key":"another value","some key": [1, 2, 3]})
-#   eval: (`set b {3:"some value",8.4:0,"another key":"another value","some key": [1, 2, 3]})
+# parsed: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
+# source: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
+#   eval: (`set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
 null;
 
 ###print b, len(b)

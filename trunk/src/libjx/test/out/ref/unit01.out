@@ -483,7 +483,7 @@ true;
 true;
 
 # source: (assert (append x 6))
-#   eval: (`assert (`append x 6))
+#   eval: (`assert (`append (`resolve x) 6))
 true;
 
 #   - copying an entry: get
@@ -952,8 +952,8 @@ true;
 #   eval: (`assert {1:2} {1:2})
 true;
 
-# source: (assert {1:2,3:4} {1:2,3:4})
-#   eval: (`assert {1:2,3:4} {1:2,3:4})
+# source: (assert {1:2, 3:4} {1:2, 3:4})
+#   eval: (`assert {1:2, 3:4} {1:2, 3:4})
 true;
 
 # top-level lists are iterated -- only the last element is returned
@@ -1060,7 +1060,7 @@ true;
 #               (set a
 #                 (sub (get a) 1))]))
 #   eval: (`assert (`while (`get a)
-#             [ (`append b
+#             [ (`append (`resolve b)
 #                 (`get a)), (`set c
 #                 (`get a) 1),
 #               (`set a
@@ -1076,12 +1076,12 @@ true;
 # hash comparison (order-independent of course)
 # source: (assert (dump c))
 #   eval: (`assert (`dump (`resolve c)))
-#  dump: # {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1}
+#  dump: # {1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1}
 true;
 
-# source: (assert {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1}
+# source: (assert {1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1}
 #           (get c))
-#   eval: (`assert {1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1}
+#   eval: (`assert {1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1}
 #           (`get c))
 true;
 
@@ -1113,7 +1113,7 @@ true;
 #             (`lt (`get a) 10)
 #             (`set a
 #               (`add (`get a) 1))
-#             [ (`output (`resolve a)), (`append b
+#             [ (`output (`resolve a)), (`append (`resolve b)
 #                 (`get a))]))
 1;
 2;
@@ -1252,7 +1252,7 @@ true;
 true;
 
 # source: (assert (append x 1))
-#   eval: (`assert (`append x 1))
+#   eval: (`assert (`append (`resolve x) 1))
 true;
 
 # source: (assert ["-  -  -  -  -  -  -  -",1] x)
@@ -1261,7 +1261,7 @@ true;
 true;
 
 # source: (assert (append x x))
-#   eval: (`assert (`append x
+#   eval: (`assert (`append (`resolve x)
 #             (`resolve x)))
 true;
 
@@ -1275,7 +1275,7 @@ true;
 
 # source: (assert (append x
 #             (get x)))
-#   eval: (`assert (`append x
+#   eval: (`assert (`append (`resolve x)
 #             (`get x)))
 true;
 
@@ -1380,12 +1380,7 @@ true;
 #   eval: (`assert (`get [1, 2, 3] 1))
 true;
 
-# source: (assert (unresolved symbols)
-#           (unresolved symbols))
-#   eval: (`assert [ (`resolve unresolved), (`resolve symbols)]
-#           [ (`resolve unresolved), (`resolve symbols)])
-true;
-
+#(assert [unresolved symbols] [unresolved symbols])
 # source: (assert (set a
 #             [1.0]))
 #   eval: (`assert (`set a
@@ -1530,7 +1525,7 @@ true;
 #                 [ (`output "Vector size mismatch")]
 #                 [ (`set r
 #                     []), (`while (`resolve v0)
-#                     (`append r
+#                     (`append (`resolve r)
 #                       (`add (`shift (`resolve v0))
 #                         (`shift (`resolve v1))))),
 #                   (`resolve r)])]))
@@ -1833,7 +1828,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {fnbuilder:fn`fnbuilder,newfn:fn`0xXXXXXX}
+#  dump: {fnbuilder:fn`fnbuilder, newfn:fn`0xXXXXXX}
 true;
 
 # source: (assert 2
@@ -1863,7 +1858,7 @@ true;
 true;
 
 # source: (assert (append v 3))
-#   eval: (`assert (`append v 3))
+#   eval: (`assert (`append (`resolve v) 3))
 true;
 
 # source: (assert [1, 2, 3] v)
@@ -1879,7 +1874,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {fnbuilder:fn`fnbuilder,newfn:fn`0xXXXXXX,v: [1, 2, 3]}
+#  dump: {fnbuilder:fn`fnbuilder, newfn:fn`0xXXXXXX, v: [1, 2, 3]}
 true;
 
 # source: (assert (del v))
@@ -1908,22 +1903,20 @@ true;
 
 # source: (assert (def vector.add
 #             (v1 v2)
-#             [ [ (v1 0), (map (lambda (x y)
-#                     (add x y))
-#                   (v1 1)
-#                   (v2 1))]]))
+#             [ [ (get v1 0), (map (lambda (x y)
+#                     (add x y)) v1. v2.)]]))
 #   eval: (`assert (`def vector.add
 #             (v1 v2)
-#             [ [ [ (`resolve v1),0], (`map (`lambda (x y)
+#             [ [ (`get v1 0), (`map (`lambda (x y)
 #                     (`add (`resolve x)
 #                       (`resolve y)))
-#                   [ (`resolve v1),1]
-#                   [ (`resolve v2),1])]]))
+#                   (`resolve (v1 .))
+#                   (`resolve (v2 .)))]]))
 true;
 
 # source: (assert (output (impl vector.add)))
 #   eval: (`assert (`output (`impl (`resolve (vector add)))))
-[vector.add,[[v1,v2],{}],[[[[`resolve,v1],0],[`map,[`lambda,[x,y],[`add,[`resolve,x],[`resolve,y]]],[[`resolve,v1],1],[[`resolve,v2],1]]]],true];
+[vector.add,[[v1,v2],{}],[[[`get,v1,0],[`map,[`lambda,[x,y],[`add,[`resolve,x],[`resolve,y]]],[`resolve,[v1,.]],[`resolve,[v2,.]]]]],true];
 true;
 
 # source: (assert (dump (symbols false)))
@@ -1947,17 +1940,16 @@ true;
 # notice how the Vector definition is in the function's implementation
 # source: (assert (def myfn
 #             (a b)
-#             [ (Vector), (a add b)]))
+#             [ (Vector), (a.add b)]))
 #   eval: (`assert (`def myfn
 #             (a b)
-#             [ [ (`resolve Vector)], [ (`resolve a), (`resolve add),
-#                 (`resolve b)]]))
+#             [ [ (`resolve Vector)], [ (`resolve (a add)), (`resolve b)]]))
 true;
 
 # if we create some vector instances
 # source: (assert (output (impl myfn)))
 #   eval: (`assert (`output (`impl (`resolve myfn))))
-[myfn,[[a,b],{Vector:.Vector,.Vector:[.VectorBase,null,null],.VectorBase:[null,null,{add:fn`vector.add}]}],[[[`resolve,Vector]],[[`resolve,a],[`resolve,add],[`resolve,b]]],true];
+[myfn,[[a,b],{Vector:$Vector,$Vector:[$VectorBase,null,null],$VectorBase:[null,null,{add:fn`vector.add}]}],[[[`resolve,Vector]],[[`resolve,[a,add]],[`resolve,b]]],true];
 true;
 
 # source: (assert (set v1
@@ -1983,24 +1975,22 @@ true;
 # strictly speaking however, we can instead rely upon dynamic
 # referencing of the class at the point of method invocation
 # source: (assert (Vector [3, 5, 7])
-#           (v1 add v2))
+#           (v1.add v2))
 #   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
-#           [ (`resolve v1), (`resolve add),
-#             (`resolve v2)])
+#           [ (`resolve (v1 add)), (`resolve v2)])
 true;
 
 # source: (assert (def myfn2
 #             (a b)
-#             [ (a add b)]))
+#             [ (a.add b)]))
 #   eval: (`assert (`def myfn2
 #             (a b)
-#             [ [ (`resolve a), (`resolve add),
-#                 (`resolve b)]]))
+#             [ [ (`resolve (a add)), (`resolve b)]]))
 true;
 
 # source: (assert (output (impl myfn2)))
 #   eval: (`assert (`output (`impl (`resolve myfn2))))
-[myfn2,[[a,b],{}],[[[`resolve,a],[`resolve,add],[`resolve,b]]],true];
+[myfn2,[[a,b],{}],[[[`resolve,[a,add]],[`resolve,b]]],true];
 true;
 
 # but that only works if the class is present and bound in the caller's namespace
@@ -2023,24 +2013,25 @@ true;
 # then that doesn't work
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {VectorBase:.VectorBase,myfn:fn`myfn,myfn2:fn`myfn2,v1: [.Vector, [1, 2, 3]],v2: [.Vector, [2, 3, 4]],vector: {add:fn`vector.add},.VectorBase: [null,null, {add:fn`vector.add}]}
+#  dump: {VectorBase:$VectorBase, myfn:fn`myfn, myfn2:fn`myfn2, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add}, $VectorBase: [null,null, {add:fn`vector.add}]}
 true;
 
 # whereas the function with closed entity definitions still works
-# source: (assert (myfn2 v1 v2))
-#   eval: (`assert [ (`resolve myfn2), (`resolve v1),
-#             (`resolve v2)])
+# source: (assert (dump (myfn2 v1 v2)))
+#   eval: (`assert (`dump [ (`resolve myfn2), (`resolve v1),
+#               (`resolve v2)]))
+#  dump: [null, [$Vector, [2, 3, 4]]]
 true;
 
 # source: (assert (output (myfn v1 v2)))
 #   eval: (`assert (`output [ (`resolve myfn), (`resolve v1),
 #               (`resolve v2)]))
-[.Vector,[3,5,7]];
+[$Vector,[3,5,7]];
 true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {VectorBase:.VectorBase,myfn:fn`myfn,myfn2:fn`myfn2,v1: [.Vector, [1, 2, 3]],v2: [.Vector, [2, 3, 4]],vector: {add:fn`vector.add},.VectorBase: [null,null, {add:fn`vector.add}]}
+#  dump: {VectorBase:$VectorBase, myfn:fn`myfn, myfn2:fn`myfn2, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add}, $VectorBase: [null,null, {add:fn`vector.add}]}
 true;
 
 # source: (assert (del v1))
@@ -2139,17 +2130,15 @@ true;
 
 # source: (assert (def vector_add
 #             (v1 v2)
-#             [ [ (v1 0), (map (lambda (x y)
-#                     (add x y))
-#                   (v1 1)
-#                   (v2 1))]]))
+#             [ [ (get v1 0), (map (lambda (x y)
+#                     (add x y)) v1. v2.)]]))
 #   eval: (`assert (`def vector_add
 #             (v1 v2)
-#             [ [ [ (`resolve v1),0], (`map (`lambda (x y)
+#             [ [ (`get v1 0), (`map (`lambda (x y)
 #                     (`add (`resolve x)
 #                       (`resolve y)))
-#                   [ (`resolve v1),1]
-#                   [ (`resolve v2),1])]]))
+#                   (`resolve (v1 .))
+#                   (`resolve (v2 .)))]]))
 true;
 
 # source: (assert (entity Vector null null {add:vector_add}) Vector)
@@ -2167,33 +2156,17 @@ true;
 #             [ (`resolve Vector), [1, 2, 3]]))
 true;
 
-# entity-based invocation
+# dot-based invocation
 # source: (assert (set v2
 #             (Vector [2, 3, 4])))
 #   eval: (`assert (`set v2
 #             [ (`resolve Vector), [2, 3, 4]]))
 true;
 
-# dot-based invocation
-# source: (assert (Vector [3, 5, 7])
-#           (v1 add v2))
-#   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
-#           [ (`resolve v1), (`resolve add),
-#             (`resolve v2)])
-true;
-
 # source: (assert (Vector [3, 5, 7])
 #           (v1.add v2))
 #   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
 #           [ (`resolve (v1 add)), (`resolve v2)])
-true;
-
-# source: (assert (Vector [0.6,13,"hiyou"])
-#           [ (Vector [0.3,4,"hi"]),add,
-#             (Vector [0.3,9,"you"])])
-#   eval: (`assert [ (`resolve Vector), [0.6,13,"hiyou"]]
-#           [ [ (`resolve Vector), [0.3,4,"hi"]], (`resolve add),
-#             [ (`resolve Vector), [0.3,9,"you"]]])
 true;
 
 # source: (assert (del v1))
@@ -2257,32 +2230,42 @@ true;
 
 # source: (assert (def poly_fn null
 #             (apply (get poly_disp
-#                 [ (get _ 0),0]) _)))
+#                 (get (_ 0 0))) _)))
 #   eval: (`assert (`def poly_fn null
 #             (`apply (`get poly_disp
-#                 [ (`get _ 0),0])
+#                 (`get (_ 0 0)))
 #               (`resolve _))))
 true;
 
 # source: (assert (output (impl poly_fn)))
 #   eval: (`assert (`output (`impl (`resolve poly_fn))))
-[poly_fn,null,[`apply,[`get,poly_disp,[[`get,_,0],0]],[`resolve,_]],true];
+[poly_fn,null,[`apply,[`get,poly_disp,[`get,[_,0,0]]],[`resolve,_]],true];
 true;
 
 # finally, to show off, we create one entity of each type
 # source: (assert (set a
-#             (A)))
+#             (new A)))
 #   eval: (`assert (`set a
-#             [ (`resolve A)]))
+#             (`new (`resolve A))))
+true;
+
+# source: (assert (set b
+#             (new B)))
+#   eval: (`assert (`set b
+#             (`new (`resolve B))))
+true;
+
+# source: (assert (A) a)
+#   eval: (`assert [ (`resolve A)]
+#           (`resolve a))
+true;
+
+# source: (assert (B) b)
+#   eval: (`assert [ (`resolve B)]
+#           (`resolve b))
 true;
 
 # and use the polymorphic function on those entities :)!
-# source: (assert (set b
-#             (B)))
-#   eval: (`assert (`set b
-#             [ (`resolve B)]))
-true;
-
 # source: (assert [ ["A called with",1]]
 #           (poly_fn a 1))
 #   eval: (`assert [ ["A called with",1]]
@@ -2335,32 +2318,18 @@ true;
 
 # experimenting with dot notation for calling methods on entity
 # source: (assert (entity A null null {class_fn: (lambda (self)
-#               ["from class", (get (self 1) 2)])}) A)
+#               ["from class", (get self. 2)])}) A)
 #   eval: (`assert (`entity A null null {class_fn: (`lambda (self)
-#               ["from class", (`get (self 1) 2)])})
+#               ["from class", (`get (self .) 2)])})
 #           (`resolve A))
 true;
 
-# the pseudo-LISP way
 # source: (assert (set b
 #             (A [1, 2, 3] {inst_fn: (lambda (self)
-#                 ["from instance", (get (self 1) 2)])})))
+#                 ["from instance", (get self. 2)])})))
 #   eval: (`assert (`set b
 #             [ (`resolve A), [1, 2, 3], {inst_fn: (`lambda (self)
-#                 ["from instance", (`get (self 1) 2)])}]))
-true;
-
-# source: (assert ["from instance",3]
-#           (b inst_fn))
-#   eval: (`assert ["from instance",3]
-#           [ (`resolve b), (`resolve inst_fn)])
-true;
-
-# the pseudo-Python way
-# source: (assert ["from class",3]
-#           (b class_fn))
-#   eval: (`assert ["from class",3]
-#           [ (`resolve b), (`resolve class_fn)])
+#                 ["from instance", (`get (self .) 2)])}]))
 true;
 
 # source: (assert ["from instance",3]
@@ -2406,26 +2375,24 @@ true;
 #             [ (`resolve Matrix), [0, 0, 0, 0, 0, 0, 0, 0, 0], {dim: [3, 3]}]))
 true;
 
-# source: (assert [3, 3]
-#           (mat dim))
+# source: (assert [3, 3] mat.dim)
 #   eval: (`assert [3, 3]
-#           [ (`resolve mat), (`resolve dim)])
+#           (`resolve (mat dim)))
+true;
+
+# source: (assert (append mat.dim 1))
+#   eval: (`assert (`append (`resolve (mat dim)) 1))
 true;
 
 # note that we've modified dim
-# source: (assert (append (mat dim) 1))
-#   eval: (`assert (`append (mat dim) 1))
-true;
-
 # source: (assert (output mat))
 #   eval: (`assert (`output (`resolve mat)))
-[.Matrix,[0,0,0,0,0,0,0,0,0],{dim:[3,3,1]}];
+[$Matrix,[0,0,0,0,0,0,0,0,0],{dim:[3,3,1]}];
 true;
 
-# source: (assert [3, 3, 1]
-#           (mat dim))
+# source: (assert [3, 3, 1] mat.dim)
 #   eval: (`assert [3, 3, 1]
-#           [ (`resolve mat), (`resolve dim)])
+#           (`resolve (mat dim)))
 true;
 
 # dot-based attribute resolution
@@ -2440,7 +2407,7 @@ true;
 # a copy isn't made until we assign
 # source: (assert (output mat))
 #   eval: (`assert (`output (`resolve mat)))
-[.Matrix,[0,0,0,0,0,0,0,0,0],{dim:[3,3]}];
+[$Matrix,[0,0,0,0,0,0,0,0,0],{dim:[3,3]}];
 true;
 
 # source: (assert (set dim mat.dim))
@@ -2449,7 +2416,7 @@ true;
 true;
 
 # source: (assert (append dim 1))
-#   eval: (`assert (`append dim 1))
+#   eval: (`assert (`append (`resolve dim) 1))
 true;
 
 # source: (assert [3, 3, 1] dim)
@@ -2464,25 +2431,25 @@ true;
 true;
 
 # source: (assert Matrix
-#           (mat 0))
+#           (get mat 0))
 #   eval: (`assert (`resolve Matrix)
-#           [ (`resolve mat),0])
+#           (`get mat 0))
 true;
 
 # source: (assert [0, 0, 0, 0, 0, 0, 0, 0, 0]
-#           (mat 1))
+#           (get mat 1))
 #   eval: (`assert [0, 0, 0, 0, 0, 0, 0, 0, 0]
-#           [ (`resolve mat),1])
+#           (`get mat 1))
 true;
 
 # source: (assert {dim: [3, 3]}
-#           (mat 2))
+#           (get mat 2))
 #   eval: (`assert {dim: [3, 3]}
-#           [ (`resolve mat),2])
+#           (`get mat 2))
 true;
 
-# source: (assert (mat 3))
-#   eval: (`assert [ (`resolve mat),3])
+# source: (assert (get mat 3))
+#   eval: (`assert (`get mat 3))
 true;
 
 # source: (assert (del dim))
@@ -2516,8 +2483,8 @@ true;
 #             [ [ (`resolve self),1], (`resolve x)]))
 true;
 
-# source: (assert (entity MatrixBase null null {dim: [],method:_method}) MatrixBase)
-#   eval: (`assert (`entity MatrixBase null null {dim: [],method: (`resolve _method)})
+# source: (assert (entity MatrixBase null null {dim: [], method:_method}) MatrixBase)
+#   eval: (`assert (`entity MatrixBase null null {dim: [], method: (`resolve _method)})
 #           (`resolve MatrixBase))
 true;
 
@@ -2535,19 +2502,19 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Matrix33f:.Matrix33f,MatrixBase:.MatrixBase,.Matrix33f: [.MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}],.MatrixBase: [null,null, {dim: [],method:fn`_method}]}
+#  dump: {Matrix33f:$Matrix33f, MatrixBase:$MatrixBase, $Matrix33f: [$MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}], $MatrixBase: [null,null, {dim: [], method:fn`_method}]}
 true;
 
 # new instances can be automatically created by resolving the entity handle and then
 # calling it as a function 
 # source: (assert (set m1
-#             [ (Matrix33f)]))
+#             (new Matrix33f)))
 #   eval: (`assert (`set m1
-#             [ [ (`resolve Matrix33f)]]))
+#             (`new (`resolve Matrix33f))))
 true;
 
-# source: (assert (Matrix33f [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] {dim: [3, 3]}) m1)
-#   eval: (`assert [ (`resolve Matrix33f), [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}]
+# source: (assert (Matrix33f [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]) m1)
+#   eval: (`assert [ (`resolve Matrix33f), [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]]
 #           (`resolve m1))
 true;
 
@@ -2583,7 +2550,7 @@ true;
 #           (`resolve Vector))
 true;
 
-# result: .Vector
+# result: $Vector
 # Notice that two entries are created in the symbol table, one which
 # binds the entity name (Vector) to the builtin entity handle
 # (.Vector) and a second which binds the handle to the attribute table
@@ -2591,54 +2558,55 @@ true;
 # creating an instance the manual way...
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Vector:.Vector,.Vector: [null,null,null]}
+#  dump: {Vector:$Vector, $Vector: [null,null,null]}
 true;
 
 # source: (assert (set vect1
 #             (Vector [1, 0, 0, 0, 1, 0, 0, 0, 1] {take_first_two: (lambda (self)
-#                 (cutout (self 1) 0 2))})))
+#                 (cutout self. 0 2))})))
 #   eval: (`assert (`set vect1
 #             [ (`resolve Vector), [1, 0, 0, 0, 1, 0, 0, 0, 1], {take_first_two: (`lambda (self)
-#                 (`cutout [ (`resolve self),1] 0 2))}]))
+#                 (`cutout (`resolve (self .)) 0 2))}]))
 true;
 
 # Bound methods ends up calling the associated function
 # source: (assert (output vect1))
 #   eval: (`assert (`output (`resolve vect1)))
-[.Vector,[1,0,0,0,1,0,0,0,1],{take_first_two:fn`0xXXXXXX}];
+[$Vector,[1,0,0,0,1,0,0,0,1],{take_first_two:fn`0xXXXXXX}];
 true;
 
-# calling an unbound method currently acts like a nop -- this should
-# probably be changed to either return null or throw an error
+# unbound attributes resolve to null
 # source: (assert [1, 0]
-#           (vect1 take_first_two))
+#           (vect1.take_first_two))
 #   eval: (`assert [1, 0]
-#           [ (`resolve vect1), (`resolve take_first_two)])
+#           [ (`resolve (vect1 take_first_two))])
 true;
 
 # entity-wide methods are stored in the entity definition
-# source: (assert (vect1 length))
-#   eval: (`assert [ (`resolve vect1), (`resolve length)])
+# source: (assert [null]
+#           (vect1.length))
+#   eval: (`assert [null]
+#           [ (`resolve (vect1 length))])
 true;
 
 # source: (assert (entity Vector null null {length: (lambda (self)
-#               (size (self 1)))}) Vector)
+#               (size self.))}) Vector)
 #   eval: (`assert (`entity Vector null null {length: (`lambda (self)
-#               (`size [ (`resolve self),1]))})
+#               (`size (`resolve (self .))))})
 #           (`resolve Vector))
 true;
 
 # newly-defined class methods are available to all instances in the namespace
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Vector:.Vector,vect1: [.Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}],.Vector: [null,null, {length:fn`0xXXXXXX}]}
+#  dump: {Vector:$Vector, vect1: [$Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}], $Vector: [null,null, {length:fn`0xXXXXXX}]}
 true;
 
 # result: 7
 # source: (assert 7
-#           (vect1 length))
+#           (vect1.length))
 #   eval: (`assert 7
-#           [ (`resolve vect1), (`resolve length)])
+#           [ (`resolve (vect1 length))])
 true;
 
 # source: (assert (del [ (pass Vector)]))
@@ -2714,7 +2682,7 @@ true;
 #               (decr a))))
 #   eval: (`assert null
 #           (`while (`resolve a)
-#             (`append b
+#             (`append (`resolve b)
 #               (`decr a))))
 true;
 
@@ -3165,12 +3133,12 @@ true;
 
 # source: (assert (output a))
 #   eval: (`assert (`output (`resolve a)))
-[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,.Base];
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,$Base];
 true;
 
 # source: (assert (output b))
 #   eval: (`assert (`output (`resolve b)))
-[.Base,y,x,"y","y","x","",[`set],["x"],[1.0],[1],[0,1],[0,0],[0,-1],[0],[-1],[],{1:0},{0:1},{0:0},{0:-1},{-1:0},{},1.0,1,true,0.0,0,false,-1.0,-1,null];
+[$Base,y,x,"y","y","x","",[`set],["x"],[1.0],[1],[0,1],[0,0],[0,-1],[0],[-1],[],{1:0},{0:1},{0:0},{0:-1},{-1:0},{},1.0,1,true,0.0,0,false,-1.0,-1,null];
 true;
 
 # source: (assert (sort a))
@@ -3183,12 +3151,12 @@ true;
 
 # source: (assert (output a))
 #   eval: (`assert (`output (`resolve a)))
-[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,.Base];
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,$Base];
 true;
 
 # source: (assert (output b))
 #   eval: (`assert (`output (`resolve b)))
-[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,.Base];
+[null,-1,-1.0,false,0,0.0,true,1,1.0,{},{-1:0},{0:-1},{0:0},{0:1},{1:0},[],[-1],[0],[0,-1],[0,0],[0,1],[1],[1.0],["x"],[`set],"","x","y","y",x,y,$Base];
 true;
 
 # source: (assert a c)

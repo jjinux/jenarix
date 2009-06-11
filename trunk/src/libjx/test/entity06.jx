@@ -26,16 +26,15 @@
 
 symbols;
 
-# new instances can be automatically created by resolving the entity handle and then
-# calling it as a function with no arguments
+# new instances are created with the "new" builtin
 
-(set m1 ((Matrix33f)))
+(set m1 (new Matrix33f))
 
 m1;
 
-(m1 print);
+(m1.print);
 
-# or instances can be created manually, simply by providing an identifier
+# or instances can be created manually, simply by providing an entity identifier
 # and populating the content field.
 
 (set m2 [Matrix33f, [1 0 0 0 1 0 0 0 1]]);

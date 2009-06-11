@@ -236,7 +236,7 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
   flags = autowrap(ref,flags,space_left,1);
   jx_vla_append_c_str(ref, "{"); 
   if(size) {
-    if( flags & JX_JXON_FLAG_SORT_HASHES) {
+    if(flags & JX_JXON_FLAG_SORT_HASHES) {
       jx_ob keys = jx__hash_copy_members(I, JX__HASH_COPY_KEYS);
       jx_int i,list_size = jx_list_size(keys);
       jx_list_sort(keys);
@@ -245,6 +245,10 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
         if(comma) {
           flags = autowrap(ref,flags,space_left,1);
           jx_vla_append_c_str(ref, ",");
+          if((flags & JX_JXON_FLAG_PRETTY)) {
+            flags = autowrap(ref,flags,space_left,1);
+            jx_vla_append_c_str(ref, " ");
+          }
         } else {
           comma = JX_TRUE;
         }
@@ -268,6 +272,10 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
           if(comma) {
             flags = autowrap(ref,flags,space_left,1);
             jx_vla_append_c_str(ref, ",");
+            if((flags & JX_JXON_FLAG_PRETTY)) {
+              flags = autowrap(ref,flags,space_left,1);
+              jx_vla_append_c_str(ref, " ");
+            }
           } else {
             comma = JX_TRUE;
           }
@@ -305,6 +313,10 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
                 if(comma) {
                   flags = autowrap(ref,flags,space_left,1);
                   jx_vla_append_c_str(ref, ",");
+                  if((flags & JX_JXON_FLAG_PRETTY)) {
+                    flags = autowrap(ref,flags,space_left,1);
+                    jx_vla_append_c_str(ref, " ");
+                  }
                 } else {
                   comma = JX_TRUE;
                 }
@@ -582,6 +594,11 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
       } else {
         st = jx_ob_from_str(ob.data.io.tiny_str);
       }
+      if(!jx_ob_as_str(&st)[0]) {
+        jx_ob_free(st);
+        st = jx_ob_from_str(".");
+      }
+      
       if(!ref) {
         return st;
       } else {

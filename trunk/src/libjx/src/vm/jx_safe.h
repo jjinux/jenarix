@@ -644,5 +644,10 @@ JX_INLINE jx_ob jx_safe_bool(jx_ob node, jx_ob payload)
   return jx_ob_to_bool(jx_list_borrow(payload,0));
 }
 
+JX_INLINE jx_ob jx_safe_new(jx_ob node, jx_ob payload)
+{
+  return jx_tls_ob_new_from_ob(JX_NULL,node,jx_list_borrow(payload,0));
+}
+
 
 #endif

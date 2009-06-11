@@ -237,7 +237,8 @@ struct jx__ob {
 #define JX_OB_HASH      { JX_DATA_INIT, {0,JX_META_BIT_GC | JX_META_BIT_HASH  }}
 
 #define JX_OB_OPCODE    { JX_DATA_INIT, {0,JX_META_BIT_OPCODE   }} 
-#define JX_OB_BUILTINS  { JX_DATA_INIT, {0,JX_META_BIT_IDENT} }
+
+#define JX_OB_BUILTINS  { JX_DATA_INIT, {0,JX_META_BIT_IDENT}}
 
 /* VM opcodes (of 32 possibilities, only 2 are assigned) */
 
@@ -256,6 +257,7 @@ extern jx_ob jx_ob_int_zero;
 extern jx_ob jx_ob_float_zero;
 extern jx_ob jx_ob_bool_false;
 extern jx_ob jx_ob_resolve;
+extern jx_ob jx_ob_builtins;
 
 struct jx__list {
   jx_gc gc;
@@ -420,6 +422,12 @@ JX_INLINE jx_ob jx_ob_from_bool_false(void)
 {
   return jx_ob_bool_false;
 }
+
+JX_INLINE jx_ob jx_builtins(void) 
+{
+  return jx_ob_builtins;
+}
+
 
 jx_ob jx_ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_int flags, jx_int indent, 
                                jx_int width, jx_int space_left);
@@ -606,12 +614,6 @@ JX_INLINE jx_ob jx_null_with_ob(jx_ob ob)
 {
   jx_ob result = jx_ob_from_null();
   jx_ob_free(ob);
-  return result;
-}
-
-JX_INLINE jx_ob jx_builtins(void) 
-{
-  jx_ob result = JX_OB_BUILTINS;
   return result;
 }
 
@@ -1974,6 +1976,8 @@ JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
   return jx_ob_from_null();
 }
 
+
+
 JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
 {
   jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
@@ -2996,7 +3000,7 @@ JX_INLINE jx_ob jx_entity_resolve_content(jx_ob node,jx_ob handle)
       break;
     handle = jx_list_borrow(def,0);
   }
-  return jx_ob_copy(result);
+  return result;
 }
 
 JX_INLINE jx_ob jx_entity_resolve_attrs(jx_ob node,jx_ob handle)
@@ -3014,7 +3018,7 @@ JX_INLINE jx_ob jx_entity_resolve_attrs(jx_ob node,jx_ob handle)
 
 JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *target)
 {
-  if(jx_weak_check(*target)) { /* weak reference to actual container? use it */
+  if(jx_weak_check(*target)) { /* weak reference to actual container? use it! */
     *container = *target;
     return JX_YES;
   }
@@ -3039,26 +3043,46 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
 
             if(jx_builtin_entity_check(entity_ob[0])) {
               /* first entry in result contains an entity (a class / instance, etc.) */
-              /* the entry following the entity -- what is it? */
               switch(target->meta.bits & JX_META_MASK_TYPE_BITS) {
-              case JX_META_BIT_IDENT: /* identifier? -> standard method resolution */
+              case JX_META_BIT_IDENT: 
                 {
-                  jx_ob method;
-                  if(entity_size>2) {
-                    method = jx_hash_borrow(entity_ob[2],*target);
-                  } else
-                    method = jx_ob_from_null();
-                  if(jx_null_check(method)) {
-                    //jx_jxon_dump(stdout,"entity_ob", node, entity_ob[0]);
-                    method = jx_entity_resolve_name(node, entity_ob[0], *target);
-                    //jx_jxon_dump(stdout,"method",node,method);
+                  jx_char ch = jx_ob_as_ident(target)[0];
+                  if((!ch)||(ch=='.')) { /* blank identifier? access content */
+                    if(entity_size>1) { 
+                      *container = jx_ob_take_weak_ref(entity_ob[1]);;
+                    } else { /* invalid accessor */
+                      *container = jx_ob_from_null();
+                    }
+                    return JX_YES;
+                  } else {/* nonblank identifier? -> access attribute / method */
+                    jx_ob method;
+                    if(entity_size>2) {
+                      method = jx_hash_borrow(entity_ob[2],*target);
+                    } else
+                      method = jx_ob_from_null();
+                    if(jx_null_check(method)) {
+                      //jx_jxon_dump(stdout,"entity_ob", node, entity_ob[0]);
+                      method = jx_entity_resolve_name(node, entity_ob[0], *target);
+                      //jx_jxon_dump(stdout,"method",node,method);
+                    }
+                    method = jx_ob_take_weak_ref(method);
+                    if(tls && jx_builtin_callable_check(method)) { /* method */
+                      tls->method = method;
+                      tls->have_method = JX_TRUE;
+                    } else { /* attribute */
+                      *container = method;
+                    }
+                    return JX_YES;
                   }
-                  method = jx_ob_take_weak_ref(method);
-                  if(tls && jx_builtin_callable_check(method)) { /* method */
-                    tls->method = method;
-                    tls->have_method = JX_TRUE;
-                  } else { /* attribute */
-                    *container = method;
+                }
+                break;
+              case JX_META_BIT_INT: /* integer entity access (0=ident,1=content,2=attr) */
+                {
+                  jx_int index = jx_ob_as_int(*target);
+                  if((index<entity_size)&&(index>=0)) {
+                    *container = jx_ob_take_weak_ref(entity_ob[index]);;
+                  } else { /* invalid accessor */
+                    *container = jx_ob_from_null();
                   }
                   return JX_YES;
                 }
@@ -3104,6 +3128,26 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
   }
 }
 
+jx_ob jx_list_new_with_size(jx_int size);
+JX_INLINE jx_ob jx_tls_ob_new_from_ob(jx_tls *tls, jx_ob node, jx_ob ob)
+{
+
+  if(jx_builtin_entity_check(ob)) {
+    jx_ob result = jx_ob_from_null();
+    jx_ob content = jx_entity_resolve_content(node,ob);
+    if(jx_null_check(content)) {
+      jx_ob_replace(&result, jx_list_new_with_size(1));
+      jx_tls_list_replace(tls, result, 0, jx_ob_copy(ob));
+    } else {
+      jx_ob_replace(&result, jx_list_new_with_size(2));
+      jx_tls_list_replace(tls, result, 0, jx_ob_copy(ob));
+      jx_tls_list_replace(tls, result, 1, jx_ob_copy(content));
+    }
+    return result;
+  } else {
+    return jx_ob_copy(ob);
+  }
+}
 /* enable C++ mangling */
 #ifdef __cplusplus
 #if 0

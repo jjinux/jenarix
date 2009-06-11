@@ -27,6 +27,7 @@ extern "C" {
 #define JX_HEAP_DUMP_NO_ADDRESSES   0x2
 #define JX_HEAP_DUMP_SUMMARY_ONLY   0x4
 #define JX_HEAP_DUMP_CONTENT_TOO    0x8
+#define JX_HEAP_DUMP_SORT          0x10
 
 typedef struct {
   jx_os_size_t size, alloc, unit_size;
