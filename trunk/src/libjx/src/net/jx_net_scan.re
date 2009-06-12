@@ -397,7 +397,7 @@ static void jx_net_scan_input(jx_net_scanner_state *s)
     }
 #ifdef JX_NET_PARSER_DEBUG
     printf("scanner: token index %d: \n",tok_type);
-    jx_jxon_dump(stdout,"scanner: indent_stack",jx_ob_from_null(), s->indent_stack);
+    jx_jxon_dump(stdout,"scanner: indent_stack", s->indent_stack);
     printf("scanner: current_indent %d\n",s->current_indent);
     printf("scanner: newline_just_seen %d\n",s->newline_just_seen);
     printf("scanner: colon_just_seen %d\n",s->colon_just_seen);
