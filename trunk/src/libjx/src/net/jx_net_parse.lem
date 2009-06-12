@@ -229,13 +229,30 @@ wiring(A) ::= wiring(B) entry(C).
 #endif
 }
 
-entry(A) ::= PORT port_name(B) NEWLINE.
+entry(A) ::= port_decl(B) NEWLINE.
+{
+  A = B;
+#ifdef JX_NET_PARSER_DEBUG
+  printf("entry(A) ::= port_decl(B).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+port_decl(A) ::= PORT port_name(B).
 {
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("port"));
   jx_list_append(A,B);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(A) ::= PORT port_name(B).%s:%d\n",__FILE__,__LINE__); 
+  printf("port_decl(A) ::= PORT port_name(B).%s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+port_decl(A) ::= port_decl(B) COMMA port_name(C).
+{
+   A=B;
+   jx_list_append(A,C);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("port_decl(A) ::= port_decl(B) COMMA port_name(C).\n");
 #endif
 }
 
