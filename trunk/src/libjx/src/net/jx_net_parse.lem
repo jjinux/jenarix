@@ -249,8 +249,8 @@ port_decl(A) ::= PORT port_name(B).
 
 port_decl(A) ::= port_decl(B) COMMA port_name(C).
 {
-   A=B;
-   jx_list_append(A,C);
+  A = B;
+  jx_list_append(A,C);
 #ifdef JX_NET_PARSER_DEBUG
   printf("port_decl(A) ::= port_decl(B) COMMA port_name(C).\n");
 #endif
