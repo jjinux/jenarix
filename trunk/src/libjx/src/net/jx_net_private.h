@@ -1,7 +1,7 @@
 #ifndef _H_jx_net_private
 #define _H_jx_net_private
 
-/* 
+/*
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
 
@@ -42,7 +42,7 @@ extern "C" {
 #endif
 #endif
 
-#define noJX_NET_PARSER_DEBUG
+#define JX_NET_PARSER_DEBUG
 
 /* include token identifiers */
 
@@ -51,7 +51,7 @@ extern "C" {
 /* parser context */
 
 typedef struct {
-  jx_status status; 
+  jx_status status;
   jx_bool exhausted;
   jx_ob result;
 } jx_net_parse_context;
