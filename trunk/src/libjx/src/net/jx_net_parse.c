@@ -61,13 +61,13 @@
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 38
+#define YYNOCODE 40
 #define YYACTIONTYPE unsigned char
 #define jx_net_TOKENTYPE jx_ob
 typedef union {
   jx_net_TOKENTYPE yy0;
-  jx_ob yy3;
-  int yy75;
+  jx_ob yy63;
+  int yy79;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
@@ -76,10 +76,10 @@ typedef union {
 #define jx_net_ARG_PDECL ,jx_net_parse_context *context
 #define jx_net_ARG_FETCH jx_net_parse_context *context = yypParser->context
 #define jx_net_ARG_STORE yypParser->context = context
-#define YYNSTATE 84
-#define YYNRULE 38
-#define YYERRORSYMBOL 19
-#define YYERRSYMDT yy75
+#define YYNSTATE 87
+#define YYNRULE 40
+#define YYERRORSYMBOL 20
+#define YYERRSYMDT yy79
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
@@ -132,66 +132,66 @@ typedef union {
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */    55,   26,  123,    1,    7,   60,   70,   30,   24,   22,
- /*    10 */    23,   83,   16,   15,   76,    8,   60,   79,   54,   24,
- /*    20 */    22,   23,   17,   16,   15,   76,   37,   29,   79,   14,
- /*    30 */    24,   22,   35,   78,   16,   15,   76,   53,    2,   20,
- /*    40 */    71,   70,   18,   24,   22,   35,   21,   61,   63,   46,
- /*    50 */    42,   39,   60,   20,   13,   27,   18,   28,   20,   34,
- /*    60 */    36,   18,   63,   46,   42,   39,   63,   63,   46,   42,
- /*    70 */    39,   59,   59,   74,   27,   27,   28,   28,   38,   82,
- /*    80 */    77,   10,   11,   59,   60,   40,   27,   27,   28,   28,
- /*    90 */     4,   20,   58,    9,   18,   63,   57,   50,   13,   27,
- /*   100 */    63,   28,   69,   25,   47,   49,   12,   63,   45,   29,
- /*   110 */    63,   56,   27,   41,   67,   63,   44,   27,   72,   64,
- /*   120 */    43,   48,    5,   66,   65,   51,   73,   62,   52,    3,
- /*   130 */    75,   39,  124,   42,   32,   33,   31,   19,    6,   80,
- /*   140 */    81,  124,   68,   14,
+ /*     0 */    58,   28,  128,    1,    8,   63,   75,   26,   49,   25,
+ /*    10 */    24,   23,   56,   22,   15,   81,    7,   63,   84,   26,
+ /*    20 */    41,   25,   24,   23,   66,   22,   15,   81,   38,   14,
+ /*    30 */    84,   26,    3,   25,   24,   36,   19,   22,   15,   81,
+ /*    40 */    86,    2,   17,    4,   75,   26,   20,   25,   24,   36,
+ /*    50 */    74,   70,   66,   47,   43,   40,   83,   17,   29,   16,
+ /*    60 */    68,   20,   17,   54,   76,   37,   20,   66,   47,   43,
+ /*    70 */    40,   64,   66,   47,   43,   40,   63,   62,   19,   69,
+ /*    80 */    29,   29,   30,   30,   12,   50,   31,   66,    9,   62,
+ /*    90 */    62,   71,   80,   29,   29,   30,   30,   46,   17,   66,
+ /*   100 */    11,   10,   20,   32,   55,   51,   13,   57,   66,   63,
+ /*   110 */    60,   77,   35,   29,   29,   30,   30,   31,   61,   72,
+ /*   120 */    65,   66,   42,   18,   66,   40,   29,   13,   67,   79,
+ /*   130 */    82,   53,   33,   27,   39,   48,   52,   59,   21,    5,
+ /*   140 */     6,   44,   78,   85,   34,   45,  129,   43,   73,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */    21,   22,   23,   24,   25,   26,   27,   18,   29,   30,
- /*    10 */    31,   21,   33,   34,   35,   25,   26,   27,    2,   29,
- /*    20 */    30,   31,    5,   33,   34,   35,   25,   17,   27,   12,
- /*    30 */    29,   30,   31,    2,   33,   34,   35,    2,   24,    4,
- /*    40 */     2,   27,    7,   29,   30,   31,    2,   21,   13,   14,
- /*    50 */    15,   16,   26,    4,    6,   29,    7,   31,    4,    8,
- /*    60 */    11,    7,   13,   14,   15,   16,   13,   13,   14,   15,
- /*    70 */    16,   26,   26,    2,   29,   29,   31,   31,   11,   21,
- /*    80 */     2,   36,   36,   26,   26,    8,   29,   29,   31,   31,
- /*    90 */     9,    4,   10,   36,    7,   13,   26,   10,    6,   29,
- /*   100 */    13,   31,    2,    2,    8,   11,    6,   13,   11,   17,
- /*   110 */    13,    2,   29,   11,   31,   13,    2,   29,    2,   31,
- /*   120 */     8,    2,    9,    2,   13,    2,   28,    2,   11,    9,
- /*   130 */    35,   16,   37,   15,   29,   29,   28,   34,    9,   35,
- /*   140 */     3,   37,   32,   12,
+ /*     0 */    22,   23,   24,   25,   26,   27,   28,   29,    2,   31,
+ /*    10 */    32,   33,   22,   35,   36,   37,   26,   27,   28,   29,
+ /*    20 */     2,   31,   32,   33,   14,   35,   36,   37,   26,    6,
+ /*    30 */    28,   29,   10,   31,   32,   33,   13,   35,   36,   37,
+ /*    40 */     2,   25,    4,   10,   28,   29,    8,   31,   32,   33,
+ /*    50 */    30,   14,   14,   15,   16,   17,    2,    4,   31,    5,
+ /*    60 */    33,    8,    4,    3,   30,   12,    8,   14,   15,   16,
+ /*    70 */    17,   22,   14,   15,   16,   17,   27,   27,   13,    2,
+ /*    80 */    31,   31,   33,   33,    7,   12,   18,   14,   38,   27,
+ /*    90 */    27,    2,   37,   31,   31,   33,   33,   12,    4,   14,
+ /*   100 */    38,   38,    8,   19,   22,   11,    7,    2,   14,   27,
+ /*   110 */    27,    2,    9,   31,   31,   33,   33,   18,   11,    2,
+ /*   120 */     2,   14,   12,    2,   14,   17,   31,    7,   33,    2,
+ /*   130 */     2,   12,   31,    9,   12,    9,    2,    2,   36,   10,
+ /*   140 */    10,    9,   30,   37,   31,    2,   39,   16,   34,
 };
-#define YY_SHIFT_USE_DFLT (-12)
-#define YY_SHIFT_MAX 52
+#define YY_SHIFT_USE_DFLT (-1)
+#define YY_SHIFT_MAX 53
 static const short yy_shift_ofst[] = {
- /*     0 */    35,   54,   49,   87,   82,   82,   82,   53,   53,   94,
- /*    10 */    97,  102,   53,   53,  111,  115,  118,   53,   53,  115,
- /*    20 */   111,  120,  100,   92,   17,  129,  137,  131,   10,  -11,
- /*    30 */    16,   31,   38,   51,   44,   48,   71,   67,   78,   77,
- /*    40 */   101,  109,  112,  114,   81,  116,   96,  119,  113,  121,
- /*    50 */   123,  117,  125,
+ /*     0 */    38,   58,   53,   94,  107,  107,  107,   10,   10,   73,
+ /*    10 */    85,  110,   10,   10,   10,  108,   37,   37,   22,   37,
+ /*    20 */    10,  108,  131,   99,   77,   23,   54,   18,   60,   65,
+ /*    30 */    68,   84,  105,  117,  103,  121,  120,  127,  122,  128,
+ /*    40 */   124,  129,  135,  132,  143,   33,  109,  126,    6,  130,
+ /*    50 */    89,  134,  119,  118,
 };
-#define YY_REDUCE_USE_DFLT (-22)
-#define YY_REDUCE_MAX 21
+#define YY_REDUCE_USE_DFLT (-23)
+#define YY_REDUCE_MAX 22
 static const signed char yy_reduce_ofst[] = {
- /*     0 */   -21,  -10,    1,   14,   45,   57,   46,   58,   26,   70,
- /*    10 */    70,   70,   83,   88,   98,   95,  103,  105,  106,  104,
- /*    20 */   108,  110,
+ /*     0 */   -22,  -10,    2,   16,   63,   62,   50,   49,   82,   83,
+ /*    10 */    83,   83,   95,   27,  101,   55,   34,   20,  114,  112,
+ /*    20 */   113,  106,  102,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   122,   86,  122,  122,  122,  122,  122,   88,   87,  122,
- /*    10 */   122,  122,  122,  122,  122,  112,  109,  122,  122,  110,
- /*    20 */   122,  122,  122,  122,  105,  122,  122,  105,  122,  122,
- /*    30 */   122,  122,  122,  122,  122,  122,  122,  122,  122,  122,
- /*    40 */   122,  122,  122,  122,  122,  122,  122,  122,  122,  122,
- /*    50 */   122,  122,  122,   84,  121,   92,  117,  120,  118,  119,
- /*    60 */    93,   90,  102,  107,   99,  108,  115,  100,  101,   98,
- /*    70 */    94,   97,  116,  106,  103,  113,  114,  104,   96,   95,
- /*    80 */   111,   85,   91,   89,
+ /*     0 */   127,   89,  127,  127,  127,  127,  127,   90,   91,  127,
+ /*    10 */   127,  127,  127,  127,  127,  117,  127,  127,  127,  127,
+ /*    20 */   127,  115,  114,  127,  127,  110,  127,  127,  127,  110,
+ /*    30 */   127,  127,  127,  127,  127,  127,  127,  127,  127,  127,
+ /*    40 */   127,  127,  127,  127,  127,  127,  127,  127,  127,  127,
+ /*    50 */   127,  127,  127,  127,   88,   94,   92,  126,   95,  122,
+ /*    60 */   125,  123,  124,   96,   93,  107,  112,  105,  104,  103,
+ /*    70 */   113,  120,  102,  106,  100,   97,  101,  121,  111,  108,
+ /*    80 */   118,  119,  109,   99,   98,  116,   87,
 };
 #define YY_SZ_ACTTAB (sizeof(yy_action)/sizeof(yy_action[0]))
 
@@ -278,15 +278,15 @@ void jx_net_Trace(FILE *TraceFILE, char *zTracePrompt){
 ** are required.  The following table supplies these names */
 static const char *yyTokenName[] = { 
   "$",             "ERROR",         "NEWLINE",       "EOI",         
-  "PORT",          "EQUALS",        "PIPE",          "NODE",        
-  "COLON",         "INDENT",        "PASS",          "DEDENT",      
-  "DOT",           "IDENT",         "START",         "RUN",         
-  "STOP",          "OPEN_PAR",      "CLOSE_PAR",     "error",       
-  "description",   "starter",       "network",       "module",      
-  "wiring",        "body",          "action",        "entry",       
-  "port_name",     "node_name",     "pipe_chain",    "node_or_port",
-  "node",          "start",         "run",           "stop",        
-  "code",        
+  "PORT",          "COMMA",         "EQUALS",        "PIPE",        
+  "NODE",          "COLON",         "INDENT",        "PASS",        
+  "DEDENT",        "DOT",           "IDENT",         "START",       
+  "RUN",           "STOP",          "OPEN_PAR",      "CLOSE_PAR",   
+  "error",         "description",   "starter",       "network",     
+  "module",        "wiring",        "body",          "action",      
+  "entry",         "port_decl",     "port_name",     "node_name",   
+  "pipe_chain",    "node_or_port",  "node",          "start",       
+  "run",           "stop",          "code",        
 };
 #endif /* NDEBUG */
 
@@ -306,32 +306,34 @@ static const char *yyRuleName[] = {
  /*   9 */ "starter ::= action",
  /*  10 */ "wiring ::= entry",
  /*  11 */ "wiring ::= wiring entry",
- /*  12 */ "entry ::= PORT port_name NEWLINE",
- /*  13 */ "entry ::= node_name EQUALS node_name NEWLINE",
- /*  14 */ "entry ::= pipe_chain NEWLINE",
- /*  15 */ "pipe_chain ::= node_or_port PIPE node_or_port",
- /*  16 */ "pipe_chain ::= pipe_chain PIPE node_or_port",
- /*  17 */ "entry ::= NODE node_name COLON NEWLINE node",
- /*  18 */ "node ::= INDENT PASS NEWLINE DEDENT NEWLINE",
- /*  19 */ "node ::= INDENT wiring DEDENT NEWLINE",
- /*  20 */ "node ::= INDENT wiring body DEDENT NEWLINE",
- /*  21 */ "node_or_port ::= node_name",
- /*  22 */ "node_or_port ::= node_name DOT port_name",
- /*  23 */ "node_name ::= IDENT",
- /*  24 */ "port_name ::= IDENT",
- /*  25 */ "body ::= start",
- /*  26 */ "body ::= start run",
- /*  27 */ "body ::= start run stop",
- /*  28 */ "body ::= run",
- /*  29 */ "body ::= run stop",
- /*  30 */ "body ::= stop",
- /*  31 */ "start ::= START COLON NEWLINE INDENT code DEDENT NEWLINE",
- /*  32 */ "run ::= RUN COLON NEWLINE INDENT code DEDENT NEWLINE",
- /*  33 */ "stop ::= STOP COLON NEWLINE INDENT code DEDENT NEWLINE",
- /*  34 */ "code ::= PASS",
- /*  35 */ "code ::= action",
- /*  36 */ "code ::= code action",
- /*  37 */ "action ::= node_or_port OPEN_PAR CLOSE_PAR NEWLINE",
+ /*  12 */ "entry ::= port_decl NEWLINE",
+ /*  13 */ "port_decl ::= PORT port_name",
+ /*  14 */ "port_decl ::= port_decl COMMA port_name",
+ /*  15 */ "entry ::= node_name EQUALS node_name NEWLINE",
+ /*  16 */ "entry ::= pipe_chain NEWLINE",
+ /*  17 */ "pipe_chain ::= node_or_port PIPE node_or_port",
+ /*  18 */ "pipe_chain ::= pipe_chain PIPE node_or_port",
+ /*  19 */ "entry ::= NODE node_name COLON NEWLINE node",
+ /*  20 */ "node ::= INDENT PASS NEWLINE DEDENT NEWLINE",
+ /*  21 */ "node ::= INDENT wiring DEDENT NEWLINE",
+ /*  22 */ "node ::= INDENT wiring body DEDENT NEWLINE",
+ /*  23 */ "node_or_port ::= node_name",
+ /*  24 */ "node_or_port ::= node_name DOT port_name",
+ /*  25 */ "node_name ::= IDENT",
+ /*  26 */ "port_name ::= IDENT",
+ /*  27 */ "body ::= start",
+ /*  28 */ "body ::= start run",
+ /*  29 */ "body ::= start run stop",
+ /*  30 */ "body ::= run",
+ /*  31 */ "body ::= run stop",
+ /*  32 */ "body ::= stop",
+ /*  33 */ "start ::= START COLON NEWLINE INDENT code DEDENT NEWLINE",
+ /*  34 */ "run ::= RUN COLON NEWLINE INDENT code DEDENT NEWLINE",
+ /*  35 */ "stop ::= STOP COLON NEWLINE INDENT code DEDENT NEWLINE",
+ /*  36 */ "code ::= PASS",
+ /*  37 */ "code ::= action",
+ /*  38 */ "code ::= code action",
+ /*  39 */ "action ::= node_or_port OPEN_PAR CLOSE_PAR NEWLINE",
 };
 #endif /* NDEBUG */
 
@@ -407,15 +409,16 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
     case 16:
     case 17:
     case 18:
+    case 19:
 #line 64 "jx_net_parse.lem"
 { jx_ob_free((yypminor->yy0));}
-#line 414 "jx_net_parse.c"
+#line 417 "jx_net_parse.c"
       break;
-    case 20:
     case 21:
+    case 22:
 #line 59 "jx_net_parse.lem"
 { jx_ob_free((yypminor->yy0)); }
-#line 420 "jx_net_parse.c"
+#line 423 "jx_net_parse.c"
       break;
     default:  break;   /* If no destructor action specified: do nothing */
   }
@@ -591,44 +594,46 @@ static struct {
   YYCODETYPE lhs;         /* Symbol on the left-hand side of the rule */
   unsigned char nrhs;     /* Number of right-hand side symbols in the rule */
 } yyRuleInfo[] = {
-  { 23, 1 },
-  { 23, 2 },
-  { 22, 1 },
-  { 22, 2 },
-  { 22, 1 },
-  { 22, 2 },
-  { 22, 3 },
-  { 22, 2 },
-  { 22, 1 },
-  { 21, 1 },
   { 24, 1 },
   { 24, 2 },
-  { 27, 3 },
-  { 27, 4 },
-  { 27, 2 },
-  { 30, 3 },
-  { 30, 3 },
-  { 27, 5 },
-  { 32, 5 },
-  { 32, 4 },
-  { 32, 5 },
+  { 23, 1 },
+  { 23, 2 },
+  { 23, 1 },
+  { 23, 2 },
+  { 23, 3 },
+  { 23, 2 },
+  { 23, 1 },
+  { 22, 1 },
+  { 25, 1 },
+  { 25, 2 },
+  { 28, 2 },
+  { 29, 2 },
+  { 29, 3 },
+  { 28, 4 },
+  { 28, 2 },
+  { 32, 3 },
+  { 32, 3 },
+  { 28, 5 },
+  { 34, 5 },
+  { 34, 4 },
+  { 34, 5 },
+  { 33, 1 },
+  { 33, 3 },
   { 31, 1 },
-  { 31, 3 },
-  { 29, 1 },
-  { 28, 1 },
-  { 25, 1 },
-  { 25, 2 },
-  { 25, 3 },
-  { 25, 1 },
-  { 25, 2 },
-  { 25, 1 },
-  { 33, 7 },
-  { 34, 7 },
+  { 30, 1 },
+  { 26, 1 },
+  { 26, 2 },
+  { 26, 3 },
+  { 26, 1 },
+  { 26, 2 },
+  { 26, 1 },
   { 35, 7 },
-  { 36, 1 },
-  { 36, 1 },
-  { 36, 2 },
-  { 26, 4 },
+  { 36, 7 },
+  { 37, 7 },
+  { 38, 1 },
+  { 38, 1 },
+  { 38, 2 },
+  { 27, 4 },
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */
@@ -673,115 +678,115 @@ static void yy_reduce(
 #endif
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 678 "jx_net_parse.c"
+#line 683 "jx_net_parse.c"
         break;
       case 1:
 #line 116 "jx_net_parse.lem"
 {
   /* do nothing (other than call accept!) */
-  jx_ob_replace(&context->result, yymsp[-1].minor.yy3);
+  jx_ob_replace(&context->result, yymsp[-1].minor.yy63);
 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("module ::= network(yymsp[-1].minor.yy3).%s:%d\n",__FILE__,__LINE__); 
+  printf("module ::= network(yymsp[-1].minor.yy63).%s:%d\n",__FILE__,__LINE__); 
 #endif
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 691 "jx_net_parse.c"
+#line 696 "jx_net_parse.c"
         break;
       case 2:
 #line 126 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= wiring(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= wiring(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 704 "jx_net_parse.c"
+#line 709 "jx_net_parse.c"
         break;
       case 3:
 #line 137 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,yymsp[-1].minor.yy0); 
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= wiring(yymsp[-1].minor.yy0) body(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= wiring(yymsp[-1].minor.yy0) body(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 717 "jx_net_parse.c"
+#line 722 "jx_net_parse.c"
         break;
       case 4:
 #line 148 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node")); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node")); 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= body(yymsp[0].minor.yy0)..%s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= body(yymsp[0].minor.yy0)..%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 730 "jx_net_parse.c"
+#line 735 "jx_net_parse.c"
         break;
       case 5:
 #line 159 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy3,jx_ob_from_null());
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,yymsp[-1].minor.yy0); 
+  jx_list_append(yygotominor.yy63,jx_ob_from_null());
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= wiring(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= wiring(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 744 "jx_net_parse.c"
+#line 749 "jx_net_parse.c"
         break;
       case 6:
 #line 171 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,yymsp[-2].minor.yy0); 
-  jx_list_append(yygotominor.yy3,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,yymsp[-2].minor.yy0); 
+  jx_list_append(yygotominor.yy63,yymsp[-1].minor.yy0); 
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= wiring(yymsp[-2].minor.yy0) body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= wiring(yymsp[-2].minor.yy0) body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 758 "jx_net_parse.c"
+#line 763 "jx_net_parse.c"
         break;
       case 7:
 #line 183 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,jx_ob_from_null()); 
-  jx_list_append(yygotominor.yy3,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,jx_ob_from_null()); 
+  jx_list_append(yygotominor.yy63,yymsp[-1].minor.yy0); 
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 772 "jx_net_parse.c"
+#line 777 "jx_net_parse.c"
         break;
       case 8:
 #line 195 "jx_net_parse.lem"
 {  
-  yygotominor.yy3 = jx_list_new();
-  jx_list_append(yygotominor.yy3,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy3,jx_ob_from_null());
-  jx_list_append(yygotominor.yy3,jx_ob_from_null()); 
-  jx_list_append(yygotominor.yy3,yymsp[0].minor.yy0); 
+  yygotominor.yy63 = jx_list_new();
+  jx_list_append(yygotominor.yy63,jx_ob_from_ident("node"));
+  jx_list_append(yygotominor.yy63,jx_ob_from_null());
+  jx_list_append(yygotominor.yy63,jx_ob_from_null()); 
+  jx_list_append(yygotominor.yy63,yymsp[0].minor.yy0); 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy3) ::= starter(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+  printf("network(yygotominor.yy63) ::= starter(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 786 "jx_net_parse.c"
+#line 791 "jx_net_parse.c"
         break;
       case 9:
 #line 207 "jx_net_parse.lem"
@@ -791,7 +796,7 @@ static void yy_reduce(
   printf("starter(yygotominor.yy0) ::= action(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 796 "jx_net_parse.c"
+#line 801 "jx_net_parse.c"
         break;
       case 10:
 #line 215 "jx_net_parse.lem"
@@ -802,7 +807,7 @@ static void yy_reduce(
   printf("wiring(yygotominor.yy0) ::= entry(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 807 "jx_net_parse.c"
+#line 812 "jx_net_parse.c"
         break;
       case 11:
 #line 224 "jx_net_parse.lem"
@@ -813,24 +818,46 @@ static void yy_reduce(
   printf("wiring(yygotominor.yy0) ::= wiring(yymsp[-1].minor.yy0) entry(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 818 "jx_net_parse.c"
+#line 823 "jx_net_parse.c"
         break;
       case 12:
 #line 233 "jx_net_parse.lem"
 {
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("port"));
-  jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
+  yygotominor.yy0 = yymsp[-1].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(yygotominor.yy0) ::= PORT port_name(yymsp[-1].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+  printf("entry(yygotominor.yy0) ::= port_decl(yymsp[-1].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(4,&yymsp[-2].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 832 "jx_net_parse.c"
+#line 834 "jx_net_parse.c"
         break;
       case 13:
-#line 243 "jx_net_parse.lem"
+#line 241 "jx_net_parse.lem"
+{
+  yygotominor.yy0 = jx_list_new();
+  jx_list_append(yygotominor.yy0,jx_ob_from_ident("port"));
+  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("port_decl(yygotominor.yy0) ::= PORT port_name(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+#endif
+  yy_destructor(4,&yymsp[-1].minor);
+}
+#line 847 "jx_net_parse.c"
+        break;
+      case 14:
+#line 251 "jx_net_parse.lem"
+{
+   yygotominor.yy0=yymsp[-2].minor.yy0;
+   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+#ifdef JX_NET_PARSER_DEBUG
+  printf("port_decl(yygotominor.yy0) ::= port_decl(yymsp[-2].minor.yy0) COMMA port_name(yymsp[0].minor.yy0).\n");
+#endif
+  yy_destructor(5,&yymsp[-1].minor);
+}
+#line 859 "jx_net_parse.c"
+        break;
+      case 15:
+#line 260 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("copy"));
@@ -839,13 +866,13 @@ static void yy_reduce(
 #ifdef JX_NET_PARSER_DEBUG
   printf("entry(yygotominor.yy0) ::= node_name(yymsp[-3].minor.yy0) EQUALS node_name(yymsp[-1].minor.yy0) NEWLINE. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(5,&yymsp[-2].minor);
+  yy_destructor(6,&yymsp[-2].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 847 "jx_net_parse.c"
+#line 874 "jx_net_parse.c"
         break;
-      case 14:
-#line 254 "jx_net_parse.lem"
+      case 16:
+#line 271 "jx_net_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
@@ -853,10 +880,10 @@ static void yy_reduce(
 #endif
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 858 "jx_net_parse.c"
+#line 885 "jx_net_parse.c"
         break;
-      case 15:
-#line 262 "jx_net_parse.lem"
+      case 17:
+#line 279 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("pipe"));
@@ -865,24 +892,24 @@ static void yy_reduce(
 #ifdef JX_NET_PARSER_DEBUG
   printf("pipe_chain(yygotominor.yy0) ::= node_or_port(yymsp[-2].minor.yy0) PIPE node_or_port(yymsp[0].minor.yy0) NEWLINE.%s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(6,&yymsp[-1].minor);
+  yy_destructor(7,&yymsp[-1].minor);
 }
-#line 872 "jx_net_parse.c"
+#line 899 "jx_net_parse.c"
         break;
-      case 16:
-#line 273 "jx_net_parse.lem"
+      case 18:
+#line 290 "jx_net_parse.lem"
 {
   yygotominor.yy0 = yymsp[-2].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
   printf("pipe_chain(yygotominor.yy0) ::= pipe_chain(yymsp[-2].minor.yy0) PIPE node_or_port(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(6,&yymsp[-1].minor);
+  yy_destructor(7,&yymsp[-1].minor);
 }
-#line 884 "jx_net_parse.c"
+#line 911 "jx_net_parse.c"
         break;
-      case 17:
-#line 284 "jx_net_parse.lem"
+      case 19:
+#line 301 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("node_def"));
@@ -891,30 +918,30 @@ static void yy_reduce(
 #ifdef JX_NET_PARSER_DEBUG
   printf("entry(yygotominor.yy0) ::= NODE node_name(yymsp[-3].minor.yy0) COLON NEWLINE node(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(7,&yymsp[-4].minor);
-  yy_destructor(8,&yymsp[-2].minor);
+  yy_destructor(8,&yymsp[-4].minor);
+  yy_destructor(9,&yymsp[-2].minor);
   yy_destructor(2,&yymsp[-1].minor);
 }
-#line 900 "jx_net_parse.c"
+#line 927 "jx_net_parse.c"
         break;
-      case 18:
-#line 295 "jx_net_parse.lem"
+      case 20:
+#line 312 "jx_net_parse.lem"
 {  
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("node"));
 #ifdef JX_NET_PARSER_DEBUG
   printf("node(yygotominor.yy0) ::= INDENT wiring(C) DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(9,&yymsp[-4].minor);
-  yy_destructor(10,&yymsp[-3].minor);
+  yy_destructor(10,&yymsp[-4].minor);
+  yy_destructor(11,&yymsp[-3].minor);
   yy_destructor(2,&yymsp[-2].minor);
-  yy_destructor(11,&yymsp[-1].minor);
+  yy_destructor(12,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 916 "jx_net_parse.c"
+#line 943 "jx_net_parse.c"
         break;
-      case 19:
-#line 304 "jx_net_parse.lem"
+      case 21:
+#line 321 "jx_net_parse.lem"
 {  
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("node"));
@@ -922,14 +949,14 @@ static void yy_reduce(
 #ifdef JX_NET_PARSER_DEBUG
   printf("node(yygotominor.yy0) ::= INDENT wiring(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(9,&yymsp[-3].minor);
-  yy_destructor(11,&yymsp[-1].minor);
+  yy_destructor(10,&yymsp[-3].minor);
+  yy_destructor(12,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 931 "jx_net_parse.c"
+#line 958 "jx_net_parse.c"
         break;
-      case 20:
-#line 314 "jx_net_parse.lem"
+      case 22:
+#line 331 "jx_net_parse.lem"
 {  
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("node"));
@@ -938,24 +965,24 @@ static void yy_reduce(
 #ifdef JX_NET_PARSER_DEBUG
   printf("node(yygotominor.yy0) ::= INDENT wiring(yymsp[-3].minor.yy0) body(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(9,&yymsp[-4].minor);
-  yy_destructor(11,&yymsp[-1].minor);
+  yy_destructor(10,&yymsp[-4].minor);
+  yy_destructor(12,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 947 "jx_net_parse.c"
+#line 974 "jx_net_parse.c"
         break;
-      case 21:
-#line 325 "jx_net_parse.lem"
+      case 23:
+#line 342 "jx_net_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
   printf("node_or_port(yygotominor.yy0) ::= node_name(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 957 "jx_net_parse.c"
+#line 984 "jx_net_parse.c"
         break;
-      case 22:
-#line 333 "jx_net_parse.lem"
+      case 24:
+#line 350 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
@@ -963,32 +990,32 @@ static void yy_reduce(
 #ifdef JX_NET_PARSER_DEBUG
   printf("node_or_port(yygotominor.yy0) ::= node_name(yymsp[-2].minor.yy0) DOT port_name(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(12,&yymsp[-1].minor);
+  yy_destructor(13,&yymsp[-1].minor);
 }
-#line 970 "jx_net_parse.c"
+#line 997 "jx_net_parse.c"
         break;
-      case 23:
-#line 343 "jx_net_parse.lem"
+      case 25:
+#line 360 "jx_net_parse.lem"
 {
     yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
   printf("node_name(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 980 "jx_net_parse.c"
+#line 1007 "jx_net_parse.c"
         break;
-      case 24:
-#line 351 "jx_net_parse.lem"
+      case 26:
+#line 368 "jx_net_parse.lem"
 {
     yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
   printf("port_name(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 990 "jx_net_parse.c"
+#line 1017 "jx_net_parse.c"
         break;
-      case 25:
-#line 359 "jx_net_parse.lem"
+      case 27:
+#line 376 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -996,10 +1023,10 @@ static void yy_reduce(
   printf("body(yygotominor.yy0) ::= start(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1001 "jx_net_parse.c"
+#line 1028 "jx_net_parse.c"
         break;
-      case 26:
-#line 368 "jx_net_parse.lem"
+      case 28:
+#line 385 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
@@ -1008,10 +1035,10 @@ static void yy_reduce(
   printf("body(yygotominor.yy0) ::= start(yymsp[-1].minor.yy0) run(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1013 "jx_net_parse.c"
+#line 1040 "jx_net_parse.c"
         break;
-      case 27:
-#line 378 "jx_net_parse.lem"
+      case 29:
+#line 395 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
@@ -1021,10 +1048,10 @@ static void yy_reduce(
   printf("body(yygotominor.yy0) ::= start(yymsp[-2].minor.yy0) run(yymsp[-1].minor.yy0) stop(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1026 "jx_net_parse.c"
+#line 1053 "jx_net_parse.c"
         break;
-      case 28:
-#line 389 "jx_net_parse.lem"
+      case 30:
+#line 406 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_null());
@@ -1033,10 +1060,10 @@ static void yy_reduce(
   printf("body(yygotominor.yy0) ::= run(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1038 "jx_net_parse.c"
+#line 1065 "jx_net_parse.c"
         break;
-      case 29:
-#line 399 "jx_net_parse.lem"
+      case 31:
+#line 416 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_null());
@@ -1046,10 +1073,10 @@ static void yy_reduce(
   printf("body(yygotominor.yy0) ::= run(yymsp[-1].minor.yy0) stop(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1051 "jx_net_parse.c"
+#line 1078 "jx_net_parse.c"
         break;
-      case 30:
-#line 410 "jx_net_parse.lem"
+      case 32:
+#line 427 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_null());
@@ -1059,69 +1086,69 @@ static void yy_reduce(
   printf("body(yygotominor.yy0) ::= stop(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1064 "jx_net_parse.c"
+#line 1091 "jx_net_parse.c"
         break;
-      case 31:
-#line 421 "jx_net_parse.lem"
+      case 33:
+#line 438 "jx_net_parse.lem"
 {  
   yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
   printf("start(yygotominor.yy0) ::= START COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(14,&yymsp[-6].minor);
-  yy_destructor(8,&yymsp[-5].minor);
+  yy_destructor(15,&yymsp[-6].minor);
+  yy_destructor(9,&yymsp[-5].minor);
   yy_destructor(2,&yymsp[-4].minor);
-  yy_destructor(9,&yymsp[-3].minor);
-  yy_destructor(11,&yymsp[-1].minor);
+  yy_destructor(10,&yymsp[-3].minor);
+  yy_destructor(12,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 1080 "jx_net_parse.c"
+#line 1107 "jx_net_parse.c"
         break;
-      case 32:
-#line 429 "jx_net_parse.lem"
+      case 34:
+#line 446 "jx_net_parse.lem"
 {  
   yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
   printf("run(yygotominor.yy0) ::= RUN COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(15,&yymsp[-6].minor);
-  yy_destructor(8,&yymsp[-5].minor);
+  yy_destructor(16,&yymsp[-6].minor);
+  yy_destructor(9,&yymsp[-5].minor);
   yy_destructor(2,&yymsp[-4].minor);
-  yy_destructor(9,&yymsp[-3].minor);
-  yy_destructor(11,&yymsp[-1].minor);
+  yy_destructor(10,&yymsp[-3].minor);
+  yy_destructor(12,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 1096 "jx_net_parse.c"
+#line 1123 "jx_net_parse.c"
         break;
-      case 33:
-#line 437 "jx_net_parse.lem"
+      case 35:
+#line 454 "jx_net_parse.lem"
 {  
   yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
   printf("stop(yygotominor.yy0) ::= STOP COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(16,&yymsp[-6].minor);
-  yy_destructor(8,&yymsp[-5].minor);
+  yy_destructor(17,&yymsp[-6].minor);
+  yy_destructor(9,&yymsp[-5].minor);
   yy_destructor(2,&yymsp[-4].minor);
-  yy_destructor(9,&yymsp[-3].minor);
-  yy_destructor(11,&yymsp[-1].minor);
+  yy_destructor(10,&yymsp[-3].minor);
+  yy_destructor(12,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 1112 "jx_net_parse.c"
+#line 1139 "jx_net_parse.c"
         break;
-      case 34:
-#line 445 "jx_net_parse.lem"
+      case 36:
+#line 462 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
 #ifdef JX_NET_PARSER_DEBUG
   printf("code(yygotominor.yy0) ::= PASS. %s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(10,&yymsp[0].minor);
+  yy_destructor(11,&yymsp[0].minor);
 }
-#line 1123 "jx_net_parse.c"
+#line 1150 "jx_net_parse.c"
         break;
-      case 35:
-#line 453 "jx_net_parse.lem"
+      case 37:
+#line 470 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -1129,10 +1156,10 @@ static void yy_reduce(
   printf("code(yygotominor.yy0) ::= action(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1134 "jx_net_parse.c"
+#line 1161 "jx_net_parse.c"
         break;
-      case 36:
-#line 462 "jx_net_parse.lem"
+      case 38:
+#line 479 "jx_net_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -1140,21 +1167,21 @@ static void yy_reduce(
   printf("code(yygotominor.yy0) ::= code(yymsp[-1].minor.yy0) action(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
-#line 1145 "jx_net_parse.c"
+#line 1172 "jx_net_parse.c"
         break;
-      case 37:
-#line 471 "jx_net_parse.lem"
+      case 39:
+#line 488 "jx_net_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-3].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
   printf("action(yygotominor.yy0) ::= node_or_port(yymsp[-3].minor.yy0) OPEN_PAR CLOSE_PAR NEWLINE.%s:%d\n",__FILE__,__LINE__); 
 #endif
-  yy_destructor(17,&yymsp[-2].minor);
-  yy_destructor(18,&yymsp[-1].minor);
+  yy_destructor(18,&yymsp[-2].minor);
+  yy_destructor(19,&yymsp[-1].minor);
   yy_destructor(2,&yymsp[0].minor);
 }
-#line 1159 "jx_net_parse.c"
+#line 1186 "jx_net_parse.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -1189,7 +1216,7 @@ static void yy_parse_failed(
 #ifdef JX_NET_PARSER_DEBUG
   printf("parse failed.\n");
 #endif
-#line 1195 "jx_net_parse.c"
+#line 1222 "jx_net_parse.c"
   jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1208,7 +1235,7 @@ static void yy_syntax_error(
 #ifdef JX_NET_PARSER_DEBUG
   printf("jx_net_parse-error: syntax error.\n");
 #endif
-#line 1215 "jx_net_parse.c"
+#line 1242 "jx_net_parse.c"
   jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1233,7 +1260,7 @@ static void yy_accept(
 #ifdef JX_NET_PARSER_DEBUG
   printf("accept called\n");
 #endif
-#line 1241 "jx_net_parse.c"
+#line 1268 "jx_net_parse.c"
   jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

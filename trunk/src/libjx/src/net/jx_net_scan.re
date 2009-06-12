@@ -209,6 +209,7 @@ static int jx_scan(jx_net_scanner_state *s)
 
     "="         { RET(JX_NET_EQUALS); }
 
+    ","         { RET(JX_NET_COMMA); }
 
     "."         { RET(JX_NET_DOT); }
 
@@ -307,9 +308,6 @@ comment:
     ":"         { RET(JX_NET_COLON); }
 
     ";"         { RET(JX_NET_SEMICOLON); }
-
-    ","         { RET(JX_NET_COMMA); }
-
 
     "and"    { RET(JX_NET_AND); }
     "break"  { RET(JX_NET_BREAK); }
