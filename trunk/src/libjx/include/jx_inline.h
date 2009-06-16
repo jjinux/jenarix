@@ -2534,6 +2534,19 @@ JX_INLINE jx_ob jx_ob_size(jx_ob ob)
   }
 }
 
+
+jx_status jx__os_process_init(int argc, char* argv[], 
+			      int num_size, int tiny_size,
+			      int ptr_size, int ob_size);
+JX_INLINE jx_status jx_os_process_init(int argc, char* argv[])
+{
+  return jx__os_process_init(argc,argv,
+			     sizeof(jx_int),JX_TINY_STR_SIZE,
+			     sizeof(void*),sizeof(jx_ob));
+}
+
+
+
 #define JX_EVAL_ALLOW_NESTED_WEAK_REFS  0x01
 #define JX_EVAL_DEFER_INVOCATION        0x02
 
