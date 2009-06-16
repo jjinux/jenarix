@@ -55,7 +55,7 @@ JX_INLINE jx_status jx__os__process_init(int argc, char* argv[],
      (tiny_size!=JX_TINY_STR_SIZE) ||
      (ptr_size!=sizeof(void*)) ||
      (ob_size!=sizeof(jx_ob))) {
-    fprintf(stderr,"FatalError: size mismatch, program vs. library:\n");
+    fprintf(stderr,"FatalError: size mismatch: program vs. library\n");
     fprintf(stderr,"FatalError: numbers:         %2d    vs.   %2d\n",
 	   num_size,(int)sizeof(jx_int));
     fprintf(stderr,"FatalError: tiny strings:    %2d    vs.   %2d\n",
