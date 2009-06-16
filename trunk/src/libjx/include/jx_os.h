@@ -144,6 +144,7 @@ typedef ptrdiff_t jx_word;
 /* define base types */
 
 #ifdef JX_64_BIT
+
 /* uses 64-bit integers and double-precision floating point */
 typedef jx_int64 jx_int;
 typedef jx_uint64 jx_uint;
@@ -151,6 +152,7 @@ typedef double jx_float;
 #define JX_TINY_STR_MIN_SIZE 12
 #define JX_FLOAT_ZERO 0.0
 #define JX_UWORD_MAX 0xFFFFFFFFFFFFFFFF
+
 #else
 /* uses 32-bit integers and single-precision floating point */
 typedef jx_int32 jx_int;
@@ -162,19 +164,42 @@ typedef float jx_float;
 /* make sure tiny_str matches pointer width */
 
 #ifdef __APPLE__
+
 #if ((0LL+SIZE_T_MAX) == 0x00000000FFFFFFFFLL)
 #define JX_TINY_STR_MIN_SIZE 0
 #else
 #define JX_TINY_STR_MIN_SIZE 12
 #endif
+
 #else
+#ifdef UINTPTR_MAX
+
 #if (UINTPTR_MAX) == (4294967295U)
 #define JX_TINY_STR_MIN_SIZE 0
 #else
 #define JX_TINY_STR_MIN_SIZE 12
 #endif
+
+#else
+#ifdef PTRDIFF_MAX
+
+#if (PTRDIFF_MAX) == (2147483647)
+#define JX_TINY_STR_MIN_SIZE 0
+#else
+#define JX_TINY_STR_MIN_SIZE 12
 #endif
+
 #endif
+/* ends ifdef PTRDIFF_MAX */
+
+#endif
+/* ends ifdef UINTPTR_MAX */
+
+#endif
+/* ends ifdef __APPLE__ */
+
+#endif
+/* ends ifdef JX_64_BIT */
 
 /* processes, threads, locks, etc. */
 
