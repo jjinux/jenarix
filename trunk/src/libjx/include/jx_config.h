@@ -22,7 +22,9 @@
 
 /* How many characters do we want to be able to squish into an object
    so as to avoid touching the heap?  (can only be 6, 10, or 14 in
-   32-bit mode, 12 or 20 in 64-bit mode) */
+   32-bit mode, 12 or 20 in 64-bit mode, and note that if
+   JX_TINY_STR_SIZE is less than JX_TINY_STR_MAX_SIZE, then
+   JX_TINY_SIZE_SIZE will be redefined in jx_inline.h) */
 
 #ifndef JX_TINY_STR_SIZE
 #define JX_TINY_STR_SIZE 6
