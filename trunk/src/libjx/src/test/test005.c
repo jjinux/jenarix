@@ -54,17 +54,17 @@ int main(int argc, char **argv)
     jx_ob ob_huge3 = jx_ob_from_str("this is b huge heap string.");
 
     P1("0x4636b9c9 == 0x%08x", jx_ob_hash_code(ob_null));
-    P1("0xe63ec46d == 0x%08x", jx_ob_hash_code(ob_true));
-    P1("0xc877f3b2 == 0x%08x", jx_ob_hash_code(ob_false));
+    P1("0x956745c1 == 0x%08x", jx_ob_hash_code(ob_true));
+    P1("0x46a38cc1 == 0x%08x", jx_ob_hash_code(ob_false));
 
-    P1("0x87179af5 == 0x%08x", jx_ob_hash_code(ob_0));
-    P1("0xa13c598b == 0x%08x", jx_ob_hash_code(ob_1));
-    P1("0x4eea7ab3 == 0x%08x", jx_ob_hash_code(ob_2));
+    P1("0xd6fd1a23 == 0x%08x", jx_ob_hash_code(ob_0));
+    P1("0xfffceb8d == 0x%08x", jx_ob_hash_code(ob_1));
+    P1("0x6488bdce == 0x%08x", jx_ob_hash_code(ob_2));
 
-    P2("(0x387778c7 == 0x%08x) || (0x9e069f3e == 0x%08x)",
+    P2("(0xaf6fbb0a == 0x%08x) || (0x9e069f3e == 0x%08x)", /* x86 || ppc */
        jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
 
-    P2("(0xced8ea80 == 0x%08x) || (0xf70711c3 == 0x%08x)",
+    P2("(0xced8ea80 == 0x%08x) || (0xf70711c3 == 0x%08x)", /* x86 || ppc */
        jx_ob_hash_code(ob_tiny),jx_ob_hash_code(ob_tiny));
 
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge1));
