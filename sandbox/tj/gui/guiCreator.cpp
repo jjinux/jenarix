@@ -61,18 +61,15 @@ void GuiCreator::setOutputType(char *a)
     out_type = GUI_NONE;
   } }
 
-void GuiCreator::getSize(int *width, int *height, jx_ob hash) 
+void GuiCreator::getSize(int *width, int *height, jx_ob entity) 
 {
-    jx_ob width_key = jx_ob_from_str("width");
-    jx_ob width_val = jx_hash_get(hash, width_key);
-    *width = jx_ob_as_int(width_val);
-    jx_ob height_key = jx_ob_from_str("height");
-    jx_ob height_val = jx_hash_get(hash, height_key);
-    *height = jx_ob_as_int(height_val);
-/*
-    if (*width < 1) *width = 100;
-    if (*height < 1) *height = 100;
-*/
+    *width = jx_ob_as_int(get_symbol_from_node(jx_list_borrow(entity, 2), "width"));
+    *height = jx_ob_as_int(get_symbol_from_node(jx_list_borrow(entity, 2), "height"));
+    if (*height == 0) {
+      if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
+            *height = 50;
+        }
+    }
 }
 
 void GuiCreator::printVal(int v) {
