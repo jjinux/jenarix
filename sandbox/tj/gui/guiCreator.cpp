@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "guiCreator.h"
+#include <QtDebug>
+#include <QTextEdit>
 
 /*
 typedef struct {
@@ -106,7 +108,30 @@ void GuiCreator::printVal(int v) {
   else printf("%d", v);
 }
 
-void GuiCreator::printFrameHtml(jx_ob widget) {
+QWidget * GuiCreator::createQtWidget(jx_ob widget)
+{
+    //QWidget *w = new QWidget(window);
+    QWidget *w = new QTextEdit(window);
+    w->setFixedSize(100,100);
+    return w;
+}
+
+QSplitter * GuiCreator::createQtHsplitter(jx_ob pane, int size)
+{
+    QSplitter *s = new QSplitter(Qt::Horizontal, window);
+    s->setFixedSize(500,500);
+    return s;
+}
+
+QSplitter * GuiCreator::createQtVsplitter(jx_ob pane, int size)
+{
+    QSplitter *s = new QSplitter(Qt::Vertical, window);
+    s->setFixedSize(500,500);
+    return s;
+}
+
+void GuiCreator::printFrameHtml(jx_ob widget)
+{
     int width = getWidth(widget);
     int height = getHeight(widget);
     jx_ob src = getSource(widget);
@@ -116,127 +141,161 @@ void GuiCreator::printFrameHtml(jx_ob widget) {
     printf(">\n");
 }
 
-void GuiCreator::processHSplitter(jx_ob splitter)
+void GuiCreator::printHFramesetHtml(jx_ob pane, int size)
 {
-  jx_ob pane = jx_list_borrow(splitter,1);
-  jx_int i,size = jx_list_size(pane);
-
-  if (out_type == GUI_HTML) {
     printf("<FRAMESET COLS=");
     int width = getWidth(jx_list_borrow(pane,0));
     //int height = getHeight(jx_list_borrow(pane,0));
     printVal(width);
-    for(i=1;i<size;i++) {
+    for(int i=1;i<size;i++) {
       width = getWidth(jx_list_borrow(pane,i));
       printf (",");
       printVal(width);
     }
     printf (">\n");
-  } else if (out_type == GUI_QTUI) {
-  } else {
-    printf("processing %d horizontal splitter widget...\n", size);
-  }
-
-  for(i=0;i<size;i++) {
-    processComponents(jx_list_borrow(pane,i));
-  }
-  if (out_type == GUI_HTML) printf("</FRAMESET>\n");
 }
 
-void GuiCreator::processVSplitter(jx_ob splitter)
+void GuiCreator::printVFramesetHtml(jx_ob pane, int size)
 {
-  jx_ob pane = jx_list_borrow(splitter,1);
-  jx_int i,size = jx_list_size(pane);
-
-  if (out_type == GUI_HTML) {
     printf("<FRAMESET ROWS=");
     int height = getHeight(jx_list_borrow(pane,0));
     //int width = getWidth(jx_list_borrow(pane,0));
     printVal(height);
-    for(i=1;i<size;i++) {
+    for(int i=1;i<size;i++) {
       height = getHeight(jx_list_borrow(pane,i));
       printf (",");
       printVal(height);
     }
     printf (">\n");
+}
+
+QSplitter * GuiCreator::processHSplitter(jx_ob splitter)
+{
+  jx_ob pane = jx_list_borrow(splitter,1);
+  jx_int i,size = jx_list_size(pane);
+
+  QSplitter *s;
+  if (out_type == GUI_HTML) {
+    printHFramesetHtml(pane,size);
   } else if (out_type == GUI_QTUI) {
+    s = createQtHsplitter(pane,size);
+    qDebug() << "create HSplitter" << s;
   } else {
     printf("processing %d horizontal splitter widget...\n", size);
   }
 
+  QWidget *w;
   for(i=0;i<size;i++) {
-    processComponents(jx_list_borrow(pane,i));
+    w = processComponents(jx_list_borrow(pane,i));
+    if (out_type == GUI_QTUI) {
+       s->addWidget(w);
+       qDebug() << "  add Widget" << w << " to " << s;
+    }
   }
   if (out_type == GUI_HTML) printf("</FRAMESET>\n");
+  return s;
 }
 
-void GuiCreator::processOpenGL(jx_ob widget)
+QSplitter * GuiCreator::processVSplitter(jx_ob splitter)
 {
+  jx_ob pane = jx_list_borrow(splitter,1);
+  jx_int i,size = jx_list_size(pane);
+
+  QSplitter *s;
+  if (out_type == GUI_HTML) {
+    printVFramesetHtml(pane, size);
+  } else if (out_type == GUI_QTUI) {
+    s = createQtVsplitter(pane,size);
+    qDebug() << "create VSplitter" << s;
+  } else {
+    printf("processing %d horizontal splitter widget...\n", size);
+  }
+
+  QWidget *w;
+  for(i=0;i<size;i++) {
+    w = processComponents(jx_list_borrow(pane,i));
+    if (out_type == GUI_QTUI) {
+       s->addWidget(w);
+       qDebug() << "  add Widget" << w << " to " << s;
+    }
+  }
+  if (out_type == GUI_HTML) printf("</FRAMESET>\n");
+  return s;
+}
+
+QWidget * GuiCreator::processOpenGL(jx_ob widget)
+{
+  QWidget *w;
   if (out_type == GUI_HTML) {
     printFrameHtml(widget);
   } else if (out_type == GUI_QTUI) {
+    w = createQtWidget(widget);
   } else {
     printf("processing opengl context widget...\n");
   }
+  return w;
 }
 
-void GuiCreator::processNavigator(jx_ob widget)
+QWidget * GuiCreator::processNavigator(jx_ob widget)
 {
   if (out_type == GUI_HTML) {
     printFrameHtml(widget);
   } else if (out_type == GUI_QTUI) {
+    QWidget *w = createQtWidget(widget);
   } else {
     printf("processing navigator widget...\n");
   }
 }
 
-void GuiCreator::processMenuBar(jx_ob widget)
+QWidget * GuiCreator::processMenuBar(jx_ob widget)
 {
   if (out_type == GUI_HTML) {
     printFrameHtml(widget);
   } else if (out_type == GUI_QTUI) {
+    QWidget *w = createQtWidget(widget);
   } else {
     printf("processing menu bar widget...\n");
   }
 }
 
-void GuiCreator::processWidget(jx_ob widget)
+QWidget * GuiCreator::processWidget(jx_ob widget)
 {
   if (out_type == GUI_HTML) {
     printFrameHtml(widget);
   } else if (out_type == GUI_QTUI) {
+    QWidget *w = createQtWidget(widget);
   } else {
     printf("processing generic widget...\n");
   }
 }
 
-void GuiCreator::processComponents(jx_ob component)
+QWidget * GuiCreator::processComponents(jx_ob component)
 {
   jx_ob comp_type = jx_list_borrow(component,0);
 
   if(jx_ob_identical(comp_type, hSplitterType)) {
 
-    processHSplitter(component);
+    return processHSplitter(component);
 
   } else if(jx_ob_identical(comp_type, vSplitterType)) {
 
-    processVSplitter(component);    
+    return processVSplitter(component);    
 
   } else if(jx_ob_identical(comp_type, menuBarType)) {
     
-    processMenuBar(component);    
+    return processMenuBar(component);    
 
   } else if(jx_ob_identical(comp_type, openglContextType)) {
     
-    processOpenGL(component);
+    return processOpenGL(component);
 
   } else if(jx_ob_identical(comp_type, navigatorType)) {
     
-    processNavigator(component);
+    return processNavigator(component);
 
   } else { 
 
-    processWidget(component);
+    return processWidget(component);
 
   }
 }

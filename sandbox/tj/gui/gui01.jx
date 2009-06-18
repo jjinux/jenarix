@@ -23,7 +23,7 @@
             [
               ( Navigator )
               ( MyWidget )
-              ( MyWidget )
+              ( MyWidget [] {source: "widget.html", height: 300} )
               ( MyWidget )
             ]
             { width: 200, height: 300 }
