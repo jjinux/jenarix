@@ -7,6 +7,8 @@
 #define GUI_NONE 0
 #define GUI_HTML 1
 #define GUI_QTUI 2
+#define GUI_MENUBAR_HEIGHT 50
+
 class GuiCreator
 {
 
@@ -19,7 +21,10 @@ public:
 private:
     int out_type;
     void printVal(int v);
-    void getSize(int *width, int *height, jx_ob widget);
+    void printFrameHtml(jx_ob widget);
+    jx_ob getSource(jx_ob widget);
+    int getWidth(jx_ob widget);
+    int getHeight(jx_ob widget);
     void processComponents(jx_ob component);
     void processHSplitter(jx_ob splitter);
     void processVSplitter(jx_ob splitter);
