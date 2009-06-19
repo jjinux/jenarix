@@ -17,7 +17,7 @@ class GuiCreator
 public:
     GuiCreator(int otype=GUI_NONE);
     ~GuiCreator();
-    void gui_run_from_node(jx_ob node);
+    QWidget * gui_run_from_node(jx_ob node);
     void setOutputType(char *a);
     int out_type;
     QWidget *window;
@@ -27,6 +27,7 @@ private:
     void printHFramesetHtml(jx_ob pane, int size);
     void printVFramesetHtml(jx_ob pane, int size);
     void printFrameHtml(jx_ob widget);
+    void printWidgetInfo(jx_ob widget);
 
     QWidget * createQtWidget(jx_ob widget);
     QSplitter * createQtHsplitter(jx_ob pane, int size);

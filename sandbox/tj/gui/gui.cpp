@@ -2,14 +2,18 @@
 #include "jx_main_tools.h"
 
 #include "guiCreator.h"
+//#include <QDebug>
 #include <QWidget>
 #include <QApplication>
+#include <QVBoxLayout>
 
 int main(int argc, char *argv[])
 {
 
   int exit_status = EXIT_FAILURE;
   QApplication *app;
+  QWidget *w;
+  QVBoxLayout * layout;
   GuiCreator gui = GuiCreator();
   if (argc > 1) gui.setOutputType(argv[1]);
   if (gui.out_type == GUI_QTUI) {
@@ -24,11 +28,16 @@ int main(int argc, char *argv[])
     
     //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
     if(jx_ok( jx_main_exec_in_node(0,NULL,node) )) {
-      gui.gui_run_from_node(node);
+      w = gui.gui_run_from_node(node);
     }
     
     jx_ob_free(node);
     if (gui.out_type == GUI_QTUI) {
+      //qDebug() << w;
+      layout = new QVBoxLayout();
+      layout->addWidget(w);
+      gui.window->setLayout(layout);
+      //gui.window->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
       gui.window->show();
       return app->exec();
     } else {

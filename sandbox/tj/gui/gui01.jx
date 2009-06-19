@@ -23,10 +23,10 @@
             [
               ( Navigator )
               ( MyWidget )
-              ( MyWidget [] {source: "widget.html", height: 300} )
+              ( MyWidget [] {source: "widget.html", height: 150} )
               ( MyWidget )
             ]
-            { width: 200, height: 300 }
+            { width: 200 }
           )
         ]
       )
