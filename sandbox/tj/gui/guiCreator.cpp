@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "guiCreator.h"
+#include "glwidget.h"
 #include <QtDebug>
 #include <QTextEdit>
 #include <QtOpenGL>
@@ -117,30 +118,32 @@ QWidget * GuiCreator::createQtWidget(jx_ob entity)
     jx_ob src = getSource(entity);
     qDebug() << "create Widget" << jx_ob_as_str(&src) << width << height;
     if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
-      QGLWidget *w = new QGLWidget(window);
+      //GLWidget *w = new GLWidget(window);
+      GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       //w->setMinimumSize(width,height);
-      w->renderText(50,50,"OpenGL window");
-      w->updateGL();
-      w->swapBuffers();
+      //w->swapBuffers();
       return w;
     } else if(jx_ob_identical(jx_list_borrow(entity,0), navigatorType)) {
-      QTextEdit *w = new QTextEdit(window);
+      //QTextEdit *w = new QTextEdit(window);
+      QTextEdit *w = new QTextEdit;
       w->setPlainText(jx_ob_as_str(&src));
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       //w->setMinimumSize(width,height);
       return w;
     } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
-      QTextEdit *w = new QTextEdit(window);
+      //QTextEdit *w = new QTextEdit(window);
+      QTextEdit *w = new QTextEdit;
       w->setPlainText(jx_ob_as_str(&src));
       w->setFixedHeight(height);
       //w->setMinimumHeight(height);
       //w->setMaximumHeight(height);
       return w;
     } else  {
-      QTextEdit *w = new QTextEdit(window);
+      //QTextEdit *w = new QTextEdit(window);
+      QTextEdit *w = new QTextEdit;
       w->setPlainText(jx_ob_as_str(&src));
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
@@ -153,7 +156,8 @@ QSplitter * GuiCreator::createQtHsplitter(jx_ob splitter, int size)
 {
     int width = getWidth(splitter);
     int height = getHeight(splitter);
-    QSplitter *s = new QSplitter(Qt::Horizontal, window);
+    //QSplitter *s = new QSplitter(Qt::Horizontal, window);
+    QSplitter *s = new QSplitter(Qt::Horizontal);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
     //s->setMinimumSize(width,height);
@@ -165,7 +169,8 @@ QSplitter * GuiCreator::createQtVsplitter(jx_ob splitter, int size)
 {
     int width = getWidth(splitter);
     int height = getHeight(splitter);
-    QSplitter *s = new QSplitter(Qt::Vertical, window);
+    //QSplitter *s = new QSplitter(Qt::Vertical, window);
+    QSplitter *s = new QSplitter(Qt::Vertical);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
     //s->setMinimumSize(width,height);

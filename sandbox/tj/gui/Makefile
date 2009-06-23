@@ -1,3 +1,4 @@
+MOC = /usr/bin/moc
 INCLUDES=-I../../../trunk/src/libjx/include \
  -I../../../trunk/src/libjx/src/core \
  -I../../../trunk/src/libjx/src/main \
@@ -17,12 +18,19 @@ LIBS=../../../trunk/src/libjx/libjx.a  \
  -lGL \
  -lpthread
 
-gui: gui.o guiCreator.o
+gui: gui.o guiCreator.o glwidget.o moc_glwidget.o
 	$(CXX) -o $@ $^ $(LIBS)
 gui.o: gui.cpp
 	$(CXX) -c -o $@ $(INCLUDES) $<
 guiCreator.o: guiCreator.cpp
 	$(CXX) -c -o $@ $(INCLUDES) $<
+glwidget.o: glwidget.cpp
+	$(CXX) -c -o $@ $(INCLUDES) $<
+moc_glwidget.o: moc_glwidget.cpp
+	$(CXX) -c -o $@ $(INCLUDES) $<
+
+moc_glwidget.cpp: glwidget.h
+	$(MOC) -o $@ $<
 
 guiCreator.o: guiCreator.h
 gui.o: guiCreator.h
