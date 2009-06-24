@@ -31,10 +31,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "guiCreator.h"
+#ifdef JX_QT
 #include "glwidget.h"
 #include <QtDebug>
 #include <QTextEdit>
 #include <QtOpenGL>
+#endif
 
 /*
 typedef struct {
@@ -55,15 +57,19 @@ GuiCreator::~GuiCreator()
 {
 }
 
-void GuiCreator::setOutputType(char *a) 
+bool GuiCreator::setOutputType(char *a) 
 {
   if (!strncmp(a,"-html",5)) {
     out_type = GUI_HTML;
+    return true;
   } else if (!strncmp(a,"-qt",3)) {
     out_type = GUI_QTUI;
+    return true;
   } else {
     out_type = GUI_NONE;
-  } }
+    return false;
+  }
+}
 
 jx_ob GuiCreator::getSource(jx_ob entity) 
 {
@@ -111,7 +117,8 @@ void GuiCreator::printVal(int v) {
   else printf("%d", v);
 }
 
-QWidget * GuiCreator::createQtWidget(jx_ob entity)
+#ifdef JX_QT
+JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
 {
     int width = getWidth(entity);
     int height = getHeight(entity);
@@ -152,7 +159,7 @@ QWidget * GuiCreator::createQtWidget(jx_ob entity)
     }
 }
 
-QSplitter * GuiCreator::createQtHsplitter(jx_ob splitter, int size)
+JX_SPLITTER * GuiCreator::createQtHsplitter(jx_ob splitter, int size)
 {
     int width = getWidth(splitter);
     int height = getHeight(splitter);
@@ -165,7 +172,7 @@ QSplitter * GuiCreator::createQtHsplitter(jx_ob splitter, int size)
     return s;
 }
 
-QSplitter * GuiCreator::createQtVsplitter(jx_ob splitter, int size)
+JX_SPLITTER * GuiCreator::createQtVsplitter(jx_ob splitter, int size)
 {
     int width = getWidth(splitter);
     int height = getHeight(splitter);
@@ -177,6 +184,7 @@ QSplitter * GuiCreator::createQtVsplitter(jx_ob splitter, int size)
     qDebug() << s << width << height;
     return s;
 }
+#endif
 
 void GuiCreator::printWidgetInfo(jx_ob entity)
 {
@@ -233,80 +241,94 @@ void GuiCreator::printVFramesetHtml(jx_ob pane, int size)
     printf (">\n");
 }
 
-QSplitter * GuiCreator::processHSplitter(jx_ob splitter)
+JX_SPLITTER * GuiCreator::processHSplitter(jx_ob splitter)
 {
   jx_ob pane = jx_list_borrow(splitter,1);
   jx_int i,size = jx_list_size(pane);
 
-  QSplitter *s;
+  JX_SPLITTER *s;
+#ifdef JX_QT
   int width = getWidth(splitter);
   int height = getHeight(splitter);
+#endif
   if (out_type == GUI_HTML) {
     printHFramesetHtml(pane,size);
+#ifdef JX_QT
   } else if (out_type == GUI_QTUI) {
     s = createQtHsplitter(splitter,size);
     //qDebug() << "create HSplitter" << s;
+#endif
   } else {
     printf("processing %d horizontal splitter widget...\n", size);
   }
 
-  QWidget *w;
+  JX_WIDGET *w;
   for(i=0;i<size;i++) {
     w = processComponents(jx_list_borrow(pane,i));
+#ifdef JX_QT
     if (out_type == GUI_QTUI) {
        s->addWidget(w);
        if (height) w->setFixedHeight(height);
        //qDebug() << "  add Widget" << w << " to " << s;
     }
+#endif
   }
   if (out_type == GUI_HTML) printf("</FRAMESET>\n");
   return s;
 }
 
-QSplitter * GuiCreator::processVSplitter(jx_ob splitter)
+JX_SPLITTER * GuiCreator::processVSplitter(jx_ob splitter)
 {
   jx_ob pane = jx_list_borrow(splitter,1);
   jx_int i,size = jx_list_size(pane);
 
-  QSplitter *s;
+  JX_SPLITTER *s;
+#ifdef JX_QT
   int width = getWidth(splitter);
   int height = getHeight(splitter);
+#endif
   if (out_type == GUI_HTML) {
     printVFramesetHtml(pane, size);
+#ifdef JX_QT
   } else if (out_type == GUI_QTUI) {
     s = createQtVsplitter(splitter,size);
     //qDebug() << "create VSplitter" << s;
+#endif
   } else {
     printf("processing %d horizontal splitter widget...\n", size);
   }
 
-  QWidget *w;
+  JX_WIDGET *w;
   for(i=0;i<size;i++) {
     w = processComponents(jx_list_borrow(pane,i));
+#ifdef JX_QT
     if (out_type == GUI_QTUI) {
        s->addWidget(w);
        if (width) w->setFixedWidth(width);
        //qDebug() << "  add Widget" << w << " to " << s;
     }
+#endif
   }
   if (out_type == GUI_HTML) printf("</FRAMESET>\n");
   return s;
 }
 
-QWidget * GuiCreator::processWidget(jx_ob widget)
+JX_WIDGET * GuiCreator::processWidget(jx_ob widget)
 {
-  QWidget *w;
+  JX_WIDGET *w;
   if (out_type == GUI_HTML) {
     printFrameHtml(widget);
+#ifdef JX_QT
   } else if (out_type == GUI_QTUI) {
     w = createQtWidget(widget);
+#endif
   } else {
     printWidgetInfo(widget);
   }
   return w;
 }
 
-QWidget * GuiCreator::processComponents(jx_ob component)
+JX_WIDGET * GuiCreator::processComponents(jx_ob component)
 {
   jx_ob comp_type = jx_list_borrow(component,0);
 
@@ -355,10 +377,10 @@ jx_status GuiCreator::locateKnowns(jx_ob node)
   return JX_SUCCESS;
 }
 
-QWidget * GuiCreator::gui_run_from_node(jx_ob node)
+JX_WIDGET * GuiCreator::gui_run_from_node(jx_ob node)
 {
   
-  QWidget *w;
+  JX_WIDGET *w;
   if(jx_ok( locateKnowns(node) )) {  
 
     /* get the root gui component */
