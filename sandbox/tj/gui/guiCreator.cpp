@@ -82,7 +82,7 @@ jx_ob GuiCreator::getSource(jx_ob entity)
       } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
           return jx_ob_from_str("menubar.html");
       } else  {
-          //return jx_ob_from_str("widget.html");
+          return jx_ob_from_str("widget.html");
           return jx_ob_from_str("None");
       }
     }
