@@ -58,6 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 %destructor description          { jx_ob_free($$); }
 %destructor starter              { jx_ob_free($$); }
+%destructor string               { jx_ob_free($$); }
 
 /*** for now, mallocing tokens **/
 
@@ -96,6 +97,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*** Declare parser token types ***/
 
 %type network                { jx_ob }
+%type string                 { jx_ob }
 
 /*** Start symbol ***/
 
@@ -264,6 +266,23 @@ entry(A) ::= node_name(B) EQUALS node_name(C) NEWLINE.
   jx_list_append(A,C);
 #ifdef JX_NET_PARSER_DEBUG
   printf("entry(A) ::= node_name(B) EQUALS node_name(C) NEWLINE. %s:%d\n",__FILE__,__LINE__); 
+#endif
+}
+
+entry(A) ::= node_name(B) EQUALS node_name(C) parameters(D) NEWLINE.
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("copy"));
+  jx_list_append(A,B);
+  if( jx_null_check(D) )
+  {
+    jx_list_append(A,C);
+  } else {
+    jx_list_insert(D,0,C);
+    jx_list_append(A,D);
+  }
+#ifdef JX_NET_PARSER_DEBUG
+  printf("entry(A) ::= node_name(B) EQUALS node_name(C) parameters(D). %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
 
@@ -491,4 +510,99 @@ action(A) ::= node_or_port(B) OPEN_PAR CLOSE_PAR NEWLINE.
 #ifdef JX_NET_PARSER_DEBUG
   printf("action(A) ::= node_or_port(B) OPEN_PAR CLOSE_PAR NEWLINE.%s:%d\n",__FILE__,__LINE__); 
 #endif
+}
+
+number(A) ::= ICON(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("number = ICON\n"); 
+#endif
+}
+
+number(A) ::= FCON(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("number = FCON\n"); 
+#endif
+}
+
+string(A) ::= SCON(B). 
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("string = SCON\n"); 
+#endif
+}
+
+/* implicit string concat */
+
+string(A) ::= string(B) SCON(C).
+{
+  A = jx_ob_add(B,C);
+  jx_ob_free(B);
+  jx_ob_free(C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = SCON\n"); 
+#endif
+}
+
+/* parameters: '(' [varargslist] ')' */
+
+parameters(A) ::= OPEN_PAR CLOSE_PAR.
+{
+  A = jx_ob_from_null();
+}
+
+parameters(A) ::= OPEN_PAR varargslist(B) CLOSE_PAR.
+{
+  A=B;
+}
+
+/* varargslist: ('*' IDENT|string|number
+                [',' '**' IDENT|string|number]
+                | '**' IDENT|string|number) */
+
+varargslist(A) ::= fpdefs(B).
+{
+  A=B;
+}
+
+/* fpdef: IDENT|string|number | '(' fplist ')' */
+
+fpdefs(A) ::= IDENT(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+fpdefs(A) ::= fpdefs(B) COMMA IDENT(C).
+{
+  A=B;
+  jx_list_append(A,C);
+}
+
+fpdefs(A) ::= string(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+fpdefs(A) ::= fpdefs(B) COMMA string(C).
+{
+  A=B;
+  jx_list_append(A,C);
+}
+
+fpdefs(A) ::= number(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+}
+
+fpdefs(A) ::= fpdefs(B) COMMA number(C).
+{
+  A=B;
+  jx_list_append(A,C);
 }

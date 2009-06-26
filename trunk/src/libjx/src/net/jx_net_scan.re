@@ -211,6 +211,16 @@ static int jx_scan(jx_net_scanner_state *s)
 
     ","         { RET(JX_NET_COMMA); }
 
+    (["] (ESC|any\[\n\\"])* ["]) { RET(JX_NET_SCON); }
+    (['] (ESC|any\[\n\\'])* [']) { RET(JX_NET_SCON); }
+
+    ("0" [xX] H+ IS?) | ("0" D+ IS?) | (D+ IS?) { RET(JX_NET_ICON); }
+    ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_NET_ICON); }
+    
+    (D+ E FS?) | ( D* "." D+ E? FS?) | (D+ "." D* E? FS?)  { RET(JX_NET_FCON); }
+    ([+\-]? D+ E FS?) | ([+\-]? D* "." D+ E? FS?) | ([+\-]? D+ "." D* E? FS?)  { RET(JX_NET_FCON); }
+
+
     "."         { RET(JX_NET_DOT); }
 
     [ \t\v\f]+  { if(s->pos == s->tok) 
@@ -258,14 +268,6 @@ comment:
 
   /* not used:
 
-
-    ("0" [xX] H+ IS?) | ("0" D+ IS?) | (D+ IS?) { RET(JX_NET_ICON); }
-    
-    (D+ E FS?) | ( D* "." D+ E? FS?) | (D+ "." D* E? FS?)  { RET(JX_NET_FCON); }
-
-    (["] (ESC|any\[\n\\"])* ["]) { RET(JX_NET_SCON); }
-
-    (['] (ESC|any\[\n\\'])* [']) { RET(JX_NET_SCON); }
 
     "if"     { RET(JX_NET_IF); }
     "elif"   { RET(JX_NET_ELIF); }
@@ -322,10 +324,6 @@ comment:
     "return" { RET(JX_NET_RETURN); }
 
 
-    ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_NET_ICON); }
-
-    ([+\-]? D+ E FS?) | ([+\-]? D* "." D+ E? FS?) | ([+\-]? D+ "." D* E? FS?)  { RET(JX_NET_FCON); }
-
     "`" (L|D|":")+  { RET(JX_NET_BUILTIN); }
     
 
@@ -353,7 +351,6 @@ comment:
     "*"         { RET(JX_NET_ASTERISK); }
     "/"         { RET(JX_NET_SLASH); }
     "%"         { RET(JX_NET_PERCENT); }
-    (['] (ESC|any\[\n\\'])* [']) { RET(JX_NET_SCON); }
 
    */
 #define SSCANF_BUFSIZE 32
@@ -529,11 +526,9 @@ static void jx_net_scan_input(jx_net_scanner_state *s)
 #endif
 
       switch(tok_type) {
-#if 0
       case JX_NET_ICON:
       case JX_NET_FCON:
       case JX_NET_SCON:
-#endif
       case JX_NET_IDENT:
         {
           char *buffer = stack_buffer;
@@ -544,7 +539,6 @@ static void jx_net_scan_input(jx_net_scanner_state *s)
             jx_os_strncpy(buffer, s->tok, st_len);                              
             buffer[st_len] = 0;
             switch(tok_type) {
-#if 0
             case JX_NET_ICON:
               {
 #ifdef JX_64_BIT
@@ -582,7 +576,6 @@ static void jx_net_scan_input(jx_net_scanner_state *s)
               buffer[st_len-1]=0;
               token = jx_ob_from_str(buffer+1);
               break;
-#endif
             case JX_NET_IDENT:
               token = jx_ob_from_ident(buffer);
               break;

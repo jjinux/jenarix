@@ -1,0 +1,21 @@
+node node_type_D:
+
+    # every node automatically has
+
+    port input, output, error
+
+    # nodes can define additional ports
+
+    port named_port_1a, named_port_1b
+    port named_port_2
+
+    # sub-nodes can be instantiated for use inside a node
+
+    local_symbol_A = node_type_A("abc", 'xyz', 123, 2.0)
+    local_symbol_B = library_B.node_type_B()
+    local_symbol_C = node_type_A()
+
+    # implicit use of input and output ports
+
+    input | local_symbol_A | local_symbol_B | output
+

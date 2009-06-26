@@ -17,3 +17,6 @@
 #define JX_NET_STOP                           17
 #define JX_NET_OPEN_PAR                       18
 #define JX_NET_CLOSE_PAR                      19
+#define JX_NET_ICON                           20
+#define JX_NET_FCON                           21
+#define JX_NET_SCON                           22
