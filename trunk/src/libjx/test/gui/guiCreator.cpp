@@ -71,19 +71,24 @@ bool GuiCreator::setOutputType(char *a)
   }
 }
 
+jx_ob GuiCreator::getMenuItem(jx_ob item, jx_char *attr) 
+{
+    return get_symbol_from_node(jx_list_borrow(item, 2), attr);
+}
+
 jx_ob GuiCreator::getSource(jx_ob entity) 
 {
-    jx_ob source = get_symbol_from_node(jx_list_borrow(entity, 2), "source");
+    jx_ob source = get_symbol_from_node(jx_list_borrow(entity, 2), (jx_char *)"source");
     if (jx_null_check(source)) {
       if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
-          return jx_ob_from_str("opengl.html");
+          return jx_ob_from_str((jx_char *)"opengl.html");
       } else if(jx_ob_identical(jx_list_borrow(entity,0), navigatorType)) {
-          return jx_ob_from_str("navigator.html");
+          return jx_ob_from_str((jx_char *)"navigator.html");
       } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
-          return jx_ob_from_str("menubar.html");
+          return jx_ob_from_str((jx_char *)"menubar.html");
       } else  {
           //return jx_ob_from_str("widget.html");
-          return jx_ob_from_str("None");
+          return jx_ob_from_str((jx_char *)"");
       }
     }
     return source;
@@ -92,7 +97,7 @@ jx_ob GuiCreator::getSource(jx_ob entity)
 int GuiCreator::getWidth(jx_ob entity) 
 {
     int width = 0;
-    width = jx_ob_as_int(get_symbol_from_node(jx_list_borrow(entity, 2), "width"));
+    width = jx_ob_as_int(get_symbol_from_node(jx_list_borrow(entity, 2), (jx_char *)"width"));
 /*
     if (width == 0) {
         width = 10;
@@ -103,7 +108,7 @@ int GuiCreator::getWidth(jx_ob entity)
 int GuiCreator::getHeight(jx_ob entity) 
 {
     int height = 0;
-    height = jx_ob_as_int(get_symbol_from_node(jx_list_borrow(entity, 2), "height"));
+    height = jx_ob_as_int(get_symbol_from_node(jx_list_borrow(entity, 2), (jx_char *)"height"));
     if (height == 0) {
       if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
         height = GUI_MENUBAR_HEIGHT;
@@ -148,6 +153,7 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
       //w->setMinimumHeight(height);
       //w->setMaximumHeight(height);
       return w;
+    } else if(jx_ob_identical(jx_list_borrow(entity,0), menuItemType)) {
     } else  {
       //QTextEdit *w = new QTextEdit(window);
       QTextEdit *w = new QTextEdit;
@@ -197,9 +203,40 @@ void GuiCreator::printWidgetInfo(jx_ob entity)
      printf("Navigator widget %s %d %d\n", jx_ob_as_str(&src), width, height);
   } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
      printf("MenuBar widget %s %d %d\n", jx_ob_as_str(&src), width, height);
+     printMenuItems(entity,0);
   } else {
-     printf("Generic widget %s %d %d\n", jx_ob_as_str(&src), width, height);
+     //get_symbol_from_node(node, "OpenGLContext");
+     printf("Generic widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
   }
+  jx_ob_free(src);
+}
+
+void GuiCreator::printMenuItems(jx_ob menu, int depth)
+{
+     //printf("depth %d\n", depth);
+     std::string blanx(depth, ' ');
+     jx_ob menu_items = jx_list_borrow(menu,1);
+     for (int i=0; i<jx_list_size(menu_items); ++i) {
+         jx_ob item = jx_list_borrow(menu_items,i);
+         if(jx_ob_identical(jx_list_borrow(item,0), menuItemType)) {
+           printf("%s item", blanx.c_str());
+           jx_ob attr = getMenuItem(item, (jx_char *)"label");
+           printf(" label %s", jx_ob_as_str(&attr));
+           attr = getMenuItem(item, (jx_char *)"checkbox");
+           if (!jx_null_check(attr)) printf(" checkbox %s", jx_ob_as_str(&attr));
+           attr = getMenuItem(item, (jx_char *)"callback");
+           if (!jx_null_check(attr)) printf(" callback %d", jx_builtin_callable_check(attr));
+           printf("\n");
+           jx_ob_free(attr);
+           printMenuItems(item, depth+1);
+         } else if (jx_str_check(item)) {
+           printf("%s string %s\n", blanx.c_str(), jx_ob_as_str(&item));
+         } else if (jx_null_check(item)) {
+           printf("%s null\n", blanx.c_str());
+         } else {
+           printf("%s other type %d\n", blanx.c_str(), jx_ob_type(item));
+         }
+     }
 }
 
 void GuiCreator::printFrameHtml(jx_ob entity)
@@ -368,11 +405,12 @@ jx_status GuiCreator::locateKnowns(jx_ob node)
 {
   //jx_os_memset(known,0,sizeof(known));
 
-  vSplitterType = get_symbol_from_node(node, "VSplitter");
-  hSplitterType = get_symbol_from_node(node, "HSplitter");
-  menuBarType = get_symbol_from_node(node, "MenuBar");
-  openglContextType = get_symbol_from_node(node, "OpenGLContext");
-  navigatorType = get_symbol_from_node(node, "Navigator");
+  vSplitterType = get_symbol_from_node(node, (jx_char *)"VSplitter");
+  hSplitterType = get_symbol_from_node(node, (jx_char *)"HSplitter");
+  menuBarType = get_symbol_from_node(node, (jx_char *)"MenuBar");
+  menuItemType = get_symbol_from_node(node, (jx_char *)"MenuItem");
+  openglContextType = get_symbol_from_node(node, (jx_char *)"OpenGLContext");
+  navigatorType = get_symbol_from_node(node, (jx_char *)"Navigator");
 
   return JX_SUCCESS;
 }
@@ -385,7 +423,7 @@ JX_WIDGET * GuiCreator::gui_run_from_node(jx_ob node)
 
     /* get the root gui component */
 
-    jx_ob gui = get_symbol_from_node(node, "gui");
+    jx_ob gui = get_symbol_from_node(node, (jx_char *)"gui");
     
     /* dump graph for debuggin' */
     

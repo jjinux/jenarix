@@ -1,29 +1,67 @@
-
-(entity Splitter);
-
-(entity HSplitter Splitter);
-(entity VSplitter Splitter);
+(entity HSplitter);
+(entity VSplitter);
 
 (entity MenuBar);
+(entity MenuItem);
 (entity OpenGLContext);
 (entity Navigator);
 
+(entity Callback);
+
 # end-user-defined widget
 
-(entity MyWidget)
+(entity MyWidget);
+
+ # end-user-defined entities
+
+( set awidget {source: "awidget.html", height: 150} );
+( set bwidget {source: "bwidget.html", height: 100} );
+
+# menu definition
+( set menu_file (MenuItem [
+   "Open...",
+   "Exit"
+   ]
+   {label: "File"}) );
+( set menu_edit
+   (MenuItem ["Undo"]
+   {label: "Edit"}) );
+( set menu_display
+   (MenuItem [
+   "Sequence",
+   (MenuItem [
+     "Residue codes",
+     "Residues",
+     "Chains",
+     "Atoms",
+     "States"
+     ]
+     {label: "Sequence Mode"}),
+     (MenuItem [] {label: "Smooth Lines", checkbox: "on"}),
+     (MenuItem [] {label: "Depth Cue", checkbox: "on"}),
+     "Two-sided Lighting"
+   ]
+   {label: "Display"}) );
+( def help_about [] [output "This is the jxon gui builder"] );
+( set menu_help
+   (MenuItem [
+    (MenuItem [] {label: "About", callback: help_about})
+   ]
+   {label: "Help"}) );
+( set menu_items [menu_file menu_edit menu_display menu_help] );
 
 ( set gui 
   ( VSplitter
     [
-      ( MenuBar )
+      ( MenuBar menu_items )
       ( HSplitter
         [
           ( OpenGLContext )
           ( VSplitter 
             [
               ( Navigator )
-              ( MyWidget )
-              ( MyWidget [] {source: "widget.html", height: 150} )
+              ( MyWidget [] awidget )
+              ( MyWidget [] bwidget )
               ( MyWidget )
             ]
             { width: 200 }

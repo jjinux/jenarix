@@ -38,11 +38,13 @@ private:
     void printVFramesetHtml(jx_ob pane, int size);
     void printFrameHtml(jx_ob widget);
     void printWidgetInfo(jx_ob widget);
+    void printMenuItems(jx_ob menu, int depth);
 
     JX_WIDGET * createQtWidget(jx_ob widget);
     JX_SPLITTER * createQtHsplitter(jx_ob pane, int size);
     JX_SPLITTER * createQtVsplitter(jx_ob pane, int size);
 
+    jx_ob getMenuItem(jx_ob item, jx_char *attr);
     jx_ob getSource(jx_ob widget);
     int getWidth(jx_ob widget);
     int getHeight(jx_ob widget);
@@ -62,6 +64,7 @@ private:
       jx_ob hSplitterType;
       jx_ob vSplitterType;
       jx_ob menuBarType;
+      jx_ob menuItemType;
       jx_ob openglContextType;
       jx_ob navigatorType;
     //};
