@@ -214,27 +214,33 @@ void GuiCreator::printWidgetInfo(jx_ob entity)
 void GuiCreator::printMenuItems(jx_ob menu, int depth)
 {
      //printf("depth %d\n", depth);
-     std::string blanx(depth, ' ');
+     std::string blanx(depth*2, ' ');
      jx_ob menu_items = jx_list_borrow(menu,1);
      for (int i=0; i<jx_list_size(menu_items); ++i) {
          jx_ob item = jx_list_borrow(menu_items,i);
          if(jx_ob_identical(jx_list_borrow(item,0), menuItemType)) {
-           printf("%s item", blanx.c_str());
+           printf("%s  item", blanx.c_str());
            jx_ob attr = getMenuItem(item, (jx_char *)"label");
            printf(" label %s", jx_ob_as_str(&attr));
            attr = getMenuItem(item, (jx_char *)"checkbox");
            if (!jx_null_check(attr)) printf(" checkbox %s", jx_ob_as_str(&attr));
            attr = getMenuItem(item, (jx_char *)"callback");
-           if (!jx_null_check(attr)) printf(" callback %d", jx_builtin_callable_check(attr));
-           printf("\n");
+           if (jx_null_check(attr)) {
+             //printf(" no callback");
+             printf("\n");
+           } else if (jx_builtin_callable_check(attr)) {
+             jx_jxon_dump(stdout," callback", attr);
+           } else {
+             jx_jxon_dump(stdout," unknown callback", attr);
+           }
            jx_ob_free(attr);
            printMenuItems(item, depth+1);
          } else if (jx_str_check(item)) {
-           printf("%s string %s\n", blanx.c_str(), jx_ob_as_str(&item));
+           printf("%s  string %s\n", blanx.c_str(), jx_ob_as_str(&item));
          } else if (jx_null_check(item)) {
-           printf("%s null\n", blanx.c_str());
+           printf("%s  null\n", blanx.c_str());
          } else {
-           printf("%s other type %d\n", blanx.c_str(), jx_ob_type(item));
+           printf("%s  other type %d\n", blanx.c_str(), jx_ob_type(item));
          }
      }
 }
