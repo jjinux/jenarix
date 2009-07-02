@@ -61,12 +61,12 @@ static void Jx__atExit(void)
 extern jx_os_process *jx_os_Process;
 
 #ifdef JX_HEAP_TRACKER_SPINLOCK
-#define JX_HEAP_LOCK_INIT jx__os_process_init(0,NULL)
+#define JX_HEAP_LOCK_INIT jx_os_process_init(0,NULL)
 #define JX_HEAP_LOCK     if(jx_atExitFlag || JX_OK(status = jx_os_spinlock_acquire(&jx_os_Process->heap_spinlock,JX_TRUE)))
 #define JX_HEAP_UNLOCK   {if(!jx_atExitFlag) jx_os_spinlock_release(&jx_os_Process->heap_spinlock);}
 #else
 #ifdef JX_HEAP_TRACKER_MUTEX
-#define JX_HEAP_LOCK_INIT jx__os_process_init(0,NULL) 
+#define JX_HEAP_LOCK_INIT jx_os_process_init(0,NULL) 
 #define JX_HEAP_LOCK    if(jx_atExitFlag || JX_OK(status = jx_os_mutex_lock(&jx_os_Process->heap_mutex)))
 #define JX_HEAP_UNLOCK  if(!jx_atExitFlag) jx_os_mutex_unlock(&jx_os_Process->heap_mutex);}
 #else
