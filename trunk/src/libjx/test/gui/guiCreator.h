@@ -6,19 +6,23 @@
 #ifdef JX_QT
 #include <QWidget>
 #include <QSplitter>
+#include <QMenuBar>
 #endif
 
 #define GUI_NONE 0
-#define GUI_HTML 1
-#define GUI_QTUI 2
+#define GUI_PRINT 1
+#define GUI_HTML 2
+#define GUI_QTUI 4
 #define GUI_MENUBAR_HEIGHT 50
 
 #ifdef JX_QT
 #define JX_WIDGET QWidget
 #define JX_SPLITTER QSplitter
+#define JX_MENU QMenuBar
 #else
 #define JX_WIDGET void
 #define JX_SPLITTER void
+#define JX_MENU void
 #endif
 
 class GuiCreator
@@ -38,7 +42,7 @@ private:
     void printVFramesetHtml(jx_ob pane, int size);
     void printFrameHtml(jx_ob widget);
     void printWidgetInfo(jx_ob widget);
-    void printMenuItems(jx_ob menu, int depth);
+    void processMenuItems(jx_ob menu, int depth, JX_MENU *menu_widget);
 
     JX_WIDGET * createQtWidget(jx_ob widget);
     JX_SPLITTER * createQtHsplitter(jx_ob pane, int size);

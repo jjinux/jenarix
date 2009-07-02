@@ -11,11 +11,12 @@
 #endif
 
 void usage() {
-  printf("gui [qt-specific switches][-h][-html][-qt]\n");
+  printf("gui [qt-specific switches][-h][-html][-qt][-v]\n");
   printf("    reads gui description jxon file on stdin\n");
   printf("     -h     help\n");
   printf("     -html  output html framset(s) on stdout\n");
   printf("     -qt    open window with qt widgets\n");
+  printf("     -v     verbose output on stderr\n");
 }
 
 int main(int argc, char *argv[])
@@ -35,10 +36,10 @@ int main(int argc, char *argv[])
      } else if (!strncmp(argv[i], "-geometry", 9)) {
        geom = true;
      } else {
-       if (gui.out_type == GUI_NONE) gui.setOutputType(argv[i]);
+       gui.setOutputType(argv[i]);
      }
   }
-  if (gui.out_type == GUI_QTUI) {
+  if (gui.out_type & GUI_QTUI) {
 #ifdef JX_QT
       app = new QApplication(argc, argv);
       gui.window = new QWidget;
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
     
     jx_ob_free(node);
 #ifdef JX_QT
-    if (gui.out_type == GUI_QTUI) {
+    if (gui.out_type & GUI_QTUI) {
       //qDebug() << w;
       layout = new QVBoxLayout;
       layout->addWidget(w);
