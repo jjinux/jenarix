@@ -1,0 +1,16 @@
+
+# one way of setting attributes of entities is to simply
+# treat them as raw containers using set's path handling
+# system:
+#
+
+(entity MyClass);
+
+# 
+(set inst1 [MyClass null {}])
+
+inst1;
+
+(set (inst1 2 my_symbol) "my_value");
+
+inst1;
