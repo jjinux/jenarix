@@ -51,7 +51,7 @@ set menu_display
    "Sequence",
    menu_display_sequence_mode,
    (MenuItem [] {label: "Smooth Lines", checkbox: "on"}),
-   (MenuItem [] {label: "Depth Cue", checkbox: "on"}),
+   (MenuItem [] {label: "Depth Cue", checkbox: "off"}),
    "Two-sided Lighting"
    ]
    {label: "Display"})

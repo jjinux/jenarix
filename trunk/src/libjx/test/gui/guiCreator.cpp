@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QTextEdit>
 #include <QtOpenGL>
 #endif
+#include <string>
 
 /*
 typedef struct {
@@ -144,7 +145,7 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
       widget = w;
     } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
       QMenuBar *w = new QMenuBar;
-      processMenuItems(entity,0,w);
+      processMenuItems(entity,0,(JX_MENU *)w);
       //w->setFixedHeight(height);
       widget = w;
     } else if(jx_ob_identical(jx_list_borrow(entity,0), menuItemType)) {
@@ -197,7 +198,7 @@ void GuiCreator::printWidgetInfo(jx_ob entity)
      fprintf(stderr,"Navigator widget %s %d %d\n", jx_ob_as_str(&src), width, height);
   } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
      fprintf(stderr,"MenuBar widget %s %d %d\n", jx_ob_as_str(&src), width, height);
-     processMenuItems(entity,0,NULL);
+     if (out_type == GUI_PRINT) processMenuItems(entity,0,NULL);
   } else {
      //get_symbol_from_node(node, "OpenGLContext");
      fprintf(stderr,"Generic widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
@@ -209,36 +210,80 @@ void GuiCreator::processMenuItems(jx_ob menu, int depth, JX_MENU *menu_widget)
 {
      std::string blanx(depth*2, ' ');
      jx_ob menu_items = jx_list_borrow(menu,1);
-     jx_ob attr;
+     jx_ob attr, label;
+     int checkbox;
      for (int i=0; i<jx_list_size(menu_items); ++i) {
          jx_ob item = jx_list_borrow(menu_items,i);
          if(jx_ob_identical(jx_list_borrow(item,0), menuItemType)) {
            if (out_type & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
-           attr = getMenuItem(item, (jx_char *)"label");
-           if (out_type & GUI_PRINT) fprintf(stderr," label %s", jx_ob_as_str(&attr));
-           if (depth < 1) menu_widget->addMenu(jx_ob_as_str(&attr));
-           jx_ob_free(attr);
+
+/* label attribute */
+           label = getMenuItem(item, (jx_char *)"label");
+           if (out_type & GUI_PRINT) fprintf(stderr," label %s", jx_ob_as_str(&label));
+           //jx_ob_free(label);
+
+/* checkbox attribute */
            attr = getMenuItem(item, (jx_char *)"checkbox");
-           if (!jx_null_check(attr)) {
+           if (jx_null_check(attr)) {
+             checkbox = 0;
+           } else {
              if (out_type & GUI_PRINT) fprintf(stderr," checkbox %s", jx_ob_as_str(&attr));
+             if (!strncmp(jx_ob_as_str(&attr), "on", 2)) {
+               checkbox =  1;
+             } else {
+               checkbox = -1;
+             }
            }
            jx_ob_free(attr);
+
+/* callback attribute */
            attr = getMenuItem(item, (jx_char *)"callback");
            if (jx_null_check(attr)) {
              //fprintf(stderr," no callback");
              if (out_type & GUI_PRINT) fprintf(stderr,"\n");
            } else if (jx_builtin_callable_check(attr)) {
-             if (out_type & GUI_PRINT) jx_jxon_dump(stderr," callback", attr);
+             if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", attr);
            } else {
-             if (out_type & GUI_PRINT) jx_jxon_dump(stderr," unknown callback", attr);
+             if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", attr);
            }
            jx_ob_free(attr);
-           processMenuItems(item, depth+1,menu_widget);
-         } else if (jx_str_check(item)) {
-           if (out_type & GUI_PRINT) fprintf(stderr,"%s  string %s\n", blanx.c_str(), jx_ob_as_str(&item));
+
+           JX_MENU *sub_menu;
 #ifdef JX_QT
-           //menu_widget->addMenu(jx_ob_as_str(&item));
+           if (out_type & GUI_QTUI) {
+             int nsub = jx_list_size(jx_list_borrow(item,1));
+             if (nsub > 0) { 
+               sub_menu = menu_widget->addMenu(jx_ob_as_str(&label));
+               //fprintf(stderr," addMenu(%d) %d to %d", nsub, sub_menu, menu_widget);
+             } else {
+               if (checkbox) {
+                 QAction *theAct = new QAction(jx_ob_as_str(&label), menu_widget);
+                 theAct->setCheckable(true);
+                 if (checkbox > 0) {
+                   theAct->setChecked(true);
+                 } else {
+                   theAct->setChecked(false);
+                 }
+                 menu_widget->addAction(theAct);
+                 //theAct->setShortcut(tr("Ctrl+B"));
+                 //theAct->setStatusTip(tr("Make the text bold"));
+                 //connect(theAct, SIGNAL(triggered()), menu_widget, SLOT(bold()));
+               } else {
+                 menu_widget->addAction(jx_ob_as_str(&label));
+               }
+               //fprintf(stderr," addAction to %d", nsub, sub_menu, menu_widget);
+             }
+           }
 #endif
+           jx_ob_free(label);
+           processMenuItems(item, depth+1, (JX_MENU *)sub_menu);
+
+         } else if (jx_str_check(item)) {
+#ifdef JX_QT
+           if (out_type & GUI_QTUI) menu_widget->addAction(jx_ob_as_str(&item));
+           //fprintf(stderr," addAction to %d", menu_widget);
+#endif
+           if (out_type & GUI_PRINT) fprintf(stderr,"%s  string %s\n", blanx.c_str(), jx_ob_as_str(&item));
          } else if (jx_null_check(item)) {
            if (out_type & GUI_PRINT) fprintf(stderr,"%s  null\n", blanx.c_str());
          } else {

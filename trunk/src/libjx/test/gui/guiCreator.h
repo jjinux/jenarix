@@ -18,7 +18,7 @@
 #ifdef JX_QT
 #define JX_WIDGET QWidget
 #define JX_SPLITTER QSplitter
-#define JX_MENU QMenuBar
+#define JX_MENU QMenu
 #else
 #define JX_WIDGET void
 #define JX_SPLITTER void
