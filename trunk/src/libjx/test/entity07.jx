@@ -1,16 +1,27 @@
 
-# one way of setting attributes of entities is to simply
-# treat them as raw containers using set's path handling
-# system:
-#
+# the ugly, low-level way of setting entity attributes is to simply
+# treat them as raw list containers:
 
 (entity MyClass);
 
-# 
+# create an instance
+
 (set inst1 [MyClass null {}])
 
 inst1;
 
-(set (inst1 2 my_symbol) "my_value");
+# set an attribute
+
+(set (inst1 2 symbol1) "value1");
+
+inst1;
+
+# the elegant way is to simply try the entity list as a hash
+
+(set (inst1 symbol2) "value2")
+
+inst1;
+
+(set inst1.symbol3 "value3")
 
 inst1;

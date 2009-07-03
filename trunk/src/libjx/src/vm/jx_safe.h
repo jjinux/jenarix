@@ -80,10 +80,61 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_ob container, jx_ob target, j
     //jx_jxon_dump(stdout,"target",target);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
-      return jx_list_replace
-        (container, 
-         jx_ob_as_int(target),
-         jx_ob_not_weak_with_ob( value ));
+      if(jx_int_check(target)) {
+        return jx_list_replace
+          (container, 
+           jx_ob_as_int(target),
+           jx_ob_not_weak_with_ob( value ));
+      } else {
+        jx_int entity_size;
+        jx_list *list = container.data.io.list;
+        if((!list->packed_meta_bits) && 
+           (entity_size = jx_vla_size(&list->data))) { 
+          jx_ob *entity_ob = list->data.ob_vla;
+          /* non-zero, unpacked => vla valid */
+          if(jx_builtin_entity_check(entity_ob[0])) {
+            /* first entry in result contains an entity (a class / instance, etc.) */
+            switch(target.meta.bits & JX_META_MASK_TYPE_BITS) {
+            case JX_META_BIT_IDENT: 
+              {
+                jx_char ch = jx_ob_as_ident(&target)[0];
+                if((!ch)||(ch=='.')) { /* blank identifier? replace content */
+                  if(entity_size>1) { /* existing content, so prelace */
+                    return jx_ob_replace
+                      (entity_ob + 1, 
+                       jx_ob_not_weak_with_ob( value ));
+                  } else { 
+                    /* no existing content, so append it */
+                    return jx_list_append(container, jx_ob_not_weak_with_ob( value ));
+                  }
+                } else { /* nonblank identifier? -> replace attribute */                  
+                  if(entity_size>2) {
+                    return jx_hash_set
+                      (entity_ob[2],
+                       jx_ob_not_weak_with_ob(jx_ob_copy(target)),
+                       jx_ob_not_weak_with_ob( value ));
+                  } else {
+                    jx_ob tmp = jx_hash_new();
+                    if(entity_size<2)
+                      jx_list_append(container, jx_ob_from_null());
+                    jx_list_append(container, tmp);
+                    /* TODO: error handling / cleanup for above new,append,append */
+                    return jx_hash_set
+                      (tmp,
+                       jx_ob_not_weak_with_ob(jx_ob_copy(target)),
+                       jx_ob_not_weak_with_ob( value ));
+                  }
+                  return JX_YES;
+                }
+              }
+              break;
+            default:
+              return JX_STATUS_INVALID_CONTAINER;
+              break;
+            }
+          }
+        }
+      }
       break;
     case JX_META_BIT_HASH:
       return jx_hash_set
@@ -130,11 +181,47 @@ JX_INLINE jx_ob jx_safe_get(jx_ob container, jx_ob payload)
     //jx_jxon_dump(stdout,"target",jx_ob_from_null(),target);
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
-      return jx_ob_take_weak_ref(jx_list_borrow(container, jx_ob_as_int(target)));
+      if(jx_int_check(target)) {
+        return jx_ob_take_weak_ref(jx_list_borrow(container, jx_ob_as_int(target)));
+      } else {
+        jx_int entity_size;
+        jx_list *list = container.data.io.list;
+        if((!list->packed_meta_bits) && 
+           (entity_size = jx_vla_size(&list->data))) { 
+          jx_ob *entity_ob = list->data.ob_vla;
+          /* non-zero, unpacked => vla valid */
+          if(jx_builtin_entity_check(entity_ob[0])) {
+            /* first entry in result contains an entity (a class / instance, etc.) */
+            switch(target.meta.bits & JX_META_MASK_TYPE_BITS) {
+            case JX_META_BIT_IDENT: 
+              {
+                jx_char ch = jx_ob_as_ident(&target)[0];
+                if((!ch)||(ch=='.')) { /* blank identifier? access content */
+                  if(entity_size>1) { 
+                    return jx_ob_take_weak_ref(entity_ob[1]);
+                  } else { /* no content */
+                    return jx_ob_from_null();
+                  }
+                } else {/* nonblank identifier? -> access attribute / method */
+                  if(entity_size>2) {
+                    return jx_ob_take_weak_ref(jx_hash_borrow(entity_ob[2],target));
+                  } else {
+                    return jx_ob_from_null();
+                  }
+                }
+              }7
+              break;
+            default:
+              return jx_ob_from_null();
+              break;
+            }
+          }
+        }
+      }
       break;
     case JX_META_BIT_HASH:
       return jx_ob_take_weak_ref(jx_hash_borrow(container, target));
-    break;
+      break;
     }
   }
   return jx_ob_from_null();
@@ -184,6 +271,8 @@ JX_INLINE jx_ob jx_safe_take(jx_ob container, jx_ob payload)
     }
     switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
+      /* TO DO: add entity support */
+
       return jx_list_remove(container, jx_ob_as_int(target));
       break;
     case JX_META_BIT_HASH:
@@ -203,6 +292,7 @@ JX_INLINE jx_ob jx_safe_del(jx_ob container, jx_ob payload)
     if(jx_list_size(payload)>1) {
       switch(container.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_LIST:
+        /* TO DO: add entity support */
         container = jx_list_borrow(container, jx_ob_as_int(target));
         break;
       case JX_META_BIT_HASH:
@@ -648,6 +738,5 @@ JX_INLINE jx_ob jx_safe_new(jx_ob node, jx_ob payload)
 {
   return jx_tls_ob_new_from_ob(JX_NULL,node,jx_list_borrow(payload,0));
 }
-
 
 #endif
