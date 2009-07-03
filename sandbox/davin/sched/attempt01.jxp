@@ -1,4 +1,8 @@
 # Some notes:
+# - running into problems accessing and manipulating attributes of entities (e.g. self.input resolves to self instead of to a function?)
+#   -- attempted working around some of this by putting entity member variables into the data "list"
+#   -- unsure if accessing issues are due to clobbering of entity structure or what
+#   -- moving on to non-OOP approach for now
 # - taking this derived-entity approach, pseudo-OOP, is it really best/attractive?
 #   -- will look much nicer if "class" could be interpreted into this structure instead of what's here so far
 #   -- the test/node??.jx examples don't take an OOP approach, instead take approach just like Erlang sandbox implementation
@@ -13,10 +17,18 @@
 
 def basenode.__init__(self, host):
     print "DBG in basenode.__init__", self, host
-    self._host = host
-    self._network = []
+    print "B1", self
+    #self._host = host
+    #set(self[1], _host, host)
+    self[1][_host] = host
+    print "B2", self
+    #self._network = []
+    #set(self[1], _network, [])
+    self[1][_network] = []
+    print "B3", self
     if host != self:
         self._host._connect( self.error, host.error) 
+    print "B4", self
     
 def basenode.input(self, payload):
     self._enqueue( self.input, payload)
@@ -28,11 +40,15 @@ def basenode.error(self, payload):
     self._host._enqueue( self.error, payload)
 
 def basenode._connect(self, source, destination):
-    self._network.append( [source, destination] )
+    #self._network.append( [source, destination] )
+    print "DBG in basenode._connect", self, source, destination
+    #set(self[1], _network, self._network + [[source, destination]])
+    self[1][_network] = self[1][_network] + [[source, destination]]
     
 def basenode._enqueue(self, source, payload):
     # will become asynchronous once we have concurrency
-    for entry in self._network:
+    print "DBG in basenode._enqueue", self, source, payload, self[1]
+    for entry in self[1][_network]:
         if entry[0] == source:
             funcname = entry[1]
             funcname(payload)
@@ -48,67 +64,32 @@ def basenode._call(self, node, port, payload):
     target_port = getattr(target_node, port)
     return target_port(payload)
 
-entity(BaseNode, null, null, { __init__ : basenode.__init__, input : basenode.input, output : basenode.output, error : basenode.error, _connect : basenode._connect, _enqueue : basenode._enqueue, _send : basenode._send, _call : basenode._call })
+entity(BaseNode, null, null, { __init__ : basenode.__init__, input : basenode.input, output : basenode.output, error : basenode.error, _connect : basenode._connect, _enqueue : basenode._enqueue, _send : basenode._send, _call : basenode._call, _host : null, _network : null })
 
 
-def addsone.input(self, payload):
-    self.output(payload + 1)
-    self._host._call("nested","input",10)
-
-entity(AddsOne, BaseNode, null, { input : addsone.input })
-del addsone.input
-del addsone
-
-
-def negate.input(self, payload):
-    self.error("some error message")
-    self.output(-payload)
-
-entity(Negate, BaseNode, null, { input : negate.input })
-del negate.input
-del negate
-
-
-def doubles.input(self, payload):
-    self.output(payload * 2)
-
-entity(Doubles, BaseNode, null, { input : doubles.input })
-del doubles.input
-del doubles
-
-
-def nestednetwork.__init__(self,host):
-    BaseNode.__init__(self,host)
-
-    self.negate = [Negate, []]
-    self.negate.__init__(self, host)
-    self._connect( self.input, self.negate.input)
-    self._connect( self.negate.output, self.output)
-
-def nestednetwork.input(self,payload):
-    BaseNode.input(self,payload)
-
-entity(NestedNetwork, BaseNode, null, { __init__ : nestednetwork.__init__, input : nestednetwork.input })
-del nestednetwork.__init__
-del nestednetwork.input
-del nestednetwork
-
-        
-def toplevel.__init__(self,host):
-    BaseNode.__init__(self,self)
+def toplevel.__init2__(self,host):
+    print "DBG in toplevel.__init__", self, host
+    #BaseNode.__init__(self,self)
+    self.__init__(self)
+    print "DBG next in toplevel.__init__", self, host
     
-    self.addsOne = [AddsOne, []]
-    self.addsOne.__init__(self, host)
-    self.doubles = [Doubles, []]
-    self.doubles.__init__(self, host)
-    self.nested = [NestedNetwork, []]
-    self.nested.__init__(self, host)
+    #self.addsOne = [AddsOne, []]
+    #self.addsOne.__init__(host)
+    #self.doubles = [Doubles, []]
+    #self.doubles.__init__(host)
+    #self.nested = [NestedNetwork, []]
+    #self.nested.__init__(host)
     
-    self._connect( self.input, self.addsOne.input )
-    self._connect( self.input, self.doubles.input )        
-    self._connect( self.addsOne.output, self.doubles.input )
-    self._connect( self.doubles.output, self.nested.input )
-    self._connect( self.nested.output, self.output )
+    print "B", self
+    print "B", symbols(self)
+    print "DBG next2 in toplevel.__init__", self, host
+    self._connect( self.input, self.output )
+    print "DBG next3 in toplevel.__init__", self, host
+    #self._connect( self.input, self.addsOne.input )
+    #self._connect( self.input, self.doubles.input )        
+    #self._connect( self.addsOne.output, self.doubles.input )
+    #self._connect( self.doubles.output, self.nested.input )
+    #self._connect( self.nested.output, self.output )
 
 def toplevel.output(self, payload):
     print "output:",payload
@@ -116,15 +97,17 @@ def toplevel.output(self, payload):
 def toplevel.error(self, payload):
     print "error:",payload
 
-entity(TopLevel, BaseNode, null, { __init__ : toplevel.__init__, output : toplevel.output, error : toplevel.error })
-del toplevel.__init__
+entity(TopLevel, BaseNode, null, { __init2__ : toplevel.__init2__, output : toplevel.output, error : toplevel.error })
+del toplevel.__init2__
 del toplevel.output
 del toplevel.error
 del toplevel
 
 
-toplevelnode = [TopLevel, []]
-toplevelnode.__init__(toplevelnode, None)
+toplevelnode = [TopLevel, {}]
+toplevelnode.__init2__(None)
 
 for number in range(1):
     toplevelnode.input(toplevelnode, number)
+#toplevelnode
+#symbols(toplevelnode)
