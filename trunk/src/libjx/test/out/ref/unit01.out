@@ -1712,7 +1712,7 @@ true;
 
 # source: (assert (output (pass fn)))
 #   eval: (`assert (`output (`pass (`resolve fn))))
-fn`0xXXXXXX;
+fn`fn;
 true;
 
 # output: fn`0xXXXXXX
@@ -1828,7 +1828,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {fnbuilder:fn`fnbuilder, newfn:fn`0xXXXXXX}
+#  dump: {fnbuilder:fn`fnbuilder, newfn:fn`newfn}
 true;
 
 # source: (assert 2
@@ -1874,7 +1874,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {fnbuilder:fn`fnbuilder, newfn:fn`0xXXXXXX, v: [1, 2, 3]}
+#  dump: {fnbuilder:fn`fnbuilder, newfn:fn`newfn, v: [1, 2, 3]}
 true;
 
 # source: (assert (del v))
@@ -1993,8 +1993,6 @@ true;
 [myfn2,[[a,b],{}],[[[`resolve,[a,add]],[`resolve,b]]],true];
 true;
 
-# but that only works if the class is present and bound in the caller's namespace
-# if we've nuked it 
 # source: (assert (Vector [3, 5, 7])
 #           (myfn2 v1 v2))
 #   eval: (`assert [ (`resolve Vector), [3, 5, 7]]
@@ -2002,6 +2000,8 @@ true;
 #             (`resolve v2)])
 true;
 
+# but that only works if the class is present and bound in the caller's namespace
+# if we've nuked it 
 # source: (assert (del [ (pass Vector)]))
 #   eval: (`assert (`del [ (`pass (`resolve Vector))]))
 true;
@@ -2016,13 +2016,14 @@ true;
 #  dump: {VectorBase:$VectorBase, myfn:fn`myfn, myfn2:fn`myfn2, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add}, $VectorBase: [null,null, {add:fn`vector.add}]}
 true;
 
-# whereas the function with closed entity definitions still works
 # source: (assert (dump (myfn2 v1 v2)))
 #   eval: (`assert (`dump [ (`resolve myfn2), (`resolve v1),
 #               (`resolve v2)]))
-#  dump: [null, [$Vector, [2, 3, 4]]]
+#  dump: [$Vector, [1, 2, 3],$Vector,
+#           [2, 3, 4]]
 true;
 
+# whereas the function with closed entity definitions still works
 # source: (assert (output (myfn v1 v2)))
 #   eval: (`assert (`output [ (`resolve myfn), (`resolve v1),
 #               (`resolve v2)]))
@@ -2582,9 +2583,9 @@ true;
 true;
 
 # entity-wide methods are stored in the entity definition
-# source: (assert [null]
+# source: (assert [null,vect1]
 #           (vect1.length))
-#   eval: (`assert [null]
+#   eval: (`assert [null, (`resolve vect1)]
 #           [ (`resolve (vect1 length))])
 true;
 

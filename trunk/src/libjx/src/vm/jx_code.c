@@ -1553,6 +1553,10 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
               for(i=1;i<size;i++) {
                 if(expr_ob->meta.bits & (JX_META_BIT_HASH|JX_META_BIT_LIST)) { 
                   *(result_ob++) = jx__tls_code_eval_to_weak(tls, flags_, node, *(expr_ob++));
+                  if(tls->have_method) {
+                    tls->have_method = false;
+                    jx_ob_replace(result_ob - 1, jx_ob_take_weak_ref(tls->method));
+                  }
                 } else { /* not a container or we're processing a macro */
                   *(result_ob++) = jx_tls_ob_copy(tls,*(expr_ob++));
                 }
@@ -1594,118 +1598,6 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
               return result;
             } else if(!jx_builtin_callable_check(result_vla[0])) {
               /* first entry in list is not callable...but it is an Jenaric Entity? */
-#if 0
-              //              WHOOPS -- this approach is unworkable 
-              if(jx_list_check(result_vla[0])) {
-                jx_int entity_size;
-                jx_list *list = result_vla->data.io.list;
-                if((!list->packed_meta_bits) && 
-                   (entity_size = jx_vla_size(&list->data))) { 
-                  /* non-zero, unpacked => vla valid */
-
-                  jx_ob *instance_ob = list->data.ob_vla;
-                  if(jx_builtin_entity_check(instance_ob[0])) {
-
-                    /* first entry in result contains an entity (a class / instance, etc.) */
-                    if(size<2) { /* constructor */
-                      jx_ob handle = jx_ob_copy(instance_ob[0]);
-                      jx_ob content = jx_entity_resolve_content(node,handle);
-                      jx_ob attrs = jx_entity_resolve_attrs(node,handle);
-                      if(jx_null_check(content) && jx_null_check(attrs)) {
-                        jx_ob_replace(&result, jx_list_new_with_size(1));
-                        jx_tls_list_replace(tls,result, 0, handle);
-                      } else {
-                        jx_ob_replace(&result, jx_list_new_with_size(3));
-                        jx_tls_list_replace(tls, result, 0, handle);
-                        jx_tls_list_replace(tls, result, 1, content);
-                        jx_tls_list_replace(tls, result, 2, attrs);
-                      }
-                      return result;
-                    } else {
-                      /* the entry following the entity -- what is it? */
-                      switch(result_vla[1].meta.bits & JX_META_MASK_TYPE_BITS) {
-                      case 0: /* null method name == constructor? */
-                        break;
-                      case JX_META_BIT_IDENT: /* identifier? -> 
-                                                  method/attr resolution */
-                        {
-                          jx_ob method_name = result_vla[1];
-                          jx_ob method;
-                          if(entity_size>2) {
-                          /* first we look in the member */
-                            method = jx_hash_borrow(instance_ob[2],method_name);
-                          } else 
-                            method = jx_ob_from_null();
-                          if(jx_null_check(method)) {
-                            /* no luck? resolve class attr / methods */
-                            jx_ob handle = instance_ob[0];
-                            while(!jx_null_check(handle)) {
-                              jx_ob def = jx_hash_borrow(node,handle);
-                              jx_ob attr = jx_list_borrow(def,2);
-                              method = jx_hash_borrow(attr, method_name);
-                              if(!jx_null_check(method))
-                                break;
-                              handle = jx_list_borrow(def,0);
-                            }
-                          }
-                          method = jx_ob_take_weak_ref(method);
-                          if(jx_builtin_callable_check(method)) {  /* hooray! method bound! */
-                            jx__tls_list_replace(tls,result_list, 0, jx__list_remove(result_list, 0));
-                            size--;
-                            switch(method.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
-                            case JX_META_BIT_BUILTIN_NATIVE_FN:
-                              {
-                                jx_native_fn native_fn = method.data.io.native_fn;
-                                if(native_fn) {
-                                  result = native_fn(node, result); 
-                                  jx_ob_free(method);
-                                  return result;
-                                } else {
-                                  jx_tls_ob_free(tls,result);
-                                  return jx_ob_from_null();
-                                }
-                              }
-                              break;
-                            case JX_META_BIT_BUILTIN_FUNCTION:
-                              return jx__function_call(tls, node, method, result);
-                              break;
-                            case JX_META_BIT_BUILTIN_SELECTOR:
-                              return jx__code_apply_callable(tls, node, method, result);
-                              break;
-                            default:
-                              jx__code_copy_weak_transients(result_list->data.ob_vla + 1,size - 1);
-                              return jx__code_apply_callable(tls, node, method, result);
-                              break;
-                            }
-                          } else { /* simply an attribute */
-                            jx_ob_free(result);
-                            return method;
-                          }
-                        }
-                        break;
-                      case JX_META_BIT_INT: /* integer entity access (0=ident,1=content,2=attr) */
-                        {
-                          jx_int index = jx_ob_as_int(result_vla[1]);
-                          if((index<entity_size)&&(index>=0)) {
-                            jx_ob member = instance_ob[index];
-                            jx_ob_free(result);
-                            return jx_ob_take_weak_ref(member); /* is thie right??? */
-                          } else { /* invalid accessor */
-                            jx_ob_free(result);
-                            return jx_ob_from_null();
-                          }
-                        }
-                        break;
-                      default: /* undefined case -- return null */
-                        jx_ob_free(result);
-                        return jx_ob_from_null();
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-#endif              
               /* strengthen result unless weak-nesting is permitted
                  (transient weak references become real copies)  */
 

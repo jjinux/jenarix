@@ -211,7 +211,7 @@ static int jx_scan(jx_py_scanner_state *s)
 
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_PY_SCON); }
 
-    LD ("." LD)* { RET(JX_PY_NAME); }
+    LD ("." LD)* "."? { RET(JX_PY_NAME); }
 
     "["         { RET(JX_PY_OPEN_RECT_BRACE); }
     "]"         { RET(JX_PY_CLOSE_RECT_BRACE); }

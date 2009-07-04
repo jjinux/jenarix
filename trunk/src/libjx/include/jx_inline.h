@@ -3382,24 +3382,34 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls, jx_ob node,
             }
             status = JX_YES;
           } else {/* nonblank identifier? -> access attribute / method */
-            jx_ob method;
+            jx_ob meth_or_attr;
             if(entity_size>2) {
-              method = jx_hash_borrow(entity_ob[2],*target);
+              meth_or_attr = jx_hash_borrow(entity_ob[2],*target);
             } else
-              method = jx_ob_from_null();
-            if(jx_null_check(method)) {
-              //jx_jxon_dump(stdout,"entity_ob", node, entity_ob[0]);
-              method = jx_entity_resolve_name(node, entity_ob[0], *target);
-              //jx_jxon_dump(stdout,"method",node,method);
+              meth_or_attr = jx_ob_from_null();
+            if(jx_null_check(meth_or_attr)) {
+              //jx_jxon_dump(stdout,"entity_ob", entity_ob[0]);
+              meth_or_attr = jx_entity_resolve_name(node, entity_ob[0], *target);
+              //jx_jxon_dump(stdout,"method",meth_or_attr);
             }
-            method = jx_ob_take_weak_ref(method);
-            if(tls && jx_builtin_callable_check(method)) { /* method */
-              tls->method = method;
+            if(jx_null_check(meth_or_attr)) {
+              if(tls && (!tls->have_method)) {
+                if(!jx_hash_peek(&tls->method, tls->builtins, *target))
+                  tls->method = jx_ob_from_null();
+              }
               tls->have_method = JX_TRUE;
-            } else { /* attribute */
-              *container = method;
+              status = JX_YES;
+            } else {
+              meth_or_attr = jx_ob_take_weak_ref(meth_or_attr);
+              if(tls && jx_builtin_callable_check(meth_or_attr)) { 
+                /* method */
+                tls->method = meth_or_attr;
+                tls->have_method = JX_TRUE;
+              } else { /* attribute */
+                *container = meth_or_attr;
+              }
+              status = JX_YES;
             }
-            status = JX_YES;
           }
         }
         break;
@@ -3421,8 +3431,8 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
   {
     jx_ob node = *container;
     jx_status status = jx__resolve_path(container,target);
-    //jx_jxon_dump(stdout,"container",node,*container);
-    //jx_jxon_dump(stdout,"target",node,*target);
+    //jx_jxon_dump(stdout,"container",*container);
+    //jx_jxon_dump(stdout,"target",*target);
     if(JX_POS(status)) {
       switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_LIST:
@@ -3433,11 +3443,13 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
           if(!JX_POS(status)) {
             if(tls && (!tls->have_method) && 
                jx_hash_peek(&tls->method, tls->builtins, *target)) {
+              //jx_jxon_dump(stdout,"container",*container);
+              //jx_jxon_dump(stdout,"target",*target);
               if(jx_builtin_callable_check(tls->method)) {
                 tls->have_method = JX_TRUE;
               }
             } else {
-              status = JX_STATUS_INVALID_CONTAINER;
+              status = JX_YES;
             }
           }
         }
@@ -3448,10 +3460,10 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
           if(jx_hash_peek(&tmp,*container,*target)) {
             *container = tmp;
           } else if(tls && jx_hash_peek(&tls->method, tls->builtins, *target)) {
+            //jx_jxon_dump(stdout,"container",*container);
+            //jx_jxon_dump(stdout,"target",*target);
             if(jx_ob_same(*container,node)) /* twisted logic, but it works! */
               *container = *target;
-              //jx_jxon_dump(stdout,"container",node,*container);
-              //jx_jxon_dump(stdout,"target",node,*target);
             if(jx_builtin_callable_check(tls->method)) {
               tls->have_method = JX_TRUE;
             }

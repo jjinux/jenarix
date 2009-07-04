@@ -167,7 +167,7 @@ JX_INLINE jx_ob jx_safe_has(jx_ob container, jx_ob payload)
       break;
     }
   }
-  return jx_ob_from_null();
+  return jx_ob_from_bool(JX_FALSE);
 }
 
 JX_INLINE jx_ob jx_safe_take(jx_ob container, jx_ob payload)

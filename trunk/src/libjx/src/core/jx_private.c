@@ -5448,6 +5448,15 @@ void jx_tls_free(jx_tls *tls)
 
 /* comparison */
 
+JX_INLINE jx_bool jx__function_identical(jx_function *left, jx_function *right)
+{
+  return 
+    jx_ob_identical(left->name, right->name) &&
+    jx_ob_identical(left->args, right->args) &&
+    jx_ob_identical(left->body, right->body) &&
+    (left->mode == right->mode);
+}
+
 jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
 {
   /* on entry, we know left.meta.bits == right.meta.bits and that
@@ -5489,6 +5498,9 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
           return (!strcmp(left_st, right_st));
         }
       }
+      break;
+    case JX_META_BIT_BUILTIN_FUNCTION:
+      return jx__function_identical(left.data.io.function, right.data.io.function);
       break;
     }
     break;

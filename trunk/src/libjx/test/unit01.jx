@@ -737,7 +737,7 @@ true;
 
 (assert (output (impl myfn2)))
 
-(assert [Vector,[3,5,7]] (myfn2 v1 v2))
+(assert [Vector,[3,5,7]] (myfn2 v1 v2));
 
 # but that only works if the class is present and bound in the caller's namespace
 
@@ -750,7 +750,7 @@ true;
 
 # then that doesn't work
 
-(assert (dump (myfn2 v1 v2)))
+(assert (dump (myfn2 v1 v2)));
 
 # whereas the function with closed entity definitions still works
 
@@ -982,7 +982,7 @@ true;
 
 # unbound attributes resolve to null
 
-(assert (null) (vect1.length))
+(assert (null vect1) (vect1.length))
 
 # entity-wide methods are stored in the entity definition
 
