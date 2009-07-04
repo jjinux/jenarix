@@ -90,6 +90,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /* symbols */
+
 #define JX_SELECTOR_NEW         46
 
 #define JX_SELECTOR_TAIL        47
@@ -98,9 +99,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_ENTITY      49
 #define JX_SELECTOR_FILL        50
 #define JX_SELECTOR_RANGE       61
+
+/* our six primary container methods: set, get, has, take, del */
+
 #define JX_SELECTOR_SET         62
 #define JX_SELECTOR_GET         63
-#define JX_SELECTOR_BORROW      64
+#define JX_SELECTOR_HAS         64
 #define JX_SELECTOR_TAKE        65
 #define JX_SELECTOR_DEL         66
 
@@ -150,7 +154,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_INCR       104
 #define JX_SELECTOR_DECR       105
 #define JX_SELECTOR_SYMBOLS    106
-#define JX_SELECTOR_HAS        107
+#define JX_SELECTOR_BORROW     107 /* NOT CURRENTLY USED */
+
 #define JX_SELECTOR_SAME       108
 
 #define JX_SELECTOR_STR        109
@@ -172,5 +177,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_SORT       120
 
 #define JX_SELECTOR_DUMP       121
+
 
 #endif

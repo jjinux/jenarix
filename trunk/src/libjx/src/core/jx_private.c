@@ -71,6 +71,9 @@ jx_ob jx_ob_builtins = JX_OB_BUILTINS;
 
 jx_ob jx_ob_resolve = JX_OB_RESOLVE;
 
+jx_char jx_ob_as_ident_error[] = "jx_ob_as_ident-Error: object not an identifier.";
+jx_char jx_ob_as_str_error[] = "jx_ob_as_str-Error: object not a string.";
+
 JX_INLINE void jx__gc_init(jx_gc * gc)
 {
   memset(gc, 0, sizeof(jx_gc));
@@ -903,21 +906,6 @@ static jx_ob jx_ob_with_ident_vla(jx_char ** ref)
   return result;
 }
 
-static jx_char jx_ob_as_str_error[] = "jx_ob_as_str-Error: object not a string.";
-
-jx_char *jx_ob_as_str(jx_ob * ob)
-{
-  jx_bits meta = ob->meta.bits;
-  if(meta & JX_META_BIT_STR) {
-    if(meta & JX_META_BIT_GC) {
-      return ob->data.io.str + sizeof(jx_str);
-    } else {
-      return ob->data.io.tiny_str;
-    }
-  }
-  return jx_ob_as_str_error;
-}
-
 jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int right_len)
 {
   jx_int total_len = left_len + right_len;
@@ -1197,23 +1185,6 @@ jx_ob jx_ob_from_ident(jx_char * ident)
   return result;
 }
 
-static jx_char jx_ob_as_ident_error[] = "jx_ob_as_ident-Error: object not an identifier.";
-
-jx_char *jx_ob_as_ident(jx_ob * ob)
-{
-  jx_bits meta = ob->meta.bits;
-  if((meta & JX_META_BIT_IDENT) || 
-     ((meta & JX_META_BIT_BUILTIN) &&
-      ((meta & JX_META_MASK_BUILTIN_TYPE)==
-       JX_META_BIT_BUILTIN_ENTITY))) {
-    if(meta & JX_META_BIT_GC) {
-      return ob->data.io.str + sizeof(jx_str);
-    } else {
-      return ob->data.io.tiny_str;
-    }
-  }
-  return jx_ob_as_ident_error;
-}
 
 jx_ob jx__ident_gc_copy_strong(jx_char * str)
 {
@@ -2244,51 +2215,57 @@ jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill)
   return status;
 }
 
+
+JX_INLINE jx_status jx__list__append_locked(jx_list * I, jx_ob ob)
+{
+  if(I->gc.shared) {
+    return JX_STATUS_PERMISSION_DENIED;
+  }
+  if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
+    if(!jx_ok(jx__list_unpack_data_locked(I))) {
+      return JX_FAILURE;
+    }
+  }
+  if(I->data.vla) {
+    jx_int size = jx_vla_size(&I->data.vla);
+    if(jx_vla_grow_check(&I->data.vla, size)) {
+      if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
+        jx__list_set_packed_data_locked(I, size, ob);
+      } else if(!I->packed_meta_bits) {
+        I->data.ob_vla[size] = JX_OWN(ob);
+      }
+      return JX_SUCCESS;
+    }
+  } else {
+    jx_int packed_size = jx_meta_get_packed_size(ob.meta.bits);
+    if(packed_size) {
+      I->packed_meta_bits = ob.meta.bits;
+      I->data.vla = jx_vla_new(packed_size, 1);
+      if(I->data.vla) {
+        jx__list_set_packed_data_locked(I, 0, ob);
+        return JX_SUCCESS;
+      }
+    } else {
+      I->data.vla = jx_vla_new(sizeof(jx_ob), 1);
+      if(I->data.vla) {
+        I->data.ob_vla[0] = JX_OWN(ob);
+        return JX_SUCCESS;
+      }
+    }
+  }
+  return JX_FAILURE;
+}
+
+jx_status jx__list_append_locked(jx_list * I, jx_ob ob)
+{
+  return jx__list__append_locked(I,ob);
+}
+
 jx_status jx__list_append(jx_list * I, jx_ob ob)
 {
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
-    status = JX_FAILURE;
-    if(I->gc.shared) {
-      status = JX_STATUS_PERMISSION_DENIED;
-      goto unlock;
-    }
-    if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
-      if(!jx_ok(jx__list_unpack_data_locked(I))) {
-        goto unlock;
-      }
-    }
-    if(I->data.vla) {
-      jx_int size = jx_vla_size(&I->data.vla);
-      if(jx_vla_grow_check(&I->data.vla, size)) {
-        if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
-          jx__list_set_packed_data_locked(I, size, ob);
-        } else if(!I->packed_meta_bits) {
-          I->data.ob_vla[size] = JX_OWN(ob);
-        }
-        status = JX_SUCCESS;
-        goto unlock;
-      }
-    } else {
-      jx_int packed_size = jx_meta_get_packed_size(ob.meta.bits);
-      if(packed_size) {
-        I->packed_meta_bits = ob.meta.bits;
-        I->data.vla = jx_vla_new(packed_size, 1);
-        if(I->data.vla) {
-          jx__list_set_packed_data_locked(I, 0, ob);
-          status = JX_SUCCESS;
-          goto unlock;
-        }
-      } else {
-        I->data.vla = jx_vla_new(sizeof(jx_ob), 1);
-        if(I->data.vla) {
-          I->data.ob_vla[0] = JX_OWN(ob);
-          status = JX_SUCCESS;
-          goto unlock;
-        }
-      }
-    }
-  unlock:
+    status = jx__list__append_locked(I,ob);
     jx_gc_unlock(&I->gc);
   }
   return status;

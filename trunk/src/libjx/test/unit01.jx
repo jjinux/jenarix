@@ -941,8 +941,7 @@ true;
 
 (assert (dump (symbols false)));
 
-# new instances can be automatically created by resolving the entity handle and then
-# calling it as a function 
+# instances are constructed using "new"
 
 (assert (set m1 (new Matrix33f)))
 
@@ -1216,3 +1215,42 @@ true;
 # confirm clean namespace
 
 (assert {} (symbols false))
+
+# entity attributes handling (set,get,take,has,del)
+
+(assert (entity E) E);
+
+(assert (set a [E]))
+(assert (set x (new E)))
+
+(assert (set a.b 1))
+(assert (set a.x 2))
+
+(assert true (has a b))
+(assert 1 a.b)
+(assert 2 a.x)
+
+(assert (set a.d.e.f.g false))
+(assert {e:{f:{g:false}}} a.d)
+(assert (set a.d.e.f.g true))
+(assert true a.d.e.f.g)
+(assert true (get a.d.e.f.g))
+
+(assert (del a.d.e))
+(assert {} a.d)
+
+(assert (set x.a 3))
+(assert true (has x.a))
+(assert 3 (get x.a))
+(assert true (has x.a))
+(assert 3 (take x.a))
+(assert false (has x.a))
+(assert x.a)
+
+(assert (del a))
+(assert (del x))
+
+(assert (del ((pass E)))) 
+(assert (del E))
+(assert {} (symbols false))
+

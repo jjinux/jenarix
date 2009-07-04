@@ -1,27 +1,32 @@
+# how do we set and manipulate entity attributes?
 
-# the ugly, low-level way of setting entity attributes is to simply
-# treat them as raw list containers:
+(entity MyClass)
 
-(entity MyClass);
+# since entity instances are merely lists, one ugly low-level way of
+# maniuplating attributes is by mucking with the table itself
 
-# create an instance
+(set inst [MyClass null {}])
 
-(set inst1 [MyClass null {}])
-
-inst1;
+inst;
 
 # set an attribute
 
-(set (inst1 2 symbol1) "value1");
+(set (inst 2 symbol1) "value1");
 
-inst1;
+inst;
 
-# the elegant way is to simply try the entity list as a hash
+inst.symbol1;
 
-(set (inst1 symbol2) "value2")
+(get (inst 2 symbol1));
 
-inst1;
+# however, "set" is entity-aware, so it is possible instead to simply
+# use dot notation for setting attributes
 
-(set inst1.symbol3 "value3")
+(set inst.symbol2 "value2")
 
-inst1;
+inst;
+
+inst.symbol2;
+
+(get inst.symbol2);
+

@@ -94,6 +94,7 @@ typedef struct jx__ob jx_ob;
 #define JX_STATUS_NOT_FOUND                  -17
 #define JX_STATUS_EXHAUSTED                  -18
 #define JX_STATUS_SYNTAX_ERROR               -19
+#define JX_STATUS_INVALID_IDENTIFIER         -20
 
 /* shortcuts */
 

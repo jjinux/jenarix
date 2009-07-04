@@ -2505,8 +2505,7 @@ true;
 #  dump: {Matrix33f:$Matrix33f, MatrixBase:$MatrixBase, $Matrix33f: [$MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}], $MatrixBase: [null,null, {dim: [], method:fn`_method}]}
 true;
 
-# new instances can be automatically created by resolving the entity handle and then
-# calling it as a function 
+# instances are constructed using "new"
 # source: (assert (set m1
 #             (new Matrix33f)))
 #   eval: (`assert (`set m1
@@ -3188,6 +3187,142 @@ true;
 # confirm clean namespace
 # source: (assert (del Base))
 #   eval: (`assert (`del Base))
+true;
+
+# entity attributes handling (set,get,take,has,del)
+# source: (assert {}
+#           (symbols false))
+#   eval: (`assert {}
+#           (`symbols false))
+true;
+
+# source: (assert (entity E) E)
+#   eval: (`assert (`entity E)
+#           (`resolve E))
+true;
+
+# source: (assert (set a
+#             (E)))
+#   eval: (`assert (`set a
+#             [ (`resolve E)]))
+true;
+
+# source: (assert (set x
+#             (new E)))
+#   eval: (`assert (`set x
+#             (`new (`resolve E))))
+true;
+
+# source: (assert (set a.b 1))
+#   eval: (`assert (`set (a b) 1))
+true;
+
+# source: (assert (set a.x 2))
+#   eval: (`assert (`set (a x) 2))
+true;
+
+# source: (assert true
+#           (has a b))
+#   eval: (`assert true
+#           (`has a
+#             (`resolve b)))
+true;
+
+# source: (assert 1 a.b)
+#   eval: (`assert 1
+#           (`resolve (a b)))
+true;
+
+# source: (assert 2 a.x)
+#   eval: (`assert 2
+#           (`resolve (a x)))
+true;
+
+# source: (assert (set a.d.e.f.g false))
+#   eval: (`assert (`set (a d e f g) false))
+true;
+
+# source: (assert {e: {f: {g:false}}} a.d)
+#   eval: (`assert {e: {f: {g:false}}}
+#           (`resolve (a d)))
+true;
+
+# source: (assert (set a.d.e.f.g true))
+#   eval: (`assert (`set (a d e f g) true))
+true;
+
+# source: (assert true a.d.e.f.g)
+#   eval: (`assert true
+#           (`resolve (a d e f g)))
+true;
+
+# source: (assert true
+#           (get a.d.e.f.g))
+#   eval: (`assert true
+#           (`get (a d e f g)))
+true;
+
+# source: (assert (del a.d.e))
+#   eval: (`assert (`del (a d e)))
+true;
+
+# source: (assert {} a.d)
+#   eval: (`assert {}
+#           (`resolve (a d)))
+true;
+
+# source: (assert (set x.a 3))
+#   eval: (`assert (`set (x a) 3))
+true;
+
+# source: (assert true
+#           (has x.a))
+#   eval: (`assert true
+#           (`has (x a)))
+true;
+
+# source: (assert 3
+#           (get x.a))
+#   eval: (`assert 3
+#           (`get (x a)))
+true;
+
+# source: (assert true
+#           (has x.a))
+#   eval: (`assert true
+#           (`has (x a)))
+true;
+
+# source: (assert 3
+#           (take x.a))
+#   eval: (`assert 3
+#           (`take (x a)))
+true;
+
+# source: (assert false
+#           (has x.a))
+#   eval: (`assert false
+#           (`has (x a)))
+true;
+
+# source: (assert x.a)
+#   eval: (`assert (`resolve (x a)))
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert (del x))
+#   eval: (`assert (`del x))
+true;
+
+# source: (assert (del [ (pass E)]))
+#   eval: (`assert (`del [ (`pass (`resolve E))]))
+true;
+
+# source: (assert (del E))
+#   eval: (`assert (`del E))
 true;
 
 # source: (assert {}

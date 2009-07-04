@@ -1,16 +1,29 @@
+# how do we set and manipulate entity attributes?
 
-# one way of setting attributes of entities is to simply
-# treat them as raw containers using set's path handling
-# system:
-#
+entity(MyClass)
 
-entity(MyClass);
+inst = [MyClass]
 
-# 
-set(inst1,[MyClass, null, {}])
+inst
 
-inst1
+inst.symbol1 = "value1"
 
-set([inst1,2,my_symbol], "my_value")
+inst
 
-inst1
+inst.symbol1
+
+
+# testing for existence 
+
+has(inst.symbol1)
+
+has(inst.symbol2)
+
+
+# deleting
+
+del(inst.symbol1)
+
+has(inst.symbol1)
+
+inst
