@@ -2583,9 +2583,9 @@ true;
 true;
 
 # entity-wide methods are stored in the entity definition
-# source: (assert [null,vect1]
+# source: (assert [null]
 #           (vect1.length))
-#   eval: (`assert [null, (`resolve vect1)]
+#   eval: (`assert [null]
 #           [ (`resolve (vect1 length))])
 true;
 

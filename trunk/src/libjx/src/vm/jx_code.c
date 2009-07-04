@@ -1579,9 +1579,16 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
                                  call into a standard evaluation where
                                  the function is the first entry
                                  [method-fn self args] */
-              jx__list_insert(result_list,0,method);
+
+              if(jx_builtin_callable_check(method)) {
+                jx__list_insert(result_list,0,method);
+                size++;
+                result_vla = result_list->data.ob_vla;
+              } else {
+                if(size) 
+                  jx_ob_replace(result_vla,method);
+              }
               //              jx_jxon_dump(stdout,"result",node,result);
-              result_vla = result_list->data.ob_vla;
             }
 
             /* WARNING / REMINDER: we may now have some weak
@@ -1597,7 +1604,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
             if(flags_ & JX_EVAL_DEFER_INVOCATION) { /* expanding a macro... */
               return result;
             } else if(!jx_builtin_callable_check(result_vla[0])) {
-              /* first entry in list is not callable...but it is an Jenaric Entity? */
+
               /* strengthen result unless weak-nesting is permitted
                  (transient weak references become real copies)  */
 
@@ -1621,7 +1628,6 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
                   if(native_fn) {
                     jx_ob function = jx__list_remove(result_list, 0); /* strip function pointer */
                     result = native_fn(node, result); 
-                    //printf("got here\n");
                     jx_ob_free(function);       
                     return result;
                   } else {

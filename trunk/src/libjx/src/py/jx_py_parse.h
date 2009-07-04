@@ -45,4 +45,5 @@
 #define JX_PY_ICON                           45
 #define JX_PY_FCON                           46
 #define JX_PY_LAMBDA                         47
-#define JX_PY_SCON                           48
+#define JX_PY_DOT                            48
+#define JX_PY_SCON                           49

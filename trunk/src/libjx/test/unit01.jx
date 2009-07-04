@@ -982,7 +982,7 @@ true;
 
 # unbound attributes resolve to null
 
-(assert (null vect1) (vect1.length))
+(assert (null) (vect1.length))
 
 # entity-wide methods are stored in the entity definition
 

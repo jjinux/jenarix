@@ -251,6 +251,8 @@ static int jx_scan(jx_py_scanner_state *s)
 
     ","         { RET(JX_PY_COMMA); }
 
+    "."         { RET(JX_PY_DOT); }
+
     [ \t\v\f]+   { if(s->pos == s->tok) 
                     s->current_indent = cursor - s->pos;
                   goto std; }
@@ -337,7 +339,6 @@ comment:
     "false"     { RET(JX_PY_FALSE); }
     "null"      { RET(JX_PY_NULL); }
     
-    "."         { RET(JX_PY_DOT); }
     "`"         { RET(JX_PY_BACKAPOSTROPHE); }
 
 

@@ -935,6 +935,22 @@ power(A) ::= atom(B) DOUBLE_ASTERISK factor(C).
 #endif
 }
 
+power(A) ::= atom(B) dot_trailer_list(C).
+{
+  A=jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("resolve"));
+  {
+    jx_ob tmp = jx_list_new(); 
+    jx_list_append(tmp,jx_ob_from_ident("nop"));
+    jx_list_append(tmp,B);
+    jx_list_unshift(C,tmp);
+  }
+  jx_list_append(A,C);
+#ifdef JX_PY_PARSER_DEBUG
+  printf("power(A) ::= atom(B) dot_trailer_list(C).\n");
+#endif
+}
+
 power(A) ::= atom(B) call_trailer_list(C).
 {
   A = C;
@@ -1099,7 +1115,7 @@ call_trailer_list(A) ::= call_trailer(B).
 {
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("call_trailer_list(A) ::= call_trailer(B).");
+  printf("call_trailer_list(A) ::= call_trailer(B).\n");
 #endif
 }
 
@@ -1108,7 +1124,7 @@ call_trailer_list(A) ::= call_trailer_list(B) call_trailer(C).
   A = C;
   jx_list_unshift(A,B);
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("call_trailer_list(A) ::= call_trailer_list(B) call_trailer(C).");
+  printf("call_trailer_list(A) ::= call_trailer_list(B) call_trailer(C).\n");
 #endif
 }
 
@@ -1133,7 +1149,7 @@ access_trailer_list(A) ::= access_trailer(B).
   A = jx_list_new();
   jx_list_append(A,B);
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("access_trailer_list(A) :: = access_trailer(B).");
+  printf("access_trailer_list(A) :: = access_trailer(B).\n");
 #endif
 }
 
@@ -1142,7 +1158,7 @@ access_trailer_list(A) ::= access_trailer_list(B) access_trailer(C).
   A = B;
   jx_list_append(A,C);
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("access_trailer_list(A) :: = access_trailer(B).");
+  printf("access_trailer_list(A) :: = access_trailer(B).\n");
 #endif
 }
 
@@ -1154,6 +1170,25 @@ access_trailer(A) ::= OPEN_RECT_BRACE subscriptlist(B) CLOSE_RECT_BRACE.
 #endif
 }
 
+dot_trailer_list(A) ::= dot_trailer(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("dot_trailer_list(A) ::= dot_trailer(B).\n");
+#endif
+}
+
+dot_trailer(A) ::= DOT NAME(B).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("nop"));
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("dot_trailer(A) ::= DOT NAME(B).\n");
+#endif
+}
+
 /* subscriptlist: subscript (',' subscript)* [','] */
 
 subscriptlist(A) ::= subscript(B).
@@ -1161,12 +1196,6 @@ subscriptlist(A) ::= subscript(B).
   A = jx_list_new();
   jx_list_insert(A,0,jx_ob_from_ident("pass"));
   jx_list_append(A,B);
-}
-
-subscriptlist(A) ::= subscriptlist(B) COMMA subscript(C).
-{
-  A = B;
-  jx_list_append(A,C);
 }
 
 /* subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop] */
