@@ -2942,7 +2942,7 @@ JX_INLINE jx_status jx__create_path(jx_ob *container,jx_ob *target)
             *container = jx_list_borrow(*container,jx_ob_as_int(*target));
           } else {
             jx_int entity_size;
-            jx_list *list = container->data.io.list;
+            jx_list *list = container->data.io.list; /* TO DO: make thread safe! */
             if((!list->packed_meta_bits) && 
                (entity_size = jx_vla_size(&list->data))) { 
               jx_ob *entity_ob = list->data.ob_vla;
@@ -3022,7 +3022,7 @@ JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
             *container = jx_list_borrow(*container,jx_ob_as_int(*target));
           } else {
             jx_int entity_size;
-            jx_list *list = container->data.io.list;
+            jx_list *list = container->data.io.list; /* TO DO: make thread safe! */
             if((!list->packed_meta_bits) && 
                (entity_size = jx_vla_size(&list->data))) { 
               jx_ob *entity_ob = list->data.ob_vla;
@@ -3126,7 +3126,7 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
           *container = jx_list_borrow(*container,jx_ob_as_int(*target));
         } else {
           jx_int entity_size;
-          jx_list *list = container->data.io.list;
+          jx_list *list = container->data.io.list; /* TO DO: make thread safe! */
           if((!list->packed_meta_bits) && 
              (entity_size = jx_vla_size(&list->data))) { 
             jx_ob *entity_ob = list->data.ob_vla;
