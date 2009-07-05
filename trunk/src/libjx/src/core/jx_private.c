@@ -4760,6 +4760,80 @@ jx_bool jx__hash_peek_key(jx_ob * result, jx_hash * I, jx_ob value)
   return found;
 }
 
+jx_bool jx__hash_append_keys(jx_ob result, jx_hash * I, jx_ob value)
+{
+  jx_bool found = JX_FALSE;
+  jx_status status = jx_gc_lock(&I->gc);
+  if(JX_POS(status)) {
+    jx_uint32 size = jx_vla_size(&I->key_value);
+    if(size) {
+      jx_hash_info *info = (jx_hash_info *) I->info;
+      if((!info) || (info->mode == JX_HASH_LINEAR)) {
+        register jx_int i = (info ? info->usage : (size >> 1));
+        jx_ob *ob = I->key_value;
+        while(i--) {              /* brute-force table scan */
+          if(jx_ob_identical(ob[1], value)) {
+            found = JX_TRUE;
+            status = jx_list_append(result, jx_ob_copy(ob[0]));
+          }
+          ob += 2;
+        }
+      } else {
+        switch (info->mode) {
+        case JX_HASH_ONE_TO_ANY:
+        case JX_HASH_ONE_TO_NIL:
+          {
+            jx_uint32 mask = info->mask;
+            jx_uint32 *hash_table = info->table;
+            jx_ob *key_value = I->key_value;
+            jx_uint32 index = 0;
+            do {
+              jx_uint32 *hash_entry = hash_table + (index << 1);
+              if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
+                jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
+                if(jx_ob_identical(key_value[kv_offset + 1], value)) {
+                  found = JX_TRUE;
+                  status = jx_list_append(result, jx_ob_copy(key_value[kv_offset]));
+                }
+              }
+              index++;
+            } while(index <= mask);
+          }
+          break;
+        case JX_HASH_ONE_TO_ONE:
+          {
+            register jx_uint32 hash_code = jx_ob_hash_code(value);
+            if(hash_code) {
+              jx_uint32 mask = info->mask;
+              jx_uint32 *hash_table = info->table + ((mask + 1) << 1);
+              jx_ob *key_value = I->key_value;
+              jx_uint32 index = mask & hash_code;
+              jx_uint32 sentinel = index;
+              do {
+                jx_uint32 *hash_entry = hash_table + (index << 1);
+                if((hash_entry[1] & JX_HASH_ENTRY_ACTIVE) && (hash_entry[0] == hash_code)) {
+                  jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
+                  if(jx_ob_identical(key_value[kv_offset + 1], value)) {
+                    jx_list_append(result, jx_ob_copy(key_value[kv_offset]));
+                    found = JX_TRUE;
+                    break; /* we're assuming there aren't any other match keys,
+                              otherwise this hash wouldn't be one-to-one */
+                  }
+                } else if(!hash_entry[1])
+                  break;
+                index = (index + 1) & mask;
+              } while(index != sentinel);
+            }
+            break;
+          }
+        }
+      }
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return found;
+}
+
 jx_status jx__hash_from_list(jx_hash * hash, jx_list * list)
 {
   jx_status status = jx_gc_lock(&list->gc);

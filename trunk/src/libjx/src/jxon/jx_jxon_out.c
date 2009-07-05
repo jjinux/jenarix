@@ -663,16 +663,47 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
       case JX_META_BIT_BUILTIN_FUNCTION:
         {
           jx_function *fn = ob.data.io.function;
-          jx_ob name = fn->name;
+          jx_ob name = jx_ob_copy(fn->name);
+          jx_bool is_copy = JX_FALSE;
           if(jx_null_check(name)) {
-            name = jx_hash_get_key(node,ob);
+            jx_ob name_list = jx_hash_get_keys(node,ob);
+            {
+              jx_int i, size;
+              if( (size = jx_list_size(name_list)) ) {
+                for(i=0;i<size;i++) {
+                  jx_ob key = jx_list_borrow(name_list,i);
+                  jx_ob value = jx_hash_borrow(node, key);
+                  if(jx_ob_same(value,ob)) {
+                    name = jx_ob_copy(key); 
+                    break;
+                  }
+                }
+                if(jx_null_check(name)) {
+                  name = jx_list_get(name_list,0);
+                  is_copy = JX_TRUE;
+                }
+              }
+            }
+            jx_ob_free(name_list);
+          } else {
+            jx_ob value = jx_hash_borrow(node,name);
+            if(!jx_ob_same(value,ob))
+              is_copy = JX_TRUE;
           }
           if(jx_ident_check(name)) {
             sprintf(buffer,"fn`");
-            jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE,name);
+            if(is_copy) {
+              char buffer2[JX_STR_TMP_BUF_SIZE];              
+              sprintf(buffer2,"_%p",ob.data.io.void_); /* deliberate misread */
+              jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE-24,name);
+              jx_os_strcat(buffer,buffer2);
+            } else {
+              jx_ob_into_strcat(buffer,JX_STR_TMP_BUF_SIZE-4,name);
+            }
           } else {
             sprintf(buffer,"fn`%p",ob.data.io.void_); /* deliberate misread */
           }
+          jx_ob_free(name);
         }
         break;
       case JX_META_BIT_BUILTIN_MACRO:

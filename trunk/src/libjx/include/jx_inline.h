@@ -2006,7 +2006,16 @@ JX_INLINE jx_ob jx_hash_get_key(jx_ob hash, jx_ob value)
   return jx_ob_from_null();
 }
 
-
+jx_bool jx__hash_append_keys(jx_ob result, jx_hash * I, jx_ob value);
+JX_INLINE jx_ob jx_hash_get_keys(jx_ob hash, jx_ob value)
+{
+  if(hash.meta.bits & JX_META_BIT_HASH) {
+    jx_ob result = jx_list_new();
+    jx__hash_append_keys(result, hash.data.io.hash, value);
+    return result;
+  }
+  return jx_ob_from_null();
+}
 
 JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
 {
