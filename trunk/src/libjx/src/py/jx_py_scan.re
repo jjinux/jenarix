@@ -46,6 +46,7 @@ typedef struct {
   FILE *file;
   jx_py_parse_context context;
   jx_ob indent_stack;
+  jx_bool ignore_whitesp;
   jx_int current_indent;
   jx_bool newline_just_seen;
   jx_bool colon_just_seen;
@@ -211,16 +212,16 @@ static int jx_scan(jx_py_scanner_state *s)
 
     (['] (ESC|any\[\n\\'])* [']) { RET(JX_PY_SCON); }
 
-    LD ("." LD)* "."? { RET(JX_PY_NAME); }
+    LD ("." "."? LD)* "."? { RET(JX_PY_NAME); }
 
-    "["         { RET(JX_PY_OPEN_RECT_BRACE); }
-    "]"         { RET(JX_PY_CLOSE_RECT_BRACE); }
+    "["         { s->ignore_whitesp++; RET(JX_PY_OPEN_RECT_BRACE); }
+    "]"         { s->ignore_whitesp--; RET(JX_PY_CLOSE_RECT_BRACE); }
 
-    "("         { RET(JX_PY_OPEN_PAR); }
-    ")"         { RET(JX_PY_CLOSE_PAR); }
+    "("         { s->ignore_whitesp++; RET(JX_PY_OPEN_PAR); }
+    ")"         { s->ignore_whitesp--; RET(JX_PY_CLOSE_PAR); }
 
-    "{"         { RET(JX_PY_OPEN_CURLY_BRACE); }
-    "}"         { RET(JX_PY_CLOSE_CURLY_BRACE); }
+    "{"         {  s->ignore_whitesp++; RET(JX_PY_OPEN_CURLY_BRACE); }
+    "}"         {  s->ignore_whitesp--; RET(JX_PY_CLOSE_CURLY_BRACE); }
 
     "~"         { RET(JX_PY_TILDE); }
     "+"         { RET(JX_PY_PLUS); }
@@ -263,7 +264,11 @@ static int jx_scan(jx_py_scanner_state *s)
     s->line++;
     s->pos = cursor;
     s->eof = NULL;
-    RET(JX_PY_NEWLINE);
+    if(!s->ignore_whitesp) {
+       RET(JX_PY_NEWLINE);
+    } else {
+       goto std;
+    }
   }
 
     null_char { 
@@ -407,22 +412,22 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
         switch(s->mode) {
         case JX_PY_SCANNER_MODE_CONSOLE:
           { /* on the console, changes in indentation are always significant */
-            if(expected_indent != s->current_indent) {
-              if(s->current_indent > expected_indent) {
-                jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
-                jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(),&s->context);
-                indent_just_changed = JX_TRUE;
-              } else if(s->current_indent < expected_indent) {
-
-
-                jx_list_pop(s->indent_stack);
-                expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
-                if(expected_indent != s->current_indent) {
-                  s->context.status = JX_STATUS_SYNTAX_ERROR;
-                } else {
-                  jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(),&s->context); 
-                  jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);        
+            if(!s->ignore_whitesp) {
+              if(expected_indent != s->current_indent) {
+                if(s->current_indent > expected_indent) {
+                  jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
+                  jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(),&s->context);
                   indent_just_changed = JX_TRUE;
+              } else if(s->current_indent < expected_indent) {
+                  jx_list_pop(s->indent_stack);
+                  expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
+                  if(expected_indent != s->current_indent) {
+                    s->context.status = JX_STATUS_SYNTAX_ERROR;
+                  } else {
+                    jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(),&s->context); 
+                    jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);        
+                    indent_just_changed = JX_TRUE;
+                  }
                 }
               }
             }
@@ -447,41 +452,42 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
       default: 
         {
           /* current token not a newline, so this is for real in all cases  */
-
-          if(expected_indent != s->current_indent) {
-            if(s->current_indent > expected_indent) {
-              jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
-              jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(), &s->context);
-              indent_just_changed = JX_TRUE;
-            } else {
-              while(s->current_indent < expected_indent) {
-                jx_list_pop(s->indent_stack);
-                expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
-                jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(), &s->context); 
-                switch(tok_type) {
-                case JX_PY_ELIF:
-                case JX_PY_ELSE:
-                  break;
-                default:
-                  jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);
-                  break;
-                }
+          if(!s->ignore_whitesp) {
+            if(expected_indent != s->current_indent) {
+              if(s->current_indent > expected_indent) {
+                jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
+                jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(), &s->context);
                 indent_just_changed = JX_TRUE;
-                if(expected_indent == s->current_indent) {
-                  break;
+              } else {
+                while(s->current_indent < expected_indent) {
+                  jx_list_pop(s->indent_stack);
+                  expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
+                  jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(), &s->context); 
+                  switch(tok_type) {
+                  case JX_PY_ELIF:
+                  case JX_PY_ELSE:
+                    break;
+                  default:
+                    jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);
+                    break;
+                  }
+                  indent_just_changed = JX_TRUE;
+                  if(expected_indent == s->current_indent) {
+                    break;
+                  }
                 }
-              }
-              if(expected_indent != s->current_indent) {
-                s->context.status = JX_STATUS_SYNTAX_ERROR;
-                break;
-              } else if(!s->current_indent) {
-                switch(tok_type) {
-                case JX_PY_ELIF:
-                case JX_PY_ELSE:
+                if(expected_indent != s->current_indent) {
+                  s->context.status = JX_STATUS_SYNTAX_ERROR;
                   break;
-                default:
-                  jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context); 
-                  break;
+                } else if(!s->current_indent) {
+                  switch(tok_type) {
+                  case JX_PY_ELIF:
+                  case JX_PY_ELSE:
+                    break;
+                  default:
+                    jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context); 
+                    break;
+                  }
                 }
               }
             }

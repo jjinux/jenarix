@@ -339,11 +339,361 @@ null;
 #                   [ []])])])
 null;
 
+# ordinary symbols
 # parsed: (if 0
 #           [ []])
 # source: (if 0
 #           [ []])
 #   eval: (`if 0
 #           [ []])
+null;
+
+# parsed: (def fn null
+#           [ (print [1, 2, 3])])
+# source: (def fn null
+#           [ (print [1, 2, 3])])
+#   eval: (`def fn null
+#           [ ( #native_fn`print [1, 2, 3])])
+null;
+
+# parsed: (set a fn)
+# source: (set a fn)
+#   eval: (`set a
+#           (`resolve fn))
+null;
+
+# parsed: (a)
+# source: (a)
+#   eval: [ (`resolve a)]
+[1,2,3]
+null;
+
+# parsed: (del a)
+# source: (del a)
+#   eval: (`del a)
+null;
+
+# this behavior is a little bizzare: calling an unbound (simple)
+# symbol gives that symbol as the first member of an (unevalued) JXON
+# invocation frame (symbol plus args)
+# parsed: (assert (a 1 2)
+#           (a 1 2))
+# source: (assert (a 1 2)
+#           (a 1 2))
+#   eval: (`assert [ (`resolve a),1,2]
+#           [ (`resolve a),1,2])
+true;
+
+# whereas with a compound symbol, we get null with the arguments
+# parsed: (assert (null 3 4)
+#           (a.b 3 4))
+# source: (assert [null,3,4]
+#           (a.b 3 4))
+#   eval: (`assert [null,3,4]
+#           [ (`resolve (a b)),3,4])
+true;
+
+# entities and attributes
+# parsed: (assert (entity Base null
+#             [1, 2, 3] {x:"X", y:"Y"}) Base)
+# source: (assert (entity Base null
+#             [1, 2, 3] {x:"X", y:"Y"}) Base)
+#   eval: (`assert (`entity Base null
+#             [1, 2, 3] {x:"X", y:"Y"})
+#           (`resolve Base))
+true;
+
+# "new" creates entity instances which have
+# their own content, but inherit attributes
+# parsed: (set a
+#           (new Base))
+# source: (set a
+#           (new Base))
+#   eval: (`set a
+#           (`new (`resolve Base)))
+null;
+
+# parsed: (set b
+#           (new Base))
+# source: (set b
+#           (new Base))
+#   eval: (`set b
+#           (`new (`resolve Base)))
+null;
+
+# parsed: (print a b)
+# source: (print a b)
+#   eval: ( #native_fn`print (`resolve a)
+#           (`resolve b))
+[$Base,[1,2,3]] [$Base,[1,2,3]]
+null;
+
+# parsed: (print a.x b.x)
+# source: (print a.x b.x)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (b x)))
+X X
+null;
+
+# setting attributes can be done through simple assignment
+# parsed: (set a.x 2)
+# source: (set a.x 2)
+#   eval: (`set (a x) 2)
+null;
+
+# parsed: (print a.x b.x)
+# source: (print a.x b.x)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (b x)))
+2 X
+null;
+
+# parsed: (print a b)
+# source: (print a b)
+#   eval: ( #native_fn`print (`resolve a)
+#           (`resolve b))
+[$Base,[1,2,3],{x:2}] [$Base,[1,2,3]]
+null;
+
+# instance content is accessed via the zero-length symbol (trailing dot)
+# parsed: (print a.)
+# source: (print a.)
+#   eval: ( #native_fn`print (`resolve (a .)))
+[1,2,3]
+null;
+
+# and can be acted upon using using builtin functions
+# parsed: (print (a..size))
+# source: (print (a..size))
+#   eval: ( #native_fn`print [ (`resolve (a . size))])
+3
+null;
+
+# instance content can be assigned directly
+# parsed: (set a.
+#           [2, 3, 4])
+# source: (set a.
+#           [2, 3, 4])
+#   eval: (`set (a .)
+#           [2, 3, 4])
+null;
+
+# parsed: (print a.)
+# source: (print a.)
+#   eval: ( #native_fn`print (`resolve (a .)))
+[2,3,4]
+null;
+
+# and can be manipulated
+# parsed: (append a. 5)
+# source: (append a. 5)
+#   eval: (`append (`resolve (a .)) 5)
+null;
+
+# parsed: (print a.)
+# source: (print a.)
+#   eval: ( #native_fn`print (`resolve (a .)))
+[2,3,4,5]
+null;
+
+# parsed: (a..reverse)
+# source: (a..reverse)
+#   eval: [ (`resolve (a . reverse))]
+null;
+
+# parsed: (print a.)
+# source: (print a.)
+#   eval: ( #native_fn`print (`resolve (a .)))
+[5,4,3,2]
+null;
+
+# parsed: (assert 4
+#           (a..take 1))
+# source: (assert 4
+#           (a..take 1))
+#   eval: (`assert 4
+#           [ (`resolve (a . take)),1])
+true;
+
+# parsed: (print a.)
+# source: (print a.)
+#   eval: ( #native_fn`print (`resolve (a .)))
+[5,3,2]
+null;
+
+# derived entities can redefine attributes and include their own
+# content prototype
+# parsed: (assert (entity Deriv Base
+#             [3, 4, 5] {x:"XX", z:"Z"}) Deriv)
+# source: (assert (entity Deriv Base
+#             [3, 4, 5] {x:"XX", z:"Z"}) Deriv)
+#   eval: (`assert (`entity Deriv
+#             (`resolve Base)
+#             [3, 4, 5] {x:"XX", z:"Z"})
+#           (`resolve Deriv))
+true;
+
+# parsed: (set a
+#           (new Deriv))
+# source: (set a
+#           (new Deriv))
+#   eval: (`set a
+#           (`new (`resolve Deriv)))
+null;
+
+# parsed: (print a.x a.y a.z)
+# source: (print a.x a.y a.z)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (a y))
+#           (`resolve (a z)))
+XX Y Z
+null;
+
+# parsed: (set a.z "ZZZ")
+# source: (set a.z "ZZZ")
+#   eval: (`set (a z) "ZZZ")
+null;
+
+# parsed: (print a.x a.y a.z)
+# source: (print a.x a.y a.z)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (a y))
+#           (`resolve (a z)))
+XX Y ZZZ
+null;
+
+# parsed: (assert "ZZZ" a.z)
+# source: (assert "ZZZ" a.z)
+#   eval: (`assert "ZZZ"
+#           (`resolve (a z)))
+true;
+
+# parsed: (set b
+#           (new Deriv))
+# source: (set b
+#           (new Deriv))
+#   eval: (`set b
+#           (`new (`resolve Deriv)))
+null;
+
+# notice how content is independent -- copied, not inherited
+# parsed: (a..append 3)
+# source: (a..append 3)
+#   eval: [ (`resolve (a . append)),3]
+null;
+
+# parsed: (print a. b.)
+# source: (print a. b.)
+#   eval: ( #native_fn`print (`resolve (a .))
+#           (`resolve (b .)))
+[3,4,5,3] [3,4,5]
+null;
+
+# entity definitions with methods 
+# parsed: (assert (entity Base null
+#             [1, 2, 3] {fill_content: (lambda (self cnt what)
+#               (set self.
+#                 (fill cnt what))), get_content: (lambda (self) self.), reverse_content: (lambda (self)
+#               (self..reverse))}) Base)
+# source: (assert (entity Base null
+#             [1, 2, 3] {fill_content: (lambda (self cnt what)
+#               (set self.
+#                 (fill cnt what))), get_content: (lambda (self) self.), reverse_content: (lambda (self)
+#               (self..reverse))}) Base)
+#   eval: (`assert (`entity Base null
+#             [1, 2, 3] {fill_content: (`lambda (self cnt what)
+#               (`set (self .)
+#                 (`fill (`resolve cnt)
+#                   (`resolve what)))), get_content: (`lambda (self)
+#               (`resolve (self .))), reverse_content: (`lambda (self)
+#               [ (`resolve (self . reverse))])})
+#           (`resolve Base))
+true;
+
+# parsed: (set a
+#           (new Base))
+# source: (set a
+#           (new Base))
+#   eval: (`set a
+#           (`new (`resolve Base)))
+null;
+
+# parsed: (print (a.get_content))
+# source: (print (a.get_content))
+#   eval: ( #native_fn`print [ (`resolve (a get_content))])
+[1,2,3]
+null;
+
+# parsed: (set a.
+#           [4, 5, 6])
+# source: (set a.
+#           [4, 5, 6])
+#   eval: (`set (a .)
+#           [4, 5, 6])
+null;
+
+# parsed: (print (a.get_content))
+# source: (print (a.get_content))
+#   eval: ( #native_fn`print [ (`resolve (a get_content))])
+[4,5,6]
+null;
+
+# parsed: (a.reverse_content)
+# source: (a.reverse_content)
+#   eval: [ (`resolve (a reverse_content))]
+null;
+
+# parsed: (print (a.get_content))
+# source: (print (a.get_content))
+#   eval: ( #native_fn`print [ (`resolve (a get_content))])
+[6,5,4]
+null;
+
+# parsed: (a.fill_content 8 5)
+# source: (a.fill_content 8 5)
+#   eval: [ (`resolve (a fill_content)),8,5]
+null;
+
+# parsed: (print (a.get_content))
+# source: (print (a.get_content))
+#   eval: ( #native_fn`print [ (`resolve (a get_content))])
+[5,5,5,5,5,5,5,5]
+null;
+
+# parsed: (del a)
+# source: (del a)
+#   eval: (`del a)
+null;
+
+# one key thing to understand about jenarix is that dot notation
+# cannot currently be used on intermedate results: a.b().d.e must
+# instead be split up into two commands which involve binding of a
+# temporary symbol which is then itself used with dot notation
+# parsed: (set a {b: (lambda null {d: {e: [1, 2]}})})
+# source: (set a {b: (lambda null {d: {e: [1, 2]}})})
+#   eval: (`set a {b: (`lambda null {d: {e: [1, 2]}})})
+null;
+
+# parsed: (set tmp
+#           (a.b))
+# source: (set tmp
+#           (a.b))
+#   eval: (`set tmp
+#           [ (`resolve (a b))])
+null;
+
+# parsed: (print tmp.d.e)
+# source: (print tmp.d.e)
+#   eval: ( #native_fn`print (`resolve (tmp d e)))
+[1,2]
+null;
+
+# this requirement arises from the Jenarix requirement that all
+# resolved value references must refer to object which lie somewhere
+# on the directed acyclic graph of the current scope (and are thus
+# persistent)
+# parsed: null
+# source: null
+#   eval: null
 null;
 

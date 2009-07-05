@@ -205,7 +205,7 @@ static int jx_scan(jx_jxon_scanner_state *s)
     
     "."         { RET(JX_JXON_IDENT); } /* isolated dot is the blank identifier */
 
-    LD ("." LD)* "."? { RET(JX_JXON_IDENT); }
+    LD ("." "."? LD)* "."? { RET(JX_JXON_IDENT); }
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ([+\-]? D+ IS?) { RET(JX_JXON_ICON); }
 

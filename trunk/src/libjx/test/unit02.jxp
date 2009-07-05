@@ -124,11 +124,141 @@ while a:
 if 0:
     pass
 
+# ordinary symbols
 
+def fn():
+    print [1,2,3]
 
+a=fn
 
+a()
 
+del a
 
+# this behavior is a little bizzare: calling an unbound (simple)
+# symbol gives that symbol as the first member of an (unevalued) JXON
+# invocation frame (symbol plus args)
 
+assert([a,1,2], a(1,2))
+
+# whereas with a compound symbol, we get null with the arguments
+
+assert([null,3,4], a.b(3,4))
+
+# entities and attributes
+
+assert( entity(Base,null,[1,2,3],{x:"X",y:"Y"}), Base)
+
+# "new" creates entity instances which have
+# their own content, but inherit attributes
+
+a=new(Base)
+b=new(Base)
+
+print a, b
+
+print a.x, b.x
+
+# setting attributes can be done through simple assignment
+
+a.x=2
+
+print a.x, b.x
+
+print a,b
+
+# instance content is accessed via the zero-length symbol (trailing dot)
+
+print a.
+
+# and can be acted upon using using builtin functions
+
+print a..size()
+
+# instance content can be assigned directly
+
+a.=[2,3,4]
+
+print a.
+
+# and can be manipulated
+
+append(a., 5)
+
+print a.
+
+a..reverse()
+
+print a.
+
+assert(4, a..take(1))
+
+print a.
+
+# derived entities can redefine attributes and include their own
+# content prototype
+
+assert( entity(Deriv, Base, [3,4,5], {x:"XX", z:"Z"}), Deriv)
+
+a = new(Deriv)
+
+print a.x, a.y, a.z
+
+a.z="ZZZ"
+
+print a.x, a.y, a.z
+
+assert("ZZZ",a.z)
+
+b = new(Deriv)
+
+# notice how content is independent -- copied, not inherited
+
+a..append(3)
+
+print a., b.
+
+# entity definitions with methods 
+
+assert(
+    entity(Base, null, [1,2,3], 
+    { get_content: lambda self:self.,
+      reverse_content: lambda self:self..reverse(),
+      fill_content: lambda self,cnt,what: set(self., fill(cnt,what))
+      }), Base )
+
+a=new(Base)
+
+print a.get_content()
+
+a.=[4,5,6]
+
+print a.get_content()
+
+a.reverse_content()
+
+print a.get_content()
+
+a.fill_content(8,5)
+
+print a.get_content()
+
+del a
+
+# one key thing to understand about jenarix is that dot notation
+# cannot currently be used on intermedate results: a.b().d.e must
+# instead be split up into two commands which involve binding of a
+# temporary symbol which is then itself used with dot notation
+
+a={b:lambda :{d:{e:[1,2]}}}
+
+tmp = a.b()
+
+print tmp.d.e
+
+# this requirement arises from the Jenarix requirement that all
+# resolved value references must refer to object which lie somewhere
+# on the directed acyclic graph of the current scope (and are thus
+# persistent)
 
 

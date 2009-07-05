@@ -1725,7 +1725,7 @@ jx_ob jx_ident_split_from_dotted(jx_ob ident)
       jx_char *next;
       while( (next=jx_strstr(st,".")) ) {
         jx_int len = (next-st);
-        if(len>0) {
+        if(len>=0) {
           jx_list_append(result, jx_ob_from_ident_with_len(st,len));
         } else {
           jx_ob_free(result);
@@ -1756,7 +1756,7 @@ jx_ob jx_ident_split_with_dotted(jx_ob ident)
       jx_char *next;
       while( (next=jx_strstr(st,".")) ) {
         jx_int len = (next-st);
-        if(len>0) {
+        if(len>=0) {
           jx_list_append(result, jx_ob_from_ident_with_len(st,len));
         } else {
           jx_ob_free(result);
