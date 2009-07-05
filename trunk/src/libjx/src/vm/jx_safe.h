@@ -82,7 +82,11 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_ob container, jx_ob target, j
            jx_ob_as_int(target),
            jx_ob_not_weak_with_ob( value ));
       } else {
-        return jx__list_entity_set(container.data.io.list, target, value);
+        status = jx__list_entity_set(container.data.io.list, target, value);
+        if(JX_ERR(status)) {
+          jx_ob_free(value);
+        }
+        return status;
       }
       break;
     case JX_META_BIT_HASH:

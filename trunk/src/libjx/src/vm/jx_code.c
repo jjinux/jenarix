@@ -194,6 +194,10 @@ static jx_ob jx__code_bind_with_source(jx_ob prebind, jx_ob source, jx_int unres
               resolution = JX_RESOLUTION_FUNDEF;
               unresolved = 3;
               break;
+            case JX_SELECTOR_RESOLVE:
+              resolution = JX_RESOLUTION_RVALUE; /* ? */
+              unresolved = 2;
+              break;
             }
           }
           jx_list_replace(source, 0, builtin);
@@ -1588,7 +1592,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
                 if(size) 
                   jx_ob_replace(result_vla,method);
               }
-              //              jx_jxon_dump(stdout,"result",node,result);
+              //jx_jxon_dump(stdout,"result",result);
             }
 
             /* WARNING / REMINDER: we may now have some weak

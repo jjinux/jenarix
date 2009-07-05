@@ -3190,13 +3190,178 @@ true;
 #   eval: (`assert (`del Base))
 true;
 
-# entity attributes handling (set,get,take,has,del)
+# confirm that dot notation: resolution, recall, and simple function
+# invocation works as expected for ordinary containers
 # source: (assert {}
 #           (symbols false))
 #   eval: (`assert {}
 #           (`symbols false))
 true;
 
+# source: (assert (set a
+#             [1, 2, 3]))
+#   eval: (`assert (`set a
+#             [1, 2, 3]))
+true;
+
+# source: (assert 3
+#           (a.size))
+#   eval: (`assert 3
+#           [ (`resolve (a size))])
+true;
+
+# source: (assert (set a {}))
+#   eval: (`assert (`set a {}))
+true;
+
+# source: (assert (set a.b.c
+#             [1, 2, 3, 4]))
+#   eval: (`assert (`set (a b c)
+#             [1, 2, 3, 4]))
+true;
+
+# source: (assert [1, 2, 3, 4] a.b.c)
+#   eval: (`assert [1, 2, 3, 4]
+#           (`resolve (a b c)))
+true;
+
+# source: (assert 1
+#           (a.size))
+#   eval: (`assert 1
+#           [ (`resolve (a size))])
+true;
+
+# source: (assert 1
+#           (a.b.size))
+#   eval: (`assert 1
+#           [ (`resolve (a b size))])
+true;
+
+# source: (assert 4
+#           (a.b.c.size))
+#   eval: (`assert 4
+#           [ (`resolve (a b c size))])
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert (set a
+#             [1, [2, 3, 4]]))
+#   eval: (`assert (`set a
+#             [1, [2, 3, 4]]))
+true;
+
+# source: (assert 2
+#           (a.size))
+#   eval: (`assert 2
+#           [ (`resolve (a size))])
+true;
+
+# source: (assert 3
+#           (size (a.get 1)))
+#   eval: (`assert 3
+#           (`size [ (`resolve (a get)),1]))
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert (set a
+#             [1, (lambda (x)
+#                 (x x x))]))
+#   eval: (`assert (`set a
+#             [1, (`lambda (x)
+#                 [ (`resolve x), (`resolve x),
+#                   (`resolve x)])]))
+true;
+
+# source: (assert (lambda (x)
+#             (x x x))
+#           (a.get 1))
+#   eval: (`assert (`lambda (x)
+#             [ (`resolve x), (`resolve x),
+#               (`resolve x)])
+#           [ (`resolve (a get)),1])
+true;
+
+# source: (assert 2
+#           (a.size))
+#   eval: (`assert 2
+#           [ (`resolve (a size))])
+true;
+
+# source: (assert [3, 3, 3]
+#           [ (a.get 1),3])
+#   eval: (`assert [3, 3, 3]
+#           [ [ (`resolve (a get)),1],3])
+true;
+
+# source: (assert 3
+#           (size [ (a.get 1),null]))
+#   eval: (`assert 3
+#           (`size [ [ (`resolve (a get)),1],null]))
+true;
+
+# source: (assert 3
+#           (size [ (a.get 1)]))
+#   eval: (`assert 3
+#           (`size [ [ (`resolve (a get)),1]]))
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert (set a {fn1: (lambda (x)
+#               (x 2 3 4))}))
+#   eval: (`assert (`set a {fn1: (`lambda (x)
+#               [ (`resolve x),2,3,4])}))
+true;
+
+# source: (assert (x 2 3 4)
+#           (a.fn1))
+#   eval: (`assert [ (`resolve x),2,3,4]
+#           [ (`resolve (a fn1))])
+true;
+
+# source: (assert [1, 2, 3, 4]
+#           (a.fn1 1))
+#   eval: (`assert [1, 2, 3, 4]
+#           [ (`resolve (a fn1)),1])
+true;
+
+# source: (assert (del a))
+#   eval: (`assert (`del a))
+true;
+
+# source: (assert {}
+#           (symbols false))
+#   eval: (`assert {}
+#           (`symbols false))
+true;
+
+# right now, unresolved plain symbols are passed through unchanged
+# source: (assert (nop a) a)
+#   eval: (`assert a
+#           (`resolve a))
+true;
+
+# source: (assert (nop hello) hello)
+#   eval: (`assert hello
+#           (`resolve hello))
+true;
+
+# however, unsolved "dotted" sequences are currently resolving to null
+# (previously, they were being returned intact)
+# source: (assert null a.b)
+#   eval: (`assert null
+#           (`resolve (a b)))
+true;
+
+# entity attributes handling (set,get,take,has,del)
 # source: (assert (entity E) E)
 #   eval: (`assert (`entity E)
 #           (`resolve E))

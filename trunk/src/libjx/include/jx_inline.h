@@ -3285,7 +3285,8 @@ JX_INLINE jx_ob jx__list_entity_resolve_path(jx_list *I, jx_ob *target)
   return result;
 }
 
-JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
+JX_INLINE jx_status jx__resolve_path(jx_tls *tls, jx_ob node, 
+                                     jx_ob *container,jx_ob *target)
 {
   if(jx_list_check(*target)) { /* compound indentifier */
     jx_int i,path_size = jx_list_size(*target);
@@ -3294,6 +3295,15 @@ JX_INLINE jx_status jx__resolve_path(jx_ob *container,jx_ob *target)
       return JX_NO;
     for(i=0;i<path_size;i++) {
       *target = jx_list_borrow(path,i);
+      if(jx_list_check(*target)) {
+#if 0       
+        printf("DEBUG nested eval\n"); /* here we need to call eval in
+                                        order to get target...and we
+                                        need to free the result once
+                                        we're through with it */
+        jx_jxon_dump(stdout,"nested",*target);
+#endif
+      }
       if((1+i)<path_size) {
         switch(container->meta.bits & JX_META_MASK_TYPE_BITS) {
         case JX_META_BIT_LIST:
@@ -3392,6 +3402,9 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls, jx_ob node,
               meth_or_attr = jx_entity_resolve_name(node, entity_ob[0], *target);
               //jx_jxon_dump(stdout,"method",meth_or_attr);
             }
+            //jx_jxon_dump(stdout,"meth_or_attr",meth_or_attr);
+            //jx_jxon_dump(stdout,"container",*container);
+            //jx_jxon_dump(stdout,"target",*target);
             if(jx_null_check(meth_or_attr)) {
               if(tls && (!tls->have_method)) {
                 if(!jx_hash_peek(&tls->method, tls->builtins, *target))
@@ -3414,8 +3427,13 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls, jx_ob node,
         }
         break;
       }
-    } else {
-      status = JX_STATUS_INVALID_CONTAINER;
+    } else { /* not an entity -- just an ordinary list */
+      if(tls && (!tls->have_method)) {
+        if(!jx_hash_peek(&tls->method, tls->builtins, *target))
+          tls->method = jx_ob_from_null();
+        tls->have_method = JX_TRUE;
+        status = JX_YES;
+      }
     }
     jx_gc_unlock(&I->gc);
   }
@@ -3424,13 +3442,14 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls, jx_ob node,
 
 JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *target)
 {
+
   if(jx_weak_check(*target)) { /* weak reference to actual container? use it! */
     *container = *target;
     return JX_YES;
   }
   {
     jx_ob node = *container;
-    jx_status status = jx__resolve_path(container,target);
+    jx_status status = jx__resolve_path(tls, node, container,target);
     //jx_jxon_dump(stdout,"container",*container);
     //jx_jxon_dump(stdout,"target",*target);
     if(JX_POS(status)) {
