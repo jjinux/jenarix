@@ -3285,7 +3285,7 @@ JX_INLINE jx_ob jx__list_entity_resolve_path(jx_list *I, jx_ob *target)
   return result;
 }
 
-JX_INLINE jx_status jx__resolve_path(jx_tls *tls, jx_ob node, 
+JX_INLINE jx_status jx__resolve_path(
                                      jx_ob *container,jx_ob *target)
 {
   if(jx_list_check(*target)) { /* compound indentifier */
@@ -3449,7 +3449,7 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
   }
   {
     jx_ob node = *container;
-    jx_status status = jx__resolve_path(tls, node, container,target);
+    jx_status status = jx__resolve_path(container,target);
     //jx_jxon_dump(stdout,"container",*container);
     //jx_jxon_dump(stdout,"target",*target);
     if(JX_POS(status)) {
