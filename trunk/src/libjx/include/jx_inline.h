@@ -1968,13 +1968,6 @@ JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
   return jx_tls_hash_set(JX_NULL, hash, key, value);
 }
 
-JX_INLINE jx_status jx_tls_hash_set(jx_tls *tls, jx_ob hash, jx_ob key, jx_ob value)
-{
-  jx_status result = (hash.meta.bits & JX_META_BIT_HASH) ?
-    jx__tls_hash_set(tls, hash.data.io.hash, key, value) : JX_FAILURE;
-  return result;
-}
-
 jx_bool jx__hash_has_key(jx_hash * I, jx_ob key);
 JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
 {
