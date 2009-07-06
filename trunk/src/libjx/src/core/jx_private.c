@@ -5888,5 +5888,6 @@ jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node)
       jx_tls_ob_free(tls,keys);
     }
   }
+  return JX_SUCCESS;
 }
 
