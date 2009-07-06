@@ -1931,9 +1931,9 @@ true;
 
 # referring to Vector inside the function is sufficient to create the
 # closure
-# source: (assert (entity Vector VectorBase null null) Vector)
+# source: (assert (entity Vector VectorBase) Vector)
 #   eval: (`assert (`entity Vector
-#             (`resolve VectorBase) null null)
+#             (`resolve VectorBase))
 #           (`resolve Vector))
 true;
 
@@ -1949,7 +1949,7 @@ true;
 # if we create some vector instances
 # source: (assert (output (impl myfn)))
 #   eval: (`assert (`output (`impl (`resolve myfn))))
-[myfn,[[a,b],{Vector:$Vector,$Vector:[$VectorBase,null,null],$VectorBase:[null,null,{add:fn`vector.add_0xXXXXXX}]}],[[[`resolve,Vector]],[[`resolve,[a,add]],[`resolve,b]]],true];
+[myfn,[[a,b],{Vector:$Vector,$Vector:[$VectorBase],$VectorBase:[null,null,{add:fn`vector.add_0xXXXXXX}]}],[[[`resolve,Vector]],[[`resolve,[a,add]],[`resolve,b]]],true];
 true;
 
 # source: (assert (set v1
@@ -2558,7 +2558,7 @@ true;
 # creating an instance the manual way...
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Vector:$Vector, $Vector: [null,null,null]}
+#  dump: {Vector:$Vector, $Vector:null}
 true;
 
 # source: (assert (set vect1

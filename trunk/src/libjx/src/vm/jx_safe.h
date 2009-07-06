@@ -54,15 +54,31 @@ JX_INLINE jx_ob jx_safe_entity(jx_ob node, jx_ob payload)
 {
   jx_ob name = jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,0));
   jx_ob entity = jx_builtin_new_entity_with_name(jx_ob_copy(name));
+  jx_int size = jx_list_size(payload) - 1;
   jx_hash_set(node, name, jx_ob_copy(entity));
-  {
-    jx_ob def = jx_list_new_with_size(3);
-    jx_list_replace(def, 0, 
-                    jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1)));
-    jx_list_replace(def, 1, 
-                    jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)));
-    jx_list_replace(def, 2, 
-                    jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3)));
+  { 
+    jx_ob def = jx_ob_from_null();
+    if(size) {
+      def = jx_list_new_with_size(size);
+      switch(size) {
+      default:
+      case 5:
+        jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
+                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,5)));
+      case 4:
+        jx_list_replace(def, JX_ENTITY_DESTRUCTOR,
+                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,4)));
+      case 3:
+        jx_list_replace(def, JX_ENTITY_ATTR_HASH,
+                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3)));
+      case 2:
+        jx_list_replace(def, JX_ENTITY_CONTENT_LIST,
+                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)));
+      case 1:
+        jx_list_replace(def, JX_ENTITY_BASE_HANDLE,
+                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1)));
+      }
+    }
     jx_hash_set(node, jx_ob_copy(entity), def);
   }
   //  jx_ob_dump(stdout,"entity",entity);
@@ -200,8 +216,9 @@ JX_INLINE jx_ob jx_safe_take(jx_ob container, jx_ob payload)
 }
 
 
-JX_INLINE jx_ob jx_safe_del(jx_ob container, jx_ob payload)
+JX_INLINE jx_ob jx_safe_del(jx_tls *tls, jx_ob payload)
 {
+  jx_ob container = tls->node;
   jx_ob target =  jx_list_borrow(payload,0);
   jx_int size = jx_list_size(payload);
   jx_status status = size>1 ?
@@ -221,7 +238,7 @@ JX_INLINE jx_ob jx_safe_del(jx_ob container, jx_ob payload)
       break;
     case JX_META_BIT_HASH:
       return jx_ob_from_status
-        (jx_hash_delete(container, target));
+        (jx_tls_hash_delete(tls,container, target));
       break;
     default:
       return jx_ob_from_status(JX_STATUS_INVALID_CONTAINER);

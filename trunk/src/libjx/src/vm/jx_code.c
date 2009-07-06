@@ -429,9 +429,10 @@ JX_INLINE void jx__code_copy_weak_transients(jx_ob *ob,jx_int size)
   }
 }
 
-JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node, 
+JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, 
                                         jx_ob callable, jx_ob payload)
-{ /* frees callable; payload is consumed */
+{ 
+  /* frees callable; payload is consumed */
   //    jx_jxon_dump(stdout,"apply callable",callable);
   //    jx_jxon_dump(stdout,"       payload",payload);
   switch(callable.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
@@ -444,14 +445,14 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
     {
       jx_native_fn native_fn = callable.data.io.native_fn;
       if(native_fn) {
-        jx_ob result = native_fn(node, jx_ob_not_weak_with_ob(payload));
+        jx_ob result = native_fn(tls->node, jx_ob_not_weak_with_ob(payload));
         jx_ob_free(callable);
         return result;
       }
     }
     break;
   case JX_META_BIT_BUILTIN_FUNCTION:
-    return jx__function_call(tls, node, callable, jx_ob_not_weak_with_ob(payload));
+    return jx__function_call(tls, tls->node, callable, jx_ob_not_weak_with_ob(payload));
     break;
   case JX_META_BIT_BUILTIN_SELECTOR:
     {
@@ -481,179 +482,179 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls *tls, jx_ob node,
         payload = jx_ob_from_null();
         break;
       case JX_SELECTOR_ENTITY:
-        jx_tls_ob_replace(tls, &payload, jx_safe_entity(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_entity(tls->node, payload));
         break;
       case JX_SELECTOR_SET:
-        jx_tls_ob_replace(tls, &payload, jx_safe_set(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_set(tls->node, payload));
         break;
       case JX_SELECTOR_GET:
-        jx_tls_ob_replace(tls, &payload, jx_safe_get(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_get(tls->node, payload));
         break;
       case JX_SELECTOR_TAKE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_take(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_take(tls->node, payload));
         break;
       case JX_SELECTOR_DEL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_del(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_del(tls, payload));
         break;
       case JX_SELECTOR_SIZE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_size(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_size(tls->node, payload));
         break;
       case JX_SELECTOR_SAME:
-        jx_tls_ob_replace(tls, &payload, jx_safe_same(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_same(tls->node, payload));
         break;
       case JX_SELECTOR_IDENTICAL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_identical(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_identical(tls->node, payload));
         break;
       case JX_SELECTOR_EQ:
-        jx_tls_ob_replace(tls, &payload, jx_safe_eq(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_eq(tls->node, payload));
         break;
       case JX_SELECTOR_NE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_ne(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_ne(tls->node, payload));
         break;
       case JX_SELECTOR_LT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_lt(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_lt(tls->node, payload));
         break;
       case JX_SELECTOR_GT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_gt(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_gt(tls->node, payload));
         break;
       case JX_SELECTOR_LE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_le(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_le(tls->node, payload));
         break;
       case JX_SELECTOR_GE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_ge(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_ge(tls->node, payload));
         break;
       case JX_SELECTOR_ADD:
-        jx_tls_ob_replace(tls, &payload, jx_safe_add(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_add(tls->node, payload));
         break;
       case JX_SELECTOR_SUB:
-        jx_tls_ob_replace(tls, &payload, jx_safe_sub(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_sub(tls->node, payload));
         break;
       case JX_SELECTOR_MUL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_mul(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_mul(tls->node, payload));
         break;
       case JX_SELECTOR_DIV:
-        jx_tls_ob_replace(tls, &payload, jx_safe_div(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_div(tls->node, payload));
         break;
       case JX_SELECTOR_IDIV:
-        jx_tls_ob_replace(tls, &payload, jx_safe_idiv(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_idiv(tls->node, payload));
         break;
       case JX_SELECTOR_MOD:
-        jx_tls_ob_replace(tls, &payload, jx_safe_mod(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_mod(tls->node, payload));
         break;
 
       case JX_SELECTOR_AND:
-        jx_tls_ob_replace(tls, &payload, jx_safe_and(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_and(tls->node, payload));
         break;
       case JX_SELECTOR_OR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_or(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_or(tls->node, payload));
         break;
       case JX_SELECTOR_POW:
-        jx_tls_ob_replace(tls, &payload, jx_safe_pow(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_pow(tls->node, payload));
         break;
 
       case JX_SELECTOR_NEG:
-        jx_tls_ob_replace(tls, &payload, jx_safe_neg(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_neg(tls->node, payload));
         break;
       case JX_SELECTOR_NOT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_not(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_not(tls->node, payload));
         break;
 
       case JX_SELECTOR_OUTPUT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_output(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_output(tls->node, payload));
         break;
       case JX_SELECTOR_ERROR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_error(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_error(tls->node, payload));
         break;
 
       case JX_SELECTOR_APPEND:
-        jx_tls_ob_replace(tls, &payload, jx_safe_append(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_append(tls->node, payload));
         break;
       case JX_SELECTOR_EXTEND:
-        jx_tls_ob_replace(tls, &payload, jx_safe_extend(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_extend(tls->node, payload));
         break;
       case JX_SELECTOR_INSERT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_insert(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_insert(tls->node, payload));
         break;
       case JX_SELECTOR_RESIZE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_resize(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_resize(tls->node, payload));
         break;
       case JX_SELECTOR_POP:
-        jx_tls_ob_replace(tls, &payload, jx_safe_pop(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_pop(tls->node, payload));
         break;
       case JX_SELECTOR_PUSH:
-        jx_tls_ob_replace(tls, &payload, jx_safe_append(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_append(tls->node, payload));
         break;
       case JX_SELECTOR_SHIFT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_shift(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_shift(tls->node, payload));
         break;
       case JX_SELECTOR_UNSHIFT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_unshift(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_unshift(tls->node, payload));
         break;
       case JX_SELECTOR_SLICE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_slice(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_slice(tls->node, payload));
         break;
       case JX_SELECTOR_CUTOUT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_cutout(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_cutout(tls->node, payload));
         break;
       case JX_SELECTOR_REVERSE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_reverse(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_reverse(tls->node, payload));
         break;
       case JX_SELECTOR_SORT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_sort(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_sort(tls->node, payload));
         break;
       case JX_SELECTOR_IMPL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_impl(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_impl(tls->node, payload));
         break;
       case JX_SELECTOR_DECR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_decr(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_decr(tls->node, payload));
         break;
       case JX_SELECTOR_INCR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_incr(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_incr(tls->node, payload));
         break;
       case JX_SELECTOR_RANGE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_range(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_range(tls->node, payload));
         break;
       case JX_SELECTOR_FILL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_fill(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_fill(tls->node, payload));
         break;
       case JX_SELECTOR_SYMBOLS:
-        jx_tls_ob_replace(tls, &payload, jx_safe_symbols(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_symbols(tls->node, payload));
         break;
       case JX_SELECTOR_HAS:
-        jx_tls_ob_replace(tls, &payload, jx_safe_has(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_has(tls->node, payload));
         break;
       case JX_SELECTOR_STR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_str(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_str(tls->node, payload));
         break;
       case JX_SELECTOR_INT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_int(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_int(tls->node, payload));
         break;
       case JX_SELECTOR_FLOAT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_float(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_float(tls->node, payload));
         break;
       case JX_SELECTOR_BOOL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_bool(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_bool(tls->node, payload));
         break;
       case JX_SELECTOR_SYNCHRONIZE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_synchronize(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_synchronize(tls->node, payload));
         break;
       case JX_SELECTOR_SYNCHRONIZED:
-        jx_tls_ob_replace(tls, &payload, jx_safe_synchronized(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_synchronized(tls->node, payload));
         break;
       case JX_SELECTOR_SHARE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_share(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_share(tls->node, payload));
         break;
       case JX_SELECTOR_SHARED:
-        jx_tls_ob_replace(tls, &payload, jx_safe_shared(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_shared(tls->node, payload));
         break;
       case JX_SELECTOR_ASSERT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_assert(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_assert(tls->node, payload));
         break;
       case JX_SELECTOR_DUMP:
-        jx_tls_ob_replace(tls, &payload, jx_safe_dump(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_dump(tls->node, payload));
         break;
       case JX_SELECTOR_NEW:
-        jx_tls_ob_replace(tls, &payload, jx_safe_new(node, payload));
+        jx_tls_ob_replace(tls, &payload, jx_safe_new(tls->node, payload));
         break;
       default: /* unrecognized selector? purge weak */
         jx_ob_free(callable);
@@ -713,7 +714,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_tls *tls, jx_int flags, jx_ob node, jx_ob cal
             *right_ob = *(inp_ob++);
             jx_tls_ob_replace(tls, left_ob, 
                               jx__code_apply_callable
-                              (tls, node, callable_weak_ref, jx_tls_ob_copy(tls,arg_ob)));
+                              (tls, callable_weak_ref, jx_tls_ob_copy(tls,arg_ob)));
           }
           break;
         }
@@ -751,7 +752,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_tls *tls, jx_int flags, jx_ob node, jx_ob cal
             right_ob->data.io.int_ = *(inp_int++);
             jx_tls_ob_replace(tls, left_ob, 
                                jx__code_apply_callable
-                              (tls, node, callable_weak_ref, 
+                              (tls, callable_weak_ref, 
                                jx_tls_ob_copy(tls,arg_ob)));
           }
           break;
@@ -789,7 +790,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_tls *tls, jx_int flags, jx_ob node, jx_ob cal
             right_ob->data.io.float_ = *(inp_float++);
             jx_tls_ob_replace(tls, left_ob, 
                                jx__code_apply_callable
-                              (tls, node, callable_weak_ref, 
+                              (tls, callable_weak_ref, 
                                jx_tls_ob_copy(tls,arg_ob)));
           }
           break;
@@ -819,15 +820,10 @@ typedef struct {
 static void *thread_fn(void *id_ptr)
 {
   jx_thread_info *info = (jx_thread_info*)id_ptr;
-  jx_tls *tls = jx_tls_new(); // use stack not heap?
-
-  //  printf("thread %d started\n",info->id);
-
-  tls->builtins = jx_hash_borrow(info->node,jx_ob_from_null());
-
+  jx_tls *tls = jx_tls_new(info->node); 
 
   info->payload = jx__code_apply_callable
-    (tls, info->node, info->callable, info->payload);
+    (tls, info->callable, info->payload);
   
   jx_tls_free(tls);
   //  printf("thread %d complete\n",info->id);
@@ -900,7 +896,7 @@ JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
         default:
           for(i=0;i<size;i++) {
             *(out_ob++) = jx__code_apply_callable
-              (tls, node, callable_weak_ref, *(inp_ob++));
+              (tls, callable_weak_ref, *(inp_ob++));
           }
           break;
         }
@@ -931,7 +927,7 @@ JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
           for(i=0;i<size;i++) {
             inp_ob.data.io.int_ = *(inp_int++);
             *(out_ob++) = jx__code_apply_callable
-              (tls, node, callable_weak_ref, inp_ob);
+              (tls, callable_weak_ref, inp_ob);
           }
           break;
         }
@@ -962,7 +958,7 @@ JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
           for(i=0;i<size;i++) {
             inp_ob.data.io.float_ = *(inp_float++);
             *(out_ob++) = jx__code_apply_callable
-              (tls, node, callable_weak_ref, inp_ob);
+              (tls, callable_weak_ref, inp_ob);
           }
           break;
         }
@@ -970,7 +966,7 @@ JX_INLINE jx_ob jx__code_map1(jx_tls *tls, jx_int flags, jx_ob node, jx_ob calla
         for(i=0;i<size;i++) {
           jx__tls_list_replace
             (tls, out_list, i,jx__code_apply_callable
-             (tls, node, callable_weak_ref, jx__list_swap_with_null(inp_list, i)));
+             (tls, callable_weak_ref, jx__list_swap_with_null(inp_list, i)));
         }
       }
       jx_tls_list_repack(tls,out);
@@ -1017,7 +1013,7 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls *tls, jx_int flags, jx_ob node,
                           (jx_list_borrow(jx_list_borrow(src_list,j),i)));
         }
         jx_tls_list_replace(tls,out,i,jx__code_apply_callable
-                        (tls, node, callable_weak_ref, 
+                        (tls, callable_weak_ref, 
                          jx_tls_ob_copy(tls,arg_ob)));
       }
       jx_tls_list_repack(tls,out);
@@ -1090,6 +1086,8 @@ JX_INLINE jx_ob jx_tls_code_eval_to_weak(jx_tls *tls, jx_int flags, jx_ob node, 
 
 static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_ob expr)
 {
+  /* tls may NOT be NULL at this point */
+
   register jx_int flags_ = flags;
   if(flags_ & JX_EVAL_DEBUG_MASK) {
     if(flags_ & JX_EVAL_DEBUG_TRACE) {
@@ -1423,7 +1421,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
               jx_ob payload = (size>2) ? jx_tls_code_eval(tls, flags_, node, expr_vla[2]) :
                 jx_ob_from_null();
               if(jx_builtin_callable_check(callable)) {
-                return jx__code_apply_callable(tls, node, callable, payload);
+                jx_ob result = jx__code_apply_callable(tls, callable, payload);
+                //jx_jxon_dump(stdout,"apply_result",result);
+                return result;
               } else {   
                 jx_ob_free(callable);
                 jx_tls_ob_free(tls,payload);
@@ -1650,14 +1650,14 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls,jx_int flags, jx_ob node, jx_
                 /* builtin safe functions do not consume their inputs  */
                 {
                   jx_ob callable = jx__list_remove(result_list,0);
-                  return jx__code_apply_callable(tls, node, callable, result);
+                  return jx__code_apply_callable(tls, callable, result);
                 }
                 break;
               default:
                 jx__code_copy_weak_transients(result_list->data.ob_vla + 1,size - 1);
                 {
                   jx_ob callable = jx__list_remove(result_list,0);
-                  return jx__code_apply_callable(tls, node, callable, result);
+                  return jx__code_apply_callable(tls, callable, result);
                 }
                 break;
               }
@@ -1776,8 +1776,7 @@ jx_ob jx__tls_code_eval(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
   if(tls) {
     result = jx_ob_not_weak_with_ob(jx__tls_code_eval_to_weak(tls,flags,node,code));
   } else {
-    jx_tls *tls = jx_tls_new(); // use stack not heap?
-    tls->builtins = jx_hash_borrow(node,jx_builtins());
+    jx_tls *tls = jx_tls_new(node);
     result = jx_ob_not_weak_with_ob(jx__tls_code_eval_to_weak(tls,flags,node,code));    
     if(tls->have_method) { 
       jx_ob_replace(&result,jx_ob_not_weak_with_ob(tls->method));
@@ -1795,8 +1794,7 @@ jx_ob jx__tls_code_exec(jx_tls *tls, jx_int flags, jx_ob node, jx_ob code)
   if(tls) {
     result = jx_ob_not_weak_with_ob(jx__tls_code_exec_to_weak(tls,flags,node,code));
   } else {
-    jx_tls *tls = jx_tls_new(); // ditto w/ above
-    tls->builtins = jx_hash_borrow(node,jx_ob_from_null());
+    jx_tls *tls = jx_tls_new(node); // ditto w/ above
     result = jx_ob_not_weak_with_ob(jx__tls_code_exec_to_weak(tls,flags,node,code));
     jx_tls_free(tls);
   }

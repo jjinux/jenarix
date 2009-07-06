@@ -706,7 +706,7 @@ true;
  
 (assert (entity VectorBase null null {add:vector.add}) VectorBase)
 
-(assert (entity Vector VectorBase null null) Vector)
+(assert (entity Vector VectorBase) Vector)
 
 # referring to Vector inside the function is sufficient to create the
 # closure

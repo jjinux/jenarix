@@ -420,7 +420,6 @@ jx_status jx_hash_delete(jx_ob hash, jx_ob key);        /* borrows key and delet
 jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value);      /* borrows value and returns borrowed key */
 jx_ob jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns owned copy of key */
 
-
 /* json input */
 
 jx_ob jx_ob_from_jxon_str(jx_char * str);
@@ -474,14 +473,15 @@ jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode);
 jx_ob jx_function_to_impl(jx_ob ob);
 jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
-/* code execution engine */
+/* code objects */
 
 jx_status jx_code_expose_secure_builtins(jx_ob names);
 jx_status jx_code_expose_special_forms(jx_ob names);
 
 jx_ob jx_code_bind_with_source(jx_ob names, jx_ob source);
-
 jx_ob jx_code_unbound_from_code(jx_ob code);
+
+/* executing code in a node */
 
 jx_ob jx_code_eval(jx_ob node, jx_ob code);
 jx_ob jx_code_exec(jx_ob node, jx_ob code);
@@ -493,7 +493,9 @@ jx_status jx_os_process_complete(void);
 
 /* destroying owned objects */
 
-jx_status jx_ob_free(jx_ob ob);
+jx_status jx_ob_free(jx_ob ob);  
+
+jx_status jx_node_ob_free(jx_ob node, jx_ob ob); 
 
 /* enable C++ mangling */
 #ifdef __cplusplus
