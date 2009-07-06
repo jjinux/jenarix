@@ -1616,7 +1616,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls, jx_int flags, jx_ob expr)
                 if(expr_ob->meta.bits & (JX_META_BIT_HASH|JX_META_BIT_LIST)) { 
                   *(result_ob++) = jx__tls_code_eval_to_weak(tls, flags_, *(expr_ob++));
                   if(tls->have_method) {
-                    tls->have_method = false;
+                    tls->have_method = JX_FALSE;
                     jx_tls_ob_replace(tls, result_ob - 1, jx_ob_take_weak_ref(tls->method));
                   }
                 } else { /* not a container or we're processing a macro */
