@@ -226,8 +226,6 @@ jx_bool jx_list_check(jx_ob ob);
 jx_bool jx_hash_check(jx_ob ob);
 jx_bool jx_ident_check(jx_ob ob);
 
-jx_ob jx_ident_split_with_dotted(jx_ob ident);
-jx_ob jx_ident_split_from_dotted(jx_ob ident);
 jx_ob jx_ident_new_from_dotted(jx_ob list);
 
 /* builtin object types */
@@ -336,7 +334,9 @@ jx_ob jx_list_new_from_hash(jx_ob hash); /* returns owned list of copied keys & 
 jx_ob jx_list_new_with_hash(jx_ob hash); /* frees hash and converts content to interleaved list */
 
 jx_int jx_list_size(jx_ob list);
-jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill);  /* takes ownership of fill object */
+jx_status jx_list_resize(jx_ob list, jx_int size);
+jx_status jx_list_resize_with_fill(jx_ob list, jx_int size, jx_ob fill);
+   /* takes ownership of fill object */
 
 jx_status jx_list_append(jx_ob list, jx_ob ob); /* takes ownership of ob */
 jx_status jx_list_insert(jx_ob list, jx_int index, jx_ob ob);   /* takes ownership of ob */

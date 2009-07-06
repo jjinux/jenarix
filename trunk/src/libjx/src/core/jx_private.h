@@ -113,5 +113,7 @@ struct jx__tls_chain {
   jx_tls_chain *next;
 };
 
+jx_ob jx_ident_split_from_dotted(jx_tls *tls, jx_ob ident);
+jx_ob jx_ident_split_with_dotted(jx_tls *tls, jx_ob ident);
 
 #endif

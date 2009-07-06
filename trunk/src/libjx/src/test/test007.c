@@ -45,8 +45,8 @@ int main(int argc, char **argv)
     jx_ob list0 = jx_list_new();
     jx_ob list1 = jx_list_new();
     
-    P1("0 == %d", jx_list_resize(list0,5,jx_ob_from_int(0)));
-    P1("0 == %d", jx_list_resize(list1,5,jx_ob_from_int(1)));
+    P1("0 == %d", jx_list_resize_with_fill(list0,5,jx_ob_from_int(0)));
+    P1("0 == %d", jx_list_resize_with_fill(list1,5,jx_ob_from_int(1)));
 
     {
       jx_ob jxon = jx_ob_to_jxon(list0);
@@ -78,8 +78,8 @@ int main(int argc, char **argv)
     jx_ob str0 = jx_ob_from_str("01234567890");
     jx_ob str1 = jx_ob_from_str("abcdefghijk");
       
-    P1("0 == %d", jx_list_resize(list0,2,str0));
-    P1("0 == %d", jx_list_resize(list1,2,str1));
+    P1("0 == %d", jx_list_resize_with_fill(list0,2,str0));
+    P1("0 == %d", jx_list_resize_with_fill(list1,2,str1));
     
     P1("0 == %d", jx_list_combine(list0,list1));
 
@@ -105,12 +105,12 @@ int main(int argc, char **argv)
     P1("1 == %d", jx_ob_shared(list0));    
 
     P1("-14 == %d", jx_list_append(list0, jx_ob_from_int(3)));
-    P1("-14 == %d", jx_list_resize(list0, 0, jx_ob_from_null()));
+    P1("-14 == %d", jx_list_resize(list0, 0));
     P1("-14 == %d", jx_list_insert(list0, 0, jx_ob_from_null()));
     P1("1 == %d", jx_null_check(jx_list_remove(list0, 0)))
     P1("-14 == %d", jx_list_delete(list0, 0));
 
-    P1("0 == %d", jx_list_resize(list1,2,list0));
+    P1("0 == %d", jx_list_resize_with_fill(list1,2,list0));
        
     P1("0 == %d", jx_list_combine(list1,list0));
 

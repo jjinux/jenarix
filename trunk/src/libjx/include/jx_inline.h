@@ -365,14 +365,18 @@ JX_INLINE jx_ob jx_tls_ob_copy(jx_tls *tls, jx_ob ob)
      jx_ob_take_weak_ref(ob) : jx__tls_ob_gc_copy(tls,ob)) : ob;
 }
 
-#define   jx_tls_vla_new(t,r,s,z)           jx__tls_vla_new(t,r,s,z)
 void *jx__tls_vla_new(jx_tls *tls, jx_int rec_size, jx_int size,jx_bool zero);
+#define   jx_tls_vla_new(t,r,s,z)           jx__tls_vla_new(t,r,s,z)
 
-#define   jx_tls_vla_copy(t,r)            (void*)jx__tls_vla_copy(t,(void**)(void*)(r))
 void *jx__tls_vla_copy(jx_tls *tls, void **ref);
+#define   jx_tls_vla_copy(t,r)            (void*)jx__tls_vla_copy(t,(void**)(void*)(r))
 
-#define   jx_tls_vla_free(t,r)            jx__tls_vla_free(t,(void**)(void*)(r))
 jx_status jx__tls_vla_free(jx_tls *tls,void **ref);
+#define   jx_tls_vla_free(t,r)            jx__tls_vla_free(t,(void**)(void*)(r))
+
+void *jx__tls_vla_new_with_content(jx_tls *tls, jx_int rec_size,
+                                   jx_int size, void *content);
+#define   jx_tls_vla_new_with_content(t,r,s,c) jx__tls_vla_new_with_content(t,r,s,c)
 
 /*  prototypes */
 
@@ -551,9 +555,11 @@ struct jx__vla {
 };
 
 void *jx__vla_new(jx_int rec_size, jx_int size);
+void *jx__vla_new_with_content(jx_int rec_size,
+                               jx_int size, void *content);
 
-void *jx__vla_new_with_content(jx_int rec_size, jx_int size, void *content);
 /* macros to avoid annoying type mismatch and aliasing warnings with (void**) parameter */
+
 #define   jx_vla_new(r,s)           jx__vla_new(r,s)
 #define   jx_vla_new_with_content(r,s,c) jx__vla_new_with_content(r,s,c)
 #define   jx_vla_new_from_subset(r,i,c) jx__vla_new_from_subset((void**)(void*)r,i,c)
@@ -890,7 +896,7 @@ JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
   return result;
 }
 
-JX_INLINE jx_ob jx_builtin_new_entity_with_name(jx_ob name)
+JX_INLINE jx_ob jx_builtin_new_entity_with_name(jx_tls *tls, jx_ob name)
 {
   if(jx_ident_check(name)) { /* an entity is simply a cloaked identifier */
     jx_ob result = name;
@@ -898,7 +904,7 @@ JX_INLINE jx_ob jx_builtin_new_entity_with_name(jx_ob name)
                         (JX_META_BIT_GC & result.meta.bits));
     return result;
   } else {
-    return jx_null_with_ob(name);
+    return jx_tls_null_with_ob(tls, name); 
   }
 }
 
@@ -988,19 +994,16 @@ JX_INLINE jx_ob jx_ob_swap_with_null(jx_ob *ob_ptr)
   return result;
 }
 
-
-JX_INLINE jx_status jx_ob_replace_with_null(jx_ob *ob_ptr)
+JX_INLINE jx_status jx_tls_ob_replace_with_null(jx_tls *tls, jx_ob *ob_ptr)
 {
-  jx_status status = jx_ob_free(*ob_ptr);
+  jx_status status = jx_tls_ob_free(tls,*ob_ptr);
   *ob_ptr = jx_ob_from_null();
   return status;
 }
 
-JX_INLINE jx_status jx_ob_replace(jx_ob *ob_ptr, jx_ob ob)
+JX_INLINE jx_status jx_ob_replace_with_null(jx_ob *ob_ptr)
 {
-  jx_status status = jx_ob_free(*ob_ptr);
-  *ob_ptr = ob;
-  return status;
+  return jx_tls_ob_replace_with_null(JX_NULL,ob_ptr);
 }
 
 JX_INLINE jx_status jx_tls_ob_replace(jx_tls *tls, jx_ob *ob_ptr, jx_ob ob)
@@ -1008,6 +1011,11 @@ JX_INLINE jx_status jx_tls_ob_replace(jx_tls *tls, jx_ob *ob_ptr, jx_ob ob)
   jx_status status = jx_tls_ob_free(tls,*ob_ptr);
   *ob_ptr = ob;
   return status;
+}
+
+JX_INLINE jx_status jx_ob_replace(jx_ob *ob_ptr, jx_ob ob)
+{
+  return jx_tls_ob_replace(JX_NULL,ob_ptr,ob);
 }
 
 JX_INLINE jx_bool jx_ok(jx_status status)
@@ -1231,60 +1239,67 @@ JX_INLINE jx_int jx_list_size(jx_ob ob)
 }
 
 
-jx_status jx__list_resize(jx_list * I, jx_int size, jx_ob fill);
-JX_INLINE jx_status jx_list_resize(jx_ob list, jx_int size, jx_ob fill)
+jx_status jx__list_resize(jx_tls *tls, jx_list * I, jx_int size, jx_ob fill);
+JX_INLINE jx_status jx_tls_list_resize_with_fill(jx_tls *tls, jx_ob list,
+                                                 jx_int size, jx_ob fill)
 {
   jx_status status = JX_FAILURE;
   jx_bits bits = list.meta.bits;
   if(bits & JX_META_BIT_LIST) {
-    status = jx__list_resize(list.data.io.list, size, fill);
+    status = jx__list_resize(tls, list.data.io.list, size, fill);
     if(jx_ok(status)) {
-      jx_ob_free(fill);
+      jx_tls_ob_free(tls, fill);
     }
   }
   return status;
 }
 
+JX_INLINE jx_status jx_list_resize_with_fill(jx_ob list, jx_int size, jx_ob fill)
+{
+  return jx_tls_list_resize_with_fill(JX_NULL,list,size,fill);
+}
+
+JX_INLINE jx_status jx_list_resize(jx_ob list, jx_int size)
+{
+  return jx_tls_list_resize_with_fill(JX_NULL,list,size, jx_ob_from_null());
+}
+
 JX_INLINE jx_status jx_list_reset(jx_ob list)
 {
-  return jx_list_resize(list,0,jx_ob_from_null());
+  return jx_list_resize_with_fill(list,0,jx_ob_from_null());
 }
 
 jx_ob jx_list_new(void);
 
-JX_INLINE jx_ob jx_list_new_with_ob_array(jx_ob *array, jx_int size)
+JX_INLINE jx_ob jx_tls_list_new_with_ob_array(jx_tls *tls, jx_ob *array, jx_int size)
 {
-  jx_ob result = jx_list_new();
+  jx_ob result = jx_tls_list_new(tls);
   if(result.meta.bits & JX_META_BIT_LIST) {
-    result.data.io.list->data.vla = jx_vla_new_with_content(sizeof(jx_ob), size, array);
+    result.data.io.list->data.vla =
+      jx_tls_vla_new_with_content(tls, sizeof(jx_ob),size, array);
   }
   return result;
 }
 
-JX_INLINE jx_ob jx_list_new_with_first(jx_ob first)
+JX_INLINE jx_ob jx_tls_list_new_with_first(jx_tls *tls, jx_ob first)
 {
-  return jx_list_new_with_ob_array(&first,1);
+  return jx_tls_list_new_with_ob_array(tls, &first, 1);
 }
 
-JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
-{
-  jx_ob result = jx_list_new();
-  if(!jx_ok(jx_list_resize(result, size, fill))) {
-    jx_ob_free(result);
-    result = jx_ob_from_null();
-  }
-  return result;
-}
 JX_INLINE jx_ob jx_tls_list_new_with_fill(jx_tls *tls,jx_int size, jx_ob fill)
 {
   jx_ob result = jx_tls_list_new(tls);
-  if(!jx_ok(jx_list_resize(result, size, fill))) {
+  if(!jx_ok(jx_list_resize_with_fill(result, size, fill))) {
     jx_tls_ob_free(tls,result);
     result = jx_ob_from_null();
   }
   return result;
 }
 
+JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
+{
+  return jx_tls_list_new_with_fill(JX_NULL, size, fill);
+}
 
 jx_status jx__list_append(jx_list * I, jx_ob ob);
 JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
@@ -1465,37 +1480,48 @@ JX_INLINE jx_status jx_tls_list_replace(jx_tls *tls,jx_ob list, jx_int index, jx
     JX_FAILURE;
 }
 
-jx_status jx__list_combine(jx_list * list1, jx_list * list2);
-JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
+jx_status jx__list_combine(jx_tls *tls, jx_list * list1, jx_list * list2);
+JX_INLINE jx_status jx_tls_list_combine(jx_tls *tls, jx_ob list1, jx_ob list2)
 {
   jx_bits bits1 = list1.meta.bits;
   jx_bits bits2 = list2.meta.bits;
   if((bits1 & JX_META_BIT_LIST) && (bits2 & JX_META_BIT_LIST)) {
-    if((bits2 & JX_META_BIT_WEAK_REF) || (jx_ob_shared(list2) || (jx_ob_synchronized(list2)))) {
+    if((bits2 & JX_META_BIT_WEAK_REF) || 
+       (jx_ob_shared(list2) ||
+        (jx_ob_synchronized(list2)))) {
       /* copy list2 if weak or shared */
       jx_ob list3 = jx_ob_copy_strong(list2);
-      if(!jx_ok(jx__list_combine(list1.data.io.list, list3.data.io.list))) {
-        jx_ob_free(list3);
-        jx_ob_free(list2);
+      if(!jx_ok(jx__list_combine(tls, list1.data.io.list, list3.data.io.list))) {
+        jx_tls_ob_free(tls, list3);
+        jx_tls_ob_free(tls, list2);
       } else {
-        jx_ob_free(list2);
+        jx_tls_ob_free(tls, list2);
         return JX_SUCCESS;
       }
     }
-    return jx__list_combine(list1.data.io.list, list2.data.io.list);
+    return jx__list_combine(tls, list1.data.io.list, list2.data.io.list);
   }
   return JX_FAILURE;
 }
 
-JX_INLINE jx_ob jx_list_new_with_repeat(jx_int size, jx_ob repeat)
+JX_INLINE jx_status jx_list_combine(jx_ob list1, jx_ob list2)
 {
-  jx_ob result = jx_list_new();
+  return jx_tls_list_combine(JX_NULL, list1, list2);
+}
+
+JX_INLINE jx_ob jx_tls_list_new_with_repeat(jx_tls *tls, jx_int size, jx_ob repeat)
+{
+  jx_ob result = jx_tls_list_new(tls);
   jx_int i;
   for(i=0;i<size;i++) {
-    jx_list_combine(result,jx_ob_copy_strong(repeat));
+    jx_tls_list_combine(tls, result, jx_ob_copy_strong(repeat));
   }
-  jx_ob_free(repeat);
+  jx_tls_ob_free(tls, repeat);
   return result;
+}
+JX_INLINE jx_ob jx_list_new_with_repeat(jx_int size, jx_ob repeat)
+{
+  return jx_tls_list_new_with_repeat(JX_NULL, size, repeat);
 }
 
 JX_INLINE jx_ob jx__list_get_packed_data_locked(jx_list * list, jx_int index)
@@ -1700,13 +1726,19 @@ JX_INLINE jx_int jx_list_index(jx_ob list,jx_ob ob)
     -1;
 }
 
-jx_status jx__list_delete(jx_list * I, jx_int index);
-JX_INLINE jx_status jx_list_delete(jx_ob list, jx_int index)
+jx_status jx__list_delete(jx_tls *tls, jx_list * I, jx_int index);
+JX_INLINE jx_status jx_tls_list_delete(jx_tls *tls, jx_ob list, jx_int index)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
-    jx__list_delete(list.data.io.list, index) : 
+    jx__list_delete(tls, list.data.io.list, index) : 
     JX_FAILURE;
 }
+
+JX_INLINE jx_status jx_list_delete(jx_ob list, jx_int index)
+{
+  return jx_tls_list_delete(JX_NULL, list, index);
+}
+
 
 jx_status jx__list_set_int_vla(jx_list * list, jx_int ** ref);
 JX_INLINE jx_status jx_list_set_int_vla(jx_ob list, jx_int ** ref)
@@ -1738,20 +1770,20 @@ JX_INLINE jx_ob jx_list_new_from_hash(jx_ob hash)
   return jx_ob_from_null();
 }
 
-jx_status jx__list_with_hash(jx_list * list, jx_hash * hash);
-JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
+jx_status jx__list_with_hash(jx_tls *tls, jx_list * list, jx_hash * hash);
+JX_INLINE jx_ob jx_tls_list_new_with_hash(jx_tls *tls, jx_ob hash)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
     if(bits & JX_META_BIT_WEAK_REF) {
       return jx_list_new_from_hash(hash);
     } else {
-      jx_ob result = jx_list_new();
+      jx_ob result = jx_tls_list_new(tls);
       if(result.meta.bits & JX_META_BIT_LIST) {
-        if(jx_ok(jx__list_with_hash(result.data.io.list, hash.data.io.hash))) {
-          jx_ob_free(hash);
+        if(jx_ok(jx__list_with_hash(tls, result.data.io.list, hash.data.io.hash))) {
+          jx_tls_ob_free(tls, hash);
         } else {
-          jx_ob_free(result);
+          jx_tls_ob_free(tls, result);
           result = hash;
         }
       }
@@ -1761,6 +1793,10 @@ JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
   return jx_ob_from_null();
 }
 
+JX_INLINE jx_ob jx_list_new_with_hash(jx_ob hash)
+{
+  return jx_tls_list_new_with_hash(JX_NULL, hash);
+}
 /* hashing */
 
 JX_INLINE jx_uint32 jx__ob_non_gc_hash_code(jx_ob ob)
@@ -1873,14 +1909,14 @@ JX_INLINE jx_uint32 jx_ob_hash_code(jx_ob ob)
 }
 
 jx_ob jx_hash_new(void);
-jx_status jx__hash_from_list(jx_hash * hast, jx_list * list);
-JX_INLINE jx_ob jx_hash_new_from_list(jx_ob list)
+jx_status jx__hash_from_list(jx_tls *tls, jx_hash * hast, jx_list * list);
+JX_INLINE jx_ob jx_tls_hash_new_from_list(jx_tls *tls, jx_ob list)
 {
   if(list.meta.bits & JX_META_BIT_LIST) {
-    jx_ob result = jx_hash_new();
+    jx_ob result = jx_tls_hash_new(tls);
     if(result.meta.bits & JX_META_BIT_HASH) {
-      if(!jx_ok(jx__hash_from_list(result.data.io.hash, list.data.io.list))) {
-        jx_ob_free(result);
+      if(!jx_ok(jx__hash_from_list(tls, result.data.io.hash, list.data.io.list))) {
+        jx_tls_ob_free(tls, result);
         result = jx_ob_from_null();
       }
     }
@@ -1888,21 +1924,25 @@ JX_INLINE jx_ob jx_hash_new_from_list(jx_ob list)
   }
   return jx_ob_from_null();
 }
+JX_INLINE jx_ob jx_hash_new_from_list(jx_ob list)
+{
+  return jx_tls_hash_new_from_list(JX_NULL, list);
+}
 
-jx_status jx__hash_with_list(jx_hash * hash, jx_list * list);
-JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
+jx_status jx__hash_with_list(jx_tls *tls, jx_hash * hash, jx_list * list);
+JX_INLINE jx_ob jx_tls_hash_new_with_list(jx_tls *tls, jx_ob list)
 {
   jx_bits bits = list.meta.bits;
   if(bits & JX_META_BIT_LIST) {
     if(bits & JX_META_BIT_WEAK_REF) {
-      return jx_hash_new_from_list(list);
+      return jx_tls_hash_new_from_list(tls,list);
     } else {
-      jx_ob result = jx_hash_new();
+      jx_ob result = jx_tls_hash_new(tls);
       if(result.meta.bits & JX_META_BIT_HASH) {
-        if(jx_ok(jx__hash_with_list(result.data.io.hash, list.data.io.list))) {
-          jx_ob_free(list);
+        if(jx_ok(jx__hash_with_list(tls,result.data.io.hash, list.data.io.list))) {
+          jx_tls_ob_free(tls,list);
         } else {
-          jx_ob_free(result);
+          jx_tls_ob_free(tls,result);
           result = list;
         }
       }
@@ -1910,6 +1950,11 @@ JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
     }
   }
   return list;
+}
+
+JX_INLINE jx_ob jx_hash_new_with_list(jx_ob list)
+{
+  return jx_tls_hash_new_with_list(JX_NULL,list);
 }
 
 jx_int jx__hash_size(jx_hash * I);
@@ -1920,11 +1965,15 @@ JX_INLINE jx_int jx_hash_size(jx_ob hash)
 }
 
 jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value);
-JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
+JX_INLINE jx_status jx_tls_hash_set(jx_tls *tls, jx_ob hash, jx_ob key, jx_ob value)
 {
   jx_status result = (hash.meta.bits & JX_META_BIT_HASH) ?
-    jx__tls_hash_set(JX_NULL, hash.data.io.hash, key, value) : JX_FAILURE;
+    jx__tls_hash_set(tls, hash.data.io.hash, key, value) : JX_FAILURE;
   return result;
+}
+JX_INLINE jx_status jx_hash_set(jx_ob hash, jx_ob key, jx_ob value)
+{
+  return jx_tls_hash_set(JX_NULL, hash, key, value);
 }
 
 JX_INLINE jx_status jx_tls_hash_set(jx_tls *tls, jx_ob hash, jx_ob key, jx_ob value)
@@ -1986,24 +2035,32 @@ JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
   return jx_ob_from_null();
 }
 
-jx_bool jx__hash_remove(jx_ob * result, jx_hash * I, jx_ob key);
-JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
+jx_bool jx__hash_remove(jx_tls *tls, jx_ob * result, jx_hash * I, jx_ob key);
+JX_INLINE jx_ob jx_tls_hash_remove(jx_tls *tls, jx_ob hash, jx_ob key)
 {
   jx_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
     jx_ob result = jx_ob_from_null();
-    if(jx__hash_remove(&result, hash.data.io.hash, key))
+    if(jx__hash_remove(tls, &result, hash.data.io.hash, key))
       return result;
   }
   return jx_ob_from_null();
 }
+JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
+{
+  return jx_tls_hash_remove(JX_NULL, hash, key);
+}
 
-JX_INLINE jx_bool jx_hash_take(jx_ob * result, jx_ob hash, jx_ob key)
+JX_INLINE jx_bool jx_tls_hash_take(jx_tls * tls, jx_ob * result, jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    return jx__hash_remove(result, hash.data.io.hash, key);
+    return jx__hash_remove(tls, result, hash.data.io.hash, key);
   }
   return JX_FALSE;
+}
+JX_INLINE jx_bool jx_hash_take(jx_ob * result, jx_ob hash, jx_ob key)
+{
+  return jx_tls_hash_take(JX_NULL, result, hash, key);
 }
 
 JX_INLINE jx_status jx_tls_hash_delete(jx_tls *tls, jx_ob hash, jx_ob key)
@@ -2012,7 +2069,7 @@ JX_INLINE jx_status jx_tls_hash_delete(jx_tls *tls, jx_ob hash, jx_ob key)
   if(bits & JX_META_BIT_HASH) {
     jx_ob result = jx_ob_from_null();
     //    jx_jxon_dump(stdout,"hash",hash);
-    if(jx__hash_remove(&result, hash.data.io.hash, key)) {
+    if(jx__hash_remove(tls, &result, hash.data.io.hash, key)) {
       jx_tls_ob_free(tls, result);
       return JX_SUCCESS;
     }
@@ -3140,7 +3197,7 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
   return result;
 }
 
-JX_INLINE jx_ob jx__list_entity_take(jx_list * I, jx_ob target)
+JX_INLINE jx_ob jx__list_entity_take(jx_tls *tls, jx_list * I, jx_ob target)
 {
   jx_ob result = jx_ob_from_null();
   if(JX_POS(jx_gc_lock(&I->gc))) {
@@ -3163,7 +3220,7 @@ JX_INLINE jx_ob jx__list_entity_take(jx_list * I, jx_ob target)
               }
             } else {/* nonblank identifier? -> access attribute / method */
               if(entity_size>2) {
-                result = jx_hash_remove(entity_ob[2], target);
+                result = jx_tls_hash_remove(tls, entity_ob[2], target);
               } else {
                 result = jx_ob_from_null();
               }
@@ -3178,7 +3235,7 @@ JX_INLINE jx_ob jx__list_entity_take(jx_list * I, jx_ob target)
   return result;
 }
 
-JX_INLINE jx_status jx__list_entity_delete(jx_list * I, jx_ob target)
+JX_INLINE jx_status jx__list_entity_delete(jx_tls *tls, jx_list * I, jx_ob target)
 {
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
@@ -3197,13 +3254,13 @@ JX_INLINE jx_status jx__list_entity_delete(jx_list * I, jx_ob target)
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch)||(ch=='.')) { /* blank identifier? access content */
               if(entity_size>1) { /* take content */
-                status = jx_ob_replace_with_null(entity_ob + 1);
+                status = jx_tls_ob_replace_with_null(tls, entity_ob + 1);
               } else { /* no content */
                 status = JX_SUCCESS;
               }
             } else {/* nonblank identifier? -> access attribute / method */
               if(entity_size>2) {
-                status = jx_hash_delete(entity_ob[2], target);
+                status = jx_tls_hash_delete(tls, entity_ob[2], target);
               }
             }
           }
@@ -3394,29 +3451,31 @@ JX_INLINE jx_ob jx_entity_resolve_name(jx_ob node,jx_ob handle,jx_ob name)
   return result;
 }
 
-JX_INLINE jx_ob jx_entity_resolve_constructor(jx_ob node,jx_ob handle)
+JX_INLINE jx_ob jx_entity_resolve_constructor(jx_tls *tls,jx_ob handle)
 {
   jx_ob result = jx_ob_from_null();
-  while(!jx_null_check(handle)) {
-    jx_ob def = jx_hash_borrow(node,handle);
-    result = jx_list_borrow(def,JX_ENTITY_CONSTRUCTOR); 
-    if(!jx_null_check(result))
-      break;
-    handle = jx_list_borrow(def,JX_ENTITY_BASE_HANDLE);
-  }
+  if(tls) 
+    while(!jx_null_check(handle)) {
+      jx_ob def = jx_hash_borrow(tls->node,handle);
+      result = jx_list_borrow(def,JX_ENTITY_CONSTRUCTOR); 
+      if(!jx_null_check(result))
+        break;
+      handle = jx_list_borrow(def,JX_ENTITY_BASE_HANDLE);
+    }
   return result;
 }
 
-JX_INLINE jx_ob jx_entity_resolve_destructor(jx_ob node,jx_ob handle)
+JX_INLINE jx_ob jx_entity_resolve_destructor(jx_tls *tls,jx_ob handle)
 {
   jx_ob result = jx_ob_from_null();
-  while(!jx_null_check(handle)) {
-    jx_ob def = jx_hash_borrow(node,handle);
-    result = jx_list_borrow(def,JX_ENTITY_DESTRUCTOR); 
-    if(!jx_null_check(result))
-      break;
-    handle = jx_list_borrow(def,JX_ENTITY_BASE_HANDLE);
-  }
+  if(tls)
+    while(!jx_null_check(handle)) {
+      jx_ob def = jx_hash_borrow(tls->node,handle);
+      result = jx_list_borrow(def,JX_ENTITY_DESTRUCTOR); 
+      if(!jx_null_check(result))
+        break;
+      handle = jx_list_borrow(def,JX_ENTITY_BASE_HANDLE);
+    }
   return result;
 }
 
@@ -3601,14 +3660,14 @@ JX_INLINE jx_ob jx_tls_ob_new_from_ob(jx_tls *tls, jx_ob node, jx_ob ob)
     }
     {
       jx_ob weak[2];
-      weak[0] = jx_entity_resolve_constructor(node,ob); 
+      weak[0] = jx_entity_resolve_constructor(tls,ob); 
       if(!jx_null_check(weak[0])) { 
         weak[0] = jx_ob_take_weak_ref
           (jx_entity_resolve_name(node, ob, weak[0]));
         if(!jx_null_check(weak[0])) {
           weak[1] = jx_ob_take_weak_ref(ob);
           {
-            jx_ob code = jx_list_new_with_ob_array(weak,2);
+            jx_ob code = jx_tls_list_new_with_ob_array(tls, weak,2);
             jx_tls_ob_free(tls, jx_code_eval(node, code) );
             jx_tls_ob_free(tls, code );
           }
