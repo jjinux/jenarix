@@ -7,6 +7,7 @@ entity(_E, null, null,
   __init__)
 
 print symbols(false)
+
 # construct using the "new" builtin function
 
 a = new(_E, 1)

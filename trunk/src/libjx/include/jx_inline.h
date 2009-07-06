@@ -434,22 +434,6 @@ JX_INLINE jx_status jx_ob_free(jx_ob ob)
   return JX_SUCCESS;
 }
 
-JX_INLINE jx_status jx_node_ob_free(jx_ob node, jx_ob ob)
-{
-  register jx_bits bits = ob.meta.bits;
-  if(bits & JX_META_BIT_GC) {
-    if(bits & JX_META_BIT_WEAK_REF) {
-      return JX_STATUS_FREED_WEAK;
-    } else {
-      jx_tls *tls = jx_tls_new(node);
-      jx_status status = jx__tls_ob_gc_free(tls,ob); 
-      jx_tls_free(tls);
-      return status;
-    }
-  }
-  return JX_SUCCESS;
-}
-
 JX_INLINE jx_status jx_tls_ob_free(jx_tls *tls,jx_ob ob)
 {
   register jx_bits bits = ob.meta.bits;
