@@ -46,4 +46,5 @@
 #define JX_PY_FCON                           46
 #define JX_PY_LAMBDA                         47
 #define JX_PY_DOT                            48
-#define JX_PY_SCON                           49
+#define JX_PY_CLASS                          49
+#define JX_PY_SCON                           50

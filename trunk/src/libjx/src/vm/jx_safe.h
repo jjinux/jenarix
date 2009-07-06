@@ -67,8 +67,16 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls *tls, jx_ob payload)
         jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,4)));
       case 3:
-        jx_list_replace(def, JX_ENTITY_ATTR_HASH,
-                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3)));
+	{
+	  jx_ob attr_hash = jx_list_swap_with_null(payload,3);
+	  if(!jx_list_check(attr_hash)) {
+	    jx_list_replace(def, JX_ENTITY_ATTR_HASH,
+			    jx_ob_not_weak_with_ob( attr_hash ));
+	  } else {
+	    jx_list_replace(def, JX_ENTITY_ATTR_HASH, jx_list_remove(tls->receiver, -1));
+	    jx_tls_ob_free(tls, attr_hash);
+	  }
+	}
       case 2:
         jx_list_replace(def, JX_ENTITY_CONTENT_LIST,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)));

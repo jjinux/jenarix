@@ -411,7 +411,7 @@ compound_stmt(A) ::= if_stmt(B).
 {  
   A = B;
 #ifdef JX_PY_PARSER_DEBUG
-  printf("compound_stmt(A) ::= while_stmt(B).\n");
+  printf("compound_stmt(A) ::= if_stmt(B).\n");
 #endif
 }
 
@@ -427,7 +427,7 @@ compound_stmt(A) ::= for_stmt(B).
 {  
   A = B;
 #ifdef JX_PY_PARSER_DEBUG
-  printf("compound_stmt(A) ::= while_stmt(B).\n");
+  printf("compound_stmt(A) ::= for_stmt(B).\n");
 #endif
 }
 
@@ -435,9 +435,18 @@ compound_stmt(A) ::= funcdef(B).
 {  
   A = B;
 #ifdef JX_PY_PARSER_DEBUG
-  printf("compound_stmt(A) ::= while_stmt(B).\n");
+  printf("compound_stmt(A) ::= funcdef(B).\n");
 #endif
 }
+
+compound_stmt(A) ::= classdef(B).
+{  
+  A = B;
+#ifdef JX_PY_PARSER_DEBUG
+  printf("compound_stmt(A) ::= classdef(B).\n");
+#endif
+}
+
 
 /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite] */
 
@@ -1217,6 +1226,28 @@ dictmaker(A) ::= dictmaker(B) COMMA test(C) COLON test(D).
 {
   A = B;
   jx_hash_set(A,C,D);  
+}
+
+classdef(A) ::= CLASS NAME(B) OPEN_PAR testlist(C) CLOSE_PAR COLON suite(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("entity"));
+  jx_list_append(A,B); /* name */
+  jx_list_append(A,C); /* base class */ 
+  jx_list_append(A,jx_ob_from_null()); /* content */
+  jx_list_append(A,D); 
+  jx_list_append(A,jx_ob_from_ident("__init__")); /* name of constructor */
+}
+
+classdef(A) ::= CLASS NAME(B) COLON suite(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("entity"));
+  jx_list_append(A,B); /* name */
+  jx_list_append(A,jx_ob_from_null()); /* base class */
+  jx_list_append(A,jx_ob_from_null()); /* content */
+  jx_list_append(A,D);
+  jx_list_append(A,jx_ob_from_ident("__init__")); /* name of constructor */
 }
 
 /* arglist: (argument ',')* (argument [',']

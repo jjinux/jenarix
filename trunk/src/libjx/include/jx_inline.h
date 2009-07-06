@@ -312,6 +312,7 @@ struct jx__tls {
   jx_bool break_seen;
   jx_bool tail_call;
   jx_ob   result;
+  jx_ob   receiver;
   jx_bool leave, have_result;
 };
 
@@ -2773,7 +2774,6 @@ JX_INLINE void jx_entity_carry_into(jx_ob inv_node, jx_ob node,jx_ob handle)
   }
 }
 
-
 JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob payload)
 {
   jx_ob result = jx_ob_from_null();
@@ -3087,7 +3087,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
         ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         tls->node = node;
         //        jx_jxon_dump(stdout,"node",node);
-                jx_jxon_dump(stdout,"ob",ob);
+	//       jx_jxon_dump(stdout,"ob",ob);
         result = jx_tls_code_eval(tls, 0, node, ob);
         jx_tls_ob_free(tls, ob);
         jx_tls_ob_free(tls, payload);
@@ -3102,7 +3102,7 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       {
         jx_ob ob;
         tls->node = inv_node;
-        jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
         tls->node = node;
         jx_tls_ob_free(tls,macro);
         result = jx_tls_code_eval(tls, 0, node, ob);
@@ -3733,7 +3733,8 @@ JX_INLINE jx_ob jx_tls_ob_with_new(jx_tls *tls, jx_ob payload)
     jx_tls_ob_free(tls, payload);
     return result;
   } else {
-    return jx_tls_ob_copy(tls, payload);
+    jx_tls_ob_free(tls, payload);
+    return jx_ob_from_null();
   }
 }
             

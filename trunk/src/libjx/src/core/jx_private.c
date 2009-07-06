@@ -2349,6 +2349,7 @@ jx_status jx__list_insert(jx_list * I, jx_int index, jx_ob ob)
         goto unlock;
     }
     if(I->data.vla) {
+      index = (index<0) ? 1 + jx_vla_size(&I->data.vla) + index : index;
       if(!jx_ok(jx_vla_insert(&I->data.vla, index, 1)))
         goto unlock;
       else if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
@@ -2458,7 +2459,9 @@ jx_ob jx__list_remove(jx_list * I, jx_int index)
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(!I->gc.shared) {
-      if((index >= 0) && (index < jx_vla_size(&I->data.vla))) {
+      jx_int size = jx_vla_size(&I->data.vla);
+      index = (index<0) ? size+index : index;
+      if((index >= 0) && (index < size )) {
         if(I->packed_meta_bits) {
           result = jx__list_get_packed_data_locked(I, index);
           jx_vla_remove(&I->data.vla, index, 1);
@@ -5590,6 +5593,7 @@ void jx_tls_free(jx_tls *tls)
     {
       /* note: tls->builtins and tls->node are borrowed! */
       jx_tls_ob_free(tls, tls->result); 
+      jx_tls_ob_free(tls, tls->receiver);
     }
     {
       jx_tls_chain *chain = tls->hash_chain;

@@ -1269,7 +1269,10 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls, jx_int flags, jx_ob expr)
               {
                 jx_ob function = jx_function_new_with_def
                   (name, args, body, expr_vla->data.io.int_ == JX_SELECTOR_DEF);
-                if(!jx_ok( jx_set_from_path_with_value(tls, node,key,function))) {
+		jx_ob receiver = jx_list_borrow(tls->receiver,-1);
+		if(jx_null_check(receiver))
+		  receiver = node;
+                if(!jx_ok( jx_set_from_path_with_value(tls, receiver, key, function))) {
                   jx_tls_ob_free(tls,function);
                 }
               }
@@ -1579,12 +1582,28 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls *tls, jx_int flags, jx_ob expr)
               method_flag = JX_TRUE;
               method = tls->method;
               tls->have_method = JX_FALSE;
-            } else if(((result_ob[-1].meta.bits & 
-                        (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))==
-                       (JX_META_BIT_BUILTIN|JX_META_BIT_BUILTIN_MACRO))) {
-              macro_flag = JX_TRUE;
-            }
-          
+            } else {
+	      jx_bits bits;
+	      if( (bits = result_ob[-1].meta.bits) & JX_META_BIT_BUILTIN) {
+		switch(bits & JX_META_MASK_BUILTIN_TYPE) {
+		case JX_META_BIT_BUILTIN_MACRO:
+		  macro_flag = JX_TRUE;
+		  break;
+		case JX_META_BIT_BUILTIN_SELECTOR:
+		  switch (result_ob[-1].data.io.int_) {
+		  case JX_SELECTOR_ENTITY:
+		    /* create a receiver scope for catching newly-defined symbols */
+		    if(!jx_list_check(tls->receiver))
+		      tls->receiver = jx_tls_list_new(tls);
+		    if(jx_list_check(tls->receiver)) {
+		      jx_list_append(tls->receiver,jx_hash_new());
+		    }
+		    break;
+		  }
+		  break;
+		}
+	      }
+	    }
             /* remaining passes */
             if(macro_flag) {
               jx_int i;

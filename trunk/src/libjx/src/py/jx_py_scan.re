@@ -203,6 +203,7 @@ static int jx_scan(jx_py_scanner_state *s)
     "def"    { RET(JX_PY_DEF); }
     "lambda" { RET(JX_PY_LAMBDA);}
     "return" { RET(JX_PY_RETURN); }
+    "class"  { RET(JX_PY_CLASS); }
 
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ( D+ IS?) { RET(JX_PY_ICON); }
     
@@ -311,7 +312,6 @@ comment:
 #if 0
     "and"    { RET(JX_PY_AND); }
     "break"  { RET(JX_PY_BREAK); }
-    "class"  { RET(JX_PY_CLASS); }
 
     "exec"   { RET(JX_PY_EXEC); }
     "from"   { RET(JX_PY_FROM); }
@@ -418,16 +418,19 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
                   jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
                   jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(),&s->context);
                   indent_just_changed = JX_TRUE;
-              } else if(s->current_indent < expected_indent) {
-                  jx_list_pop(s->indent_stack);
-                  expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
-                  if(expected_indent != s->current_indent) {
-                    s->context.status = JX_STATUS_SYNTAX_ERROR;
-                  } else {
-                    jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(),&s->context); 
-                    jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);        
-                    indent_just_changed = JX_TRUE;
-                  }
+		} else if(expected_indent > s->current_indent) {
+		  while(expected_indent > s->current_indent) {
+		    jx_list_pop(s->indent_stack);
+		    expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
+		    if(expected_indent < s->current_indent) {
+		      s->context.status = JX_STATUS_SYNTAX_ERROR;
+		      break;
+		    } else {
+		      jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(),&s->context); 
+		      jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);        
+		      indent_just_changed = JX_TRUE;
+		    }
+		  }
                 }
               }
             }
