@@ -1,0 +1,23 @@
+
+# python class emulation
+
+(entity _E null, null, 
+  { __init__ : (lambda [self] (output "constructing")) }
+  __init__)
+
+(set a (new _E))
+
+a;
+
+(def fn1 [] (set x (new _E)))
+
+(fn1)
+
+# create an _E factory function
+
+(def E null [ (unshift _ _E) (apply new _) ])
+
+(set b (E))
+
+
+    

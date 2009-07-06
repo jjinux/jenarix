@@ -1622,6 +1622,8 @@ JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
   if(I->gc.shared) {
     status = JX_STATUS_FREED_SHARED;
   } else {
+#if 0
+// DESTRUCTORS HAVE PROVED UNWORKABLE
     if(!I->packed_meta_bits) {
       jx_int size = jx_vla_size(&I->data.vla);
       jx_ob *ob = I->data.ob_vla;
@@ -1654,8 +1656,10 @@ JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
                 {
                   jx_ob payload = jx_tls_list_new_with_first
                     (tls, jx_ob_take_weak_ref(self));
-                  jx_tls_ob_free(tls, jx__function_call
-                                 (tls, node, destructor, payload));
+                  jx_ob result = jx__function_call
+                    (tls, node, destructor, payload);
+                  jx_jxon_dump(stdout,"result",result);
+                  jx_tls_ob_free(tls, result);
                 }
               }
             }
@@ -1663,6 +1667,8 @@ JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
         }
       }
     }
+#endif
+
     if(!I->packed_meta_bits) {
       jx_int i, size = jx_vla_size(&I->data.vla);
       jx_ob *ob = I->data.ob_vla;
@@ -5863,9 +5869,14 @@ jx_status jx__tls_ob_gc_free(jx_tls *tls, jx_ob ob)
   return JX_SUCCESS;
 }
 
+#if 0
 jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node)
 {
-  if(tls) tls->node = node;
+  jx_ob node_save = jx_ob_from_null();
+  if(tls) {
+    node_save = tls->node;
+    tls->node = node;
+  }
   {
     jx_int size = jx_hash_size(node);
     if(!size) {
@@ -5880,7 +5891,7 @@ jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node)
         if(!jx_builtin_entity_check(key) &&
            (!jx_ob_same(key,builtin_key))) {
           jx_ob value = jx_hash_borrow(node, key);
-          if(jx_list_check(value) || jx_hash_check(value)) {
+          if((!jx_weak_check(value)) && (jx_list_check(value) || jx_hash_check(value))) {
             jx_tls_hash_delete(tls, node, key);
           }
         }
@@ -5888,6 +5899,9 @@ jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node)
       jx_tls_ob_free(tls,keys);
     }
   }
+  if(tls) {
+    tls->node = node_save;
+  }
   return JX_SUCCESS;
 }
-
+#endif

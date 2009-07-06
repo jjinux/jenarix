@@ -1949,7 +1949,7 @@ true;
 # if we create some vector instances
 # source: (assert (output (impl myfn)))
 #   eval: (`assert (`output (`impl (`resolve myfn))))
-[myfn,[[a,b],{Vector:$Vector,$Vector:[$VectorBase,null,null,true],$VectorBase:[null,null,{add:fn`vector.add_0xXXXXXX},true]}],[[[`resolve,Vector]],[[`resolve,[a,add]],[`resolve,b]]],true];
+[myfn,[[a,b],{Vector:$Vector,$Vector:[$VectorBase],$VectorBase:[null,null,{add:fn`vector.add_0xXXXXXX}]}],[[[`resolve,Vector]],[[`resolve,[a,add]],[`resolve,b]]],true];
 true;
 
 # source: (assert (set v1
@@ -2013,7 +2013,7 @@ true;
 # then that doesn't work
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null,null, {add:fn`vector.add_0xXXXXXX},true]}
+#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null,null, {add:fn`vector.add_0xXXXXXX}]}
 true;
 
 # source: (assert (dump (myfn2 v1 v2)))
@@ -2032,7 +2032,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null,null, {add:fn`vector.add_0xXXXXXX},true]}
+#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null,null, {add:fn`vector.add_0xXXXXXX}]}
 true;
 
 # source: (assert (del v1))
@@ -2503,7 +2503,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Matrix33f:$Matrix33f, MatrixBase:$MatrixBase, $Matrix33f: [$MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]},true], $MatrixBase: [null,null, {dim: [], method:fn`_method_0xXXXXXX},true]}
+#  dump: {Matrix33f:$Matrix33f, MatrixBase:$MatrixBase, $Matrix33f: [$MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}], $MatrixBase: [null,null, {dim: [], method:fn`_method_0xXXXXXX}]}
 true;
 
 # instances are constructed using "new"
@@ -2558,7 +2558,7 @@ true;
 # creating an instance the manual way...
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Vector:$Vector, $Vector: [null,null,null,true]}
+#  dump: {Vector:$Vector, $Vector:null}
 true;
 
 # source: (assert (set vect1
@@ -2599,7 +2599,7 @@ true;
 # newly-defined class methods are available to all instances in the namespace
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Vector:$Vector, vect1: [$Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}], $Vector: [null,null, {length:fn`0xXXXXXX},true]}
+#  dump: {Vector:$Vector, vect1: [$Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}], $Vector: [null,null, {length:fn`0xXXXXXX}]}
 true;
 
 # result: 7

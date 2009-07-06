@@ -253,9 +253,7 @@ struct jx__ob {
 #define JX_ENTITY_BASE_HANDLE  0
 #define JX_ENTITY_CONTENT_LIST 1
 #define JX_ENTITY_ATTR_HASH    2
-#define JX_ENTITY_CLASS_FLAG   3
-#define JX_ENTITY_DESTRUCTOR   4
-#define JX_ENTITY_CONSTRUCTOR  5
+#define JX_ENTITY_CONSTRUCTOR  3
 
 /* for whatever reason, having a set of global extern jx_ob constants
  * for common values really helps performance vis-a-vis using "inline"
@@ -2791,6 +2789,7 @@ JX_INLINE void jx_entity_carry_into(jx_ob inv_node, jx_ob node,jx_ob handle)
   }
 }
 
+
 JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob payload)
 {
   jx_ob result = jx_ob_from_null();
@@ -2846,7 +2845,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
             jx_tls_code_eval(tls, 0, inv_node,fn->body);
           tls->node = node;
         }
-        jx_tls_ob_free(tls,inv_node);
+        jx_tls_ob_free(tls, inv_node);
         payload = jx_ob_from_null();
       } else if(jx_list_check(args)) { /* parameter list exists */
         jx_ob inv_node;
@@ -2929,9 +2928,9 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         tls->node = inv_node;
         result = fn->mode ? jx_tls_code_exec(tls,0, inv_node,fn->body) : 
           jx_tls_code_eval(tls, 0, inv_node,fn->body);
-        tls->node = node;
         //jx_jxon_dump(stdout,"inv_node",inv_node);
         /* free function namespace */
+        tls->node = node;
         jx_tls_ob_free(tls, inv_node);
       } else {
         /* args declaration is a primitive */
@@ -3534,6 +3533,8 @@ JX_INLINE jx_ob jx_entity_resolve_constructor(jx_tls *tls,jx_ob handle)
   return result;
 }
 
+#if 0
+// DESTRUCTORS HAVE PROVED UNWORKABLE
 JX_INLINE jx_ob jx_entity_resolve_destructor(jx_tls *tls,jx_ob handle)
 {
   jx_ob result = jx_ob_from_null();
@@ -3547,6 +3548,7 @@ JX_INLINE jx_ob jx_entity_resolve_destructor(jx_tls *tls,jx_ob handle)
     }
   return result;
 }
+#endif
 
 JX_INLINE jx_ob jx_entity_resolve_content(jx_ob node,jx_ob handle)
 {
@@ -3712,15 +3714,6 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
   }
 }
 
-
-jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node);
-JX_INLINE jx_status jx_node_purge(jx_ob node)
-{
-  jx_tls *tls = jx_tls_new(node);
-  jx_status result = jx_tls_node_purge(tls, node);
-  jx_tls_free(tls);
-  return result;
-}
 
 JX_INLINE jx_ob jx_tls_ob_with_new(jx_tls *tls, jx_ob payload)
 {

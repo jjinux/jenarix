@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
       exit_status = EXIT_FAILURE;
     }
     
-    jx_node_purge(node);
     jx_ob_free(node);
     jx_os_process_complete();
   }

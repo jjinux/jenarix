@@ -1,11 +1,12 @@
 
-# python class emulation
+# python class emulation 
+# (NOTE: Jenarix entities support constructors, but not destructors)
 
 entity(_E, null, null, 
-  { __init__:lambda self,x: [set(self.x,x) , output("constructing")],
-    __del__ :lambda self: output("destructing" ) },
-  __del__, __init__)
+  { __init__:lambda self,x: [set(self.x,x) , output("constructing")] },
+  __init__)
 
+print symbols(false)
 # construct using the "new" builtin function
 
 a = new(_E, 1)

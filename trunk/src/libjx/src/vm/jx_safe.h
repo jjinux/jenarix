@@ -57,25 +57,22 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls *tls, jx_ob payload)
   jx_tls_hash_set(tls, tls->node, name, jx_tls_ob_copy(tls, entity));
   { 
     jx_ob def = jx_ob_from_null();
-    jx_int size = jx_list_size(payload);
+    jx_int size = jx_list_size(payload)-1;
 
-    if(size<4) size = 4;
     if(size) {
       def = jx_list_new_with_size(size);
       switch(size) {
       default:
-      case 6:
-        jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
-                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,5)));
-      case 5:
-        jx_list_replace(def, JX_ENTITY_DESTRUCTOR,
-                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,4)));
       case 4:
-        jx_list_replace(def, JX_ENTITY_CLASS_FLAG, jx_ob_from_bool(JX_TRUE));
+        jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
+                        jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,4)));
+      case 3:
         jx_list_replace(def, JX_ENTITY_ATTR_HASH,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3)));
+      case 2:
         jx_list_replace(def, JX_ENTITY_CONTENT_LIST,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)));
+      case 1:
         jx_list_replace(def, JX_ENTITY_BASE_HANDLE,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1)));
         break;
