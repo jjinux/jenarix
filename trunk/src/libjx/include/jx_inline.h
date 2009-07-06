@@ -253,8 +253,9 @@ struct jx__ob {
 #define JX_ENTITY_BASE_HANDLE  0
 #define JX_ENTITY_CONTENT_LIST 1
 #define JX_ENTITY_ATTR_HASH    2
-#define JX_ENTITY_DESTRUCTOR   3
-#define JX_ENTITY_CONSTRUCTOR  4
+#define JX_ENTITY_CLASS_FLAG   3
+#define JX_ENTITY_DESTRUCTOR   4
+#define JX_ENTITY_CONSTRUCTOR  5
 
 /* for whatever reason, having a set of global extern jx_ob constants
  * for common values really helps performance vis-a-vis using "inline"
@@ -357,6 +358,9 @@ jx_ob jx_tls_list_new(jx_tls *tls);
 jx_ob jx_tls_list_new_with_size(jx_tls *tls,jx_int size);
 jx_list *jx_tls_list_calloc(jx_tls *tls);
 
+jx_ob jx_tls_ob_from_str(jx_tls *tls, jx_char * str);
+jx_ob jx_tls_ob_from_str_with_len(jx_tls *tls, jx_char * str, jx_int len);
+
 jx_ob jx__tls_ob_gc_copy(jx_tls *tls, jx_ob ob);
 JX_INLINE jx_ob jx_tls_ob_copy(jx_tls *tls, jx_ob ob)
 {
@@ -383,8 +387,9 @@ void *jx__tls_vla_new_with_content(jx_tls *tls, jx_int rec_size,
 jx_ob jx_ob_from_str(jx_char * str);
 jx_ob jx_ob_from_ident(jx_char * ident);
 
-jx_ob jx__str__concat(jx_char *left,jx_int left_len, jx_char *right, jx_int right_len);
-jx_ob jx__ob_add(jx_ob left, jx_ob right);
+jx_ob jx__str__concat(jx_tls *tls, jx_char *left,jx_int left_len,
+                      jx_char *right, jx_int right_len);
+jx_ob jx__ob_add(jx_tls *tls, jx_ob left, jx_ob right);
 jx_status jx__tls_ob_gc_free(jx_tls *tls, jx_ob ob);
 
 JX_INLINE jx_char *jx_ob_as_str(jx_ob * ob)
@@ -1473,7 +1478,7 @@ JX_INLINE jx_status jx_list_replace(jx_ob list, jx_int index, jx_ob ob)
     JX_FAILURE;
 }
 
-JX_INLINE jx_status jx_tls_list_replace(jx_tls *tls,jx_ob list, jx_int index, jx_ob ob)
+JX_INLINE jx_status jx_tls_list_replace(jx_tls *tls, jx_ob list, jx_int index, jx_ob ob)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
     jx__tls_list_replace(tls,list.data.io.list, index, ob) : 
@@ -1760,14 +1765,18 @@ JX_INLINE jx_status jx_list_set_float_vla(jx_ob list, jx_float ** ref)
 
 #define JX__HASH_COPY_KEYS   0x1
 #define JX__HASH_COPY_VALUES 0x2
-jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags);
-JX_INLINE jx_ob jx_list_new_from_hash(jx_ob hash)
+jx_ob jx__hash_copy_members(jx_tls *tls, jx_hash * I, jx_int flags);
+JX_INLINE jx_ob jx_tls_list_new_from_hash(jx_tls *tls, jx_ob hash)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
-    return jx__hash_copy_members(hash.data.io.hash,
+    return jx__hash_copy_members(tls, hash.data.io.hash,
                                  JX__HASH_COPY_KEYS | JX__HASH_COPY_VALUES);
   }
   return jx_ob_from_null();
+}
+JX_INLINE jx_ob jx_list_new_from_hash(jx_ob hash)
+{
+  return jx_tls_list_new_from_hash(JX_NULL, hash);
 }
 
 jx_status jx__list_with_hash(jx_tls *tls, jx_list * list, jx_hash * hash);
@@ -1990,19 +1999,30 @@ JX_INLINE jx_bool jx_hash_has_key(jx_ob hash, jx_ob key)
     jx__hash_has_key(hash.data.io.hash, key) : JX_FALSE;
 }
 
-JX_INLINE jx_ob jx_hash_keys(jx_ob hash)
+JX_INLINE jx_ob jx_tls_hash_keys(jx_tls *tls, jx_ob hash)
 {
   return (hash.meta.bits & JX_META_BIT_HASH) ?
-    jx__hash_copy_members(hash.data.io.hash, JX__HASH_COPY_KEYS) : 
+    jx__hash_copy_members(tls, hash.data.io.hash, JX__HASH_COPY_KEYS) : 
+    jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx_hash_keys(jx_ob hash)
+{
+  return jx_tls_hash_keys(JX_NULL, hash);
+}
+
+JX_INLINE jx_ob jx_tls_hash_values(jx_tls *tls, jx_ob hash)
+{
+  return (hash.meta.bits & JX_META_BIT_HASH) ?
+    jx__hash_copy_members(tls, hash.data.io.hash, JX__HASH_COPY_VALUES) : 
     jx_ob_from_null();
 }
 
 JX_INLINE jx_ob jx_hash_values(jx_ob hash)
 {
-  return (hash.meta.bits & JX_META_BIT_HASH) ?
-    jx__hash_copy_members(hash.data.io.hash, JX__HASH_COPY_VALUES) : 
-    jx_ob_from_null();
+  return jx_tls_hash_values(JX_NULL, hash);
 }
+
 
 jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key);
 JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
@@ -2114,7 +2134,7 @@ JX_INLINE jx_ob jx_hash_get_keys(jx_ob hash, jx_ob value)
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
+JX_INLINE jx_ob jx_tls_ob_add(jx_tls *tls, jx_ob left, jx_ob right)
 {
   jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
@@ -2130,13 +2150,13 @@ JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
       return jx_ob_from_float( left.data.io.float_ + right.data.io.float_ );
       break;
     case JX_META_BIT_STR:
-      return jx__str__concat(jx_ob_as_str(&left), jx_str_len(left),
+      return jx__str__concat(tls, jx_ob_as_str(&left), jx_str_len(left),
                              jx_ob_as_str(&right), jx_str_len(right));
       break;
     case JX_META_BIT_LIST:
       {
-        jx_ob result = jx_ob_copy(left);
-        if(!jx_ok( jx_list_combine( result, jx_ob_copy(right)) ) ) {
+        jx_ob result = jx_tls_ob_copy(tls, left);
+        if(!jx_ok( jx_tls_list_combine( tls, result, jx_tls_ob_copy(tls, right)) ) ) {
           jx_ob_replace_with_null(&result);
         }
         return result;
@@ -2144,7 +2164,12 @@ JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
       break;
     }
   } 
-  return jx__ob_add(left,right);
+  return jx__ob_add(tls, left,right);
+}
+
+JX_INLINE jx_ob jx_ob_add(jx_ob left, jx_ob right)
+{
+  return jx_tls_ob_add(JX_NULL, left, right);
 }
 
 jx_ob jx__ob_pow(jx_ob left, jx_ob right);
@@ -2347,17 +2372,22 @@ JX_INLINE jx_ob jx_ob_not(jx_ob ob)
 }
 
 
-jx_ob jx__str_concat(jx_ob left, jx_ob right);
-JX_INLINE jx_ob jx_str_concat(jx_ob left, jx_ob right)
+jx_ob jx__str_concat(jx_tls *tls, jx_ob left, jx_ob right);
+JX_INLINE jx_ob jx_tls_str_concat(jx_tls *tls, jx_ob left, jx_ob right)
 {
   jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
   if((left_bits == right_bits) && (left_bits & JX_META_BIT_STR)) {
-    return jx__str__concat(jx_ob_as_str(&left), jx_str_len(left),
+    return jx__str__concat(tls, 
+                           jx_ob_as_str(&left), jx_str_len(left),
                            jx_ob_as_str(&right), jx_str_len(right));
   } else {
-    return jx__str_concat(left,right);
+    return jx__str_concat(tls, left, right);
   }
+}
+JX_INLINE jx_ob jx_str_concat(jx_ob left, jx_ob right)
+{
+  return jx_tls_str_concat(JX_NULL, left, right);
 }
 
 jx_int jx__str__compare(jx_char *left, jx_char *right);
@@ -2373,51 +2403,67 @@ JX_INLINE jx_int jx_str_compare(jx_ob left, jx_ob right)
   }
 }
 
-JX_INLINE jx_ob jx_str_concat_with_both(jx_ob left, jx_ob right)
+JX_INLINE jx_ob jx_tls_str_concat_with_both(jx_tls *tls, jx_ob left, jx_ob right)
 {
-  jx_ob result = jx_str_concat(left, right);
-  jx_ob_free(left);
-  jx_ob_free(right);
+  jx_ob result = jx_tls_str_concat(tls, left, right);
+  jx_tls_ob_free(tls, left);
+  jx_tls_ob_free(tls, right);
   return result;
 }
 
-jx_ob jx__str_join_with_list(jx_list * list, jx_char *sep);
+JX_INLINE jx_ob jx_str_concat_with_both(jx_ob left, jx_ob right)
+{
+  return jx_tls_str_concat_with_both(JX_NULL, left, right);
+}
+
+jx_ob jx__str_join_from_list(jx_tls *tls, jx_list * list, jx_char *sep);
+JX_INLINE jx_ob jx_tls_str_join_with_list(jx_tls *tls, jx_ob list)
+{
+  if(list.meta.bits & JX_META_BIT_LIST) {
+    jx_ob result = jx__str_join_from_list(tls, list.data.io.list,JX_NULL);
+    jx_tls_ob_free(tls, list);
+    return result;
+  }
+  return jx_ob_from_null();
+}
 JX_INLINE jx_ob jx_str_join_with_list(jx_ob list)
 {
+  return jx_tls_str_join_with_list(JX_NULL, list);
+}
+
+JX_INLINE jx_ob jx_tls_str_join_with_list_sep(jx_tls *tls, jx_ob list, jx_ob sep)
+{
   if(list.meta.bits & JX_META_BIT_LIST) {
-    jx_ob result = jx__str_join_with_list(list.data.io.list,JX_NULL);
-    jx_ob_free(list);
+    jx_char *sep_str = JX_NULL;
+    jx_ob result;
+    if(sep.meta.bits & JX_META_BIT_STR) {
+      sep_str = jx_ob_as_str(&sep);
+    }
+    result = jx__str_join_from_list(tls, list.data.io.list, sep_str);
+    jx_tls_ob_free(tls, sep);
+    jx_tls_ob_free(tls, list);
     return result;
   }
   return jx_ob_from_null();
 }
-
 JX_INLINE jx_ob jx_str_join_with_list_sep(jx_ob list, jx_ob sep)
 {
+  return jx_tls_str_join_with_list_sep(JX_NULL, list, sep);
+}
+
+JX_INLINE jx_ob jx_tls_str_join_from_list(jx_tls *tls, jx_ob list)
+{
   if(list.meta.bits & JX_META_BIT_LIST) {
-    jx_char *sep_str = JX_NULL;
-    jx_ob result;
-    if(sep.meta.bits & JX_META_BIT_STR) {
-      sep_str = jx_ob_as_str(&sep);
-    }
-    result = jx__str_join_with_list(list.data.io.list,sep_str);
-    jx_ob_free(sep);
-    jx_ob_free(list);
-    return result;
+    return  jx__str_join_from_list(tls, list.data.io.list,JX_NULL);
   }
   return jx_ob_from_null();
 }
-
 JX_INLINE jx_ob jx_str_join_from_list(jx_ob list)
 {
-  if(list.meta.bits & JX_META_BIT_LIST) {
-    jx_ob result = jx__str_join_with_list(list.data.io.list,JX_NULL);
-    return result;
-  }
-  return jx_ob_from_null();
+  return jx_tls_str_join_from_list(JX_NULL, list);
 }
 
-JX_INLINE jx_ob jx_str_join_from_list_sep(jx_ob list, jx_ob sep)
+JX_INLINE jx_ob jx_tls_str_join_from_list_sep(jx_tls *tls, jx_ob list, jx_ob sep)
 {
   if(list.meta.bits & JX_META_BIT_LIST) {
     jx_char *sep_str = JX_NULL;
@@ -2425,10 +2471,14 @@ JX_INLINE jx_ob jx_str_join_from_list_sep(jx_ob list, jx_ob sep)
     if(sep.meta.bits & JX_META_BIT_STR) {
       sep_str = jx_ob_as_str(&sep);
     }
-    result = jx__str_join_with_list(list.data.io.list,sep_str);
+    result = jx__str_join_from_list(tls, list.data.io.list,sep_str);
     return result;
   }
   return jx_ob_from_null();
+}
+JX_INLINE jx_ob jx_str_join_from_list_sep(jx_ob list, jx_ob sep)
+{
+  return jx_tls_str_join_from_list_sep(JX_NULL, list, sep);
 }
 
 jx_char *jx_ob_as_ident(jx_ob * ob);    
@@ -2437,7 +2487,7 @@ jx_char *jx_ob_as_ident(jx_ob * ob);
 
 jx_int jx__builtin_compare(jx_ob left, jx_ob right);
 jx_int jx__ob_compare(jx_ob left, jx_ob right);
-JX_INLINE jx_int jx_ob_compare(jx_ob left, jx_ob right)
+JX_INLINE jx_int jx_tls_ob_compare(jx_tls *tls, jx_ob left, jx_ob right)
 {
   jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
   jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
@@ -2460,24 +2510,24 @@ JX_INLINE jx_int jx_ob_compare(jx_ob left, jx_ob right)
       break;
     case JX_META_BIT_HASH:
       {
-        jx_ob left_keys = jx_hash_keys(left);
-        jx_ob right_keys = jx_hash_keys(right);
+        jx_ob left_keys = jx_tls_hash_keys(tls, left);
+        jx_ob right_keys = jx_tls_hash_keys(tls, right);
         jx_list_sort(left_keys);
         jx_list_sort(right_keys);
         {
-          jx_int cmp = jx_ob_compare(left_keys,right_keys);
+          jx_int cmp = jx_tls_ob_compare(tls, left_keys,right_keys);
           if(!cmp) { /* ugh -- now need to compare values in sorted key-order */
             jx_int i=0,left_size = jx_list_size(left_keys);
             for(i=0;i<left_size;i++) {
               jx_ob left_value = jx_hash_borrow(left,jx_list_borrow(left_keys,i));
               jx_ob right_value = jx_hash_borrow(right,jx_list_borrow(right_keys,i));
-              cmp = jx_ob_compare(left_value, right_value);
+              cmp = jx_tls_ob_compare(tls, left_value, right_value);
               if(!cmp)
                 break;
             }
           }
-          jx_ob_free(left_keys);
-          jx_ob_free(right_keys);
+          jx_tls_ob_free(tls, left_keys);
+          jx_tls_ob_free(tls, right_keys);
           return cmp;
         }
       }
@@ -2487,7 +2537,8 @@ JX_INLINE jx_int jx_ob_compare(jx_ob left, jx_ob right)
         jx_int i=0,left_size = jx_list_size(left),right_size=jx_list_size(right);
         while(1) {
           if((i<left_size)&&(i<right_size)) {
-            jx_int cmp = jx_ob_compare(jx_list_borrow(left,i),jx_list_borrow(right,i));
+            jx_int cmp = jx_tls_ob_compare(tls, jx_list_borrow(left,i),
+                                           jx_list_borrow(right,i));
             if(cmp) return cmp; else i++;
           } else {
             return ((left_size == right_size) ? 0 :
@@ -2513,6 +2564,11 @@ JX_INLINE jx_int jx_ob_compare(jx_ob left, jx_ob right)
   }
   return jx__ob_compare(left,right);
 }
+JX_INLINE jx_int jx_ob_compare(jx_ob left, jx_ob right)
+{
+  return jx_tls_ob_compare(JX_NULL, left, right);
+}
+
 
 jx_bool jx__ob_lt(jx_ob left, jx_ob right);
 JX_INLINE jx_bool jx_ob_lt(jx_ob left, jx_ob right)
@@ -2738,8 +2794,8 @@ JX_INLINE void jx_entity_carry_into(jx_ob inv_node, jx_ob node,jx_ob handle)
 JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob payload)
 {
   jx_ob result = jx_ob_from_null();
-  //  jx_jxon_dump(stdout,"jx_function_call function",function);
-  //  jx_jxon_dump(stdout,"jx_function_call payload", payload);
+  //jx_jxon_dump(stdout,"jx_function_call function",function);
+  //jx_jxon_dump(stdout,"jx_function_call payload", payload);
 
   if(jx_function_check(function)) {
     jx_function *fn = function.data.io.function;
@@ -2771,7 +2827,9 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         jx_ob payload_ident = jx_ob_from_ident("_");
         jx_ob inv_node = jx_ob_copy(args);
         /* expose fn to itself */
-        jx_tls_hash_set(tls, inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+        jx_tls_hash_set(tls, inv_node,
+                        jx_ob_take_weak_ref(fn->name),
+                        jx_ob_take_weak_ref(function));
         /* bring along base entities */
         {
           jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
@@ -2848,7 +2906,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         /* process keyword argument hash, if present */
         if(jx_hash_check(kwd_hash)) {
           if(!jx_hash_size(inv_node)) { /* no symbols yet? */
-            jx_ob_free(inv_node);
+            jx_tls_ob_free(tls, inv_node);
             inv_node = kwd_hash; /* just use the namespace itself */
           } else {
             jx_ob kwd_list = jx_list_new_from_hash(kwd_hash);
@@ -2865,13 +2923,14 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         }
 
         /* expose function to itself */
-        jx_tls_hash_set(tls,inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
-
+        jx_tls_hash_set(tls,inv_node,jx_ob_take_weak_ref(fn->name),
+                        jx_ob_take_weak_ref(function));
         /* call */
         tls->node = inv_node;
         result = fn->mode ? jx_tls_code_exec(tls,0, inv_node,fn->body) : 
           jx_tls_code_eval(tls, 0, inv_node,fn->body);
         tls->node = node;
+        //jx_jxon_dump(stdout,"inv_node",inv_node);
         /* free function namespace */
         jx_tls_ob_free(tls, inv_node);
       } else {
@@ -2880,7 +2939,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
         //      jx_jxon_dump(stdout,"args",args);
         
         /* expose fn to itself */
-        jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),jx_ob_take_weak_ref(function));
+        jx_hash_set(inv_node,jx_ob_take_weak_ref(fn->name),
+                    jx_ob_take_weak_ref(function));
         /* bring along base entities */
         {
           jx_ob entity = jx_list_borrow(jx_list_borrow(payload,0),0);
@@ -2897,12 +2957,12 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
       }
       if(tls->tail_call) {
         if(tls->have_result) {
-          jx_ob_replace(&payload, tls->result);
+          jx_tls_ob_replace(tls, &payload, tls->result);
           tls->result = jx_ob_from_null();
           tls->have_result = JX_FALSE;
           jx_tls_ob_free(tls,result);
         } else {
-          jx_ob_replace(&payload, result);
+          jx_tls_ob_replace(tls, &payload, result);
         }
         result = jx_ob_from_null();
         tls->tail_call = JX_FALSE;
@@ -2968,10 +3028,13 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       jx_ob result = jx_ob_from_null();
       
       if(jx_ok( jx_hash_set(inv_node,payload_ident,payload))) {
-        jx_ob ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
-        jx_tls_ob_free(tls,payload);
+        jx_ob ob;
+        tls->node = inv_node;
+        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        tls->node = node;
+        jx_tls_ob_free(tls, payload);
         jx_tls_ob_free(tls, inv_node);
-        jx_tls_ob_free(tls,macro);
+        jx_tls_ob_free(tls, macro);
         {
           jx_ob result = jx_tls_code_eval(tls, 0, node, ob);
           jx_tls_ob_free(tls, ob);
@@ -3036,14 +3099,17 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       //      jx_jxon_dump(stdout,"inv_node",inv_node);
       //      jx_jxon_dump(stdout,"body",fn->body);
       {
-        jx_ob ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        jx_ob ob;
+        tls->node = inv_node;
+        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        tls->node = node;
         //        jx_jxon_dump(stdout,"node",node);
                 jx_jxon_dump(stdout,"ob",ob);
         result = jx_tls_code_eval(tls, 0, node, ob);
         jx_tls_ob_free(tls, ob);
         jx_tls_ob_free(tls, payload);
         jx_tls_ob_free(tls, inv_node);
-        jx_tls_ob_free(tls,macro);
+        jx_tls_ob_free(tls, macro);
         return result;
       }
     } else {
@@ -3051,7 +3117,10 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob paylo
       jx_ob inv_node = jx_tls_hash_new_with_assoc(tls, args, payload);
       jx_ob result;
       {
-        jx_ob ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        jx_ob ob;
+        tls->node = inv_node;
+        jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, inv_node, fn->body);
+        tls->node = node;
         jx_tls_ob_free(tls,macro);
         result = jx_tls_code_eval(tls, 0, node, ob);
         jx_tls_ob_free(tls,inv_node);
@@ -3643,43 +3712,54 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
   }
 }
 
-jx_ob jx_list_new_with_size(jx_int size);
-JX_INLINE jx_ob jx_tls_ob_new_from_ob(jx_tls *tls, jx_ob node, jx_ob ob)
-{
 
-  if(jx_builtin_entity_check(ob)) {
+jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node);
+JX_INLINE jx_status jx_node_purge(jx_ob node)
+{
+  jx_tls *tls = jx_tls_new(node);
+  jx_status result = jx_tls_node_purge(tls, node);
+  jx_tls_free(tls);
+  return result;
+}
+
+JX_INLINE jx_ob jx_tls_ob_with_new(jx_tls *tls, jx_ob payload)
+{
+  jx_ob entity = jx_list_remove(payload,0);
+  if(jx_builtin_entity_check(entity)) {
+    jx_ob node = tls ? tls->node : jx_ob_from_null();
     jx_ob result = jx_ob_from_null();
-    jx_ob content = jx_entity_resolve_content(node,ob);
+    jx_ob content = jx_entity_resolve_content(node,entity);
     if(jx_null_check(content)) {
-      jx_ob_replace(&result, jx_list_new_with_size(1));
-      jx_tls_list_replace(tls, result, 0, jx_ob_copy(ob));
-    } else {
-      jx_ob_replace(&result, jx_list_new_with_size(2));
-      jx_tls_list_replace(tls, result, 0, jx_ob_copy(ob));
+      /* only copy entity handle */
+      jx_tls_ob_replace(tls, &result, 
+                        jx_tls_list_new_with_first(tls, jx_ob_copy(entity) ));
+    } else { 
+      /* copy entity handle and content */
+      jx_tls_ob_replace(tls, &result, jx_tls_list_new_with_size(tls, 2));
+      jx_tls_list_replace(tls, result, 0, jx_ob_copy(entity));
       jx_tls_list_replace(tls, result, 1, jx_ob_copy(content));
     }
     {
-      jx_ob weak[2];
-      weak[0] = jx_entity_resolve_constructor(tls,ob); 
-      if(!jx_null_check(weak[0])) { 
-        weak[0] = jx_ob_take_weak_ref
-          (jx_entity_resolve_name(node, ob, weak[0]));
-        if(!jx_null_check(weak[0])) {
-          weak[1] = jx_ob_take_weak_ref(ob);
-          {
-            jx_ob code = jx_tls_list_new_with_ob_array(tls, weak,2);
-            jx_tls_ob_free(tls, jx_code_eval(node, code) );
-            jx_tls_ob_free(tls, code );
-          }
+      /* call constructor (if any) */
+      jx_ob constructor = jx_entity_resolve_constructor(tls, entity); 
+      if(!jx_null_check(constructor)) { 
+        constructor = jx_ob_take_weak_ref
+          (jx_entity_resolve_name(node, entity, constructor));
+        if(jx_builtin_callable_check(constructor)) {
+          jx_list_unshift(payload, jx_ob_take_weak_ref(result));
+          jx_tls_ob_free(tls, jx__function_call
+                         (tls, node, constructor, payload));
+          payload = jx_ob_from_null();
         }
       }
     }
+    jx_tls_ob_free(tls, payload);
     return result;
   } else {
-    return jx_ob_copy(ob);
+    return jx_tls_ob_copy(tls, payload);
   }
 }
-
+            
 /* enable C++ mangling */
 #ifdef __cplusplus
 #if 0

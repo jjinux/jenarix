@@ -54,29 +54,31 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls *tls, jx_ob payload)
 {
   jx_ob name = jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,0));
   jx_ob entity = jx_builtin_new_entity_with_name(tls, jx_tls_ob_copy(tls, name));
-  jx_int size = jx_list_size(payload) - 1;
   jx_tls_hash_set(tls, tls->node, name, jx_tls_ob_copy(tls, entity));
   { 
     jx_ob def = jx_ob_from_null();
+    jx_int size = jx_list_size(payload);
+
+    if(size<4) size = 4;
     if(size) {
       def = jx_list_new_with_size(size);
       switch(size) {
       default:
-      case 5:
+      case 6:
         jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,5)));
-      case 4:
+      case 5:
         jx_list_replace(def, JX_ENTITY_DESTRUCTOR,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,4)));
-      case 3:
+      case 4:
+        jx_list_replace(def, JX_ENTITY_CLASS_FLAG, jx_ob_from_bool(JX_TRUE));
         jx_list_replace(def, JX_ENTITY_ATTR_HASH,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,3)));
-      case 2:
         jx_list_replace(def, JX_ENTITY_CONTENT_LIST,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,2)));
-      case 1:
         jx_list_replace(def, JX_ENTITY_BASE_HANDLE,
                         jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,1)));
+        break;
       }
     }
     jx_tls_hash_set(tls, tls->node, jx_ob_copy(entity), def);
@@ -667,9 +669,5 @@ JX_INLINE jx_ob jx_safe_bool(jx_ob node, jx_ob payload)
   return jx_ob_to_bool(jx_list_borrow(payload,0));
 }
 
-JX_INLINE jx_ob jx_safe_new(jx_ob node, jx_ob payload)
-{
-  return jx_tls_ob_new_from_ob(JX_NULL,node,jx_list_borrow(payload,0));
-}
 
 #endif

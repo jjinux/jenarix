@@ -119,9 +119,11 @@ JX_INLINE jx_int nest(jx_int flags,jx_int amount)
     (column & JX_JXON_FLAG_INDENT_MASK);
 }
 
-jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref, jx_int flags, jx_int *space_left);
+jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
+                                jx_int flags, jx_int *space_left);
 
-static jx_status jx__list_to_jxon(jx_ob node, jx_list * list, jx_char **ref, jx_int flags, jx_int *space_left)
+static jx_status jx__list_to_jxon(jx_ob node, jx_list * list, jx_char **ref,
+                                  jx_int flags, jx_int *space_left)
 {
   jx_int i, size = jx_vla_size(&list->data.vla);
   char square[] = "]", rounded[] = ")";
@@ -187,8 +189,8 @@ static jx_status jx__list_to_jxon(jx_ob node, jx_list * list, jx_char **ref, jx_
       jx_ob *ob = list->data.ob_vla;
       if(!(flags&(JX_JXON_FLAG_JSON_ENCODE |
                   JX_JXON_FLAG_NO_ROUNDED))) {
-        if(ob &&  (flags & JX_JXON_FLAG_PRETTY) && (jx_ident_check(*ob) || 
-                                                    (jx_builtin_callable_check(*ob)))) {
+        if(ob && (flags & JX_JXON_FLAG_PRETTY) && (jx_ident_check(*ob) || 
+                                                   (jx_builtin_callable_check(*ob)))) {
           (*ref)[ob_start-1] = '(';
           delimit = rounded;
           sep = space;
@@ -225,8 +227,10 @@ static jx_status jx__list_to_jxon(jx_ob node, jx_list * list, jx_char **ref, jx_
   return JX_SUCCESS;
 }
 
-static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int flags, jx_int *space_left)
+static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref,
+                                  jx_int flags, jx_int *space_left)
 {
+  jx_tls *tls = jx_tls_new(node);
   jx_int size = jx_vla_size(&I->key_value);
   jx_bool comma = JX_FALSE;
   if(flags & JX_JXON_FLAG_PRETTY) {
@@ -237,7 +241,7 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
   jx_vla_append_c_str(ref, "{"); 
   if(size) {
     if(flags & JX_JXON_FLAG_SORT_HASHES) {
-      jx_ob keys = jx__hash_copy_members(I, JX__HASH_COPY_KEYS);
+      jx_ob keys = jx__hash_copy_members(tls, I, JX__HASH_COPY_KEYS);
       jx_int i,list_size = jx_list_size(keys);
       jx_list_sort(keys);
       for(i=0;i<list_size;i++) {
@@ -252,17 +256,18 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
         } else {
           comma = JX_TRUE;
         }
-        jx_ob_free( jx__ob_to_jxon_with_flags(node, key, ref, flags, space_left) );
+        jx_tls_ob_free(tls, jx__ob_to_jxon_with_flags(node, key, ref, flags, space_left) );
         flags = autowrap(ref,flags,space_left,1);
         jx_vla_append_c_str(ref, ":");        
         {
           jx_ob value = jx_ob_from_null();
           jx__hash_peek(&value, I, key);
-          jx_ob_free( jx__ob_to_jxon_with_flags(node, value, ref, flags, space_left) );
+          jx_tls_ob_free(tls, jx__ob_to_jxon_with_flags(node, value, ref, 
+                                                         flags, space_left) );
         }
-        jx_ob_free(key);
+        jx_tls_ob_free(tls, key);
       }
-      jx_ob_free(keys);
+      jx_tls_ob_free(tls, keys);
     } else {
       jx_hash_info *info = (jx_hash_info *) I->info;
       if((!info) || (info->mode == JX_HASH_LINEAR)) {
@@ -290,10 +295,12 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
             jx_vla_append_ob_str(ref, key);
           }
 #endif
-          jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[0], ref, flags, space_left) );
+          jx_tls_ob_free(tls, jx__ob_to_jxon_with_flags
+                         (node, ob[0], ref, flags, space_left) );
           flags = autowrap(ref,flags,space_left,1);
           jx_vla_append_c_str(ref, ":");
-          jx_ob_free( jx__ob_to_jxon_with_flags(node, ob[1], ref, flags, space_left) );
+          jx_tls_ob_free(tls, jx__ob_to_jxon_with_flags
+                         (node, ob[1], ref, flags, space_left) );
           ob += 2;
         }
       } else {
@@ -308,7 +315,8 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
             jx_uint32 index = 0;
             do {
               jx_uint32 *hash_entry = hash_table + (index << 1);
-              if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {        /* active slot with matching hash code */
+              if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {      
+                /* active slot with matching hash code */
                 jx_uint32 kv_offset = hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK;
                 if(comma) {
                   flags = autowrap(ref,flags,space_left,1);
@@ -320,11 +328,11 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
                 } else {
                   comma = JX_TRUE;
                 }
-                jx_ob_free( jx__ob_to_jxon_with_flags
+                jx_tls_ob_free(tls, jx__ob_to_jxon_with_flags
                             (node, key_value[kv_offset], ref, flags, space_left) );
                 flags = autowrap(ref,flags,space_left,1);
                 jx_vla_append_c_str(ref, ":");
-                jx_ob_free( jx__ob_to_jxon_with_flags
+                jx_tls_ob_free(tls, jx__ob_to_jxon_with_flags
                             (node, key_value[kv_offset + 1], ref, flags, space_left) );
               }
               index++;
@@ -337,6 +345,7 @@ static jx_status jx__hash_to_jxon(jx_ob node, jx_hash * I, jx_char **ref, jx_int
   }
   flags = autowrap(ref,flags,space_left,1);
   jx_vla_append_c_str(ref, "}");
+  jx_tls_free(tls);
   return JX_SUCCESS;
 }
 

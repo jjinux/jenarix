@@ -1,0 +1,24 @@
+
+# python class emulation
+
+entity(_E, null, null, 
+  { __init__:lambda self,x: [set(self.x,x) , output("constructing")],
+    __del__ :lambda self: output("destructing" ) },
+  __del__, __init__)
+
+# construct using the "new" builtin function
+
+a = new(_E, 1)
+
+# create a factory method "E" for creating "_E" entity class instances
+
+def E(): 
+   unshift(_,_E)
+   return apply(new,_)
+
+# construct using the factory method (looks more Pythonic...)
+
+b = E(2)
+
+print a,b
+

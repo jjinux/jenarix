@@ -493,7 +493,9 @@ jx_status jx_os_process_complete(void);
 
 /* destroying owned objects */
 
-jx_status jx_ob_free(jx_ob ob);  
+jx_status jx_ob_free(jx_ob ob); 
+
+jx_status jx_node_purge(jx_ob node);
 
 jx_status jx_node_ob_free(jx_ob node, jx_ob ob); 
 

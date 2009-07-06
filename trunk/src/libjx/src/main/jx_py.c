@@ -159,6 +159,7 @@ int main(int argc, char *argv[])
       jx_ob_free(tree);
     }
 
+    jx_node_purge(node);
     jx_ob_free(node);
     jx_ob_free(scanner);
     jx_ob_free(names);

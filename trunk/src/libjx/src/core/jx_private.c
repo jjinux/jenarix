@@ -796,7 +796,7 @@ jx_ob jx__ob_to_ident(jx_ob ob)
 
 /* strings */
 
-jx_ob jx_ob_from_str(jx_char * str)
+jx_ob jx_tls_ob_from_str(jx_tls *tls, jx_char * str)
 {
   jx_int len = jx_strlen(str);
   jx_ob result = jx_ob_from_null();
@@ -806,7 +806,7 @@ jx_ob jx_ob_from_str(jx_char * str)
     jx_os_memcpy(result.data.io.tiny_str, str, len + 1);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
+    result.data.io.str = jx_tls_vla_new(tls, 1, len + 1 + sizeof(jx_str), JX_TRUE);
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
       jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len + 1);
@@ -815,7 +815,12 @@ jx_ob jx_ob_from_str(jx_char * str)
   return result;
 }
 
-jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
+jx_ob jx_ob_from_str(jx_char * str)
+{
+  return jx_tls_ob_from_str(JX_NULL, str);
+}
+
+jx_ob jx_tls_ob_from_str_with_len(jx_tls *tls, jx_char * str, jx_int len)
 {
   jx_ob result = jx_ob_from_null();
 
@@ -824,9 +829,33 @@ jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
     jx_os_memcpy(result.data.io.tiny_str, str, len);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
+    result.data.io.str = jx_tls_vla_new(tls, 1, len + 1 + sizeof(jx_str), JX_TRUE);
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
+      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
+      result.data.io.str[sizeof(jx_str) + len] = 0;
+    }
+  }
+  return result;
+}
+
+jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
+{
+  return jx_tls_ob_from_str_with_len(JX_NULL, str, len);
+}
+
+jx_ob jx_tls_ob_from_ident_with_len(jx_tls *tls, jx_char * str, jx_int len)
+{
+  jx_ob result = jx_ob_from_null();
+
+  if(len < JX_TINY_STR_SIZE) {
+    result.meta.bits = JX_META_BIT_IDENT | len;
+    jx_os_memcpy(result.data.io.tiny_str, str, len );
+  } else {
+    /* string not tiny -- use heap */
+    result.data.io.str = jx_tls_vla_new(tls, 1, len + 1 + sizeof(jx_str), JX_TRUE);
+    if(result.data.io.str) {
+      result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
       jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
       result.data.io.str[sizeof(jx_str) + len] = 0;
     }
@@ -836,21 +865,7 @@ jx_ob jx_ob_from_str_with_len(jx_char * str, jx_int len)
 
 jx_ob jx_ob_from_ident_with_len(jx_char * str, jx_int len)
 {
-  jx_ob result = jx_ob_from_null();
-
-  if(len < JX_TINY_STR_SIZE) {
-    result.meta.bits = JX_META_BIT_IDENT | len;
-    jx_os_memcpy(result.data.io.tiny_str, str, len );
-  } else {
-    /* string not tiny -- use heap */
-    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
-    if(result.data.io.str) {
-      result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
-      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
-      result.data.io.str[sizeof(jx_str) + len] = 0;
-    }
-  }
-  return result;
+  return jx_tls_ob_from_ident_with_len(JX_NULL, str, len);
 }
 
 jx_ob jx_ob_with_str_vla(jx_char ** ref)
@@ -905,7 +920,8 @@ static jx_ob jx_ob_with_ident_vla(jx_char ** ref)
   return result;
 }
 
-jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int right_len)
+jx_ob jx__str__concat(jx_tls *tls, jx_char * left, jx_int left_len,
+                      jx_char * right, jx_int right_len)
 {
   jx_int total_len = left_len + right_len;
   if(total_len < JX_TINY_STR_SIZE) {
@@ -915,7 +931,8 @@ jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int r
     return jx_ob_from_str_with_len(buffer,total_len);
   } else {
     jx_ob result = jx_ob_from_null();
-    jx_char *vla = jx_vla_new(1, total_len + sizeof(jx_str) + 1); /* will be zero initialized */
+    jx_char *vla = jx_tls_vla_new(tls, 1, total_len + sizeof(jx_str) + 1, JX_TRUE);
+    /* will be zero initialized */
     if(vla) {
       jx_os_memcpy(vla + sizeof(jx_str), left, left_len);
       jx_os_memcpy(vla + sizeof(jx_str) + left_len, right, right_len);
@@ -926,13 +943,13 @@ jx_ob jx__str__concat(jx_char * left, jx_int left_len, jx_char * right, jx_int r
   }
 }
 
-jx_ob jx__str_concat(jx_ob left, jx_ob right)
+jx_ob jx__str_concat(jx_tls *tls, jx_ob left, jx_ob right)
 {                               /* on entry, we know the types aren't matched */
   jx_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {    /* we have at least one string */
     jx_ob left_str = jx_ob_to_str(left);
     jx_ob right_str = jx_ob_to_str(right);
-    jx_ob result = jx_str_concat(left_str, right_str);
+    jx_ob result = jx_tls_str_concat(tls, left_str, right_str);
     jx_ob_free(left_str); /* ok */
     jx_ob_free(right_str); /* ok */
     return result;
@@ -984,12 +1001,12 @@ jx_bool jx__str_free(jx_char * str)
   }
 }
 
-jx_ob jx__ob_add(jx_ob left, jx_ob right)
+jx_ob jx__ob_add(jx_tls *tls, jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
   jx_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {
-    return jx__str_concat(left, right);
+    return jx__str_concat(tls, left, right);
   } else if(merge_bits & JX_META_BIT_FLOAT) {
     return jx_ob_from_float(jx_ob_as_float(left) + jx_ob_as_float(right));
   } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
@@ -1609,24 +1626,37 @@ JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
       jx_int size = jx_vla_size(&I->data.vla);
       jx_ob *ob = I->data.ob_vla;
       if(size) {
-        if(jx_builtin_entity_check(*ob)) {
-          jx_ob weak[2];
+        if(jx_builtin_entity_check(*ob) && 
+           ((size <= JX_ENTITY_CLASS_FLAG) ||
+            (jx_null_check(ob[JX_ENTITY_CLASS_FLAG])))) {
+          /*  an instance, not a class */
           jx_ob node = tls ? tls->node : jx_ob_from_null();
+          jx_ob destructor = jx_ob_from_null();
           if(size>JX_ENTITY_DESTRUCTOR)
-            weak[0] = ob[JX_ENTITY_DESTRUCTOR];
-          else
-            weak[0] = jx_ob_from_null();
-          if(jx_null_check(weak[0]))
-            weak[0] = jx_entity_resolve_destructor(tls,*ob); 
-          if(!jx_null_check(weak[0])) { 
-            weak[0] = jx_ob_take_weak_ref
-              (jx_entity_resolve_name(node, *ob, weak[0]));
-            if(!jx_null_check(weak[0])) {
-              weak[1] = jx_ob_take_weak_ref(*ob);
+            destructor = ob[JX_ENTITY_DESTRUCTOR];
+          if(jx_null_check(destructor))
+            destructor = jx_entity_resolve_destructor(tls,*ob); 
+          if(!jx_null_check(destructor)) { 
+            destructor = jx_ob_take_weak_ref
+              (jx_entity_resolve_name(node, *ob, destructor));
+            if(jx_builtin_callable_check(destructor)) {
+              if(size <= JX_ENTITY_CLASS_FLAG) {
+                jx__list_resize(tls, I, JX_ENTITY_CLASS_FLAG + 1,
+                                jx_ob_from_null());
+              }
+              /* prevents recursive destructor call */
+              jx__tls_list_replace(tls, I, JX_ENTITY_CLASS_FLAG,
+                                   jx_ob_from_bool(JX_FALSE));
               {
-                jx_ob code = jx_tls_list_new_with_ob_array(tls, weak, 2);
-                jx_tls_ob_free( tls, jx_code_eval(node, code) );
-                jx_tls_ob_free( tls, code );
+                /* now call destructor */
+                jx_ob self = JX_OB_LIST;
+                self.data.io.list = I;
+                {
+                  jx_ob payload = jx_tls_list_new_with_first
+                    (tls, jx_ob_take_weak_ref(self));
+                  jx_tls_ob_free(tls, jx__function_call
+                                 (tls, node, destructor, payload));
+                }
               }
             }
           }
@@ -1646,7 +1676,7 @@ JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
   return status;
 }
 
-jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
+jx_ob jx__str_join_from_list(jx_tls *tls, jx_list * I, jx_char * sep)
 {
   jx_ob result = jx_ob_from_null();
   jx_status status = jx_gc_lock(&I->gc);
@@ -1661,7 +1691,7 @@ jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
         total += jx_str_len(*(ob++));
       }
       {
-        jx_char *vla = jx_vla_new(1, total + 1);
+        jx_char *vla = jx_tls_vla_new(tls, 1, total + 1, JX_TRUE);
         if(vla) {
           jx_char *next = vla;
           ob = I->data.ob_vla;
@@ -1684,7 +1714,7 @@ jx_ob jx__str_join_with_list(jx_list * I, jx_char * sep)
   return result;
 }
 
-static jx_ob jx__ident_join_with_list(jx_list * I, jx_char * sep)
+static jx_ob jx__ident_join_with_list(jx_tls *tls, jx_list * I, jx_char * sep)
 {
   jx_ob result = jx_ob_from_null();
   jx_status status = jx_gc_lock(&I->gc);
@@ -1703,7 +1733,8 @@ static jx_ob jx__ident_join_with_list(jx_list * I, jx_char * sep)
           total += jx_ident_len(*(ob++));
         }
         {
-          jx_char *vla = jx_vla_new(1, total + 1); /* +1 for 0-terminator */
+          jx_char *vla = jx_tls_vla_new(tls, 1, total + 1, JX_TRUE);
+          /* +1 for 0-terminator */
           if(vla) {
             jx_char *next = vla;
             ob = I->data.ob_vla;
@@ -1731,7 +1762,7 @@ jx_ob jx_ident_new_from_dotted(jx_ob ident)
 {
   //  jx_jxon_dump(stdout,"ident",jx_ob_from_null(),ident);
   if(jx_list_check(ident)) {
-    return jx__ident_join_with_list(ident.data.io.list,".");
+    return jx__ident_join_with_list(JX_NULL, ident.data.io.list,".");
   } else
     return jx_ob_copy(ident);
 }
@@ -4264,9 +4295,9 @@ static jx_bool jx__hash_identical(jx_hash * left, jx_hash * right)
   return JX_FALSE;
 }
 
-jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
+jx_ob jx__hash_copy_members(jx_tls *tls, jx_hash * I, jx_int flags)
 {
-  jx_ob result = jx_list_new();
+  jx_ob result = jx_tls_list_new(tls);
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_uint32 size = jx_vla_size(&I->key_value);
@@ -4277,9 +4308,9 @@ jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
         register jx_ob *ob = I->key_value;
         while(i--) {
           if(flags & JX__HASH_COPY_KEYS)
-            jx_list_append(result, jx_ob_copy(ob[0]));
+            jx_list_append(result, jx_tls_ob_copy(tls, ob[0]));
           if(flags & JX__HASH_COPY_VALUES)
-            jx_list_append(result, jx_ob_copy(ob[1]));
+            jx_list_append(result, jx_tls_ob_copy(tls, ob[1]));
           ob += 2;
         }
       } else {
@@ -4297,9 +4328,9 @@ jx_ob jx__hash_copy_members(jx_hash * I, jx_int flags)
               if(hash_entry[1] & JX_HASH_ENTRY_ACTIVE) {
                 jx_ob *kv_ob = key_value + (hash_entry[1] & JX_HASH_ENTRY_KV_OFFSET_MASK);
                 if(flags & JX__HASH_COPY_KEYS)
-                  jx_list_append(result, jx_ob_copy(kv_ob[0]));
+                  jx_list_append(result, jx_tls_ob_copy(tls, kv_ob[0]));
                 if(flags & JX__HASH_COPY_VALUES)
-                  jx_list_append(result, jx_ob_copy(kv_ob[1]));
+                  jx_list_append(result, jx_tls_ob_copy(tls, kv_ob[1]));
               }
               index++;
             } while(index <= mask);
@@ -5831,3 +5862,31 @@ jx_status jx__tls_ob_gc_free(jx_tls *tls, jx_ob ob)
   }
   return JX_SUCCESS;
 }
+
+jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node)
+{
+  if(tls) tls->node = node;
+  {
+    jx_int size = jx_hash_size(node);
+    if(!size) {
+      return JX_SUCCESS;
+    } else {
+      /* purge all non-class containers */
+      jx_ob keys = jx_tls_hash_keys(tls, node);
+      jx_ob builtin_key = jx_builtins();
+      jx_int i;
+      for(i=0;i<size;i++) {
+        jx_ob key = jx_list_borrow(keys, i);
+        if(!jx_builtin_entity_check(key) &&
+           (!jx_ob_same(key,builtin_key))) {
+          jx_ob value = jx_hash_borrow(node, key);
+          if(jx_list_check(value) || jx_hash_check(value)) {
+            jx_tls_hash_delete(tls, node, key);
+          }
+        }
+      }
+      jx_tls_ob_free(tls,keys);
+    }
+  }
+}
+
