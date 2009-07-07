@@ -1,9 +1,8 @@
 (set max 100001.0);
 
-(defun abs [x] (test (lt x 0) (neg x) (x)));
+(defun abs [x] (test (lt x 0) (neg x) x));
 
 (def tst1 [x y] [
-  (output (x,y))
   (test (gt x max)
 	x
       (tail (sub x (add (mul y 2) (idiv x (abs y))))

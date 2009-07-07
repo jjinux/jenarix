@@ -373,7 +373,7 @@ static void force_float(char *str)
 jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char **ref,
                                 jx_int flags, jx_int *space_left)
 {
-  jx_bits bits = ob.meta.bits;
+  jx_fast_bits bits = ob.meta.bits;
   if(ref && flags & JX_JXON_FLAG_SHOW_WEAK) {
     if(ob.meta.bits & JX_META_BIT_WEAK_REF) {
       jx_vla_append_c_str(ref," #");

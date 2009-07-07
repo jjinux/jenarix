@@ -609,9 +609,9 @@ static void force_float(char *str)
   p[1] = 0;
 }
 
-jx_ob jx__ob_to_str(jx_ob ob)
+jx_ob jx__ob_to_str(jx_tls *tls, jx_ob ob)
 {
-  jx_bits bits = ob.meta.bits;
+  jx_fast_bits bits = ob.meta.bits;
   switch (bits & JX_META_MASK_TYPE_BITS) {
   case 0: /* NULL */
     return jx_ob_from_str("null");
@@ -945,10 +945,10 @@ jx_ob jx__str__concat(jx_tls *tls, jx_char * left, jx_int left_len,
 
 jx_ob jx__str_concat(jx_tls *tls, jx_ob left, jx_ob right)
 {                               /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {    /* we have at least one string */
-    jx_ob left_str = jx_ob_to_str(left);
-    jx_ob right_str = jx_ob_to_str(right);
+    jx_ob left_str = jx_tls_ob_to_str(tls, left);
+    jx_ob right_str = jx_tls_ob_to_str(tls, right);
     jx_ob result = jx_tls_str_concat(tls, left_str, right_str);
     jx_ob_free(left_str); /* ok */
     jx_ob_free(right_str); /* ok */
@@ -965,12 +965,12 @@ jx_int jx__str__compare(jx_char * left, jx_char * right)
   return 0;
 }
 
-jx_int jx__str_compare(jx_ob left, jx_ob right)
+jx_int jx__str_compare(jx_tls *tls, jx_ob left, jx_ob right)
 {                               /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {    /* we have at least one string */
-    jx_ob left_str = jx_ob_to_str(left);
-    jx_ob right_str = jx_ob_to_str(right);
+    jx_ob left_str = jx_tls_ob_to_str(tls, left);
+    jx_ob right_str = jx_tls_ob_to_str(tls, right);
     jx_int result = jx_str_compare(left_str, right_str);
     jx_ob_free(left_str); /* ok */
     jx_ob_free(right_str); /* ok */
@@ -1004,7 +1004,7 @@ jx_bool jx__str_free(jx_char * str)
 jx_ob jx__ob_add(jx_tls *tls, jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {
     return jx__str_concat(tls, left, right);
   } else if(merge_bits & JX_META_BIT_FLOAT) {
@@ -1018,7 +1018,7 @@ jx_ob jx__ob_add(jx_tls *tls, jx_ob left, jx_ob right)
 jx_ob jx__ob_pow(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_FLOAT) {
     return jx_ob_from_float( pow(jx_ob_as_float(left),jx_ob_as_float(right)));
   } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
@@ -1030,7 +1030,7 @@ jx_ob jx__ob_pow(jx_ob left, jx_ob right)
 jx_ob jx__ob_mul(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_LIST) {
     if((left.meta.bits & JX_META_BIT_LIST) &&
        (right.meta.bits & JX_META_BIT_INT)) {
@@ -1051,9 +1051,9 @@ jx_ob jx__ob_mul(jx_ob left, jx_ob right)
 jx_int jx__ob_compare(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
-  jx_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
-  jx_bits merge_bits = left_bits | right_bits;
+  jx_fast_bits left_bits = left.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_fast_bits right_bits = right.meta.bits & JX_META_MASK_TYPE_BITS;
+  jx_fast_bits merge_bits = left_bits | right_bits;
   switch(merge_bits) {
   case JX_META_BIT_BOOL | JX_META_BIT_INT:
     return ((jx_ob_as_int(left) < jx_ob_as_int(right)) ? -1 :
@@ -1083,7 +1083,7 @@ jx_int jx__ob_compare(jx_ob left, jx_ob right)
 jx_bool jx__ob_lt(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {
     return jx_str_compare(left, right) < 0;
   } else if(merge_bits & JX_META_BIT_FLOAT) {
@@ -1097,7 +1097,7 @@ jx_bool jx__ob_lt(jx_ob left, jx_ob right)
 jx_bool jx__ob_gt(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {
     return jx_str_compare(left, right) > 0;
   } else if(merge_bits & JX_META_BIT_FLOAT) {
@@ -1111,7 +1111,7 @@ jx_bool jx__ob_gt(jx_ob left, jx_ob right)
 jx_bool jx__ob_le(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {
     return jx_str_compare(left, right) <= 0;
   } else if(merge_bits & JX_META_BIT_FLOAT) {
@@ -1125,7 +1125,7 @@ jx_bool jx__ob_le(jx_ob left, jx_ob right)
 jx_bool jx__ob_ge(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_STR) {
     return jx_str_compare(left, right) >= 0;
   } else if(merge_bits & JX_META_BIT_FLOAT) {
@@ -1139,7 +1139,7 @@ jx_bool jx__ob_ge(jx_ob left, jx_ob right)
 #define JX_MATH_OP(SUFFIX,OPER) \
 jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 {  /* on entry, we know the types aren't matched */ \
-  jx_bits merge_bits = left.meta.bits | right.meta.bits; \
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits; \
   if( merge_bits & JX_META_BIT_FLOAT) { \
     return jx_ob_from_float( jx_ob_as_float(left) OPER jx_ob_as_float(right) ); \
   } else if( merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) { \
@@ -1154,7 +1154,7 @@ JX_MATH_OP(sub, -)
 #define JX_LOG_OP(SUFFIX,OPER) \
 jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 {  /* on entry, we know the types aren't matched */ \
-  jx_bits merge_bits = left.meta.bits | right.meta.bits; \
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits; \
   if( merge_bits & JX_META_BIT_FLOAT) { \
     return jx_ob_from_bool( jx_ob_as_float(left) OPER jx_ob_as_float(right) ); \
   } else if( merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) { \
@@ -1171,7 +1171,7 @@ jx_ob jx__ob_ ## SUFFIX(jx_ob left, jx_ob right) \
 jx_ob jx__ob_mod(jx_ob left, jx_ob right)
 {
   /* on entry, we know the types aren't matched */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & JX_META_BIT_FLOAT) {
     return jx_ob_from_float(fmod(jx_ob_as_float(left), jx_ob_as_float(right)));
   } else if(merge_bits & (JX_META_BIT_INT | JX_META_BIT_BOOL)) {
@@ -1622,52 +1622,6 @@ JX_INLINE jx_status jx__list_free(jx_tls *tls, jx_list * I)
   if(I->gc.shared) {
     status = JX_STATUS_FREED_SHARED;
   } else {
-#if 0
-// DESTRUCTORS HAVE PROVED UNWORKABLE
-    if(!I->packed_meta_bits) {
-      jx_int size = jx_vla_size(&I->data.vla);
-      jx_ob *ob = I->data.ob_vla;
-      if(size) {
-        if(jx_builtin_entity_check(*ob) && 
-           ((size <= JX_ENTITY_CLASS_FLAG) ||
-            (jx_null_check(ob[JX_ENTITY_CLASS_FLAG])))) {
-          /*  an instance, not a class */
-          jx_ob node = tls ? tls->node : jx_ob_from_null();
-          jx_ob destructor = jx_ob_from_null();
-          if(size>JX_ENTITY_DESTRUCTOR)
-            destructor = ob[JX_ENTITY_DESTRUCTOR];
-          if(jx_null_check(destructor))
-            destructor = jx_entity_resolve_destructor(tls,*ob); 
-          if(!jx_null_check(destructor)) { 
-            destructor = jx_ob_take_weak_ref
-              (jx_entity_resolve_name(node, *ob, destructor));
-            if(jx_builtin_callable_check(destructor)) {
-              if(size <= JX_ENTITY_CLASS_FLAG) {
-                jx__list_resize(tls, I, JX_ENTITY_CLASS_FLAG + 1,
-                                jx_ob_from_null());
-              }
-              /* prevents recursive destructor call */
-              jx__tls_list_replace(tls, I, JX_ENTITY_CLASS_FLAG,
-                                   jx_ob_from_bool(JX_FALSE));
-              {
-                /* now call destructor */
-                jx_ob self = JX_OB_LIST;
-                self.data.io.list = I;
-                {
-                  jx_ob payload = jx_tls_list_new_with_first
-                    (tls, jx_ob_take_weak_ref(self));
-                  jx_ob result = jx__function_call
-                    (tls, node, destructor, payload);
-                  jx_jxon_dump(stdout,"result",result);
-                  jx_tls_ob_free(tls, result);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-#endif
 
     if(!I->packed_meta_bits) {
       jx_int i, size = jx_vla_size(&I->data.vla);
@@ -1839,7 +1793,7 @@ jx_ob jx_ident_split_with_dotted(jx_tls *tls, jx_ob ident)
 }
 
 
-static jx_status jx_meta_get_packed_size(jx_bits bits)
+static jx_status jx_meta_get_packed_size(jx_fast_bits bits)
 {
   switch (bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_INT:
@@ -2018,16 +1972,16 @@ jx_status jx__tls_list_repack_data_locked(jx_tls *tls, jx_list * I)
   } else if(I->packed_meta_bits) {
     return JX_SUCCESS;
   } else {
-    jx_bits meta_or = 0, meta_and = -1;
+    jx_fast_bits meta_or = 0, meta_and = -1;
     {
       register jx_ob *ob = I->data.ob_vla;
-      register jx_bits abort_mask = ( JX_META_BIT_BOOL |
+      register jx_fast_bits abort_mask = ( JX_META_BIT_BOOL |
                                       JX_META_BIT_LIST |
                                       JX_META_BIT_HASH |
                                       JX_META_BIT_STR );
       register jx_int i;
       for(i = 0; i < size; i++) { 
-        register jx_bits bits = (ob++)->meta.bits;
+        register jx_fast_bits bits = (ob++)->meta.bits;
         meta_or |= bits;
         meta_and &= bits;
         if((!meta_and)||(bits & abort_mask))
@@ -2674,7 +2628,7 @@ JX_INLINE jx_uint32 jx__c_str_hash(jx_char * str)
 
 jx_uint32 jx__ob_gc_hash_code(jx_ob ob)
 {
-  jx_bits bits = ob.meta.bits;
+  jx_fast_bits bits = ob.meta.bits;
   if(bits & (JX_META_BIT_STR | JX_META_BIT_IDENT)) {
     if(bits & JX_META_BIT_STR)
       return jx__c_str_hash(jx_ob_as_str(&ob));
@@ -2832,8 +2786,6 @@ jx_ob jx__tls_hash_copy_strong(jx_tls *tls, jx_hash * hash)
   }
   return result;
 }
-
-
 
 #if 0
 static void jx__hash_make_strong(jx_hash * I)
@@ -3126,7 +3078,6 @@ static jx_bool jx__tls_hash_recondition(jx_tls *tls, jx_hash * I, jx_int mode, j
   jx_uint32 usage = 0;
   jx_uint32 old_mode = JX_HASH_RAW;
   jx_uint32 min_size = 0;
-
   if(!I->info) {
     usage = jx_vla_size(&I->key_value) >> 1;
     if(min_size < usage)
@@ -3841,7 +3792,7 @@ static jx_bool jx__tls_hash_recondition(jx_tls *tls, jx_hash * I, jx_int mode, j
   return result;
 }
 
-#define JX_HASH_RAW_CUTOFF 4
+#define JX_HASH_RAW_CUTOFF 2
 #define JX_HASH_LINEAR_CUTOFF 8
 
 jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
@@ -3858,6 +3809,7 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
       } else {
         jx_hash_info *info;
         if(! (info = (jx_hash_info*)I->info) ) {           
+
           /* "no info" mode -- search & match objects directly  */
           if(!I->key_value) {
             jx_ob *ob;
@@ -4534,16 +4486,19 @@ jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
     jx_uint32 size = jx_vla_size(&I->key_value);
     if(size) {
       if(!I->info) {              /* JX_HASH_RAW */
+	//	printf("peek %d %d %p\n", size,  (2 * JX_HASH_RAW_CUTOFF), I);
         register jx_int i = (size >> 1);
         register jx_ob *ob = I->key_value;
-        while(i--) {
-          if(jx_ob_identical(ob[0], key)) {
-            found = JX_TRUE;
-            *result = JX_BORROW(ob[1]);
-            break;
-          }
-          ob += 2;
-        }
+	if(!found) {
+	  while(i--) {
+	    if(jx_ob_identical(ob[0], key)) {
+	      found = JX_TRUE;
+	      *result = JX_BORROW(ob[1]);
+	      break;
+	    }
+	    ob += 2;
+	  }
+	}
       } else {
         register jx_uint32 hash_code = jx_ob_hash_code(key);
         if(hash_code) {
@@ -5125,8 +5080,8 @@ jx_status jx__ob_gc_set_synchronized(jx_ob ob, jx_bool synchronized, jx_bool rec
 
 jx_int jx__builtin_compare(jx_ob left, jx_ob right)
 {
-  jx_bits left_bits = left.meta.bits & JX_META_MASK_BUILTIN_TYPE;
-  jx_bits right_bits = right.meta.bits & JX_META_MASK_BUILTIN_TYPE;
+  jx_fast_bits left_bits = left.meta.bits & JX_META_MASK_BUILTIN_TYPE;
+  jx_fast_bits right_bits = right.meta.bits & JX_META_MASK_BUILTIN_TYPE;
   if(left_bits == right_bits) {
     switch(left_bits) {
     case JX_META_BIT_BUILTIN_ENTITY:
@@ -5277,7 +5232,7 @@ jx_ob jx__tls_ob_gc_copy_strong(jx_tls *tls, jx_ob ob)
 #if 0
 jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
 {
-  jx_bits bits = ob.meta.bits;
+  jx_fast_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_WEAK_REF) {
     switch (bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
@@ -5317,7 +5272,7 @@ jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
 }
 jx_ob jx__ob_only_strong_with_ob(jx_ob ob)
 {
-  jx_bits bits = ob.meta.bits;
+  jx_fast_bits bits = ob.meta.bits;
   if(bits & JX_META_BIT_WEAK_REF) {
     ob = jx_null_with_ob(ob);
   } else {
@@ -5675,7 +5630,7 @@ jx_bool jx__ob_gc_identical(jx_ob left, jx_ob right)
 
 jx_bool jx__ob_non_gc_equal(jx_ob left, jx_ob right)
 { /* we know incoming types don't match */
-  jx_bits merge_bits = left.meta.bits | right.meta.bits;
+  jx_fast_bits merge_bits = left.meta.bits | right.meta.bits;
   if(merge_bits & (JX_META_BIT_STR|JX_META_BIT_IDENT)) {
     return JX_FALSE;
   } else if(merge_bits & JX_META_BIT_FLOAT) {
@@ -5819,7 +5774,7 @@ jx_status jx__tls_ob_gc_free(jx_tls *tls, jx_ob ob)
   if(ob.data.io.gc->shared) {
     return JX_STATUS_FREED_SHARED;
   }
-  register jx_bits bits = ob.meta.bits;
+  register jx_fast_bits bits = ob.meta.bits;
   switch (bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
   case JX_META_BIT_IDENT:                       
@@ -5865,39 +5820,3 @@ jx_status jx__tls_ob_gc_free(jx_tls *tls, jx_ob ob)
   return JX_SUCCESS;
 }
 
-#if 0
-jx_status jx_tls_node_purge(jx_tls *tls, jx_ob node)
-{
-  jx_ob node_save = jx_ob_from_null();
-  if(tls) {
-    node_save = tls->node;
-    tls->node = node;
-  }
-  {
-    jx_int size = jx_hash_size(node);
-    if(!size) {
-      return JX_SUCCESS;
-    } else {
-      /* purge all non-class containers */
-      jx_ob keys = jx_tls_hash_keys(tls, node);
-      jx_ob builtin_key = jx_builtins();
-      jx_int i;
-      for(i=0;i<size;i++) {
-        jx_ob key = jx_list_borrow(keys, i);
-        if(!jx_builtin_entity_check(key) &&
-           (!jx_ob_same(key,builtin_key))) {
-          jx_ob value = jx_hash_borrow(node, key);
-          if((!jx_weak_check(value)) && (jx_list_check(value) || jx_hash_check(value))) {
-            jx_tls_hash_delete(tls, node, key);
-          }
-        }
-      }
-      jx_tls_ob_free(tls,keys);
-    }
-  }
-  if(tls) {
-    tls->node = node_save;
-  }
-  return JX_SUCCESS;
-}
-#endif

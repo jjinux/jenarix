@@ -59,9 +59,9 @@
 
 # and bind the underlying functions
 
-(set (nodeA 2) _handler _add)
-(set (nodeB 2) _handler _negate)
-(set (nodeC 2) _handler _square)
+(set nodeA._handler _add)
+(set nodeB._handler _negate)
+(set nodeC._handler _square)
 
 # prepare for concurrent use
 
@@ -74,8 +74,8 @@
 (def pipeB [self,payload] [(append queue [payload nodeB])]);
 (def pipeC [self,payload] [(append queue [payload nodeC])]);
 
-(set (nodeA 2) output pipeB)
-(set (nodeB 2) output pipeC)
+(set nodeA.output pipeB)
+(set nodeB.output pipeC)
 
 (set FINAL_RESULT_SIZE 1000)
 

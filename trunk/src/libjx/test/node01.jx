@@ -41,12 +41,15 @@ JxonNodeProto;
 
 # and bind the underlying functions
 
-(set (nodeA 2) _handler _adder)
-(set (nodeB 2) _handler _negator)
+nodeA;
+
+(set nodeA._handler _adder)
+(set nodeB._handler _negator)
 
 nodeA;
 
 nodeA.input;
+
 
 # do they work?
 
@@ -58,7 +61,11 @@ nodeA.input;
 
 (def got_here [self,payload] ((error "got_here called") (output payload)))
 
-[set (nodeA 2) output got_here]
+nodeA;
+
+(set nodeA.output got_here)
+
+nodeA;
 
 [nodeA.input [1 2]]
 
@@ -69,7 +76,7 @@ nodeA.input;
 
 (impl pipe)
 
-[set (nodeA 2) output pipe]
+[set nodeA.output pipe]
 
 [nodeA.input [1 2]]
 

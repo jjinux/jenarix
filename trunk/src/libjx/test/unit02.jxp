@@ -143,7 +143,7 @@ assert([a,1,2], a(1,2))
 
 # whereas with a compound symbol, we get null with the arguments
 
-assert([null,3,4], a.b(3,4))
+assert([null,3,4],a.b(3,4))
 
 # entities and attributes
 
@@ -260,5 +260,3 @@ print tmp.d.e
 # resolved value references must refer to object which lie somewhere
 # on the directed acyclic graph of the current scope (and are thus
 # persistent)
-
-

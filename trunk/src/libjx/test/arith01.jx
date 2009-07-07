@@ -1,6 +1,6 @@
 (set max 100001);
 
-(defun abs [x] (test (lt x 0) (neg x) (x)));
+(defun abs [x] (test (lt x 0) (neg x) x));
 
 (def tst1 [x y] [
   (test (eq x max)

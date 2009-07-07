@@ -12,9 +12,11 @@ class myClass:
         print "constructed"
         self.attr1 = 100
         self.attr2 = "just what are we thinking?"
+#        print symbols()
 
     def methodA(self):
         print "methodA called"
+        print symbols()
         return [1, 2, 3, self.attr1, self.attr2]
 
     def methodB(self,limit):
@@ -22,7 +24,11 @@ class myClass:
         for b in range(limit):
             print b
 
+#print symbols(false)
+
 a = new(myClass)
+
+print a
 
 print a.methodA()
 
