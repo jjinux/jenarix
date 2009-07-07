@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* special forms (built into "eval" for max. performance) */
 
 #define JX_SELECTOR_BUILTINS   0
-#define JX_SELECTOR_NOP        1
+#define JX_SELECTOR_SKIP       1
 #define JX_SELECTOR_IF         2
 #define JX_SELECTOR_WHILE      3
 #define JX_SELECTOR_DO         4
@@ -99,6 +99,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_ENTITY      49
 #define JX_SELECTOR_FILL        50
 #define JX_SELECTOR_RANGE       61
+#define JX_SELECTOR_NOP         51
 
 /* our six primary container methods: set, get, has, take, del */
 

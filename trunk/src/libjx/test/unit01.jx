@@ -623,10 +623,10 @@ true;
 
 # output: fn`0x500d50
 
-# 'nop' gets excised when binding is performed... upon binding, the
-# first argument to nop replaces it
+# 'skip' gets excised when binding is performed... upon binding, the
+# first argument to skip replaces it
 
-(assert (quote (a,b,c)) (quote (nop (a b c))))
+(assert (quote (a,b,c)) (quote (skip (a b c))))
 
 # result: [ (`resolve a), (`resolve b),
 #           (`resolve c)]
@@ -1271,9 +1271,11 @@ true;
 
 # right now, unresolved plain symbols are passed through unchanged
 
-(assert (nop a) a);
+(assert (skip a) a);
 
-(assert (nop hello) hello);
+(assert (skip hello) hello);
+
+(assert (nop a b c) (a b c))
 
 # however, unsolved "dotted" sequences are currently resolving to null
 # (previously, they were being returned intact)

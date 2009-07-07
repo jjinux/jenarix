@@ -1716,12 +1716,12 @@ fn`fn;
 true;
 
 # output: fn`0xXXXXXX
-# 'nop' gets excised when binding is performed... upon binding, the
-# first argument to nop replaces it
+# 'skip' gets excised when binding is performed... upon binding, the
+# first argument to skip replaces it
 # result: [ (`resolve a), (`resolve b),
 #           (`resolve c)]
 # source: (assert (quote (a b c))
-#           (quote (nop (a b c))))
+#           (quote (skip (a b c))))
 #   eval: (`assert (`quote [ (`resolve a), (`resolve b),
 #               (`resolve c)])
 #           (`quote [ (`resolve a), (`resolve b),
@@ -3344,18 +3344,27 @@ true;
 true;
 
 # right now, unresolved plain symbols are passed through unchanged
-# source: (assert (nop a) a)
+# source: (assert (skip a) a)
 #   eval: (`assert a
 #           (`resolve a))
 true;
 
-# source: (assert (nop hello) hello)
+# source: (assert (skip hello) hello)
 #   eval: (`assert hello
 #           (`resolve hello))
 true;
 
 # however, unsolved "dotted" sequences are currently resolving to null
 # (previously, they were being returned intact)
+# source: (assert (nop a b c)
+#           (a b c))
+#   eval: (`assert (`nop (`resolve a)
+#             (`resolve b)
+#             (`resolve c))
+#           [ (`resolve a), (`resolve b),
+#             (`resolve c)])
+true;
+
 # source: (assert null a.b)
 #   eval: (`assert null
 #           (`resolve (a b)))

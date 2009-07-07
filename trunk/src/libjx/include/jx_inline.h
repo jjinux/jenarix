@@ -302,18 +302,19 @@ typedef struct {
 typedef struct jx__tls_chain jx_tls_chain;
 
 struct jx__tls {
-  jx_int n_hash,n_list,n_vla;
+  jx_ob node, builtins;
+  jx_tls *heap;
   jx_tls_chain *hash_chain;
   jx_tls_chain *list_chain;
   jx_tls_chain *vla_chain;
-  jx_ob node, builtins;
+  jx_int n_hash,n_list,n_vla;
   jx_ob method;
-  jx_bool have_method;
-  jx_bool break_seen;
-  jx_bool tail_call;
   jx_ob   result;
   jx_ob   receiver;
-  jx_bool leave, have_result;
+  jx_bool have_method, have_result;
+  jx_bool break_seen;
+  jx_bool tail_call;
+  jx_bool leave;
 };
 
 /* status checking */
@@ -342,11 +343,7 @@ JX_INLINE jx_ob jx_ob_take_weak_ref(jx_ob ob)
 }
 
 /* thread-local-state (TLS) prototypes (faster memory through reuse of
-   memory blocks, and faster execution through use of tls->node
-   pointer) */
-
-void jx_tls_free(jx_tls *tls);
-jx_tls *jx_tls_new(jx_ob node);
+   blocks, etc.) */
 
 jx_ob jx_tls_hash_new(jx_tls *tls);
 jx_ob jx_tls_hash_new_with_assoc(jx_tls *tls,jx_ob key,jx_ob value);
@@ -367,6 +364,7 @@ JX_INLINE jx_ob jx_tls_ob_copy(jx_tls *tls, jx_ob ob)
     ((ob.data.io.gc->synchronized || ob.data.io.gc->shared) ?
      jx_ob_take_weak_ref(ob) : jx__tls_ob_gc_copy(tls,ob)) : ob;
 }
+
 
 void *jx__tls_vla_new(jx_tls *tls, jx_int rec_size, jx_int size,jx_bool zero);
 #define   jx_tls_vla_new(t,r,s,z)           jx__tls_vla_new(t,r,s,z)
@@ -2767,7 +2765,7 @@ JX_INLINE void jx_entity_carry_into(jx_ob inv_node, jx_ob node,jx_ob handle)
   }
 }
 
-JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob payload)
+JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
 {
   jx_ob result = jx_ob_from_null();
   //jx_jxon_dump(stdout,"jx_function_call function",function);
@@ -2776,6 +2774,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
   if(jx_function_check(function)) {
     jx_function *fn = function.data.io.function;
     jx_ob args = fn->args;
+    jx_ob node = tls->node;
     while(1) {
       if(jx_null_check(args)) {
         /* inner functions run within the host node namespace */
@@ -2953,12 +2952,66 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob node, jx_ob function, jx_ob
   return result;
 }
 
+jx_tls *jx__tls_calloc(void);
+JX_INLINE jx_tls *jx_tls_new(jx_tls *tls, jx_ob node)
+{
+  if(!tls)  {
+    tls = jx__tls_calloc();
+  } else {
+    jx_os_memset(tls,0,sizeof(jx_tls));
+  }
+  if(tls) {
+    tls->node = node;
+    tls->builtins = jx_hash_borrow(node,jx_builtins());
+  }
+  return tls;
+}
+
+void jx__tls_free(jx_tls *tls);
+JX_INLINE void jx_tls_free(jx_tls *tls)
+{
+  if(tls) {
+      /* note: tls->builtins and tls->node are borrowed! */
+    jx_tls_ob_free(tls, tls->result); 
+    jx_tls_ob_free(tls, tls->receiver);
+    if(tls->heap || tls->vla_chain || tls->hash_chain || tls->list_chain)
+      jx__tls_free(tls);
+  }
+}
+
+JX_INLINE jx_ob jx_tls_receiver_scope_borrow(jx_tls *tls)
+{
+  jx_ob receiver = jx_list_borrow(tls->receiver,-1);
+  if(jx_null_check(receiver))
+    receiver = tls->node;
+  return receiver;
+}
+
+JX_INLINE jx_ob jx_tls_receiver_scope_pop(jx_tls *tls)
+{
+  return jx_list_remove(tls->receiver, -1);
+}
+
+JX_INLINE jx_status jx_tls_receiver_scope_push(jx_tls *tls)
+{
+  if(!jx_list_check(tls->receiver))
+    tls->receiver = jx_tls_list_new(tls);
+  if(jx_list_check(tls->receiver)) {
+    return jx_list_append(tls->receiver,jx_hash_new());
+  } else {
+    return JX_FAILURE;
+  }
+}
+
 JX_INLINE jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload)
 {
   jx_ob result;
-  jx_tls *tls = jx_tls_new(node);
-  result = jx__function_call(tls,node,function,payload);
-  jx_tls_free(tls);
+  jx_tls tls;
+
+  jx_tls_new(&tls, node);
+  result = jx__function_call(&tls,function,payload);
+  jx_tls_free(&tls);
+
   return result;
 }
 
@@ -3718,7 +3771,7 @@ JX_INLINE jx_ob jx_tls_ob_with_new(jx_tls *tls, jx_ob payload)
         if(jx_builtin_callable_check(constructor)) {
           jx_list_unshift(payload, jx_ob_take_weak_ref(result));
           jx_tls_ob_free(tls, jx__function_call
-                         (tls, node, constructor, payload));
+                         (tls, constructor, payload));
           payload = jx_ob_from_null();
         }
       }

@@ -946,15 +946,24 @@ power(A) ::= atom(B) DOUBLE_ASTERISK factor(C).
 
 power(A) ::= atom(B) dot_trailer_list(C).
 {
-  A=jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("resolve"));
-  {
-    jx_ob tmp = jx_list_new(); 
-    jx_list_append(tmp,jx_ob_from_ident("nop"));
-    jx_list_append(tmp,B);
-    jx_list_unshift(C,tmp);
+  jx_ob resolve = jx_ob_from_ident("resolve");
+  if(jx_list_size(B) &&
+     (jx_ob_identical(jx_list_borrow(B,0),resolve))) {
+    A = B;
+    if(!jx_list_check(jx_list_borrow(B,1))) {
+      jx_list_unshift(C, jx_list_remove(B,1));
+      jx_list_append(B,C);
+    } else {
+      jx_list_combine(jx_list_borrow(B,1), C);
+    }
+  } else {
+    A=jx_list_new();
+    
+    jx_list_append(A,jx_ob_from_ident("resolve"));
+    jx_list_unshift(C,B);
+    jx_list_append(A,C);
   }
-  jx_list_append(A,C);
+
 #ifdef JX_PY_PARSER_DEBUG
   printf("power(A) ::= atom(B) dot_trailer_list(C).\n");
 #endif
@@ -1061,6 +1070,7 @@ atom(A) ::= string(B).
 listmaker(A) ::= test(B).
 {
   A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("nop"));
   jx_list_append(A,B);
 }
 
@@ -1190,9 +1200,7 @@ dot_trailer_list(A) ::= dot_trailer(B).
 
 dot_trailer(A) ::= DOT NAME(B).
 {
-  A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("nop"));
-  jx_list_append(A,B);
+  A = B;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("dot_trailer(A) ::= DOT NAME(B).\n");
 #endif

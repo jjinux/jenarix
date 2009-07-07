@@ -11,9 +11,9 @@ null;
 null;
 
 # we have literals 
-# parsed: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
-# source: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
-#   eval: (`set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
+# parsed: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": (nop 1 2 3)})
+# source: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": (nop 1 2 3)})
+#   eval: (`set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1,2,3]})
 null;
 
 ###print b, len(b)
@@ -278,25 +278,25 @@ null;
 null;
 
 # parsed: (foreach a
-#           [1, 2]
+#           (nop 1 2)
 #           [ (foreach b
-#               [5, 6]
+#               (nop 5 6)
 #               [ (foreach c
-#                   [7, 6]
+#                   (nop 7 6)
 #                   [ (print a b c)])])])
 # source: (foreach a
-#           [1, 2]
+#           (nop 1 2)
 #           [ (foreach b
-#               [5, 6]
+#               (nop 5 6)
 #               [ (foreach c
-#                   [7, 6]
+#                   (nop 7 6)
 #                   [ (print a b c)])])])
 #   eval: (`foreach a
-#           [1, 2]
+#           [1,2]
 #           [ (`foreach b
-#               [5, 6]
+#               [5,6]
 #               [ (`foreach c
-#                   [7, 6]
+#                   [7,6]
 #                   [ ( #native_fn`print (`resolve a)
 #                       (`resolve b)
 #                       (`resolve c))])])])
@@ -349,11 +349,11 @@ null;
 null;
 
 # parsed: (def fn null
-#           [ (print [1, 2, 3])])
+#           [ (print (nop 1 2 3))])
 # source: (def fn null
-#           [ (print [1, 2, 3])])
+#           [ (print (nop 1 2 3))])
 #   eval: (`def fn null
-#           [ ( #native_fn`print [1, 2, 3])])
+#           [ ( #native_fn`print [1,2,3])])
 null;
 
 # parsed: (set a fn)
@@ -376,18 +376,18 @@ null;
 # this behavior is a little bizzare: calling an unbound (simple)
 # symbol gives that symbol as the first member of an (unevalued) JXON
 # invocation frame (symbol plus args)
-# parsed: (assert (a 1 2)
+# parsed: (assert (nop a 1 2)
 #           (a 1 2))
-# source: (assert (a 1 2)
+# source: (assert (nop a 1 2)
 #           (a 1 2))
-#   eval: (`assert [ (`resolve a),1,2]
+#   eval: (`assert (`nop (`resolve a) 1 2)
 #           [ (`resolve a),1,2])
 true;
 
 # whereas with a compound symbol, we get null with the arguments
-# parsed: (assert (null 3 4)
+# parsed: (assert (nop null 3 4)
 #           (a.b 3 4))
-# source: (assert [null,3,4]
+# source: (assert (nop null 3 4)
 #           (a.b 3 4))
 #   eval: (`assert [null,3,4]
 #           [ (`resolve (a b)),3,4])
@@ -395,11 +395,11 @@ true;
 
 # entities and attributes
 # parsed: (assert (entity Base null
-#             [1, 2, 3] {x:"X", y:"Y"}) Base)
+#             (nop 1 2 3) {x:"X", y:"Y"}) Base)
 # source: (assert (entity Base null
-#             [1, 2, 3] {x:"X", y:"Y"}) Base)
+#             (nop 1 2 3) {x:"X", y:"Y"}) Base)
 #   eval: (`assert (`entity Base null
-#             [1, 2, 3] {x:"X", y:"Y"})
+#             [1,2,3] {x:"X", y:"Y"})
 #           (`resolve Base))
 true;
 
@@ -471,11 +471,11 @@ null;
 
 # instance content can be assigned directly
 # parsed: (set a.
-#           [2, 3, 4])
+#           (nop 2 3 4))
 # source: (set a.
-#           [2, 3, 4])
+#           (nop 2 3 4))
 #   eval: (`set (a .)
-#           [2, 3, 4])
+#           [2,3,4])
 null;
 
 # parsed: (print a.)
@@ -524,12 +524,12 @@ null;
 # derived entities can redefine attributes and include their own
 # content prototype
 # parsed: (assert (entity Deriv Base
-#             [3, 4, 5] {x:"XX", z:"Z"}) Deriv)
+#             (nop 3 4 5) {x:"XX", z:"Z"}) Deriv)
 # source: (assert (entity Deriv Base
-#             [3, 4, 5] {x:"XX", z:"Z"}) Deriv)
+#             (nop 3 4 5) {x:"XX", z:"Z"}) Deriv)
 #   eval: (`assert (`entity Deriv
 #             (`resolve Base)
-#             [3, 4, 5] {x:"XX", z:"Z"})
+#             [3,4,5] {x:"XX", z:"Z"})
 #           (`resolve Deriv))
 true;
 
@@ -591,17 +591,17 @@ null;
 
 # entity definitions with methods 
 # parsed: (assert (entity Base null
-#             [1, 2, 3] {fill_content: (lambda (self cnt what)
+#             (nop 1 2 3) {fill_content: (lambda (self cnt what)
 #               (set self.
 #                 (fill cnt what))), get_content: (lambda (self) self.), reverse_content: (lambda (self)
 #               (self..reverse))}) Base)
 # source: (assert (entity Base null
-#             [1, 2, 3] {fill_content: (lambda (self cnt what)
+#             (nop 1 2 3) {fill_content: (lambda (self cnt what)
 #               (set self.
 #                 (fill cnt what))), get_content: (lambda (self) self.), reverse_content: (lambda (self)
 #               (self..reverse))}) Base)
 #   eval: (`assert (`entity Base null
-#             [1, 2, 3] {fill_content: (`lambda (self cnt what)
+#             [1,2,3] {fill_content: (`lambda (self cnt what)
 #               (`set (self .)
 #                 (`fill (`resolve cnt)
 #                   (`resolve what)))), get_content: (`lambda (self)
@@ -625,11 +625,11 @@ null;
 null;
 
 # parsed: (set a.
-#           [4, 5, 6])
+#           (nop 4 5 6))
 # source: (set a.
-#           [4, 5, 6])
+#           (nop 4 5 6))
 #   eval: (`set (a .)
-#           [4, 5, 6])
+#           [4,5,6])
 null;
 
 # parsed: (print (a.get_content))
@@ -669,9 +669,9 @@ null;
 # cannot currently be used on intermedate results: a.b().d.e must
 # instead be split up into two commands which involve binding of a
 # temporary symbol which is then itself used with dot notation
-# parsed: (set a {b: (lambda null {d: {e: [1, 2]}})})
-# source: (set a {b: (lambda null {d: {e: [1, 2]}})})
-#   eval: (`set a {b: (`lambda null {d: {e: [1, 2]}})})
+# parsed: (set a {b: (lambda null {d: {e: (nop 1 2)}})})
+# source: (set a {b: (lambda null {d: {e: (nop 1 2)}})})
+#   eval: (`set a {b: (`lambda null {d: {e: [1,2]}})})
 null;
 
 # parsed: (set tmp

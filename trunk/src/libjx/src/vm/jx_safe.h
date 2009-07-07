@@ -54,7 +54,9 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls *tls, jx_ob payload)
 {
   jx_ob name = jx_ob_not_weak_with_ob( jx_list_swap_with_null(payload,0));
   jx_ob entity = jx_builtin_new_entity_with_name(tls, jx_tls_ob_copy(tls, name));
-  jx_tls_hash_set(tls, tls->node, name, jx_tls_ob_copy(tls, entity));
+  jx_ob scope = jx_tls_receiver_scope_pop(tls);
+  jx_ob receiver = jx_tls_receiver_scope_borrow(tls);
+  jx_tls_hash_set(tls, receiver, name, jx_tls_ob_copy(tls, entity));
   { 
     jx_ob def = jx_ob_from_null();
     jx_int size = jx_list_size(payload)-1;
@@ -73,7 +75,8 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls *tls, jx_ob payload)
 	    jx_list_replace(def, JX_ENTITY_ATTR_HASH,
 			    jx_ob_not_weak_with_ob( attr_hash ));
 	  } else {
-	    jx_list_replace(def, JX_ENTITY_ATTR_HASH, jx_list_remove(tls->receiver, -1));
+	    jx_list_replace(def, JX_ENTITY_ATTR_HASH, scope);
+	    scope = jx_ob_from_null();
 	    jx_tls_ob_free(tls, attr_hash);
 	  }
 	}
@@ -86,8 +89,9 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls *tls, jx_ob payload)
         break;
       }
     }
-    jx_tls_hash_set(tls, tls->node, jx_ob_copy(entity), def);
+    jx_tls_hash_set(tls, receiver, jx_ob_copy(entity), def);
   }
+  jx_ob_free(scope);
   //  jx_ob_dump(stdout,"entity",entity);
   //printf("%08x [%s]\n",jx_ob_hash_code(entity),jx_ob_as_ident(entity));
   return entity;
@@ -126,7 +130,7 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_tls *tls, jx_ob container, jx
 
 JX_INLINE jx_ob jx_safe_set(jx_tls *tls, jx_ob payload)
 {
-  jx_ob container = tls->node;
+  jx_ob container = jx_tls_receiver_scope_borrow(tls);
   jx_int size = jx_list_size(payload);
   if(size<3) {
     return jx_ob_from_status

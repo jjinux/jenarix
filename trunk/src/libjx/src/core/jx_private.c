@@ -5577,45 +5577,37 @@ jx_ob jx__tls_ob_copy(jx_tls *tls, jx_ob ob)
   return jx_ob_from_null();
 }
 
-jx_tls *jx_tls_new(jx_ob node)
+jx_tls *jx__tls_calloc(void)
 {
   jx_tls *result = (jx_tls*)jx_calloc(1,sizeof(jx_tls));
   if(result) {
-    result->node = node;
-    result->builtins = jx_hash_borrow(node,jx_builtins());
-  } 
+    result->heap = result;
+  }
   return result;
 }
 
-void jx_tls_free(jx_tls *tls)
+void jx__tls_free(jx_tls *tls)
 {
-  if(tls) {
-    {
-      /* note: tls->builtins and tls->node are borrowed! */
-      jx_tls_ob_free(tls, tls->result); 
-      jx_tls_ob_free(tls, tls->receiver);
-    }
-    {
-      jx_tls_chain *chain = tls->hash_chain;
-      while(chain) {
-        jx_tls_chain *next = chain->next;
-        jx_free(chain);
-        chain = next;
-      }
-      chain = tls->list_chain;
-      while(chain) {
-        jx_tls_chain *next = chain->next;
-        jx_free(chain);
-        chain = next;
-      }
-      chain = tls->vla_chain;
-      while(chain) {
-        jx_tls_chain *next = chain->next;
-        jx_free(chain);
-        chain = next;
-      }
-    }
-    jx_free(tls);
+  jx_tls_chain *chain = tls->hash_chain;
+  while(chain) {
+    jx_tls_chain *next = chain->next;
+    jx_free(chain);
+    chain = next;
+  }
+  chain = tls->list_chain;
+  while(chain) {
+    jx_tls_chain *next = chain->next;
+    jx_free(chain);
+    chain = next;
+  }
+  chain = tls->vla_chain;
+  while(chain) {
+    jx_tls_chain *next = chain->next;
+    jx_free(chain);
+    chain = next;
+  }
+  if(tls->heap) {
+    jx_free(tls->heap);
   }
 }
 

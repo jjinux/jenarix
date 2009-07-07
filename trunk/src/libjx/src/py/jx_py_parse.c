@@ -1429,14 +1429,13 @@ static void yy_reduce(
         break;
       case 8:
       case 53:
-      case 98:
       case 123:
 #line 182 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
 }
-#line 1441 "jx_py_parse.c"
+#line 1440 "jx_py_parse.c"
         break;
       case 9:
 #line 188 "jx_py_parse.lem"
@@ -1445,7 +1444,7 @@ static void yy_reduce(
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 1450 "jx_py_parse.c"
+#line 1449 "jx_py_parse.c"
         break;
       case 10:
 #line 199 "jx_py_parse.lem"
@@ -1456,7 +1455,7 @@ static void yy_reduce(
 #endif
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 1461 "jx_py_parse.c"
+#line 1460 "jx_py_parse.c"
         break;
       case 11:
 #line 207 "jx_py_parse.lem"
@@ -1467,7 +1466,7 @@ static void yy_reduce(
 #endif
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 1472 "jx_py_parse.c"
+#line 1471 "jx_py_parse.c"
         break;
       case 12:
 #line 215 "jx_py_parse.lem"
@@ -1479,7 +1478,7 @@ static void yy_reduce(
   yy_destructor(10,&yymsp[-1].minor);
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 1484 "jx_py_parse.c"
+#line 1483 "jx_py_parse.c"
         break;
       case 13:
 #line 223 "jx_py_parse.lem"
@@ -1491,7 +1490,7 @@ static void yy_reduce(
   yy_destructor(10,&yymsp[-1].minor);
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 1496 "jx_py_parse.c"
+#line 1495 "jx_py_parse.c"
         break;
       case 14:
 #line 231 "jx_py_parse.lem"
@@ -1504,7 +1503,7 @@ static void yy_reduce(
   yy_destructor(10,&yymsp[-2].minor);
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 1509 "jx_py_parse.c"
+#line 1508 "jx_py_parse.c"
         break;
       case 15:
 #line 243 "jx_py_parse.lem"
@@ -1514,7 +1513,7 @@ static void yy_reduce(
   printf("small_stmt(yygotominor.yy15) ::= expr_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1519 "jx_py_parse.c"
+#line 1518 "jx_py_parse.c"
         break;
       case 16:
 #line 251 "jx_py_parse.lem"
@@ -1524,7 +1523,7 @@ static void yy_reduce(
   printf("small_stmt(yygotominor.yy15) ::= print_stmt(yymsp[0].minor.yy15).\n");
 #endif
 }
-#line 1529 "jx_py_parse.c"
+#line 1528 "jx_py_parse.c"
         break;
       case 17:
 #line 259 "jx_py_parse.lem"
@@ -1534,7 +1533,7 @@ static void yy_reduce(
   printf("small_stmt(yygotominor.yy15) ::= del_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1539 "jx_py_parse.c"
+#line 1538 "jx_py_parse.c"
         break;
       case 18:
 #line 267 "jx_py_parse.lem"
@@ -1544,7 +1543,7 @@ static void yy_reduce(
   printf("small_stmt(yygotominor.yy15) ::= pass_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1549 "jx_py_parse.c"
+#line 1548 "jx_py_parse.c"
         break;
       case 19:
 #line 275 "jx_py_parse.lem"
@@ -1554,7 +1553,7 @@ static void yy_reduce(
   printf("small_stmt(yygotominor.yy15) ::=  flow_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1559 "jx_py_parse.c"
+#line 1558 "jx_py_parse.c"
         break;
       case 20:
 #line 285 "jx_py_parse.lem"
@@ -1567,7 +1566,7 @@ static void yy_reduce(
 #endif
   yy_destructor(11,&yymsp[-1].minor);
 }
-#line 1572 "jx_py_parse.c"
+#line 1571 "jx_py_parse.c"
         break;
       case 21:
 #line 297 "jx_py_parse.lem"
@@ -1578,7 +1577,7 @@ static void yy_reduce(
 #endif
   yy_destructor(12,&yymsp[0].minor);
 }
-#line 1583 "jx_py_parse.c"
+#line 1582 "jx_py_parse.c"
         break;
       case 22:
 #line 307 "jx_py_parse.lem"
@@ -1588,7 +1587,7 @@ static void yy_reduce(
   printf("flow_stmt(yygotominor.yy0) ::= return_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1593 "jx_py_parse.c"
+#line 1592 "jx_py_parse.c"
         break;
       case 23:
 #line 317 "jx_py_parse.lem"
@@ -1601,7 +1600,7 @@ static void yy_reduce(
 #endif
   yy_destructor(13,&yymsp[-1].minor);
 }
-#line 1606 "jx_py_parse.c"
+#line 1605 "jx_py_parse.c"
         break;
       case 24:
 #line 333 "jx_py_parse.lem"
@@ -1615,7 +1614,7 @@ static void yy_reduce(
 #endif
   yy_destructor(14,&yymsp[-1].minor);
 }
-#line 1620 "jx_py_parse.c"
+#line 1619 "jx_py_parse.c"
         break;
       case 25:
 #line 344 "jx_py_parse.lem"
@@ -1629,7 +1628,7 @@ static void yy_reduce(
 #endif
   yy_destructor(15,&yymsp[-1].minor);
 }
-#line 1634 "jx_py_parse.c"
+#line 1633 "jx_py_parse.c"
         break;
       case 26:
 #line 355 "jx_py_parse.lem"
@@ -1654,7 +1653,7 @@ static void yy_reduce(
 #endif
   yy_destructor(16,&yymsp[-1].minor);
 }
-#line 1659 "jx_py_parse.c"
+#line 1658 "jx_py_parse.c"
         break;
       case 27:
 #line 380 "jx_py_parse.lem"
@@ -1666,7 +1665,7 @@ static void yy_reduce(
 #endif
   yy_destructor(17,&yymsp[0].minor);
 }
-#line 1671 "jx_py_parse.c"
+#line 1670 "jx_py_parse.c"
         break;
       case 28:
 #line 389 "jx_py_parse.lem"
@@ -1679,7 +1678,7 @@ static void yy_reduce(
 #endif
   yy_destructor(17,&yymsp[-1].minor);
 }
-#line 1684 "jx_py_parse.c"
+#line 1683 "jx_py_parse.c"
         break;
       case 29:
 #line 399 "jx_py_parse.lem"
@@ -1691,7 +1690,7 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 1696 "jx_py_parse.c"
+#line 1695 "jx_py_parse.c"
         break;
       case 30:
 #line 411 "jx_py_parse.lem"
@@ -1701,7 +1700,7 @@ static void yy_reduce(
   printf("compound_stmt(yygotominor.yy0) ::= if_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1706 "jx_py_parse.c"
+#line 1705 "jx_py_parse.c"
         break;
       case 31:
 #line 419 "jx_py_parse.lem"
@@ -1711,7 +1710,7 @@ static void yy_reduce(
   printf("compound_stmt(yygotominor.yy0) ::= while_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1716 "jx_py_parse.c"
+#line 1715 "jx_py_parse.c"
         break;
       case 32:
 #line 427 "jx_py_parse.lem"
@@ -1721,7 +1720,7 @@ static void yy_reduce(
   printf("compound_stmt(yygotominor.yy0) ::= for_stmt(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1726 "jx_py_parse.c"
+#line 1725 "jx_py_parse.c"
         break;
       case 33:
 #line 435 "jx_py_parse.lem"
@@ -1731,7 +1730,7 @@ static void yy_reduce(
   printf("compound_stmt(yygotominor.yy0) ::= funcdef(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1736 "jx_py_parse.c"
+#line 1735 "jx_py_parse.c"
         break;
       case 34:
 #line 443 "jx_py_parse.lem"
@@ -1741,7 +1740,7 @@ static void yy_reduce(
   printf("compound_stmt(yygotominor.yy0) ::= classdef(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1746 "jx_py_parse.c"
+#line 1745 "jx_py_parse.c"
         break;
       case 35:
 #line 454 "jx_py_parse.lem"
@@ -1753,7 +1752,7 @@ static void yy_reduce(
   yy_destructor(18,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1758 "jx_py_parse.c"
+#line 1757 "jx_py_parse.c"
         break;
       case 36:
 #line 462 "jx_py_parse.lem"
@@ -1768,7 +1767,7 @@ static void yy_reduce(
   yy_destructor(19,&yymsp[-2].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1773 "jx_py_parse.c"
+#line 1772 "jx_py_parse.c"
         break;
       case 37:
 #line 471 "jx_py_parse.lem"
@@ -1784,7 +1783,7 @@ static void yy_reduce(
   yy_destructor(20,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1789 "jx_py_parse.c"
+#line 1788 "jx_py_parse.c"
         break;
       case 38:
 #line 482 "jx_py_parse.lem"
@@ -1795,7 +1794,7 @@ static void yy_reduce(
   yy_destructor(20,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1800 "jx_py_parse.c"
+#line 1799 "jx_py_parse.c"
         break;
       case 39:
 #line 489 "jx_py_parse.lem"
@@ -1805,7 +1804,7 @@ static void yy_reduce(
   yy_destructor(19,&yymsp[-2].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1810 "jx_py_parse.c"
+#line 1809 "jx_py_parse.c"
         break;
       case 40:
       case 118:
@@ -1814,7 +1813,7 @@ static void yy_reduce(
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 }
-#line 1819 "jx_py_parse.c"
+#line 1818 "jx_py_parse.c"
         break;
       case 41:
 #line 502 "jx_py_parse.lem"
@@ -1829,7 +1828,7 @@ static void yy_reduce(
   yy_destructor(21,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1834 "jx_py_parse.c"
+#line 1833 "jx_py_parse.c"
         break;
       case 42:
 #line 515 "jx_py_parse.lem"
@@ -1846,7 +1845,7 @@ static void yy_reduce(
   yy_destructor(23,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 1851 "jx_py_parse.c"
+#line 1850 "jx_py_parse.c"
         break;
       case 43:
 #line 529 "jx_py_parse.lem"
@@ -1856,7 +1855,7 @@ static void yy_reduce(
   printf("suite(yygotominor.yy0) ::= simple_stmt(yymsp[0].minor.yy15).\n");
 #endif
 }
-#line 1861 "jx_py_parse.c"
+#line 1860 "jx_py_parse.c"
         break;
       case 44:
 #line 537 "jx_py_parse.lem"
@@ -1867,7 +1866,7 @@ static void yy_reduce(
 #endif
   yy_destructor(3,&yymsp[-1].minor);
 }
-#line 1872 "jx_py_parse.c"
+#line 1871 "jx_py_parse.c"
         break;
       case 45:
 #line 545 "jx_py_parse.lem"
@@ -1880,7 +1879,7 @@ static void yy_reduce(
   yy_destructor(24,&yymsp[-2].minor);
   yy_destructor(25,&yymsp[0].minor);
 }
-#line 1885 "jx_py_parse.c"
+#line 1884 "jx_py_parse.c"
         break;
       case 46:
 #line 555 "jx_py_parse.lem"
@@ -1894,7 +1893,7 @@ static void yy_reduce(
   yy_destructor(3,&yymsp[-1].minor);
   yy_destructor(25,&yymsp[0].minor);
 }
-#line 1899 "jx_py_parse.c"
+#line 1898 "jx_py_parse.c"
         break;
       case 47:
 #line 566 "jx_py_parse.lem"
@@ -1902,7 +1901,7 @@ static void yy_reduce(
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy15);
 }
-#line 1907 "jx_py_parse.c"
+#line 1906 "jx_py_parse.c"
         break;
       case 48:
 #line 572 "jx_py_parse.lem"
@@ -1911,7 +1910,7 @@ static void yy_reduce(
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy15);
   yy_destructor(3,&yymsp[-1].minor);
 }
-#line 1916 "jx_py_parse.c"
+#line 1915 "jx_py_parse.c"
         break;
       case 49:
 #line 578 "jx_py_parse.lem"
@@ -1919,7 +1918,7 @@ static void yy_reduce(
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
 }
-#line 1924 "jx_py_parse.c"
+#line 1923 "jx_py_parse.c"
         break;
       case 50:
 #line 584 "jx_py_parse.lem"
@@ -1928,7 +1927,7 @@ static void yy_reduce(
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
   yy_destructor(3,&yymsp[-1].minor);
 }
-#line 1933 "jx_py_parse.c"
+#line 1932 "jx_py_parse.c"
         break;
       case 51:
 #line 590 "jx_py_parse.lem"
@@ -1936,7 +1935,7 @@ static void yy_reduce(
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy15);
 }
-#line 1941 "jx_py_parse.c"
+#line 1940 "jx_py_parse.c"
         break;
       case 52:
 #line 596 "jx_py_parse.lem"
@@ -1945,7 +1944,7 @@ static void yy_reduce(
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy15);
   yy_destructor(3,&yymsp[-1].minor);
 }
-#line 1950 "jx_py_parse.c"
+#line 1949 "jx_py_parse.c"
         break;
       case 54:
 #line 608 "jx_py_parse.lem"
@@ -1954,7 +1953,7 @@ static void yy_reduce(
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
   yy_destructor(3,&yymsp[-1].minor);
 }
-#line 1959 "jx_py_parse.c"
+#line 1958 "jx_py_parse.c"
         break;
       case 55:
 #line 616 "jx_py_parse.lem"
@@ -1964,7 +1963,7 @@ static void yy_reduce(
   printf("test(yygotominor.yy0) ::= or_test(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1969 "jx_py_parse.c"
+#line 1968 "jx_py_parse.c"
         break;
       case 56:
 #line 624 "jx_py_parse.lem"
@@ -1974,7 +1973,7 @@ static void yy_reduce(
   printf(".\n");
 #endif
 }
-#line 1979 "jx_py_parse.c"
+#line 1978 "jx_py_parse.c"
         break;
       case 57:
 #line 634 "jx_py_parse.lem"
@@ -1984,7 +1983,7 @@ static void yy_reduce(
   printf("or_test(yygotominor.yy0) ::= and_test(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1989 "jx_py_parse.c"
+#line 1988 "jx_py_parse.c"
         break;
       case 58:
 #line 644 "jx_py_parse.lem"
@@ -1994,7 +1993,7 @@ static void yy_reduce(
   printf("and_test(yygotominor.yy0) ::= not_test(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 1999 "jx_py_parse.c"
+#line 1998 "jx_py_parse.c"
         break;
       case 59:
 #line 654 "jx_py_parse.lem"
@@ -2005,7 +2004,7 @@ static void yy_reduce(
 #endif
   yy_destructor(26,&yymsp[-1].minor);
 }
-#line 2010 "jx_py_parse.c"
+#line 2009 "jx_py_parse.c"
         break;
       case 60:
 #line 662 "jx_py_parse.lem"
@@ -2015,7 +2014,7 @@ static void yy_reduce(
   printf("not_test(yygotominor.yy0) ::= comparison(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2020 "jx_py_parse.c"
+#line 2019 "jx_py_parse.c"
         break;
       case 61:
 #line 675 "jx_py_parse.lem"
@@ -2025,7 +2024,7 @@ static void yy_reduce(
   printf("comparion(yygotominor.yy0) ::= expr(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2030 "jx_py_parse.c"
+#line 2029 "jx_py_parse.c"
         break;
       case 62:
 #line 683 "jx_py_parse.lem"
@@ -2040,7 +2039,7 @@ static void yy_reduce(
 #endif
   yy_destructor(27,&yymsp[-1].minor);
 }
-#line 2045 "jx_py_parse.c"
+#line 2044 "jx_py_parse.c"
         break;
       case 63:
 #line 695 "jx_py_parse.lem"
@@ -2055,7 +2054,7 @@ static void yy_reduce(
 #endif
   yy_destructor(28,&yymsp[-1].minor);
 }
-#line 2060 "jx_py_parse.c"
+#line 2059 "jx_py_parse.c"
         break;
       case 64:
 #line 707 "jx_py_parse.lem"
@@ -2070,7 +2069,7 @@ static void yy_reduce(
 #endif
   yy_destructor(29,&yymsp[-1].minor);
 }
-#line 2075 "jx_py_parse.c"
+#line 2074 "jx_py_parse.c"
         break;
       case 65:
 #line 719 "jx_py_parse.lem"
@@ -2085,7 +2084,7 @@ static void yy_reduce(
 #endif
   yy_destructor(30,&yymsp[-1].minor);
 }
-#line 2090 "jx_py_parse.c"
+#line 2089 "jx_py_parse.c"
         break;
       case 66:
 #line 731 "jx_py_parse.lem"
@@ -2100,7 +2099,7 @@ static void yy_reduce(
 #endif
   yy_destructor(31,&yymsp[-1].minor);
 }
-#line 2105 "jx_py_parse.c"
+#line 2104 "jx_py_parse.c"
         break;
       case 67:
 #line 743 "jx_py_parse.lem"
@@ -2115,7 +2114,7 @@ static void yy_reduce(
 #endif
   yy_destructor(32,&yymsp[-1].minor);
 }
-#line 2120 "jx_py_parse.c"
+#line 2119 "jx_py_parse.c"
         break;
       case 68:
 #line 757 "jx_py_parse.lem"
@@ -2125,7 +2124,7 @@ static void yy_reduce(
   printf("expr(yygotominor.yy0) ::= xor_expr(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2130 "jx_py_parse.c"
+#line 2129 "jx_py_parse.c"
         break;
       case 69:
 #line 767 "jx_py_parse.lem"
@@ -2135,7 +2134,7 @@ static void yy_reduce(
   printf("xor_expr(yygotominor.yy0) ::= and_expr(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2140 "jx_py_parse.c"
+#line 2139 "jx_py_parse.c"
         break;
       case 70:
 #line 777 "jx_py_parse.lem"
@@ -2145,7 +2144,7 @@ static void yy_reduce(
   printf("and_expr(yygotominor.yy0) ::= shift_expr(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2150 "jx_py_parse.c"
+#line 2149 "jx_py_parse.c"
         break;
       case 71:
 #line 787 "jx_py_parse.lem"
@@ -2155,7 +2154,7 @@ static void yy_reduce(
   printf("shirt_exp(yygotominor.yy0) ::= arith_expr(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2160 "jx_py_parse.c"
+#line 2159 "jx_py_parse.c"
         break;
       case 72:
 #line 797 "jx_py_parse.lem"
@@ -2165,7 +2164,7 @@ static void yy_reduce(
   printf("arith_expr(yygotominor.yy0) ::= term(yymsp[0].minor.yy0)\n");
 #endif
 }
-#line 2170 "jx_py_parse.c"
+#line 2169 "jx_py_parse.c"
         break;
       case 73:
 #line 805 "jx_py_parse.lem"
@@ -2179,7 +2178,7 @@ static void yy_reduce(
 #endif
   yy_destructor(33,&yymsp[-1].minor);
 }
-#line 2184 "jx_py_parse.c"
+#line 2183 "jx_py_parse.c"
         break;
       case 74:
 #line 816 "jx_py_parse.lem"
@@ -2193,7 +2192,7 @@ static void yy_reduce(
 #endif
   yy_destructor(34,&yymsp[-1].minor);
 }
-#line 2198 "jx_py_parse.c"
+#line 2197 "jx_py_parse.c"
         break;
       case 75:
 #line 829 "jx_py_parse.lem"
@@ -2203,7 +2202,7 @@ static void yy_reduce(
   printf("term(yygotominor.yy0) ::= factor(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2208 "jx_py_parse.c"
+#line 2207 "jx_py_parse.c"
         break;
       case 76:
 #line 837 "jx_py_parse.lem"
@@ -2217,7 +2216,7 @@ static void yy_reduce(
 #endif
   yy_destructor(35,&yymsp[-1].minor);
 }
-#line 2222 "jx_py_parse.c"
+#line 2221 "jx_py_parse.c"
         break;
       case 77:
 #line 848 "jx_py_parse.lem"
@@ -2231,7 +2230,7 @@ static void yy_reduce(
 #endif
   yy_destructor(36,&yymsp[-1].minor);
 }
-#line 2236 "jx_py_parse.c"
+#line 2235 "jx_py_parse.c"
         break;
       case 78:
 #line 859 "jx_py_parse.lem"
@@ -2245,7 +2244,7 @@ static void yy_reduce(
 #endif
   yy_destructor(37,&yymsp[-1].minor);
 }
-#line 2250 "jx_py_parse.c"
+#line 2249 "jx_py_parse.c"
         break;
       case 79:
 #line 870 "jx_py_parse.lem"
@@ -2259,7 +2258,7 @@ static void yy_reduce(
 #endif
   yy_destructor(38,&yymsp[-1].minor);
 }
-#line 2264 "jx_py_parse.c"
+#line 2263 "jx_py_parse.c"
         break;
       case 80:
 #line 883 "jx_py_parse.lem"
@@ -2269,7 +2268,7 @@ static void yy_reduce(
   printf("factor(yygotominor.yy0) ::= power(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2274 "jx_py_parse.c"
+#line 2273 "jx_py_parse.c"
         break;
       case 81:
 #line 891 "jx_py_parse.lem"
@@ -2280,7 +2279,7 @@ static void yy_reduce(
 #endif
   yy_destructor(33,&yymsp[-1].minor);
 }
-#line 2285 "jx_py_parse.c"
+#line 2284 "jx_py_parse.c"
         break;
       case 82:
 #line 899 "jx_py_parse.lem"
@@ -2293,7 +2292,7 @@ static void yy_reduce(
 #endif
   yy_destructor(34,&yymsp[-1].minor);
 }
-#line 2298 "jx_py_parse.c"
+#line 2297 "jx_py_parse.c"
         break;
       case 83:
 #line 909 "jx_py_parse.lem"
@@ -2304,7 +2303,7 @@ static void yy_reduce(
 #endif
   yy_destructor(39,&yymsp[-1].minor);
 }
-#line 2309 "jx_py_parse.c"
+#line 2308 "jx_py_parse.c"
         break;
       case 84:
       case 132:
@@ -2315,7 +2314,7 @@ static void yy_reduce(
   printf("testlist(yygotominor.yy0) ::= test(yymsp[0].minor.yy0).\n"); 
 #endif
 }
-#line 2320 "jx_py_parse.c"
+#line 2319 "jx_py_parse.c"
         break;
       case 85:
 #line 929 "jx_py_parse.lem"
@@ -2325,7 +2324,7 @@ static void yy_reduce(
   printf("power(yygotominor.yy0) ::= atom(yymsp[0].minor.yy15).\n");
 #endif
 }
-#line 2330 "jx_py_parse.c"
+#line 2329 "jx_py_parse.c"
         break;
       case 86:
 #line 937 "jx_py_parse.lem"
@@ -2339,28 +2338,37 @@ static void yy_reduce(
 #endif
   yy_destructor(40,&yymsp[-1].minor);
 }
-#line 2344 "jx_py_parse.c"
+#line 2343 "jx_py_parse.c"
         break;
       case 87:
 #line 948 "jx_py_parse.lem"
 {
-  yygotominor.yy0=jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("resolve"));
-  {
-    jx_ob tmp = jx_list_new(); 
-    jx_list_append(tmp,jx_ob_from_ident("nop"));
-    jx_list_append(tmp,yymsp[-1].minor.yy15);
-    jx_list_unshift(yymsp[0].minor.yy0,tmp);
+  jx_ob resolve = jx_ob_from_ident("resolve");
+  if(jx_list_size(yymsp[-1].minor.yy15) &&
+     (jx_ob_identical(jx_list_borrow(yymsp[-1].minor.yy15,0),resolve))) {
+    yygotominor.yy0 = yymsp[-1].minor.yy15;
+    if(!jx_list_check(jx_list_borrow(yymsp[-1].minor.yy15,1))) {
+      jx_list_unshift(yymsp[0].minor.yy0, jx_list_remove(yymsp[-1].minor.yy15,1));
+      jx_list_append(yymsp[-1].minor.yy15,yymsp[0].minor.yy0);
+    } else {
+      jx_list_combine(jx_list_borrow(yymsp[-1].minor.yy15,1), yymsp[0].minor.yy0);
+    }
+  } else {
+    yygotominor.yy0=jx_list_new();
+    
+    jx_list_append(yygotominor.yy0,jx_ob_from_ident("resolve"));
+    jx_list_unshift(yymsp[0].minor.yy0,yymsp[-1].minor.yy15);
+    jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
   }
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+
 #ifdef JX_PY_PARSER_DEBUG
   printf("power(yygotominor.yy0) ::= atom(yymsp[-1].minor.yy15) dot_trailer_list(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2362 "jx_py_parse.c"
+#line 2370 "jx_py_parse.c"
         break;
       case 88:
-#line 964 "jx_py_parse.lem"
+#line 973 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
   jx_list_unshift(yygotominor.yy0,yymsp[-1].minor.yy15);
@@ -2368,10 +2376,10 @@ static void yy_reduce(
   printf("power(yygotominor.yy0) ::= atom(yymsp[-1].minor.yy15) trailer(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2373 "jx_py_parse.c"
+#line 2381 "jx_py_parse.c"
         break;
       case 89:
-#line 973 "jx_py_parse.lem"
+#line 982 "jx_py_parse.lem"
 {
   yygotominor.yy0=jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("get"));
@@ -2381,10 +2389,10 @@ static void yy_reduce(
   printf("power(yygotominor.yy0) ::= power(yymsp[-1].minor.yy15) access_trailer(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2386 "jx_py_parse.c"
+#line 2394 "jx_py_parse.c"
         break;
       case 90:
-#line 993 "jx_py_parse.lem"
+#line 1002 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = yymsp[-1].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2393,10 +2401,10 @@ static void yy_reduce(
   yy_destructor(7,&yymsp[-2].minor);
   yy_destructor(8,&yymsp[0].minor);
 }
-#line 2398 "jx_py_parse.c"
+#line 2406 "jx_py_parse.c"
         break;
       case 91:
-#line 1002 "jx_py_parse.lem"
+#line 1011 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2405,10 +2413,10 @@ static void yy_reduce(
   yy_destructor(41,&yymsp[-1].minor);
   yy_destructor(42,&yymsp[0].minor);
 }
-#line 2410 "jx_py_parse.c"
+#line 2418 "jx_py_parse.c"
         break;
       case 92:
-#line 1010 "jx_py_parse.lem"
+#line 1019 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = yymsp[-1].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2417,10 +2425,10 @@ static void yy_reduce(
   yy_destructor(41,&yymsp[-2].minor);
   yy_destructor(42,&yymsp[0].minor);
 }
-#line 2422 "jx_py_parse.c"
+#line 2430 "jx_py_parse.c"
         break;
       case 93:
-#line 1018 "jx_py_parse.lem"
+#line 1027 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = jx_hash_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2429,10 +2437,10 @@ static void yy_reduce(
   yy_destructor(43,&yymsp[-1].minor);
   yy_destructor(44,&yymsp[0].minor);
 }
-#line 2434 "jx_py_parse.c"
+#line 2442 "jx_py_parse.c"
         break;
       case 94:
-#line 1027 "jx_py_parse.lem"
+#line 1036 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = yymsp[-1].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2441,101 +2449,110 @@ static void yy_reduce(
   yy_destructor(43,&yymsp[-2].minor);
   yy_destructor(44,&yymsp[0].minor);
 }
-#line 2446 "jx_py_parse.c"
+#line 2454 "jx_py_parse.c"
         break;
       case 95:
-#line 1036 "jx_py_parse.lem"
+#line 1045 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("atom = ICON\n"); 
 #endif
 }
-#line 2456 "jx_py_parse.c"
+#line 2464 "jx_py_parse.c"
         break;
       case 96:
-#line 1044 "jx_py_parse.lem"
+#line 1053 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("atom = FCON\n"); 
 #endif
 }
-#line 2466 "jx_py_parse.c"
+#line 2474 "jx_py_parse.c"
         break;
       case 97:
-#line 1052 "jx_py_parse.lem"
+#line 1061 "jx_py_parse.lem"
 { 
   yygotominor.yy15 = yymsp[0].minor.yy15;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("atom = string\n"); 
 #endif
 }
-#line 2476 "jx_py_parse.c"
+#line 2484 "jx_py_parse.c"
+        break;
+      case 98:
+#line 1071 "jx_py_parse.lem"
+{
+  yygotominor.yy0 = jx_list_new();
+  jx_list_append(yygotominor.yy0,jx_ob_from_ident("nop"));
+  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+}
+#line 2493 "jx_py_parse.c"
         break;
       case 99:
       case 124:
-#line 1068 "jx_py_parse.lem"
+#line 1078 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-2].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 2486 "jx_py_parse.c"
+#line 2503 "jx_py_parse.c"
         break;
       case 100:
-#line 1074 "jx_py_parse.lem"
+#line 1084 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   yy_destructor(3,&yymsp[0].minor);
 }
-#line 2494 "jx_py_parse.c"
+#line 2511 "jx_py_parse.c"
         break;
       case 101:
-#line 1079 "jx_py_parse.lem"
+#line 1089 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   yy_destructor(24,&yymsp[0].minor);
 }
-#line 2502 "jx_py_parse.c"
+#line 2519 "jx_py_parse.c"
         break;
       case 102:
-#line 1084 "jx_py_parse.lem"
+#line 1094 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   yy_destructor(25,&yymsp[0].minor);
 }
-#line 2510 "jx_py_parse.c"
+#line 2527 "jx_py_parse.c"
         break;
       case 103:
-#line 1089 "jx_py_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
-  yy_destructor(9,&yymsp[-1].minor);
-  yy_destructor(3,&yymsp[0].minor);
-}
-#line 2519 "jx_py_parse.c"
-        break;
-      case 104:
-#line 1094 "jx_py_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
-  yy_destructor(9,&yymsp[-1].minor);
-  yy_destructor(24,&yymsp[0].minor);
-}
-#line 2528 "jx_py_parse.c"
-        break;
-      case 105:
 #line 1099 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-2].minor.yy0;
   yy_destructor(9,&yymsp[-1].minor);
+  yy_destructor(3,&yymsp[0].minor);
+}
+#line 2536 "jx_py_parse.c"
+        break;
+      case 104:
+#line 1104 "jx_py_parse.lem"
+{
+  yygotominor.yy0 = yymsp[-2].minor.yy0;
+  yy_destructor(9,&yymsp[-1].minor);
+  yy_destructor(24,&yymsp[0].minor);
+}
+#line 2545 "jx_py_parse.c"
+        break;
+      case 105:
+#line 1109 "jx_py_parse.lem"
+{
+  yygotominor.yy0 = yymsp[-2].minor.yy0;
+  yy_destructor(9,&yymsp[-1].minor);
   yy_destructor(25,&yymsp[0].minor);
 }
-#line 2537 "jx_py_parse.c"
+#line 2554 "jx_py_parse.c"
         break;
       case 106:
-#line 1106 "jx_py_parse.lem"
+#line 1116 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("lambda"));
@@ -2544,10 +2561,10 @@ static void yy_reduce(
   yy_destructor(47,&yymsp[-2].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 2549 "jx_py_parse.c"
+#line 2566 "jx_py_parse.c"
         break;
       case 107:
-#line 1114 "jx_py_parse.lem"
+#line 1124 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("lambda"));
@@ -2556,20 +2573,20 @@ static void yy_reduce(
   yy_destructor(47,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 2561 "jx_py_parse.c"
+#line 2578 "jx_py_parse.c"
         break;
       case 108:
-#line 1124 "jx_py_parse.lem"
+#line 1134 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("call_trailer_list(yygotominor.yy0) ::= call_trailer(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2571 "jx_py_parse.c"
+#line 2588 "jx_py_parse.c"
         break;
       case 109:
-#line 1132 "jx_py_parse.lem"
+#line 1142 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
   jx_list_unshift(yygotominor.yy0,yymsp[-1].minor.yy0);
@@ -2577,10 +2594,10 @@ static void yy_reduce(
   printf("call_trailer_list(yygotominor.yy0) ::= call_trailer_list(yymsp[-1].minor.yy0) call_trailer(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2582 "jx_py_parse.c"
+#line 2599 "jx_py_parse.c"
         break;
       case 110:
-#line 1141 "jx_py_parse.lem"
+#line 1151 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2589,10 +2606,10 @@ static void yy_reduce(
   yy_destructor(7,&yymsp[-1].minor);
   yy_destructor(8,&yymsp[0].minor);
 }
-#line 2594 "jx_py_parse.c"
+#line 2611 "jx_py_parse.c"
         break;
       case 111:
-#line 1149 "jx_py_parse.lem"
+#line 1159 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2601,10 +2618,10 @@ static void yy_reduce(
   yy_destructor(7,&yymsp[-2].minor);
   yy_destructor(8,&yymsp[0].minor);
 }
-#line 2606 "jx_py_parse.c"
+#line 2623 "jx_py_parse.c"
         break;
       case 112:
-#line 1157 "jx_py_parse.lem"
+#line 1167 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -2612,10 +2629,10 @@ static void yy_reduce(
   printf("access_trailer_list(yygotominor.yy0) :: = access_trailer(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2617 "jx_py_parse.c"
+#line 2634 "jx_py_parse.c"
         break;
       case 113:
-#line 1166 "jx_py_parse.lem"
+#line 1176 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -2623,10 +2640,10 @@ static void yy_reduce(
   printf("access_trailer_list(yygotominor.yy0) :: = access_trailer(yymsp[-1].minor.yy0).\n");
 #endif
 }
-#line 2628 "jx_py_parse.c"
+#line 2645 "jx_py_parse.c"
         break;
       case 114:
-#line 1175 "jx_py_parse.lem"
+#line 1185 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
@@ -2635,10 +2652,10 @@ static void yy_reduce(
   yy_destructor(41,&yymsp[-2].minor);
   yy_destructor(42,&yymsp[0].minor);
 }
-#line 2640 "jx_py_parse.c"
+#line 2657 "jx_py_parse.c"
         break;
       case 115:
-#line 1183 "jx_py_parse.lem"
+#line 1193 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -2646,51 +2663,49 @@ static void yy_reduce(
   printf("dot_trailer_list(yygotominor.yy0) ::= dot_trailer(yymsp[0].minor.yy0).\n");
 #endif
 }
-#line 2651 "jx_py_parse.c"
+#line 2668 "jx_py_parse.c"
         break;
       case 116:
-#line 1192 "jx_py_parse.lem"
+#line 1202 "jx_py_parse.lem"
 {
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("nop"));
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+  yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("dot_trailer(yygotominor.yy0) ::= DOT NAME(yymsp[0].minor.yy0).\n");
 #endif
   yy_destructor(48,&yymsp[-1].minor);
 }
-#line 2664 "jx_py_parse.c"
+#line 2679 "jx_py_parse.c"
         break;
       case 117:
-#line 1204 "jx_py_parse.lem"
+#line 1212 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_insert(yygotominor.yy0,0,jx_ob_from_ident("pass"));
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
 }
-#line 2673 "jx_py_parse.c"
+#line 2688 "jx_py_parse.c"
         break;
       case 119:
-#line 1220 "jx_py_parse.lem"
+#line 1228 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_hash_new();
   jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0);  
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 2682 "jx_py_parse.c"
+#line 2697 "jx_py_parse.c"
         break;
       case 120:
-#line 1226 "jx_py_parse.lem"
+#line 1234 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-4].minor.yy0;
   jx_hash_set(yygotominor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0);  
   yy_destructor(9,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 2692 "jx_py_parse.c"
+#line 2707 "jx_py_parse.c"
         break;
       case 121:
-#line 1232 "jx_py_parse.lem"
+#line 1240 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("entity"));
@@ -2704,10 +2719,10 @@ static void yy_reduce(
   yy_destructor(8,&yymsp[-2].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 2709 "jx_py_parse.c"
+#line 2724 "jx_py_parse.c"
         break;
       case 122:
-#line 1243 "jx_py_parse.lem"
+#line 1251 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,jx_ob_from_ident("entity"));
@@ -2719,20 +2734,20 @@ static void yy_reduce(
   yy_destructor(49,&yymsp[-3].minor);
   yy_destructor(6,&yymsp[-1].minor);
 }
-#line 2724 "jx_py_parse.c"
+#line 2739 "jx_py_parse.c"
         break;
       case 126:
-#line 1277 "jx_py_parse.lem"
+#line 1285 "jx_py_parse.lem"
 {
   yygotominor.yy15 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("string = SCON\n"); 
 #endif
 }
-#line 2734 "jx_py_parse.c"
+#line 2749 "jx_py_parse.c"
         break;
       case 127:
-#line 1287 "jx_py_parse.lem"
+#line 1295 "jx_py_parse.lem"
 {
   yygotominor.yy15 = jx_ob_add(yymsp[-1].minor.yy15,yymsp[0].minor.yy0);
   jx_ob_free(yymsp[-1].minor.yy15);
@@ -2741,20 +2756,20 @@ static void yy_reduce(
   printf("atom = SCON\n"); 
 #endif
 }
-#line 2746 "jx_py_parse.c"
+#line 2761 "jx_py_parse.c"
         break;
       case 128:
-#line 1297 "jx_py_parse.lem"
+#line 1305 "jx_py_parse.lem"
 {
   yygotominor.yy15 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("atom = NAME\n"); 
 #endif
 }
-#line 2756 "jx_py_parse.c"
+#line 2771 "jx_py_parse.c"
         break;
       case 129:
-#line 1307 "jx_py_parse.lem"
+#line 1315 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-2].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -2764,10 +2779,10 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 2769 "jx_py_parse.c"
+#line 2784 "jx_py_parse.c"
         break;
       case 130:
-#line 1317 "jx_py_parse.lem"
+#line 1325 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
@@ -2777,10 +2792,10 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 2782 "jx_py_parse.c"
+#line 2797 "jx_py_parse.c"
         break;
       case 131:
-#line 1327 "jx_py_parse.lem"
+#line 1335 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
@@ -2789,30 +2804,30 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[0].minor);
 }
-#line 2794 "jx_py_parse.c"
+#line 2809 "jx_py_parse.c"
         break;
       case 133:
-#line 1344 "jx_py_parse.lem"
+#line 1352 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("testlist(yygotominor.yy0) ::= testlist_2(yymsp[0].minor.yy0).\n"); 
 #endif
 }
-#line 2804 "jx_py_parse.c"
+#line 2819 "jx_py_parse.c"
         break;
       case 134:
-#line 1352 "jx_py_parse.lem"
+#line 1360 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("testlist(yygotominor.yy0) ::= testlist_3(yymsp[0].minor.yy0).\n"); 
 #endif
 }
-#line 2814 "jx_py_parse.c"
+#line 2829 "jx_py_parse.c"
         break;
       case 135:
-#line 1362 "jx_py_parse.lem"
+#line 1370 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[-2].minor.yy0;
   jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
@@ -2822,10 +2837,10 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 2827 "jx_py_parse.c"
+#line 2842 "jx_py_parse.c"
         break;
       case 136:
-#line 1372 "jx_py_parse.lem"
+#line 1380 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
@@ -2835,10 +2850,10 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[-1].minor);
 }
-#line 2840 "jx_py_parse.c"
+#line 2855 "jx_py_parse.c"
         break;
       case 137:
-#line 1382 "jx_py_parse.lem"
+#line 1390 "jx_py_parse.lem"
 {
   yygotominor.yy0 = jx_list_new();
   jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
@@ -2847,37 +2862,37 @@ static void yy_reduce(
 #endif
   yy_destructor(9,&yymsp[0].minor);
 }
-#line 2852 "jx_py_parse.c"
+#line 2867 "jx_py_parse.c"
         break;
       case 138:
-#line 1391 "jx_py_parse.lem"
+#line 1399 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("exprlist(yygotominor.yy0) ::= expr(yymsp[0].minor.yy0).\n"); 
 #endif
 }
-#line 2862 "jx_py_parse.c"
+#line 2877 "jx_py_parse.c"
         break;
       case 139:
-#line 1399 "jx_py_parse.lem"
+#line 1407 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("exprlist(yygotominor.yy0) ::= exprlist_2(yymsp[0].minor.yy0).\n"); 
 #endif
 }
-#line 2872 "jx_py_parse.c"
+#line 2887 "jx_py_parse.c"
         break;
       case 140:
-#line 1407 "jx_py_parse.lem"
+#line 1415 "jx_py_parse.lem"
 {
   yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
   printf("exprlist(yygotominor.yy0) ::= exprlist_3(yymsp[0].minor.yy0).\n"); 
 #endif
 }
-#line 2882 "jx_py_parse.c"
+#line 2897 "jx_py_parse.c"
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -2912,7 +2927,7 @@ static void yy_parse_failed(
 #ifdef JX_PY_PARSER_DEBUG
   printf("parse failed.\n");
 #endif
-#line 2918 "jx_py_parse.c"
+#line 2933 "jx_py_parse.c"
   jx_py_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -2931,7 +2946,7 @@ static void yy_syntax_error(
 #ifdef JX_PY_PARSER_DEBUG
   printf("jx_py_parse-error: syntax error.\n");
 #endif
-#line 2938 "jx_py_parse.c"
+#line 2953 "jx_py_parse.c"
   jx_py_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -2956,7 +2971,7 @@ static void yy_accept(
 #ifdef JX_PY_PARSER_DEBUG
   printf("accept called\n");
 #endif
-#line 2964 "jx_py_parse.c"
+#line 2979 "jx_py_parse.c"
   jx_py_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
