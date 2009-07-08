@@ -2993,9 +2993,10 @@ JX_INLINE jx_ob jx_tls_code_exec(jx_tls *tls, jx_int flags, jx_ob code)
 
 JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
 {
+  jx_int flags = 0; //JX_EVAL_DEBUG_DUMP_SUBEX | JX_EVAL_DEBUG_TRACE;
   jx_ob result = jx_ob_from_null();
-  //jx_jxon_dump(stdout,"jx_function_call function",function);
-  //jx_jxon_dump(stdout,"jx_function_call payload", payload);
+  //  jx_jxon_dump(stdout,"jx_function_call function",function);
+  //  jx_jxon_dump(stdout,"jx_function_call payload", payload);
 
   if(jx_function_check(function)) {
     jx_function *fn = function.data.io.function;
@@ -3027,6 +3028,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
            thus can potentially be concurrent) */
         jx_ob payload_ident = jx_ob_from_ident("_");
         jx_ob invoke_scope = jx_ob_copy(args);
+
         /* expose fn to itself */
         jx_tls_hash_set(tls, invoke_scope,
                         jx_ob_take_weak_ref(fn->name),
@@ -3043,8 +3045,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
         if(jx_ok( jx_hash_set(invoke_scope,payload_ident,payload))) {
           /* call */
 	  jx_tls_scope_push(tls, invoke_scope);
-          result = fn->mode ? jx_tls_code_exec(tls,0,fn->body) : 
-            jx_tls_code_eval(tls, 0,fn->body);
+          result = fn->mode ? jx_tls_code_exec(tls, flags, fn->body) : 
+            jx_tls_code_eval(tls, flags, fn->body);
 	  invoke_scope = jx_tls_scope_pop(tls);
         }
         jx_tls_ob_free(tls, invoke_scope);
@@ -3796,7 +3798,7 @@ JX_INLINE jx_ob jx_entity_resolve_attrs(jx_tls *tls, jx_ob handle)
 
 JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls,
                                                       jx_list *I, 
-						      jx_ob *container, 
+                                                      jx_ob *container, 
                                                       jx_ob *target)
 {
   jx_status status = jx_gc_lock(&I->gc);

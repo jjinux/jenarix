@@ -1312,6 +1312,7 @@ true;
 (assert true (has x.a))
 (assert 3 (take x.a))
 (assert false (has x.a))
+
 (assert x.a)
 
 (assert (del a))
