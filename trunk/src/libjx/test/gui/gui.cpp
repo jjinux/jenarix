@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
       gui.window = new QWidget;
 #else
       printf ("qt output not supported in this version\n");
+      gui.out_type -= GUI_QTUI;
 #endif
   }
   if(jx_ok( jx_os_process_init(argc,argv) )) {
@@ -58,22 +59,16 @@ int main(int argc, char *argv[])
     }
     
     jx_ob_free(node);
-#ifdef JX_QT
     if (gui.out_type & GUI_QTUI) {
-      //qDebug() << w;
+#ifdef JX_QT
       layout = new QVBoxLayout;
       layout->addWidget(w);
       gui.window->setLayout(layout);
-      //gui.window->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
       gui.window->show();
-      if (geom) {
-        qDebug() << gui.window->size();
-      } else {
+      if (!geom) {
         gui.window->resize(800,600);
       }
       return app->exec();
-#else
-    if (0) {
 #endif
     } else {
       jx_os_process_complete();

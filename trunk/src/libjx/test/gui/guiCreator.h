@@ -4,6 +4,7 @@
 #include "jx_public.h"
 #include "jx_main_tools.h"
 #ifdef JX_QT
+#include "jxmenu.h"
 #include <QWidget>
 #include <QSplitter>
 #include <QMenuBar>
@@ -18,7 +19,7 @@
 #ifdef JX_QT
 #define JX_WIDGET QWidget
 #define JX_SPLITTER QSplitter
-#define JX_MENU QMenu
+#define JX_MENU JXMenu
 #else
 #define JX_WIDGET void
 #define JX_SPLITTER void
@@ -42,6 +43,7 @@ private:
     void printVFramesetHtml(jx_ob pane, int size);
     void printFrameHtml(jx_ob widget);
     void printWidgetInfo(jx_ob widget);
+    JX_MENU * processMenuItem(jx_ob item, JX_MENU *menu_widget);
     void processMenuItems(jx_ob menu, int depth, JX_MENU *menu_widget);
 
     JX_WIDGET * createQtWidget(jx_ob widget);

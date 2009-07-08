@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "guiCreator.h"
 #ifdef JX_QT
 #include "glwidget.h"
+#include "jxmenu.h"
 #include <QtDebug>
 #include <QTextEdit>
 #include <QtOpenGL>
@@ -89,7 +90,6 @@ jx_ob GuiCreator::getSource(jx_ob entity)
       } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
           return jx_ob_from_str((jx_char *)"menubar.html");
       } else  {
-          //return jx_ob_from_str("widget.html");
           return jx_ob_from_str((jx_char *)"");
       }
     }
@@ -131,7 +131,7 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
     int width = getWidth(entity);
     int height = getHeight(entity);
     jx_ob src = getSource(entity);
-    if (out_type & GUI_PRINT) qDebug() << "create Widget" << jx_ob_as_str(&src) << width << height;
+    if (out_type & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
     if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
       GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
@@ -146,7 +146,6 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
     } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
       QMenuBar *w = new QMenuBar;
       processMenuItems(entity,0,(JX_MENU *)w);
-      //w->setFixedHeight(height);
       widget = w;
     } else if(jx_ob_identical(jx_list_borrow(entity,0), menuItemType)) {
     } else  {
@@ -164,12 +163,10 @@ JX_SPLITTER * GuiCreator::createQtHsplitter(jx_ob splitter, int size)
 {
     int width = getWidth(splitter);
     int height = getHeight(splitter);
-    //QSplitter *s = new QSplitter(Qt::Horizontal, window);
     QSplitter *s = new QSplitter(Qt::Horizontal);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
-    //s->setMinimumSize(width,height);
-    if (out_type & GUI_PRINT) qDebug() << s << width << height;
+    if (out_type & GUI_PRINT) fprintf(stderr, "HSplitter %dx%d\n", width, height);
     return s;
 }
 
@@ -177,12 +174,10 @@ JX_SPLITTER * GuiCreator::createQtVsplitter(jx_ob splitter, int size)
 {
     int width = getWidth(splitter);
     int height = getHeight(splitter);
-    //QSplitter *s = new QSplitter(Qt::Vertical, window);
     QSplitter *s = new QSplitter(Qt::Vertical);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
-    //s->setMinimumSize(width,height);
-    if (out_type & GUI_PRINT) qDebug() << s << width << height;
+    if (out_type & GUI_PRINT) fprintf(stderr, "VSplitter %dx%d\n", width, height);
     return s;
 }
 #endif
@@ -193,103 +188,115 @@ void GuiCreator::printWidgetInfo(jx_ob entity)
   int height = getHeight(entity);
   jx_ob src = getSource(entity);
   if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
-     fprintf(stderr,"OpenGL widget %s %d %d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"OpenGL widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
   } else if(jx_ob_identical(jx_list_borrow(entity,0), navigatorType)) {
-     fprintf(stderr,"Navigator widget %s %d %d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"Navigator widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
   } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
-     fprintf(stderr,"MenuBar widget %s %d %d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"MenuBar widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
      if (out_type == GUI_PRINT) processMenuItems(entity,0,NULL);
   } else {
-     //get_symbol_from_node(node, "OpenGLContext");
      fprintf(stderr,"Generic widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
   }
   jx_ob_free(src);
 }
 
-void GuiCreator::processMenuItems(jx_ob menu, int depth, JX_MENU *menu_widget)
-{
-     std::string blanx(depth*2, ' ');
-     jx_ob menu_items = jx_list_borrow(menu,1);
-     jx_ob attr, label;
-     int checkbox;
-     for (int i=0; i<jx_list_size(menu_items); ++i) {
-         jx_ob item = jx_list_borrow(menu_items,i);
-         if(jx_ob_identical(jx_list_borrow(item,0), menuItemType)) {
-           if (out_type & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
+JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
+/*
+   deal with attributes of a single menu item: label, checkbox, callback.
+   This creates and adds an Action if this item is not a list.
+   This creates and adds a Menu (sub_menu) if this item is a list.
+   This returns any sub_menu that might be created.
+   A sub_menu will display a label, but ignore any checkbox or callback.
+*/
+  jx_ob checkbox, callback, label;
+  int has_checkbox;
 
 /* label attribute */
-           label = getMenuItem(item, (jx_char *)"label");
-           if (out_type & GUI_PRINT) fprintf(stderr," label %s", jx_ob_as_str(&label));
-           //jx_ob_free(label);
+  label = getMenuItem(item, (jx_char *)"label");
+  if (out_type & GUI_PRINT) fprintf(stderr," label %s", jx_ob_as_str(&label));
 
 /* checkbox attribute */
-           attr = getMenuItem(item, (jx_char *)"checkbox");
-           if (jx_null_check(attr)) {
-             checkbox = 0;
-           } else {
-             if (out_type & GUI_PRINT) fprintf(stderr," checkbox %s", jx_ob_as_str(&attr));
-             if (!strncmp(jx_ob_as_str(&attr), "on", 2)) {
-               checkbox =  1;
-             } else {
-               checkbox = -1;
-             }
-           }
-           jx_ob_free(attr);
+  checkbox = getMenuItem(item, (jx_char *)"checkbox");
+  if (jx_null_check(checkbox)) {
+    has_checkbox = 0;
+  } else {
+    if (out_type & GUI_PRINT) fprintf(stderr," checkbox %s", jx_ob_as_str(&checkbox));
+    if (!strncmp(jx_ob_as_str(&checkbox), "on", 2)) {
+      has_checkbox =  1;
+    } else {
+      has_checkbox = -1;
+    }
+  }
 
 /* callback attribute */
-           attr = getMenuItem(item, (jx_char *)"callback");
-           if (jx_null_check(attr)) {
-             //fprintf(stderr," no callback");
-             if (out_type & GUI_PRINT) fprintf(stderr,"\n");
-           } else if (jx_builtin_callable_check(attr)) {
-             if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", attr);
-           } else {
-             if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", attr);
-           }
-           jx_ob_free(attr);
+  callback = getMenuItem(item, (jx_char *)"callback");
+  if (jx_null_check(callback)) {
+    if (out_type & GUI_PRINT) fprintf(stderr,"\n");
+  } else if (jx_builtin_callable_check(callback)) {
+    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback);
+    jx_function_call(callback, callback, jx_ob());
+  } else {
+    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback);
+  }
 
-           JX_MENU *sub_menu;
+  JX_MENU *sub_menu;
 #ifdef JX_QT
-           if (out_type & GUI_QTUI) {
-             int nsub = jx_list_size(jx_list_borrow(item,1));
-             if (nsub > 0) { 
-               sub_menu = menu_widget->addMenu(jx_ob_as_str(&label));
-               //fprintf(stderr," addMenu(%d) %d to %d", nsub, sub_menu, menu_widget);
-             } else {
-               if (checkbox) {
-                 QAction *theAct = new QAction(jx_ob_as_str(&label), menu_widget);
-                 theAct->setCheckable(true);
-                 if (checkbox > 0) {
-                   theAct->setChecked(true);
-                 } else {
-                   theAct->setChecked(false);
-                 }
-                 menu_widget->addAction(theAct);
-                 //theAct->setShortcut(tr("Ctrl+B"));
-                 //theAct->setStatusTip(tr("Make the text bold"));
-                 //connect(theAct, SIGNAL(triggered()), menu_widget, SLOT(bold()));
-               } else {
-                 menu_widget->addAction(jx_ob_as_str(&label));
-               }
-               //fprintf(stderr," addAction to %d", nsub, sub_menu, menu_widget);
-             }
-           }
-#endif
-           jx_ob_free(label);
-           processMenuItems(item, depth+1, (JX_MENU *)sub_menu);
+  if (out_type & GUI_QTUI) {
+    if ( jx_list_size(jx_list_borrow(item,1)) > 0) { 
+      sub_menu = new JX_MENU(jx_ob_as_str(&label));
+      menu_widget->addMenu(sub_menu);
+    } else {
 
-         } else if (jx_str_check(item)) {
-#ifdef JX_QT
-           if (out_type & GUI_QTUI) menu_widget->addAction(jx_ob_as_str(&item));
-           //fprintf(stderr," addAction to %d", menu_widget);
+      QAction *theAct = new QAction(jx_ob_as_str(&label), menu_widget);
+      //theAct->setShortcut(tr("Ctrl+B"));
+      menu_widget->addAction(theAct);
+      if (!jx_null_check(callback)) {
+        if (jx_builtin_callable_check(callback)) {
+          QObject::connect(menu_widget, SIGNAL(triggered(QAction *)), menu_widget, SLOT(jx_callback(QAction *)));
+        }
+      }
+      if (has_checkbox) {
+        theAct->setCheckable(true);
+        if (has_checkbox > 0) {
+          theAct->setChecked(true);
+        } else {
+          theAct->setChecked(false);
+        }
+      }
+    }
+  }
 #endif
-           if (out_type & GUI_PRINT) fprintf(stderr,"%s  string %s\n", blanx.c_str(), jx_ob_as_str(&item));
-         } else if (jx_null_check(item)) {
-           if (out_type & GUI_PRINT) fprintf(stderr,"%s  null\n", blanx.c_str());
-         } else {
-           if (out_type & GUI_PRINT) fprintf(stderr,"%s  other type %d\n", blanx.c_str(), jx_ob_type(item));
-         }
-     }
+  jx_ob_free(label);
+  jx_ob_free(checkbox);
+  //jx_ob_free(callback);
+
+  return sub_menu;
+}
+
+void GuiCreator::processMenuItems(jx_ob menu, int depth, JX_MENU *menu_widget)
+{
+/*
+  recursively process menuItemTypes
+*/
+  std::string blanx(depth*2, ' ');  // for pretty printing
+  jx_ob menu_items = jx_list_borrow(menu,1);
+  for (int i=0; i<jx_list_size(menu_items); ++i) {
+    jx_ob item = jx_list_borrow(menu_items,i);
+    if(jx_ob_identical(jx_list_borrow(item,0), menuItemType)) {
+      if (out_type & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
+      JX_MENU *sub_menu = processMenuItem(item, menu_widget);
+      processMenuItems(item, depth+1, (JX_MENU *)sub_menu);
+    } else if (jx_str_check(item)) {
+#ifdef JX_QT
+      if (out_type & GUI_QTUI) menu_widget->addAction(jx_ob_as_str(&item));
+#endif
+      if (out_type & GUI_PRINT) fprintf(stderr,"%s  string %s\n", blanx.c_str(), jx_ob_as_str(&item));
+    } else if (jx_null_check(item)) {
+      if (out_type & GUI_PRINT) fprintf(stderr,"%s  null\n", blanx.c_str());
+    } else {
+      if (out_type & GUI_PRINT) fprintf(stderr,"%s  other type %d\n", blanx.c_str(), jx_ob_type(item));
+    }
+  }
 }
 
 void GuiCreator::printFrameHtml(jx_ob entity)
@@ -342,12 +349,11 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx_ob splitter)
   int width = getWidth(splitter);
   int height = getHeight(splitter);
 #endif
-  if (out_type & GUI_PRINT) fprintf(stderr,"processing %d horizontal splitter widget...\n", size);
+  if (out_type & GUI_PRINT) fprintf(stderr,"processing horizontal splitter %d widget...\n", size);
   if (out_type & GUI_HTML) printHFramesetHtml(pane,size);
 #ifdef JX_QT
   if (out_type & GUI_QTUI) {
     s = createQtHsplitter(splitter,size);
-    //qDebug() << "create HSplitter" << s;
   }
 #endif
 
@@ -358,7 +364,6 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx_ob splitter)
     if (out_type & GUI_QTUI) {
        s->addWidget(w);
        if (height) w->setFixedHeight(height);
-       //qDebug() << "  add Widget" << w << " to " << s;
     }
 #endif
   }
@@ -376,12 +381,11 @@ JX_SPLITTER * GuiCreator::processVSplitter(jx_ob splitter)
   int width = getWidth(splitter);
   int height = getHeight(splitter);
 #endif
-  if (out_type & GUI_PRINT) fprintf(stderr,"processing %d horizontal splitter widget...\n", size);
+  if (out_type & GUI_PRINT) fprintf(stderr,"processing vertical splitter %d widget...\n", size);
   if (out_type & GUI_HTML)  printVFramesetHtml(pane, size);
 #ifdef JX_QT
   if (out_type & GUI_QTUI) {
     s = createQtVsplitter(splitter,size);
-    //qDebug() << "create VSplitter" << s;
   }
 #endif
 
@@ -392,7 +396,6 @@ JX_SPLITTER * GuiCreator::processVSplitter(jx_ob splitter)
     if (out_type & GUI_QTUI) {
        s->addWidget(w);
        if (width) w->setFixedWidth(width);
-       //qDebug() << "  add Widget" << w << " to " << s;
     }
 #endif
   }
@@ -452,7 +455,6 @@ jx_status GuiCreator::freeKnowns()
 
 jx_status GuiCreator::locateKnowns(jx_ob node)
 {
-  //jx_os_memset(known,0,sizeof(known));
 
   vSplitterType = get_symbol_from_node(node, (jx_char *)"VSplitter");
   hSplitterType = get_symbol_from_node(node, (jx_char *)"HSplitter");
