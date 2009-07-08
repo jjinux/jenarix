@@ -49,21 +49,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define JX_DO(x) {status = (x);}
 
-typedef struct {
-  jx_uint32 mode, usage, stale_usage;
-  jx_uint32 mask;               /* 2^n - 1 */
-  jx_uint32 table[JX_ZERO_ARRAY_SIZE];  /* the actual hash table entries */
-} jx_hash_info;
-
-/* hash table modes */
-
-#define JX_HASH_RAW         0
-#define JX_HASH_LINEAR      1
-#define JX_HASH_ONE_TO_ANY  2
-#define JX_HASH_ONE_TO_ONE  3
-#define JX_HASH_ONE_TO_NIL  4
 
 /* 
+   HASH TABLE:
+
    If info is null, then RAW more is implied, meaning that client must
    simply probe the key_value vla for a match (without local packed
    copies of the hash codes).
@@ -89,24 +78,15 @@ typedef struct {
    
 */
 
-struct jx__hash {
-  jx_gc gc; 
-  jx_ob *key_value;             /* variable length array of key/value objects owned by the table */
-  jx_uint32 *info;              /* variable length array of the hash table information record */
-  jx_os_spinlock lock;
-};
-
 #define JX_HASH_INFO_SIZE (sizeof(jx_hash_info)/sizeof(jx_uint32))
 
-#define JX_HASH_ENTRY_ACTIVE     0x00000001
-#define JX_HASH_ENTRY_DELETED    0x80000000
-#define JX_HASH_ENTRY_KV_OFFSET_MASK (~(JX_HASH_ENTRY_ACTIVE|JX_HASH_ENTRY_DELETED))
 
 /* methods we're not currently exposing */
 
 jx_ob jx_ob_with_str_vla(jx_char ** ref);
 
-#define JX_TLS_VLA_ALLOC_MAX   4000
+#define JX_TLS_VLA_ALLOC_MAX   4000-sizeof(jx_vla)
+#define JX_TLS_VLA_MAX          100
 #define JX_TLS_MAX              100
 
 struct jx__tls_chain {

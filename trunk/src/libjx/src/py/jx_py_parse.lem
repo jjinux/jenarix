@@ -1057,6 +1057,30 @@ atom(A) ::= FCON(B).
 #endif
 }
 
+atom(A) ::= NONE(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = FCON\n"); 
+#endif
+}
+
+atom(A) ::= TRUE(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = FCON\n"); 
+#endif
+}
+
+atom(A) ::= FALSE(B). 
+{ 
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom = FALSE\n"); 
+#endif
+}
+
 atom(A) ::= string(B). 
 { 
   A = B;
@@ -1068,9 +1092,11 @@ atom(A) ::= string(B).
 /* listmaker: test ( list_for | (',' test)* [','] ) */
 
 listmaker(A) ::= test(B).
-{
+{  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("nop"));
+  if(!jx_const_check(B)) {
+    jx_list_append(A,jx_ob_from_ident("nop"));
+  } 
   jx_list_append(A,B);
 }
 
@@ -1210,9 +1236,13 @@ dot_trailer(A) ::= DOT NAME(B).
 
 subscriptlist(A) ::= subscript(B).
 {
-  A = jx_list_new();
-  jx_list_insert(A,0,jx_ob_from_ident("pass"));
-  jx_list_append(A,B);
+  if(jx_const_check(B)) {
+    A = B;
+  } else {
+    A = jx_list_new();
+    jx_list_insert(A,0,jx_ob_from_ident("pass"));
+    jx_list_append(A,B);
+  }
 }
 
 /* subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop] */

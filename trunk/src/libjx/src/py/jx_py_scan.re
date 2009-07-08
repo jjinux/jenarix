@@ -205,6 +205,10 @@ static int jx_scan(jx_py_scanner_state *s)
     "return" { RET(JX_PY_RETURN); }
     "class"  { RET(JX_PY_CLASS); }
 
+    "None"   { RET(JX_PY_NONE); }
+    "True"   { RET(JX_PY_TRUE); }
+    "False"  { RET(JX_PY_FALSE); }
+    
     ("0" [xX] H+ IS?) | ("0" D+ IS?) | ( D+ IS?) { RET(JX_PY_ICON); }
     
     (D+ E FS?) | ( D* "." D+ E? FS?) | (D+ "." D* E? FS?)  { RET(JX_PY_FCON); }
@@ -615,16 +619,16 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
           }
         }
         break;
-#if 0
       case JX_PY_TRUE:
         token = jx_ob_from_bool(true);
         break;
       case JX_PY_FALSE:
         token = jx_ob_from_bool(false);
         break;
-      case JX_PY_NULL:
+      case JX_PY_NONE:
         token = jx_ob_from_null();
         break;
+#if 0
       case JX_PY_BUILTIN:
         token = jx_builtin_new_from_selector(0);
         break;

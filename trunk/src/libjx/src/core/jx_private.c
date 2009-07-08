@@ -39,6 +39,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_mem_wrap.h"
 #include "jx_selectors.h"
 
+/* having a minimum allocation wastes memory but can provide more
+   effective reuse of small containers while saving calls to
+   realloc */
+
+#define JX_VLA_MIN_ALLOC_CUTOFF 96
+#define JX_VLA_MIN_ALLOC 4
+
+/* constants for tuning hash-table performance */
+
+#define JX_HASH_RAW_CUTOFF 2
+#define JX_HASH_LINEAR_CUTOFF 4
+
 /* global constants (improve performance) */
 
 jx_ob jx_ob_null = JX_OB_NULL;
@@ -78,11 +90,6 @@ JX_INLINE void jx__gc_init(jx_gc * gc)
   memset(gc, 0, sizeof(jx_gc));
 }
 
-/* having a minimum allocation wastes memory but can saves calls to
-   realloc */
-
-#define JX_VLA_MIN_ALLOC_CUTOFF 96
-#define JX_VLA_MIN_ALLOC 2
 
 /* jx_vla routines */
 
@@ -3792,9 +3799,6 @@ static jx_bool jx__tls_hash_recondition(jx_tls *tls, jx_hash * I, jx_int mode, j
   return result;
 }
 
-#define JX_HASH_RAW_CUTOFF 2
-#define JX_HASH_LINEAR_CUTOFF 8
-
 jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
 {
   jx_status status = jx_gc_lock(&I->gc);
@@ -4111,6 +4115,7 @@ jx_status jx__tls_hash_set(jx_tls *tls, jx_hash * I, jx_ob key, jx_ob value)
   }
   return status;
 }
+
 
 static jx_bool jx__hash_equal(jx_hash * left, jx_hash * right)
 {
@@ -4469,86 +4474,6 @@ jx_bool jx__hash_has_key(jx_hash * I, jx_ob key)
               }
               break;
             }
-          }
-        }
-      }
-    }
-    jx_gc_unlock(&I->gc);
-  }
-  return found;
-}
-
-jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
-{
-  jx_bool found = JX_FALSE;
-  jx_status status = jx_gc_lock(&I->gc);
-  if(JX_POS(status)) {
-    jx_uint32 size = jx_vla_size(&I->key_value);
-    if(size) {
-      if(!I->info) {              /* JX_HASH_RAW */
-	//	printf("peek %d %d %p\n", size,  (2 * JX_HASH_RAW_CUTOFF), I);
-        register jx_int i = (size >> 1);
-        register jx_ob *ob = I->key_value;
-	if(!found) {
-	  while(i--) {
-	    if(jx_ob_identical(ob[0], key)) {
-	      found = JX_TRUE;
-	      *result = JX_BORROW(ob[1]);
-	      break;
-	    }
-	    ob += 2;
-	  }
-	}
-      } else {
-        register jx_uint32 hash_code = jx_ob_hash_code(key);
-        if(hash_code) {
-          jx_hash_info *info = (jx_hash_info *) I->info;
-          switch (info->mode) {
-          case JX_HASH_LINEAR:
-            {
-              register jx_uint32 i = info->usage;
-              register jx_uint32 *hash_entry = info->table;
-              register jx_ob *ob = I->key_value;
-              while(i--) {
-                if(*hash_entry == hash_code) {
-                  if(jx_ob_identical(ob[0], key)) {
-                    found = JX_TRUE;
-                    *result = JX_BORROW(ob[1]);
-                    break;
-                  }
-                }
-                hash_entry++;
-                ob += 2;
-              }
-            }
-            break;
-          case JX_HASH_ONE_TO_ANY:
-          case JX_HASH_ONE_TO_ONE:
-          case JX_HASH_ONE_TO_NIL:
-            {
-              jx_uint32 mask = info->mask;
-              jx_uint32 *hash_table = info->table;
-              jx_uint32 index = mask & hash_code;
-              jx_ob *key_value = I->key_value;
-              jx_uint32 *hash_entry = hash_table + (index << 1);
-              jx_uint32 sentinel = index;
-              do {
-                jx_uint32 hash_entry_1 = hash_entry[1];
-                index = (index + 1) & mask;
-                if((hash_entry_1 & JX_HASH_ENTRY_ACTIVE) && (hash_entry[0] == hash_code)) {
-                  jx_ob *kv_ob = key_value + (hash_entry_1 & JX_HASH_ENTRY_KV_OFFSET_MASK);
-                  /* active slot with matching hash code */
-                  if(jx_ob_identical(kv_ob[0], key)) {
-                    *result = JX_BORROW(kv_ob[1]);
-                    found = JX_TRUE;
-                    break;
-                  }
-                } else if(!hash_entry_1)
-                  break;
-                hash_entry = hash_table + (index << 1);
-              } while(index != sentinel);
-            }
-            break;
           }
         }
       }
@@ -5351,7 +5276,7 @@ void *jx__tls_vla_copy(jx_tls *tls, void **ref)
 jx_status jx__tls_vla_free(jx_tls *tls,void **ref)
 {
   if(*ref) {
-    if(tls && (tls->n_vla < JX_TLS_MAX)) {
+    if(tls && (tls->n_vla < JX_TLS_VLA_MAX)) {
       jx_vla *vla = ((jx_vla *) (*ref)) - 1;
       jx_int rec_size = vla->rec_size;
       jx_int alloc = vla->alloc;

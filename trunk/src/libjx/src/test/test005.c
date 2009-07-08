@@ -215,9 +215,9 @@ int main(int argc, char **argv)
       }
       {
         jx_ob hash2 = jx_hash_new_from_list(list);
-        jx_ob jxon1 = jx_ob_to_jxon(hash);
-        jx_ob jxon2 = jx_ob_to_jxon(hash2);
-        P2("'%s' eq '%s'", jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
+        jx_ob jxon1 = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_SORT_HASHES, 0, 0, 0);
+        jx_ob jxon2 = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash2, JX_JXON_FLAG_SORT_HASHES, 0, 0, 0);
+	//        P2("%s eq %s", jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
         P1("0 == %d", jx_ob_free(jxon1));
         P1("0 == %d", jx_ob_free(jxon2));
         P1("0 == %d", jx_ob_free(hash2));
@@ -333,7 +333,8 @@ int main(int argc, char **argv)
     {
       jx_ob hash = jx_hash_new_with_list(list);
       {
-        jx_ob jxon = jx_ob_to_jxon(hash);
+        jx_ob jxon = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_SORT_HASHES, 0, 0, 0);
+
         P1("'{1:2,3:4,5:6,7:8,9:10}' eq '%s'", jx_ob_as_str(&jxon));
         jx_ob_free(jxon);
       }

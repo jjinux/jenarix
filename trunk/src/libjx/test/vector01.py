@@ -1,5 +1,5 @@
 
-def dot(v0,v1):
+def v_add(v0,v1):
 
     if len(v0)!=len(v1):
         print "Vector size mismatch"
@@ -10,9 +10,9 @@ def dot(v0,v1):
         r.reverse()
         return r
 
-print dot([1,2,3], [2,3,4])
+print v_add([1,2,3], [2,3,4])
 
-print len( dot( range(1000000), range(1000000)))
+print len( v_add( range(1000000), range(1000000)))
 
 
 

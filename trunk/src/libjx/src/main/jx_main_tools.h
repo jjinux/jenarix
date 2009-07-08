@@ -125,6 +125,7 @@ JX_INLINE jx_status jx_main_parse_mode(jx_int *mode, FILE **input, int argc, cha
       *input = fopen(argv[arg],"rb");
       if(!*input) {
         printf("Error: unable to open '%s'\n",argv[arg]);
+	status = JX_FAILURE;
       }
       break;
     }

@@ -280,6 +280,32 @@ struct jx__list {
   } data;
 };
 
+/* hash table modes */
+
+#define JX_HASH_RAW         0
+#define JX_HASH_LINEAR      1
+#define JX_HASH_ONE_TO_ANY  2
+#define JX_HASH_ONE_TO_ONE  3
+#define JX_HASH_ONE_TO_NIL  4
+
+typedef struct {
+  jx_uint32 mode, usage, stale_usage;
+  jx_uint32 mask;               /* 2^n - 1 */
+  jx_uint32 table[JX_ZERO_ARRAY_SIZE];  /* the actual hash table entries */
+} jx_hash_info;
+
+/* entry bit masks */
+
+#define JX_HASH_ENTRY_ACTIVE     0x00000001
+#define JX_HASH_ENTRY_DELETED    0x80000000
+#define JX_HASH_ENTRY_KV_OFFSET_MASK (~(JX_HASH_ENTRY_ACTIVE|JX_HASH_ENTRY_DELETED))
+
+struct jx__hash {
+  jx_gc gc; 
+  jx_ob *key_value;             /* variable length array of key/value objects owned by the table */
+  jx_uint32 *info;              /* variable length array of the hash table information record */
+};
+
 struct jx__opaque_ob {
   jx_gc gc;
   jx_opaque_free_fn free_fn;
@@ -862,6 +888,15 @@ JX_INLINE jx_bool jx_float_check(jx_ob ob)
 JX_INLINE jx_bool jx_str_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_STR);
+}
+
+JX_INLINE jx_bool jx_const_check(jx_ob ob) 
+{
+  return ((ob.meta.bits & (JX_META_BIT_BOOL  |
+			   JX_META_BIT_INT   |
+			   JX_META_BIT_FLOAT |
+			   JX_META_BIT_STR )) ||
+	  !ob.meta.bits);
 }
 
 JX_INLINE jx_bool jx_ident_check(jx_ob ob)
@@ -2005,8 +2040,86 @@ JX_INLINE jx_ob jx_hash_values(jx_ob hash)
   return jx_tls_hash_values(JX_NULL, hash);
 }
 
+JX_INLINE jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key)
+{
+  jx_bool found = JX_FALSE;
+  jx_status status = jx_gc_lock(&I->gc);
+  if(JX_POS(status)) {
+    jx_hash_info *info = (jx_hash_info *) I->info;
+    jx_uint32 size;
+    if( (size = jx_vla_size(&I->key_value)) ) {
+      if(!info) {              /* JX_HASH_RAW */
+	//	printf("peek %d %d %p\n", size,  (2 * JX_HASH_RAW_CUTOFF), I);
+        register jx_int i = (size >> 1);
+        register jx_ob *ob = I->key_value;
+	if(!found) {
+	  while(i--) {
+	    if(jx_ob_identical(ob[0], key)) {
+	      found = JX_TRUE;
+	      *result = ob[1];
+	      break;
+	    }
+	    ob += 2;
+	  }
+	}
+      } else {
+        register jx_uint32 hash_code = jx_ob_hash_code(key);
+        if(hash_code) {
+          switch (info->mode) {
+          case JX_HASH_LINEAR:
+            {
+              register jx_uint32 i = info->usage;
+              register jx_uint32 *hash_entry = info->table;
+              register jx_ob *ob = I->key_value;
+              while(i--) {
+                if(*hash_entry == hash_code) {
+                  if(jx_ob_identical(ob[0], key)) {
+                    found = JX_TRUE;
+                    *result = ob[1];
+                    break;
+                  }
+                }
+                hash_entry++;
+                ob += 2;
+              }
+            }
+            break;
+          case JX_HASH_ONE_TO_ANY:
+          case JX_HASH_ONE_TO_ONE:
+          case JX_HASH_ONE_TO_NIL:
+            {
+              jx_uint32 mask = info->mask;
+              jx_uint32 *hash_table = info->table;
+              jx_uint32 index = mask & hash_code;
+              jx_ob *key_value = I->key_value;
+              jx_uint32 *hash_entry = hash_table + (index << 1);
+              jx_uint32 sentinel = index;
+              do {
+                jx_uint32 hash_entry_1 = hash_entry[1];
+                index = (index + 1) & mask;
+                if((hash_entry_1 & JX_HASH_ENTRY_ACTIVE) && (hash_entry[0] == hash_code)) {
+                  jx_ob *kv_ob = key_value + (hash_entry_1 & JX_HASH_ENTRY_KV_OFFSET_MASK);
+                  /* active slot with matching hash code */
+                  if(jx_ob_identical(kv_ob[0], key)) {
+                    *result = kv_ob[1];
+                    found = JX_TRUE;
+                    break;
+                  }
+                } else if(!hash_entry_1)
+                  break;
+                hash_entry = hash_table + (index << 1);
+              } while(index != sentinel);
+            }
+            break;
+          }
+        }
+      }
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return found;
+}
 
-jx_bool jx__hash_peek(jx_ob * result, jx_hash * I, jx_ob key);
 JX_INLINE jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
@@ -2766,9 +2879,16 @@ JX_INLINE jx_tls *jx_tls_new(jx_tls *tls, jx_ob node)
   }
   if(tls) {
     tls->node = node;
-    tls->builtins = jx_hash_borrow(node,jx_builtins());
   }
   return tls;
+}
+
+JX_INLINE jx_ob jx_tls_builtins(jx_tls *tls)
+{
+  if(jx_null_check(tls->builtins)) {
+    return tls->builtins = jx_hash_borrow(tls->node,jx_builtins());
+  }
+  return tls->builtins;
 }
 
 void jx__tls_free(jx_tls *tls);
@@ -3069,14 +3189,14 @@ JX_INLINE jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload)
   return result;
 }
 
-JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob node, jx_ob macro, jx_ob payload)
+JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob macro, jx_ob payload)
 {
   //  jx_jxon_dump(stdout,"jx_macro_call macro",macro);
   //  jx_jxon_dump(stdout,"jx_macro_call payload", payload);
   if(jx_macro_check(macro)) {
     jx_function *fn = macro.data.io.function;
     jx_ob args = fn->args;
-
+    jx_ob node = tls->node;
     if(jx_null_check(args)) { /* inner functions run within the host node namespace */
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob saved_payload = jx_ob_from_null();
@@ -3708,7 +3828,7 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls,
             //jx_jxon_dump(stdout,"target",*target);
             if(jx_null_check(meth_or_attr)) {
               if(tls && (!tls->have_method)) {
-                if(!jx_hash_peek(&tls->method, tls->builtins, *target))
+                if(!jx_hash_peek(&tls->method, jx_tls_builtins(tls), *target))
                   tls->method = jx_ob_from_null();
               }
               tls->have_method = JX_TRUE;
@@ -3730,7 +3850,7 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_tls *tls,
       }
     } else { /* not an entity -- just an ordinary list */
       if(tls && (!tls->have_method)) {
-        if(!jx_hash_peek(&tls->method, tls->builtins, *target))
+        if(!jx_hash_peek(&tls->method, jx_tls_builtins(tls), *target))
           tls->method = jx_ob_from_null();
         tls->have_method = JX_TRUE;
         status = JX_YES;
@@ -3762,7 +3882,7 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
 						     container, target);
           if(!JX_OK(status)) {
             if(tls && (!tls->have_method) && 
-               jx_hash_peek(&tls->method, tls->builtins, *target)) {
+               jx_hash_peek(&tls->method, jx_tls_builtins(tls), *target)) {
               //jx_jxon_dump(stdout,"container",*container);
               //jx_jxon_dump(stdout,"target",*target);
               if(jx_builtin_callable_check(tls->method)) {
@@ -3779,7 +3899,7 @@ JX_INLINE jx_status jx__resolve_container(jx_tls *tls, jx_ob *container,jx_ob *t
           if(!jx_hash_peek(container,*container,*target)) { 
 	    if((status == JX_NO) && jx_hash_peek(container, tls->node, *target)) {
 	      status = JX_YES; /* found symbol at the global level */
-	    } else if(jx_hash_peek(&tls->method, tls->builtins, *target)) {
+	    } else if(jx_hash_peek(&tls->method, jx_tls_builtins(tls), *target)) {
 	      /* found sybmol in builtin dictionary */
 	      
 	      //jx_jxon_dump(stdout,"container",*container);
