@@ -360,6 +360,11 @@ expr_stmt(A) ::= testlist(B) EQUALS testlist(C).
     /* lvalue transformation */
     jx_list_replace(A,0,jx_ob_from_ident("set"));
     jx_list_append(A,C);
+  } else if(jx_list_check(B)) {
+    A = jx_list_new();
+    jx_list_append(A,jx_ob_from_ident("map_set"));
+    jx_list_append(A,B);
+    jx_list_append(A,C);
   } else {
     A = jx_list_new();
     jx_list_append(A,jx_ob_from_ident("set"));
@@ -385,7 +390,7 @@ print_stmt(A) ::= PRINT.
 #endif
 }
 
-print_stmt(A) ::= PRINT test(B).
+print_stmt(A) ::= PRINT testlist(B).
 {  
    A = jx_list_new();
    jx_list_append(A,jx_ob_from_ident("print"));
@@ -394,7 +399,7 @@ print_stmt(A) ::= PRINT test(B).
   printf("print_stmt(A) ::= PRINT test(B).\n");
 #endif
 }
-
+/*
 print_stmt(A) ::= print_stmt(B) COMMA test(C).
 {  
    A=B;
@@ -403,7 +408,7 @@ print_stmt(A) ::= print_stmt(B) COMMA test(C).
   printf("print_stmt(A) ::= print_stmt(B) COMMA test(C).\n");
 #endif
 }
-
+*/
 
 /* compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated */
 
@@ -915,11 +920,63 @@ factor(A) ::= TILDE factor(B).
 
 /* testlist_gexp: test ( gen_for | (',' test)* [','] ) */
 
+testlist_gexp_2(A) ::= testlist_gexp_2(B) COMMA test(C).
+{
+  A = B;
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_gexp_2(A) ::= test(B) COMMA test(C).\n"); 
+#endif
+}
+
+testlist_gexp_2(A) ::= test(B) COMMA test(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+  jx_list_append(A,C);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_gexp_2(A) ::= test(B) COMMA test(C).\n"); 
+#endif
+}
+
+testlist_gexp_3(A) ::= test(B) COMMA.
+{
+  A = jx_list_new();
+  jx_list_append(A,B);
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_gexp_2(A) ::= test(B) COMMA.\n"); 
+#endif
+}
+
 testlist_gexp(A) ::= test(B).
 {
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("testlist(A) ::= test(B).\n"); 
+  printf("testlist_gexp(A) ::= testlist_gexp_2(B).\n"); 
+#endif
+}
+
+testlist_gexp(A) ::= testlist_gexp_2(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_gexp(A) ::= testlist_gexp_2(B).\n"); 
+#endif
+}
+
+testlist_gexp(A) ::= testlist_gexp_2(B) COMMA.
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_gexp(A) ::= testlist_gexp_2(B).\n"); 
+#endif
+}
+
+testlist_gexp(A) ::= testlist_gexp_3(B).
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist_gexp(A) ::= testlist_gexp_3(B).\n"); 
 #endif
 }
 
@@ -1006,12 +1063,28 @@ atom(A) ::= OPEN_PAR testlist_gexp(B) CLOSE_PAR.
 #endif
 }
 
+atom(A) ::= OPEN_PAR COMMA CLOSE_PAR.
+{ 
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom(A) ::= OPEN_PAR COMMA CLOSE_PAR.\n");
+#endif
+}
+
 
 atom(A) ::= OPEN_RECT_BRACE CLOSE_RECT_BRACE.
 { 
   A = jx_list_new();
 #ifdef JX_JXON_PARSER_DEBUG
   printf(".\n"); 
+#endif
+}
+
+atom(A) ::= OPEN_RECT_BRACE COMMA CLOSE_RECT_BRACE.
+{ 
+  A = jx_list_new();
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("atom(A) ::= OPEN_RECT_BRACE COMMA CLOSE_RECT_BRACE.\n"); 
 #endif
 }
 
@@ -1366,7 +1439,7 @@ testlist_3(A) ::= test(B) COMMA.
   A = jx_list_new();
   jx_list_append(A,B);
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("testlist_3(A) ::= test(B) COMMA.\n"); 
+  printf("testlist_3(A) ::= test(B) COMMA test(C).\n"); 
 #endif
 }
 
@@ -1386,13 +1459,23 @@ testlist(A) ::= testlist_2(B).
 #endif
 }
 
+testlist(A) ::= testlist_2(B) COMMA.
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("testlist(A) ::= testlist_2(B).\n"); 
+#endif
+}
+
 testlist(A) ::= testlist_3(B).
 {
   A = B;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("testlist(A) ::= testlist_3(B).\n"); 
+  printf("testlist(A) ::= testlist_2(B).\n"); 
 #endif
 }
+
+
 
 /* exprlist: expr (',' expr)* [','] */
 
@@ -1441,6 +1524,14 @@ exprlist(A) ::= exprlist_2(B).
 #endif
 }
 
+exprlist(A) ::= exprlist_2(B) COMMA.
+{
+  A = B;
+#ifdef JX_JXON_PARSER_DEBUG
+  printf("exprlist(A) ::= exprlist_2(B).\n"); 
+#endif
+}
+
 exprlist(A) ::= exprlist_3(B).
 {
   A = B;
@@ -1449,21 +1540,3 @@ exprlist(A) ::= exprlist_3(B).
 #endif
 }
 
-/* testlist1: test (',' test)* */
-/*
-testlist1(A) ::= test(B).
-{
-  A = B;
-#ifdef JX_JXON_PARSER_DEBUG
-  printf("testlist(A) ::= test(B).\n"); 
-#endif
-}
-
-testlist1(A) ::= testlist_2(B).
-{
-  A = B;
-#ifdef JX_JXON_PARSER_DEBUG
-  printf("testlist(A) ::= testlist_2(B).\n"); 
-#endif
-}
-*/

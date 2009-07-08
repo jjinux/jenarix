@@ -1,14 +1,42 @@
 # unit02.jxp -- basic Python unit tests (no threads)
+# simple assignment
 # parsed: (set a 1)
 # source: (set a 1)
 #   eval: (`set a 1)
 null;
 
-# parsed: (print a)
-# source: (print a)
-#   eval: ( #native_fn`print (`resolve a))
-1
+# multiple assignment
+# parsed: (map_set (a b)
+#           [2, 1])
+# source: (map_set (a b)
+#           [2, 1])
+#   eval: (`map_set (a b)
+#           [2, 1])
 null;
+
+# parsed: (assert [2, 1]
+#           (a b))
+# source: (assert [2, 1]
+#           (a b))
+#   eval: (`assert [2, 1]
+#           [ (`resolve a), (`resolve b)])
+true;
+
+# parsed: (map_set (a b)
+#           (b a))
+# source: (map_set (a b)
+#           (b a))
+#   eval: (`map_set (a b)
+#           [ (`resolve b), (`resolve a)])
+null;
+
+# parsed: (assert [1, 2]
+#           (a b))
+# source: (assert [1, 2]
+#           (a b))
+#   eval: (`assert [1, 2]
+#           [ (`resolve a), (`resolve b)])
+true;
 
 # we have literals 
 # parsed: (set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
@@ -16,12 +44,13 @@ null;
 #   eval: (`set b {3:"some value", 8.4:0, "another key":"another value", "some key": [1, 2, 3]})
 null;
 
-###print b, len(b)
-# parsed: (print (len b))
-# source: (print (size b))
-#   eval: ( #native_fn`print (`size (`resolve b)))
-4
-null;
+# parsed: (assert 4
+#           (len b))
+# source: (assert 4
+#           (size b))
+#   eval: (`assert 4
+#           (`size (`resolve b)))
+true;
 
 # REMEMBER, Jenarix uses copy semantics, not reference-taking semantics, so
 # parsed: (set d {"some key":"value"})
@@ -29,21 +58,22 @@ null;
 #   eval: (`set d {"some key":"value"})
 null;
 
+# NOTE: the following is a deep copy, not a reference copy!
 # parsed: (set c d)
 # source: (set c d)
 #   eval: (`set c
 #           (`resolve d))
 null;
 
-# parsed: (set (c "another key") "value")
-# source: (set (c "another key") "value")
-#   eval: (`set (c "another key") "value")
+# parsed: (set (c "another key") "another_value")
+# source: (set (c "another key") "another_value")
+#   eval: (`set (c "another key") "another_value")
 null;
 
 # parsed: (print c)
 # source: (print c)
 #   eval: ( #native_fn`print (`resolve c))
-{"some key":"value","another key":"value"}
+{"some key":"value","another key":"another_value"}
 null;
 
 # parsed: (print d)
@@ -52,7 +82,6 @@ null;
 {"some key":"value"}
 null;
 
-# is NOT how Python works, but it is how JXON works.
 # we have print
 # parsed: (print "hello Python world!!! Can you hear me?")
 # source: (print "hello Python world!!! Can you hear me?")
@@ -61,7 +90,7 @@ hello Python world!!! Can you hear me?
 null;
 
 # we have for loops (simple iterator)
-# we have while loops
+# including multi-variable
 # parsed: (foreach b
 #           (range 3 8)
 #           [ (print b)])
@@ -76,6 +105,23 @@ null;
 5
 6
 7
+null;
+
+# we have while loops
+# parsed: (foreach (a b)
+#           (nop [1, 2]
+#             [3, 4])
+#           [ (print (a b))])
+# source: (foreach (a b)
+#           (nop [1, 2]
+#             [3, 4])
+#           [ (print (a b))])
+#   eval: (`foreach (a b)
+#           (`nop [1, 2]
+#             [3, 4])
+#           [ ( #native_fn`print [ (`resolve a), (`resolve b)])])
+[1,2]
+[3,4]
 null;
 
 # parsed: (set x 1)
@@ -137,31 +183,30 @@ null;
 
 # parsed: (def fn
 #           (a b)
-#           [ (print "The sum of" a "and" b "is"
-#               (add a b))])
+#           [ (print ["The sum of",a,"and",b,"is",
+#                 (add a b)])])
 # source: (def fn
 #           (a b)
-#           [ (print "The sum of" a "and" b "is"
-#               (add a b))])
+#           [ (print ["The sum of",a,"and",b,"is",
+#                 (add a b)])])
 #   eval: (`def fn
 #           (a b)
-#           [ ( #native_fn`print "The sum of"
-#               (`resolve a) "and"
-#               (`resolve b) "is"
-#               (`add (`resolve a)
-#                 (`resolve b)))])
+#           [ ( #native_fn`print ["The sum of", (`resolve a),"and",
+#                 (`resolve b),"is",
+#                 (`add (`resolve a)
+#                   (`resolve b))])])
 null;
 
 # parsed: (fn 1 2)
 # source: (fn 1 2)
 #   eval: [ (`resolve fn),1,2]
-The sum of 1 and 2 is 3
+["The sum of",1,"and",2,"is",3]
 null;
 
 # parsed: (fn 3 6)
 # source: (fn 3 6)
 #   eval: [ (`resolve fn),3,6]
-The sum of 3 and 6 is 9
+["The sum of",3,"and",6,"is",9]
 null;
 
 # we have map / lambda
@@ -206,9 +251,7 @@ null;
 #                   (sub b 1)),
 #                 (while c
 #                   [ (set c
-#                       (sub c 1)), (print a b c)]),
-#                 (while c
-#                   [ []]),
+#                       (sub c 1)), (print (a b c))]),null,
 #                 (set a 0)]),
 #             (print b),
 #             (if 1
@@ -221,9 +264,7 @@ null;
 #                   (sub b 1)),
 #                 (while c
 #                   [ (set c
-#                       (sub c 1)), (print a b c)]),
-#                 (while c
-#                   [ []]),
+#                       (sub c 1)), (print (a b c))]),null,
 #                 (set a 0)]),
 #             (print b),
 #             (if 1
@@ -238,25 +279,22 @@ null;
 #                   (`sub (`resolve b) 1)),
 #                 (`while (`resolve c)
 #                   [ (`set c
-#                       (`sub (`resolve c) 1)), ( #native_fn`print (`resolve a)
-#                       (`resolve b)
-#                       (`resolve c))]),
-#                 (`while (`resolve c)
-#                   [ []]),
+#                       (`sub (`resolve c) 1)), ( #native_fn`print [ (`resolve a), (`resolve b),
+#                         (`resolve c)])]),null,
 #                 (`set a 0)]),
 #             ( #native_fn`print (`resolve b)),
 #             (`if 1
 #               [true])])
-4 3 3
-4 3 2
-4 3 1
-4 3 0
-0 2 2
-0 2 1
-0 2 0
-0 1 1
-0 1 0
-0 0 0
+[4,3,3]
+[4,3,2]
+[4,3,1]
+[4,3,0]
+[0,2,2]
+[0,2,1]
+[0,2,0]
+[0,1,1]
+[0,1,0]
+[0,0,0]
 0
 true;
 
@@ -283,31 +321,30 @@ null;
 #               [5, 6]
 #               [ (foreach c
 #                   [7, 6]
-#                   [ (print a b c)])])])
+#                   [ (print (a b c))])])])
 # source: (foreach a
 #           [1, 2]
 #           [ (foreach b
 #               [5, 6]
 #               [ (foreach c
 #                   [7, 6]
-#                   [ (print a b c)])])])
+#                   [ (print (a b c))])])])
 #   eval: (`foreach a
 #           [1, 2]
 #           [ (`foreach b
 #               [5, 6]
 #               [ (`foreach c
 #                   [7, 6]
-#                   [ ( #native_fn`print (`resolve a)
-#                       (`resolve b)
-#                       (`resolve c))])])])
-1 5 7
-1 5 6
-1 6 7
-1 6 6
-2 5 7
-2 5 6
-2 6 7
-2 6 6
+#                   [ ( #native_fn`print [ (`resolve a), (`resolve b),
+#                         (`resolve c)])])])])
+[1,5,7]
+[1,5,6]
+[1,6,7]
+[1,6,6]
+[2,5,7]
+[2,5,6]
+[2,6,7]
+[2,6,6]
 null;
 
 # parsed: (set a 0)
@@ -421,18 +458,16 @@ null;
 #           (`new (`resolve Base)))
 null;
 
-# parsed: (print a b)
-# source: (print a b)
-#   eval: ( #native_fn`print (`resolve a)
-#           (`resolve b))
-[$Base,[1,2,3]] [$Base,[1,2,3]]
+# parsed: (print (a b))
+# source: (print (a b))
+#   eval: ( #native_fn`print [ (`resolve a), (`resolve b)])
+[[$Base,[1,2,3]],[$Base,[1,2,3]]]
 null;
 
-# parsed: (print a.x b.x)
-# source: (print a.x b.x)
-#   eval: ( #native_fn`print (`resolve (a x))
-#           (`resolve (b x)))
-X X
+# parsed: (print (a.x b.x))
+# source: (print (a.x b.x))
+#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (b x))])
+["X","X"]
 null;
 
 # setting attributes can be done through simple assignment
@@ -441,18 +476,16 @@ null;
 #   eval: (`set (a x) 2)
 null;
 
-# parsed: (print a.x b.x)
-# source: (print a.x b.x)
-#   eval: ( #native_fn`print (`resolve (a x))
-#           (`resolve (b x)))
-2 X
+# parsed: (print (a.x b.x))
+# source: (print (a.x b.x))
+#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (b x))])
+[2,"X"]
 null;
 
-# parsed: (print a b)
-# source: (print a b)
-#   eval: ( #native_fn`print (`resolve a)
-#           (`resolve b))
-[$Base,[1,2,3],{x:2}] [$Base,[1,2,3]]
+# parsed: (print (a b))
+# source: (print (a b))
+#   eval: ( #native_fn`print [ (`resolve a), (`resolve b)])
+[[$Base,[1,2,3],{x:2}],[$Base,[1,2,3]]]
 null;
 
 # instance content is accessed via the zero-length symbol (trailing dot)
@@ -541,12 +574,11 @@ true;
 #           (`new (`resolve Deriv)))
 null;
 
-# parsed: (print a.x a.y a.z)
-# source: (print a.x a.y a.z)
-#   eval: ( #native_fn`print (`resolve (a x))
-#           (`resolve (a y))
-#           (`resolve (a z)))
-XX Y Z
+# parsed: (print (a.x a.y a.z))
+# source: (print (a.x a.y a.z))
+#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (a y)),
+#             (`resolve (a z))])
+["XX","Y","Z"]
 null;
 
 # parsed: (set a.z "ZZZ")
@@ -554,12 +586,11 @@ null;
 #   eval: (`set (a z) "ZZZ")
 null;
 
-# parsed: (print a.x a.y a.z)
-# source: (print a.x a.y a.z)
-#   eval: ( #native_fn`print (`resolve (a x))
-#           (`resolve (a y))
-#           (`resolve (a z)))
-XX Y ZZZ
+# parsed: (print (a.x a.y a.z))
+# source: (print (a.x a.y a.z))
+#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (a y)),
+#             (`resolve (a z))])
+["XX","Y","ZZZ"]
 null;
 
 # parsed: (assert "ZZZ" a.z)
@@ -582,11 +613,10 @@ null;
 #   eval: [ (`resolve (a . append)),3]
 null;
 
-# parsed: (print a. b.)
-# source: (print a. b.)
-#   eval: ( #native_fn`print (`resolve (a .))
-#           (`resolve (b .)))
-[3,4,5,3] [3,4,5]
+# parsed: (print (a. b.))
+# source: (print (a. b.))
+#   eval: ( #native_fn`print [ (`resolve (a .)), (`resolve (b .))])
+[[3,4,5,3],[3,4,5]]
 null;
 
 # entity definitions with methods 

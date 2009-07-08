@@ -131,6 +131,21 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_tls *tls, jx_ob container, jx
   return status;
 }
 
+JX_INLINE jx_ob jx_safe_map_set(jx_tls *tls, jx_ob payload)
+{
+  jx_ob container = jx_tls_scope_borrow(tls);
+  jx_ob path_list = jx_list_borrow(payload,0);
+  jx_ob value_list = jx_list_borrow(payload,1);
+  jx_int i,size = jx_list_size(path_list);
+  jx_status status = JX_SUCCESS;
+  for(i=0;i<size;i++) {
+    status = jx_set_from_path_with_value(tls, container, 
+					 jx_list_borrow(path_list,i), 
+					 jx_list_swap_with_null(value_list,i));
+  }
+  return jx_ob_from_status(status);
+}
+
 JX_INLINE jx_ob jx_safe_set(jx_tls *tls, jx_ob payload)
 {
   jx_ob container = jx_tls_scope_borrow(tls);

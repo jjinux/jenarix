@@ -386,6 +386,7 @@ jx_ob jx_tls_ob_from_str(jx_tls *tls, jx_char * str);
 jx_ob jx_tls_ob_from_str_with_len(jx_tls *tls, jx_char * str, jx_int len);
 
 jx_ob jx__tls_ob_gc_copy(jx_tls *tls, jx_ob ob);
+
 JX_INLINE jx_ob jx_tls_ob_copy(jx_tls *tls, jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_GC) ?
@@ -2844,6 +2845,7 @@ JX_INLINE jx_status jx_os_process_init(int argc, char* argv[])
 
 #define JX_EVAL_ALLOW_NESTED_WEAK_REFS  0x01
 #define JX_EVAL_DEFER_INVOCATION        0x02
+#define JX_EVAL_RESUME_INVOCATION       0x40
 
 #define JX_EVAL_DEBUG_DUMP_SUBEX        0x04
 #define JX_EVAL_DEBUG_TRACE             0x08
@@ -3197,12 +3199,13 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob macro, jx_ob payload)
     jx_function *fn = macro.data.io.function;
     jx_ob args = fn->args;
     jx_ob node = tls->node;
-    if(jx_null_check(args)) { /* inner functions run within the host node namespace */
+    if(jx_null_check(args)) { /* scopeless functions run within the caller's namespace */
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob saved_payload = jx_ob_from_null();
       jx_bool saved = jx_hash_take(&saved_payload,node,payload_ident);
       if(jx_ok( jx_hash_set(node,payload_ident,payload))) {
-        jx_ob ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, fn->body);
+        jx_ob ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION | 
+				    JX_EVAL_ALLOW_NESTED_WEAK_REFS, fn->body);
         if(saved) 
           jx_hash_set(node, payload_ident, saved_payload);
         else
@@ -3233,7 +3236,8 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob macro, jx_ob payload)
       if(jx_ok( jx_hash_set(invoke_scope,payload_ident,payload))) {
         jx_ob ob;
 	jx_tls_scope_push(tls, invoke_scope);
-        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, fn->body);
+        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION | 
+				    JX_EVAL_ALLOW_NESTED_WEAK_REFS, fn->body);
 	invoke_scope = jx_tls_scope_pop(tls);
         jx_tls_ob_free(tls, payload);
         jx_tls_ob_free(tls, invoke_scope);
@@ -3304,7 +3308,8 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob macro, jx_ob payload)
       {
         jx_ob ob;
 	jx_tls_scope_push(tls, invoke_scope);
-        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, fn->body);
+        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION | 
+				    JX_EVAL_ALLOW_NESTED_WEAK_REFS, fn->body);
 	invoke_scope = jx_tls_scope_pop(tls);
         //        jx_jxon_dump(stdout,"node",node);
 	//       jx_jxon_dump(stdout,"ob",ob);
@@ -3322,7 +3327,8 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob macro, jx_ob payload)
       {
         jx_ob ob;
 	jx_tls_scope_push(tls,invoke_scope);
-        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION, fn->body);
+        ob = jx_tls_code_eval(tls, JX_EVAL_DEFER_INVOCATION | 
+				    JX_EVAL_ALLOW_NESTED_WEAK_REFS, fn->body);
 	invoke_scope = jx_tls_scope_pop(tls);
         jx_tls_ob_free(tls,macro);
         result = jx_tls_code_eval(tls, 0, ob);

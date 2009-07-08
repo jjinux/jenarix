@@ -70,6 +70,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_PARAMAP   29
 #define JX_SELECTOR_PASS      30
 #define JX_SELECTOR_BIND      31
+#define JX_SELECTOR_PARASET   32
+#define JX_SELECTOR_PAREVAL   33
 
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
@@ -100,6 +102,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_FILL        50
 #define JX_SELECTOR_RANGE       61
 #define JX_SELECTOR_NOP         51
+
+#define JX_SELECTOR_MAP_SET     60
 
 /* our six primary container methods: set, get, has, take, del */
 

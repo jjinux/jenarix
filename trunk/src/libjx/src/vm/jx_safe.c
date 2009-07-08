@@ -54,6 +54,8 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
 
   ok = jx_declare(ok,names,"nop", JX_SELECTOR_NOP);
   ok = jx_declare(ok,names,"entity", JX_SELECTOR_ENTITY);
+  ok = jx_declare(ok,names,"map_set", JX_SELECTOR_MAP_SET);
+
   ok = jx_declare(ok,names,"set", JX_SELECTOR_SET);
   ok = jx_declare(ok,names,"get", JX_SELECTOR_GET);
   //  ok = jx_declare(ok,names,"borrow", JX_SELECTOR_BORROW);

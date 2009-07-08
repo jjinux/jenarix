@@ -1,31 +1,39 @@
 
 # unit02.jxp -- basic Python unit tests (no threads)
 
+# simple assignment
+
 a = 1
 
-print a
+# multiple assignment
+
+(a,b) = (2,1)
+
+assert( (2,1), (a,b) )
+
+(a,b) = (b,a)
+
+assert( (1,2), (a,b) )
 
 # we have literals 
 
 b = {"some key":[1,2,3], 3:"some value", "another key":"another value",8.4:0}
 
-###print b, len(b)
-
-print len(b)
+assert( 4, len(b))
 
 # REMEMBER, Jenarix uses copy semantics, not reference-taking semantics, so
 
 d = {"some key":"value"}
 
+# NOTE: the following is a deep copy, not a reference copy!
+
 c = d
 
-c["another key"] ="value"
+c["another key"] ="another_value"
 
 print c
 
 print d
-
-# is NOT how Python works, but it is how JXON works.
 
 # we have print
 
@@ -35,6 +43,11 @@ print "hello Python world!!!" " Can you hear me?"
 
 for b in range(3,8):
     print b
+
+# including multi-variable
+
+for (a,b) in [[1,2], [3,4]]:
+    print a,b
 
 # we have while loops
 
