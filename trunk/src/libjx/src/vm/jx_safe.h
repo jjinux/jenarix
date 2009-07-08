@@ -353,17 +353,21 @@ JX_INLINE jx_ob jx_safe_synchronized(jx_tls *tls, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_share(jx_tls *tls, jx_ob payload)
 {
+  jx_ob target = jx_list_borrow(payload,0);
   jx_ob flag = jx_list_borrow(payload,1);
+  if(jx_null_check(target)) target = jx_tls_scope_borrow(tls);
   if(jx_null_check(flag)) flag = jx_ob_from_bool(JX_TRUE);
   return jx_ob_from_status
-    (jx_ob_set_shared(jx_list_borrow(payload,0),
-                       jx_ob_as_bool(flag)));
+    (jx_ob_set_shared(target,
+		      jx_ob_as_bool(flag)));
 }
 
 JX_INLINE jx_ob jx_safe_shared(jx_tls *tls, jx_ob payload)
 {
-  return jx_ob_from_bool
-    (jx_ob_shared(jx_list_borrow(payload,0)));
+  jx_ob target = jx_list_borrow(payload,0);
+  if(jx_null_check(target)) target = jx_tls_scope_borrow(tls);
+ return jx_ob_from_bool
+    (jx_ob_shared(target));
 }
 
 JX_INLINE jx_ob jx_safe_fill(jx_tls *tls, jx_ob payload)

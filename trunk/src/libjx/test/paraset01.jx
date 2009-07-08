@@ -1,0 +1,16 @@
+# experimental paraset command
+
+(def delay [id,x] (
+  (set sum 0) 
+  (while (decr x) (incr sum (idiv x 10000)))
+  (id,sum)));
+
+(paraset (a b c) [(delay 1 2100000) (delay 2 2200000) (delay 3 2300000)])
+
+(output [a,b,c])
+
+
+
+
+
+

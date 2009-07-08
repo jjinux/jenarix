@@ -943,6 +943,9 @@ static void *thread_eval(void *id_ptr)
 JX_INLINE jx_ob jx__code_pareval(jx_tls *tls, jx_int flags, jx_ob src_list) 
 {
   jx_ob result = jx_ob_from_null();
+  if(jx_ob_identical(jx_list_borrow(src_list,0),
+		     jx_builtin_new_from_selector(JX_SELECTOR_NOP)))
+    jx_tls_list_delete(tls, src_list,0);
   jx_int size = jx_list_size(src_list);
   if(size) {
     result = jx_tls_list_new_with_size(tls, size);

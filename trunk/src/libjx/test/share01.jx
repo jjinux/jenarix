@@ -1,0 +1,30 @@
+
+# demonstrates how a large object can be shared (read only) across a number of threads 
+
+# create 400+ MB array
+
+(set large_ob (range 100000000))
+
+(output (size large_ob))
+
+(share large_ob)
+
+(output (pareval [(size large_ob), 
+	(size large_ob),
+	(size large_ob),
+	(size large_ob),
+	(size large_ob),
+	(size large_ob)]))
+
+(share large_ob false);
+
+(synchronize large_ob);
+
+(output (pareval [(size large_ob), 
+	(size large_ob),
+	(size large_ob),
+	(size large_ob),
+	(size large_ob),
+	(size large_ob)]))
+
+(synchronize large_ob false);

@@ -4943,6 +4943,9 @@ static jx_status jx__builtin_gc_set_shared(jx_ob ob,jx_bool shared)
   /* on entry, we know object is GC'd, so only GC'd objects needed here */
   ob.data.io.gc->shared = shared;
   switch(ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
+  case JX_META_BIT_BUILTIN_ENTITY:
+    ob.data.io.gc->shared = shared;
+    break;
   case JX_META_BIT_BUILTIN_FUNCTION:
   case JX_META_BIT_BUILTIN_MACRO:
     {
@@ -4964,7 +4967,7 @@ jx_status jx__ob_gc_set_shared(jx_ob ob, jx_bool shared)
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
   case JX_META_BIT_IDENT:
-    ob.data.io.gc->shared = JX_TRUE;
+    ob.data.io.gc->shared = shared;
     return JX_SUCCESS;
     break;
   case JX_META_BIT_LIST:

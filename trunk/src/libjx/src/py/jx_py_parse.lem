@@ -390,7 +390,7 @@ print_stmt(A) ::= PRINT.
 #endif
 }
 
-print_stmt(A) ::= PRINT testlist(B).
+print_stmt(A) ::= PRINT test(B).
 {  
    A = jx_list_new();
    jx_list_append(A,jx_ob_from_ident("print"));
