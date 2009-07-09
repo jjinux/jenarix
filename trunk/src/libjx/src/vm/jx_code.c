@@ -1,4 +1,5 @@
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -750,7 +751,7 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payl
       case JX_SELECTOR_NULL_OP:
         jx_tls_ob_replace_with_null(tls, &payload);
         break;
-      default:  /* unrecognized selector? purge weak */
+      default:                 /* unrecognized selector? purge weak */
         jx_tls_ob_free(tls, callable);
         jx_tls_ob_replace_with_null(tls, &payload);
         break;
@@ -1163,20 +1164,20 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls * tls, jx_int flags, jx_ob callable, jx_ob 
   }
 }
 
-JX_INLINE jx_ob jx__code_curry_method(jx_tls *tls, jx_ob instance, jx_ob method)
+JX_INLINE jx_ob jx__code_curry_method(jx_tls * tls, jx_ob instance, jx_ob method)
 {
   if(jx_null_check(method)) {
     return jx_ob_from_null();
   } else {
     jx_ob names = jx_tls_hash_new(tls);
     jx_ob code = jx_tls_list_new(tls);
-    
+
     jx_tls_hash_set(tls, names, jx_ob_from_ident("self"), jx_tls_ob_copy(tls, instance));
     jx_tls_hash_set(tls, names, jx_ob_from_ident("func"), jx_tls_ob_copy(tls, method));
-    
+
     {
       jx_ob unshift = jx_tls_list_new(tls);
-      jx_tls_list_append(tls,unshift, jx_builtin_new_from_selector(JX_SELECTOR_UNSHIFT));
+      jx_tls_list_append(tls, unshift, jx_builtin_new_from_selector(JX_SELECTOR_UNSHIFT));
       {
         jx_ob tmp1 = jx_tls_list_new(tls);
         jx_tls_list_append(tls, tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
@@ -1189,12 +1190,12 @@ JX_INLINE jx_ob jx__code_curry_method(jx_tls *tls, jx_ob instance, jx_ob method)
         jx_tls_list_append(tls, tmp1, jx_ob_from_ident("self"));
         jx_tls_list_append(tls, unshift, tmp1);
       }
-      jx_tls_list_append(tls,code,unshift);
+      jx_tls_list_append(tls, code, unshift);
     }
     {
       jx_ob apply = jx_tls_list_new(tls);
-      
-      jx_tls_list_append(tls,apply, jx_builtin_new_from_selector(JX_SELECTOR_APPLY));
+
+      jx_tls_list_append(tls, apply, jx_builtin_new_from_selector(JX_SELECTOR_APPLY));
       {
         jx_ob tmp1 = jx_tls_list_new(tls);
         jx_tls_list_append(tls, tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
@@ -1209,10 +1210,8 @@ JX_INLINE jx_ob jx__code_curry_method(jx_tls *tls, jx_ob instance, jx_ob method)
       }
       jx_tls_list_append(tls, code, apply);
     }
-    return jx_function_new_with_def( jx_ob_from_null(),
-                                     names,
-                                     code, 
-                                     JX_FUNCTION_MODE_EXEC);
+    return jx_function_new_with_def(jx_ob_from_null(),
+                                    names, code, JX_FUNCTION_MODE_EXEC);
   }
 }
 
@@ -1385,9 +1384,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
               {
                 jx_int new_flags =
                   flags_ | JX_EVAL_DEBUG_DUMP_SUBEX | JX_EVAL_DEBUG_TRACE;
-                jx_ob result =
-                  (size > 1) ? jx_tls_code_eval_to_weak(tls_, new_flags,
-                                                        expr_vla[1]) : jx_ob_from_null();
+                jx_ob result = (size > 1) ? jx_tls_code_eval_to_weak(tls_, new_flags,
+                                                                     expr_vla[1]) :
+                  jx_ob_from_null();
                 return result;
               }
               break;
@@ -1419,9 +1418,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
               break;
             case JX_SELECTOR_TEST:     /* [*test* expr expr expr] */
               {
-                jx_ob cond =
-                  (size > 1) ? jx_tls_code_eval_to_weak(tls_, flags_,
-                                                        expr_vla[1]) : jx_ob_from_null();
+                jx_ob cond = (size > 1) ? jx_tls_code_eval_to_weak(tls_, flags_,
+                                                                   expr_vla[1]) :
+                  jx_ob_from_null();
                 jx_bool cond_bool = jx_ob_as_bool(cond);
                 jx_tls_ob_free(tls_, cond);
                 if(cond_bool) {
@@ -1505,9 +1504,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                                                                     JX_EVAL_ALLOW_NESTED_WEAK_REFS,
                                                                     expr_vla[2]) :
                   jx_ob_from_null();
-                jx_ob payload =
-                  (size > 3) ? jx_tls_code_eval_to_weak(tls_, flags_,
-                                                        expr_vla[3]) : jx_ob_from_null();
+                jx_ob payload = (size > 3) ? jx_tls_code_eval_to_weak(tls_, flags_,
+                                                                      expr_vla[3]) :
+                  jx_ob_from_null();
                 //              jx_jxon_dump(stdout,"table",table);
                 jx_ob callable = jx_list_swap_with_null(table, jx_ob_as_int(index));
                 jx_ob result = jx_ob_from_null();
@@ -1604,9 +1603,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
               {
                 jx_ob expr =
                   (size > 1) ? jx_ob_take_weak_ref(expr_vla[1]) : jx_ob_from_null();
-                jx_ob list =
-                  (size > 2) ? jx_tls_code_eval_to_weak(tls_, flags_,
-                                                        expr_vla[2]) : jx_ob_from_null();
+                jx_ob list = (size > 2) ? jx_tls_code_eval_to_weak(tls_, flags_,
+                                                                   expr_vla[2]) :
+                  jx_ob_from_null();
                 jx_ob body = (size > 3) ? expr_vla[3] : jx_ob_from_null();
                 jx_ob result = jx_ob_from_null();
                 jx_list *inp_list = list.data.io.list;
@@ -1853,7 +1852,8 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                       jx__tls_code_eval_to_weak(tls_, flags_, *(expr_ob++));
                     if(tls_->have_method) {
                       jx_tls_ob_replace(tls_, result_ob - 1,
-                                        jx__code_curry_method(tls, result_ob[-1], tls->method));
+                                        jx__code_curry_method(tls, result_ob[-1],
+                                                              tls->method));
                       tls_->have_method = JX_FALSE;
                     }
                   } else {      /* not a container or we're processing a macro */

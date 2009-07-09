@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -105,7 +106,7 @@ static void *jx_trip_wire_check(void *ptr, char *file, int line)
     fprintf(stderr, "jx_trip_wire: %p is not an active block (%s:%d)\n", ptr, file, line);
   } else if(hdr->size != ftr->size) {
     fprintf(stderr, "jx_trip_wire: %p sizes do not match (0x%x != 0x%x) (%s:%d)\n",
-            ptr, (jx_uint)hdr->size, (jx_uint)ftr->size, file, line);
+            ptr, (jx_uint) hdr->size, (jx_uint) ftr->size, file, line);
   } else {
     size_t size = hdr->size;
     jx_char seed = ((((jx_char *) hdr) - (jx_char *) 0) >> 2) + size;
@@ -127,16 +128,14 @@ static void *jx_trip_wire_check(void *ptr, char *file, int line)
   return (void *) hdr;
 }
 
-
 void *jx__malloc(size_t size, char *file, int line)
 {
   void *result = malloc(size + sizeof(jx_mem_hdr) + sizeof(jx_mem_ftr));
   jx_mem_count_inc();
   if(JX_MEM_LOG_ALL)
-    fprintf(stderr, "jx_malloc: %p (%x) (%s:%d)\n", result, (jx_uint)size, file, line);
+    fprintf(stderr, "jx_malloc: %p (%x) (%s:%d)\n", result, (jx_uint) size, file, line);
   return jx_trip_wire_set(result, size);
 }
-
 
 void *jx__calloc(size_t count, size_t size, char *file, int line)
 {
@@ -144,8 +143,8 @@ void *jx__calloc(size_t count, size_t size, char *file, int line)
   void *result = jx_trip_wire_set(ptr, size);
   jx_mem_count_inc();
   if(JX_MEM_LOG_ALL)
-    fprintf(stderr, "jx_calloc: %p (%x,%x) (%s:%d)\n", result, (jx_uint)count, 
-	    (jx_uint)size, file, line);
+    fprintf(stderr, "jx_calloc: %p (%x,%x) (%s:%d)\n", result, (jx_uint) count,
+            (jx_uint) size, file, line);
   return result;
 }
 
@@ -156,11 +155,12 @@ void *jx__realloc(void *ptr, size_t size, char *file, int line)
   if(new_ptr) {
     void *result = jx_trip_wire_set(new_ptr, size);
     if(JX_MEM_LOG_ALL)
-      fprintf(stderr, "jx_realloc: %p -> %p (%x) (%s:%d)\n", ptr, result, (jx_uint)size, file,
-              line);
+      fprintf(stderr, "jx_realloc: %p -> %p (%x) (%s:%d)\n", ptr, result, (jx_uint) size,
+              file, line);
     return result;
   } else {
-    fprintf(stderr, "jx_realloc: failed %p (%x) (%s:%d)\n", ptr, (jx_uint)size, file, line);
+    fprintf(stderr, "jx_realloc: failed %p (%x) (%s:%d)\n", ptr, (jx_uint) size, file,
+            line);
     return NULL;
   }
 }

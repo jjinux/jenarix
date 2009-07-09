@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -64,10 +65,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 unsigned int randmask(unsigned int mask)
 {
-  return ((unsigned int)random()) & mask;
+  return ((unsigned int) random()) & mask;
 }
 
-void random_string(char *target,int mask)
+void random_string(char *target, int mask)
 {
   char *c = target;
   int len = randmask(mask);
@@ -82,7 +83,8 @@ jx_int random_int(void)
   return random();
 }
 
-jx_float random_float(void) 
+jx_float random_float(void)
+
 /* only return floats which are exact in both decimal and binary representations */
 {
   jx_float result;
@@ -90,25 +92,28 @@ jx_float random_float(void)
   jx_int negative = randmask(0x1);
   jx_int inverse = randmask(0x1);
   jx_int value = 1;
-  while(expo--) value = value * 2;
+  while(expo--)
+    value = value * 2;
   if(negative)
     value = -value;
   if(inverse)
-    result = 1.0/value;
+    result = 1.0 / value;
   else
     result = value;
   return result;
 }
 
 #if 1
+
 /* allow non-string primitives to be hash keys */
 #define random_key random_primitive
 #else
+
 /* only string primitives as hash keys */
 jx_ob random_key(void)
 {
-  char buffer[0xF+1];
-  random_string(buffer,0xF);
+  char buffer[0xF + 1];
+  random_string(buffer, 0xF);
   return jx_ob_from_str(buffer);
 }
 #endif
@@ -116,11 +121,11 @@ jx_ob random_key(void)
 jx_ob random_primitive(void)
 {
   jx_ob result = JX_OB_NULL;
-  switch(randmask(0x7)) {
-  case 0: 
+  switch (randmask(0x7)) {
+  case 0:
     result = jx_ob_from_null();
     break;
-  case 1: 
+  case 1:
     result = jx_ob_from_bool(1);
     break;
   case 2:
@@ -136,8 +141,8 @@ jx_ob random_primitive(void)
     break;
   case 7:
     {
-      char buffer[0xF+1];
-      random_string(buffer,0xF);
+      char buffer[0xF + 1];
+      random_string(buffer, 0xF);
       result = jx_ob_from_str(buffer);
     }
     break;
@@ -160,7 +165,7 @@ jx_ob random_container(void)
 #define MAX_DEPTH 12
 jx_ob random_tree(int count)
 {
-  jx_ob stack[MAX_DEPTH+1];
+  jx_ob stack[MAX_DEPTH + 1];
   int depth = 0;
   if(randmask(0x1)) {
     stack[depth] = jx_list_new();
@@ -168,34 +173,34 @@ jx_ob random_tree(int count)
     stack[depth] = jx_hash_new();
   }
   while(count) {
-    switch(randmask(0x3)) {
-    case 0: /* exit */
+    switch (randmask(0x3)) {
+    case 0:                    /* exit */
       if(depth) {
         depth--;
       }
       break;
-    case 1: /* nest */
-      if(depth<MAX_DEPTH) {
+    case 1:                    /* nest */
+      if(depth < MAX_DEPTH) {
         if(jx_list_check(stack[depth])) {
-          stack[depth+1] = random_container();
-          jx_list_append(stack[depth],stack[depth+1]);
+          stack[depth + 1] = random_container();
+          jx_list_append(stack[depth], stack[depth + 1]);
           depth++;
         } else if(jx_hash_check(stack[depth])) {
           jx_ob key = random_key();
-          stack[depth+1] = random_container();
-          jx_hash_set(stack[depth], key, stack[depth+1]);
+          stack[depth + 1] = random_container();
+          jx_hash_set(stack[depth], key, stack[depth + 1]);
           depth++;
         }
       }
       break;
-    default: /* extend */
+    default:                   /* extend */
       {
         jx_ob value = random_primitive();
         if(jx_list_check(stack[depth])) {
           jx_list_append(stack[depth], value);
         } else {
           jx_ob key = random_key();
-          jx_hash_set(stack[depth], key,value);
+          jx_hash_set(stack[depth], key, value);
         }
         count--;
       }
@@ -205,11 +210,12 @@ jx_ob random_tree(int count)
   return stack[0];
 }
 
-jx_int strsum(jx_char *c)
+jx_int strsum(jx_char * c)
 {
   jx_int result = 0;
   jx_char ch;
-  while( (ch=*(c++)) ) result += ch;
+  while((ch = *(c++)))
+    result += ch;
   return result;
 }
 
@@ -219,41 +225,41 @@ int main(int argc, char **argv)
 {
   int complexity = 0;
   while(1) {
-    jx_ob ob1 = random_tree( complexity );
-    jx_ob jxon1 = jx_ob_to_jxon(ob1); 
+    jx_ob ob1 = random_tree(complexity);
+    jx_ob jxon1 = jx_ob_to_jxon(ob1);
     int len1 = strlen(jx_ob_as_str(&jxon1));
     int sum1 = strsum(jx_ob_as_str(&jxon1));
 
     jx_ob ob2 = jx_ob_from_jxon_str(jx_ob_as_str(&jxon1));
-    jx_ob jxon2 = jx_ob_to_jxon(ob2); 
+    jx_ob jxon2 = jx_ob_to_jxon(ob2);
     int len2 = strlen(jx_ob_as_str(&jxon2));
     int sum2 = strsum(jx_ob_as_str(&jxon2));
 
     //    printf("# %s\n# %s\n",jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
     //    jx_ob_dump(stderr,"ob2",ob2);
-    printf("# complexity = %d, JXON string length = %d\n",complexity, len1);
-    P2("%d == %d",len1,len2);
-    if(len1!=len2) {
-      jx_jxon_dump(stdout,"1", jxon1);
-      jx_jxon_dump(stdout,"2", jxon2);
+    printf("# complexity = %d, JXON string length = %d\n", complexity, len1);
+    P2("%d == %d", len1, len2);
+    if(len1 != len2) {
+      jx_jxon_dump(stdout, "1", jxon1);
+      jx_jxon_dump(stdout, "2", jxon2);
       exit(1);
     }
-    P2("%d == %d",sum1,sum2);
-    P1("1 == %d",jx_ob_equal(ob1,ob2));
+    P2("%d == %d", sum1, sum2);
+    P1("1 == %d", jx_ob_equal(ob1, ob2));
 
-    if(complexity<100) {
+    if(complexity < 100) {
       complexity++;
     } else {
       complexity += complexity;
     }
 
 #if 0
-    if(complexity>STOP_AFTER) {
-      FILE *f = fopen("input.jxon","wb");
-      fprintf(f,"%s\n",jx_ob_as_str(&jxon1));
+    if(complexity > STOP_AFTER) {
+      FILE *f = fopen("input.jxon", "wb");
+      fprintf(f, "%s\n", jx_ob_as_str(&jxon1));
       fclose(f);
-      f = fopen("output.jxon","wb");
-      fprintf(f,"%s\n",jx_ob_as_str(&jxon2));
+      f = fopen("output.jxon", "wb");
+      fprintf(f, "%s\n", jx_ob_as_str(&jxon2));
       fclose(f);
     }
 #endif
@@ -263,8 +269,8 @@ int main(int argc, char **argv)
     jx_ob_free(ob1);
     jx_ob_free(ob2);
 
-    if(complexity>STOP_AFTER)
+    if(complexity > STOP_AFTER)
       break;
   }
-  
+
 }

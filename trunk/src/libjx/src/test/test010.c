@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -38,7 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 jx_ob my_fn(jx_ob node, jx_ob payload)
 {
-  printf("# my_fn called with value %d\n",(int)jx_ob_as_int(jx_list_borrow(payload,1)));
+  printf("# my_fn called with value %d\n",
+         (int) jx_ob_as_int(jx_list_borrow(payload, 1)));
   jx_ob_free(payload);
   return jx_ob_from_str("this is the result of the call");
 }
@@ -52,10 +54,10 @@ int main(int argc, char **argv)
     jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
     jx_ob builtins = jx_hash_new();
 
-    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d", jx_hash_set(builtins, jx_ob_from_ident("my_fn"), builtin));
     {
       jx_ob jxon = jx_ob_to_jxon(builtins);
-      printf("# %s\n",jx_ob_as_str(&jxon));
+      printf("# %s\n", jx_ob_as_str(&jxon));
       jx_ob_free(jxon);
     }
     {
@@ -63,22 +65,22 @@ int main(int argc, char **argv)
       jx_ob code = jx_code_bind_with_source(builtins, source);
       {
         jx_ob jxon = jx_ob_to_jxon(code);
-        printf("# eval: %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# eval: %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob node = JX_OB_NULL;
-        jx_ob result = jx_code_exec(node,code);
+        jx_ob result = jx_code_exec(node, code);
         {
           jx_ob jxon = jx_ob_to_jxon(result);
-          P1("'this is the result of the call' eq %s",jx_ob_as_str(&jxon));
-          P1("0 == %d",jx_ob_free(jxon));
+          P1("'this is the result of the call' eq %s", jx_ob_as_str(&jxon));
+          P1("0 == %d", jx_ob_free(jxon));
         }
-        P1("0 == %d",jx_ob_free(result));
+        P1("0 == %d", jx_ob_free(result));
       }
-      P1("0 == %d",jx_ob_free(code));
+      P1("0 == %d", jx_ob_free(code));
     }
-    P1("0 == %d",jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(builtins));
   }
 
   /* can we get / set? */
@@ -87,12 +89,11 @@ int main(int argc, char **argv)
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
 
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
-
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
       jx_ob jxon = jx_ob_to_jxon(builtins);
-      printf("# %s\n",jx_ob_as_str(&jxon));
+      printf("# %s\n", jx_ob_as_str(&jxon));
       jx_ob_free(jxon);
     }
 
@@ -100,132 +101,131 @@ int main(int argc, char **argv)
       jx_ob source = jx_ob_from_jxon_str("[ [ set, \"a\", \"b\" ], [get, \"a\"] ]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
-          printf("# %s\n",jx_ob_as_str(&jxon));
-          P1("0 == %d",jx_ob_free(jxon));
+          printf("# %s\n", jx_ob_as_str(&jxon));
+          P1("0 == %d", jx_ob_free(jxon));
         }
         {
-          jx_ob result = jx_code_exec(node,code);
+          jx_ob result = jx_code_exec(node, code);
           {
             jx_ob jxon = jx_ob_to_jxon(result);
-            P1("'b' eq %s",jx_ob_as_str(&jxon));
-            P1("0 == %d",jx_ob_free(jxon));
+            P1("'b' eq %s", jx_ob_as_str(&jxon));
+            P1("0 == %d", jx_ob_free(jxon));
           }
-          P1("0 == %d",jx_ob_free(result));
+          P1("0 == %d", jx_ob_free(result));
         }
-        P1("0 == %d",jx_ob_free(code));
+        P1("0 == %d", jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
-    P1("0 == %d",jx_ob_free(node));
+    P1("0 == %d", jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(node));
   }
 
   /* can we add two ints? */
 
   {
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ add, 1, 2 ] ]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob node = JX_OB_NULL;
-        jx_ob result = jx_code_exec(node,code);
-        P1("3 == %d",(int)jx_ob_as_int(result));
-        P1("0 == %d",jx_ob_free(result));
-        P1("0 == %d",jx_ob_free(code));
+        jx_ob result = jx_code_exec(node, code);
+        P1("3 == %d", (int) jx_ob_as_int(result));
+        P1("0 == %d", jx_ob_free(result));
+        P1("0 == %d", jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(builtins));
   }
 
   /* can we add two floats? */
 
   {
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ add, 2.0, 3.0 ] ]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
         jx_ob node = JX_OB_NULL;
-        jx_ob result = jx_code_exec(node,code);
-        P1("5.0 == %f",jx_ob_as_float(result));
-        P1("0 == %d",jx_ob_free(result));
-        P1("0 == %d",jx_ob_free(code));
+        jx_ob result = jx_code_exec(node, code);
+        P1("5.0 == %f", jx_ob_as_float(result));
+        P1("0 == %d", jx_ob_free(result));
+        P1("0 == %d", jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(builtins));
   }
 
   /* can we set an evaluated result */
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
       jx_ob source = jx_ob_from_jxon_str("[ [ set, 0, [ add, -1, 7 ] ], [get, 0] ]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
-        jx_ob result = jx_code_exec(node,code);
-        P1("6 == %d",(int)jx_ob_as_int(result));
-        P1("0 == %d",jx_ob_free(result));
-        P1("0 == %d",jx_ob_free(code));
+        jx_ob result = jx_code_exec(node, code);
+        P1("6 == %d", (int) jx_ob_as_int(result));
+        P1("0 == %d", jx_ob_free(result));
+        P1("0 == %d", jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
-    P1("0 == %d",jx_ob_free(node));
+    P1("0 == %d", jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(node));
   }
- 
+
   /* can we add a gotten result */
   {
     jx_ob node = jx_hash_new();
     jx_ob builtins = jx_hash_new();
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
       jx_ob source = jx_ob_from_jxon_str("[ [set, a, 5], [ add, -1, [get, a] ] ]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
-        jx_ob result = jx_code_exec(node,code);
-        P1("4 == %d",(int)jx_ob_as_int(result));
-        P1("0 == %d",jx_ob_free(result));
-        P1("0 == %d",jx_ob_free(code));
+        jx_ob result = jx_code_exec(node, code);
+        P1("4 == %d", (int) jx_ob_as_int(result));
+        P1("0 == %d", jx_ob_free(result));
+        P1("0 == %d", jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
-    P1("0 == %d",jx_ob_free(node));
+    P1("0 == %d", jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(node));
   }
-
 
   /* can we combine all of the above? */
   {
@@ -233,29 +233,30 @@ int main(int argc, char **argv)
     jx_ob builtins = jx_hash_new();
     jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
 
-    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d", jx_hash_set(builtins, jx_ob_from_ident("my_fn"), builtin));
 
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
-      jx_ob source = jx_ob_from_jxon_str(
- "[[set,a,10],[while,[get,a],[[my_fn, [get,a]],[set,a,[add,-1,[get,a]]]]]]");
+      jx_ob source =
+        jx_ob_from_jxon_str
+        ("[[set,a,10],[while,[get,a],[[my_fn, [get,a]],[set,a,[add,-1,[get,a]]]]]]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
-        jx_ob result = jx_code_exec(node,code);
-        P1("0 == %d",(int)jx_ob_as_int(result));
-        P1("0 == %d",jx_ob_free(result));
-        P1("0 == %d",jx_ob_free(code));
+        jx_ob result = jx_code_exec(node, code);
+        P1("0 == %d", (int) jx_ob_as_int(result));
+        P1("0 == %d", jx_ob_free(result));
+        P1("0 == %d", jx_ob_free(code));
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
-    P1("0 == %d",jx_ob_free(node));
-   }
+    P1("0 == %d", jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(node));
+  }
 
   /* can we perform operations inside of nested data structures and store result? */
 
@@ -264,39 +265,39 @@ int main(int argc, char **argv)
     jx_ob builtins = jx_hash_new();
     jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
 
-    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d", jx_hash_set(builtins, jx_ob_from_ident("my_fn"), builtin));
 
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
       jx_ob source = jx_ob_from_jxon_str("[[set,a,{1:2,3:[4,5,[sub,9,3]]}],[get,a]]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
-          printf("# exec: %s\n",jx_ob_as_str(&jxon));
-          P1("0 == %d",jx_ob_free(jxon));
+          printf("# exec: %s\n", jx_ob_as_str(&jxon));
+          P1("0 == %d", jx_ob_free(jxon));
         }
         {
-          jx_ob result = jx_code_exec(node,code);
+          jx_ob result = jx_code_exec(node, code);
           {
             jx_ob jxon = jx_ob_to_jxon(result);
-            printf("# %s\n",jx_ob_as_str(&jxon));
-            P1("0 == %d",jx_ob_free(jxon));
+            printf("# %s\n", jx_ob_as_str(&jxon));
+            P1("0 == %d", jx_ob_free(jxon));
           }
-          P1("0 == %d",jx_ob_free(result));
-          P1("0 == %d",jx_ob_free(code));
+          P1("0 == %d", jx_ob_free(result));
+          P1("0 == %d", jx_ob_free(code));
         }
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
-    P1("0 == %d",jx_ob_free(node));
-   }
+    P1("0 == %d", jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(node));
+  }
 
   /* can we borrow and modify containers owned by the node? */
 
@@ -305,39 +306,38 @@ int main(int argc, char **argv)
     jx_ob builtins = jx_hash_new();
     jx_ob builtin = jx_builtin_new_from_native_fn(my_fn);
 
-    P1("0 == %d",jx_hash_set(builtins, jx_ob_from_ident("my_fn"),builtin));
+    P1("0 == %d", jx_hash_set(builtins, jx_ob_from_ident("my_fn"), builtin));
 
-    P1("0 == %d",jx_code_expose_secure_builtins(builtins));
+    P1("0 == %d", jx_code_expose_secure_builtins(builtins));
 
     {
-      jx_ob source = jx_ob_from_jxon_str(
-"[[set,x,[]],[[append,x,1]],[[append,x,{2:3}]],[get,x]]");
+      jx_ob source =
+        jx_ob_from_jxon_str("[[set,x,[]],[[append,x,1]],[[append,x,{2:3}]],[get,x]]");
       {
         jx_ob jxon = jx_ob_to_jxon(source);
-        printf("# %s\n",jx_ob_as_str(&jxon));
-        P1("0 == %d",jx_ob_free(jxon));
+        printf("# %s\n", jx_ob_as_str(&jxon));
+        P1("0 == %d", jx_ob_free(jxon));
       }
       {
         jx_ob code = jx_code_bind_with_source(builtins, source);
         {
           jx_ob jxon = jx_ob_to_jxon(code);
-          printf("# %s\n",jx_ob_as_str(&jxon));
-          P1("0 == %d",jx_ob_free(jxon));
+          printf("# %s\n", jx_ob_as_str(&jxon));
+          P1("0 == %d", jx_ob_free(jxon));
         }
         {
-          jx_ob result = jx_code_exec(node,code);
+          jx_ob result = jx_code_exec(node, code);
           {
             jx_ob jxon = jx_ob_to_jxon(result);
-            printf("# %s\n",jx_ob_as_str(&jxon));
-            P1("0 == %d",jx_ob_free(jxon));
+            printf("# %s\n", jx_ob_as_str(&jxon));
+            P1("0 == %d", jx_ob_free(jxon));
           }
-          P1("0 == %d",jx_ob_free(result));
-          P1("0 == %d",jx_ob_free(code));
+          P1("0 == %d", jx_ob_free(result));
+          P1("0 == %d", jx_ob_free(code));
         }
       }
     }
-    P1("0 == %d",jx_ob_free(builtins));
-    P1("0 == %d",jx_ob_free(node));
-   }
+    P1("0 == %d", jx_ob_free(builtins));
+    P1("0 == %d", jx_ob_free(node));
+  }
 }
-

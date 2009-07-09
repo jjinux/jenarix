@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -48,19 +49,19 @@ int main(int argc, char **argv)
     P1("1 && %d", jx_list_check(list));
     P1("0 == %d", jx_hash_check(list));
 
-    P1("0 == %d", (int)jx_list_size(list));
+    P1("0 == %d", (int) jx_list_size(list));
 
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(9)));
-    P1("1 == %d", (int)jx_list_size(list));
-    P1("9 == %d", (int)jx_ob_as_int(jx_list_borrow(list, 0)));
+    P1("1 == %d", (int) jx_list_size(list));
+    P1("9 == %d", (int) jx_ob_as_int(jx_list_borrow(list, 0)));
     P1("0 == %d", jx_list_append(list, jx_ob_from_int(8)));
-    P1("2 == %d", (int)jx_list_size(list));
-    P1("8 == %d", (int)jx_ob_as_int(jx_list_borrow(list, 1)));
+    P1("2 == %d", (int) jx_list_size(list));
+    P1("8 == %d", (int) jx_ob_as_int(jx_list_borrow(list, 1)));
 
     P1("0 == %d", jx_list_append(list, jx_ob_from_float(2.0F)));
-    P1("3 == %d", (int)jx_list_size(list));
-    P1("9 == %d", (int)jx_ob_as_int(jx_list_borrow(list, 0)));
-    P1("8 == %d", (int)jx_ob_as_int(jx_list_borrow(list, 1)));
+    P1("3 == %d", (int) jx_list_size(list));
+    P1("9 == %d", (int) jx_ob_as_int(jx_list_borrow(list, 0)));
+    P1("8 == %d", (int) jx_ob_as_int(jx_list_borrow(list, 1)));
     P1("2.0 == %f", jx_ob_as_float(jx_list_borrow(list, 2)));
 
     P1("0 == %d", jx_ob_free(list));
@@ -73,8 +74,8 @@ int main(int argc, char **argv)
     }
     {
       jx_ob list = jx_list_new_with_int_vla(&vla);
-      P1("4 == %d", (int)jx_list_size(list));
-      P1("3 == %d", (int)jx_ob_as_int(jx_list_borrow(list, 3)));
+      P1("4 == %d", (int) jx_list_size(list));
+      P1("3 == %d", (int) jx_ob_as_int(jx_list_borrow(list, 3)));
       P1("0 == %d", jx_ob_free(list));
     }
   }
@@ -86,7 +87,7 @@ int main(int argc, char **argv)
     }
     {
       jx_ob list = jx_list_new_with_float_vla(&vla);
-      P1("4 == %d", (int)jx_list_size(list));
+      P1("4 == %d", (int) jx_list_size(list));
       P1("0.3 == %f", jx_ob_as_float(jx_list_borrow(list, 3)));
       P1("0 == %d", jx_ob_free(list));
     }
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
     jx_list_append(list, jx_ob_from_str("my"));
     jx_list_append(list, jx_ob_from_str("sentence."));
     {
-      jx_ob str = jx_str_join_with_list_sep(jx_ob_copy(list),jx_ob_from_str(" "));
+      jx_ob str = jx_str_join_with_list_sep(jx_ob_copy(list), jx_ob_from_str(" "));
       P1("'This is my sentence.' eq '%s'", jx_ob_as_str(&str));
       jx_ob_free(str);
     }
@@ -127,6 +128,6 @@ int main(int argc, char **argv)
       P1("'Thisismysentence.' eq '%s'", jx_ob_as_str(&str));
       jx_ob_free(str);
     }
-      
+
   }
 }

@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -141,27 +142,27 @@ int main(int argc, char **argv)
   /* casts */
   {
 
-    P1("0 == %d", (int)jx_ob_as_bool(jx_ob_from_null()));
-    P1("1 == %d", (int)jx_ob_as_bool(jx_ob_from_str("tiny")));
-    P1("0 == %d", (int)jx_ob_as_bool(jx_ob_from_bool(JX_FALSE)));
-    P1("1 == %d", (int)jx_ob_as_bool(jx_ob_from_bool(JX_TRUE)));
-    P1("1 == %d", (int)jx_ob_as_bool(jx_ob_from_int(2)));
-    P1("0 == %d", (int)jx_ob_as_bool(jx_ob_from_float(0.0)));
-    P1("1 == %d", (int)jx_ob_as_bool(jx_ob_from_float(3.0)));
+    P1("0 == %d", (int) jx_ob_as_bool(jx_ob_from_null()));
+    P1("1 == %d", (int) jx_ob_as_bool(jx_ob_from_str("tiny")));
+    P1("0 == %d", (int) jx_ob_as_bool(jx_ob_from_bool(JX_FALSE)));
+    P1("1 == %d", (int) jx_ob_as_bool(jx_ob_from_bool(JX_TRUE)));
+    P1("1 == %d", (int) jx_ob_as_bool(jx_ob_from_int(2)));
+    P1("0 == %d", (int) jx_ob_as_bool(jx_ob_from_float(0.0)));
+    P1("1 == %d", (int) jx_ob_as_bool(jx_ob_from_float(3.0)));
 
-    P1("0 == %d", (int)jx_ob_as_int(jx_ob_from_null()));
-    P1("0 == %d", (int)jx_ob_as_int(jx_ob_from_str("tiny")));
-    P1("0 == %d", (int)jx_ob_as_int(jx_ob_from_bool(JX_FALSE)));
-    P1("1 == %d", (int)jx_ob_as_int(jx_ob_from_bool(JX_TRUE)));
-    P1("2 == %d", (int)jx_ob_as_int(jx_ob_from_int(2)));
-    P1("3 == %d", (int)jx_ob_as_int(jx_ob_from_float(3.0)));
+    P1("0 == %d", (int) jx_ob_as_int(jx_ob_from_null()));
+    P1("0 == %d", (int) jx_ob_as_int(jx_ob_from_str("tiny")));
+    P1("0 == %d", (int) jx_ob_as_int(jx_ob_from_bool(JX_FALSE)));
+    P1("1 == %d", (int) jx_ob_as_int(jx_ob_from_bool(JX_TRUE)));
+    P1("2 == %d", (int) jx_ob_as_int(jx_ob_from_int(2)));
+    P1("3 == %d", (int) jx_ob_as_int(jx_ob_from_float(3.0)));
 
-    P1("0.0 == %1.1f", (float)jx_ob_as_float(jx_ob_from_null()));
-    P1("0.0 == %1.1f", (float)jx_ob_as_float(jx_ob_from_str("tiny")));
-    P1("0.0 == %1.1f", (float)jx_ob_as_float(jx_ob_from_bool(JX_FALSE)));
-    P1("1.0 == %1.1f", (float)jx_ob_as_float(jx_ob_from_bool(JX_TRUE)));
-    P1("2.0 == %1.1f", (float)jx_ob_as_float(jx_ob_from_float(2.0)));
-    P1("3.0 == %1.1f", (float)jx_ob_as_float(jx_ob_from_int(3)));
+    P1("0.0 == %1.1f", (float) jx_ob_as_float(jx_ob_from_null()));
+    P1("0.0 == %1.1f", (float) jx_ob_as_float(jx_ob_from_str("tiny")));
+    P1("0.0 == %1.1f", (float) jx_ob_as_float(jx_ob_from_bool(JX_FALSE)));
+    P1("1.0 == %1.1f", (float) jx_ob_as_float(jx_ob_from_bool(JX_TRUE)));
+    P1("2.0 == %1.1f", (float) jx_ob_as_float(jx_ob_from_float(2.0)));
+    P1("3.0 == %1.1f", (float) jx_ob_as_float(jx_ob_from_int(3)));
 
     {
       jx_ob str = jx_ob_to_str(jx_ob_from_null());
@@ -203,50 +204,50 @@ int main(int argc, char **argv)
 
     {
       jx_ob str = jx_ob_from_str("");
-      P1("0 == %d", jx_ob_as_bool( jx_ob_to_bool(str)));
+      P1("0 == %d", jx_ob_as_bool(jx_ob_to_bool(str)));
       jx_ob_free(str);
     }
 
     {
       jx_ob str = jx_ob_from_str("not empty");
-      P1("1 == %d", jx_ob_as_bool( jx_ob_to_bool(str)));
+      P1("1 == %d", jx_ob_as_bool(jx_ob_to_bool(str)));
       jx_ob_free(str);
     }
 
     {
       jx_ob str = jx_ob_from_str("1");
-      P1("1 == %d", (int)jx_ob_as_int( jx_ob_to_int(str)));
+      P1("1 == %d", (int) jx_ob_as_int(jx_ob_to_int(str)));
       jx_ob_free(str);
     }
 
     {
       jx_ob str = jx_ob_from_str("0.25");
-      P1("0.25 == %1.2f", jx_ob_as_float( jx_ob_to_float(str)));
+      P1("0.25 == %1.2f", jx_ob_as_float(jx_ob_to_float(str)));
       jx_ob_free(str);
     }
 
     {
       jx_ob str = jx_ob_from_str("str");
       jx_ob str2 = jx_ob_to_str(str);
-      P1("'str' eq '%s'", jx_ob_as_str( &str2));
+      P1("'str' eq '%s'", jx_ob_as_str(&str2));
       jx_ob_free(str);
       jx_ob_free(str2);
     }
 
     {
       jx_ob ident = jx_ob_from_ident("false");
-      P1("0 == %d", jx_ob_as_bool( jx_ob_to_bool(ident)));
+      P1("0 == %d", jx_ob_as_bool(jx_ob_to_bool(ident)));
       jx_ob_free(ident);
     }
 
     {
       jx_ob ident = jx_ob_from_ident("true");
-      P1("1 == %d", jx_ob_as_bool( jx_ob_to_bool(ident)))
-      jx_ob_free(ident);
+      P1("1 == %d", jx_ob_as_bool(jx_ob_to_bool(ident)))
+        jx_ob_free(ident);
     }
 
     {
-      jx_ob str = jx_ob_from_str_with_len("1234567890123456789012345",20);
+      jx_ob str = jx_ob_from_str_with_len("1234567890123456789012345", 20);
       P1("'12345678901234567890' eq '%s'", jx_ob_as_str(&str));
       jx_ob_free(str);
     }

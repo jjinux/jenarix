@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -34,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_safe.h"
 
 #define N_THREAD 5
+
 
 /* list container performance comparison versus test/loop01.jx
 
@@ -83,23 +85,22 @@ jx_status run_test(void)
   jx_ob counter = jx_ob_from_int(20000000);
   jx_ob one = jx_ob_from_int(1);
   while(jx_ob_as_int(counter)) {
-    jx_hash_set(hash,jx_ob_copy(counter), jx_ob_copy(one));
+    jx_hash_set(hash, jx_ob_copy(counter), jx_ob_copy(one));
     jx_ob_replace(&counter, jx_ob_sub(counter, one));
   }
-  printf("%d\n",jx_hash_size(hash));
+  printf("%d\n", jx_hash_size(hash));
   jx_ob_free(hash);
   return JX_SUCCESS;
 }
 
 int main(int argc, char **argv)
 {
-  if( jx_ok( jx_os_process_init(argc,argv) ) ) {
+  if(jx_ok(jx_os_process_init(argc, argv))) {
 
     jx_status status = run_test();
-    
+
     status = jx_os_process_complete();
     return JX_OK(status) ? EXIT_SUCCESS : EXIT_FAILURE;
   }
   return EXIT_FAILURE;
 }
-

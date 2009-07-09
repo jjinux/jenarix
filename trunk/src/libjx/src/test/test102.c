@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -41,32 +42,31 @@ typedef struct {
   jx_ob navigatorType;
 } Knowns;
 
-static void processComponents(jx_ob component, Knowns *known);
+static void processComponents(jx_ob component, Knowns * known);
 
-
-static void processHSplitter(jx_ob splitter, Knowns *known)
+static void processHSplitter(jx_ob splitter, Knowns * known)
 {
-  jx_ob pane = jx_list_borrow(splitter,1);
-  jx_int i,size = jx_list_size(pane);
+  jx_ob pane = jx_list_borrow(splitter, 1);
+  jx_int i, size = jx_list_size(pane);
   printf("processing horizontal splitter widget...\n");
-  for(i=0;i<size;i++) {
-    processComponents(jx_list_borrow(pane,i),known);
+  for(i = 0; i < size; i++) {
+    processComponents(jx_list_borrow(pane, i), known);
   }
 }
 
-static void processVSplitter(jx_ob splitter, Knowns *known)
+static void processVSplitter(jx_ob splitter, Knowns * known)
 {
-  jx_ob pane = jx_list_borrow(splitter,1);
-  jx_int i,size = jx_list_size(pane);
-    printf("processing vertical splitter widget...\n");
-  for(i=0;i<size;i++) {
-    processComponents(jx_list_borrow(pane,i),known);
+  jx_ob pane = jx_list_borrow(splitter, 1);
+  jx_int i, size = jx_list_size(pane);
+  printf("processing vertical splitter widget...\n");
+  for(i = 0; i < size; i++) {
+    processComponents(jx_list_borrow(pane, i), known);
   }
 }
 
-static void processComponents(jx_ob component, Knowns *known)
+static void processComponents(jx_ob component, Knowns * known)
 {
-  jx_ob comp_type = jx_list_borrow(component,0);
+  jx_ob comp_type = jx_list_borrow(component, 0);
 
   if(jx_ob_identical(comp_type, known->hSplitterType)) {
 
@@ -74,38 +74,38 @@ static void processComponents(jx_ob component, Knowns *known)
 
   } else if(jx_ob_identical(comp_type, known->vSplitterType)) {
 
-    processVSplitter(component, known);    
+    processVSplitter(component, known);
 
   } else if(jx_ob_identical(comp_type, known->menuBarType)) {
-    
+
     printf("processing menu bar widget...\n");
 
   } else if(jx_ob_identical(comp_type, known->openglContextType)) {
-    
+
     printf("processing opengl context widget...\n");
 
   } else if(jx_ob_identical(comp_type, known->navigatorType)) {
-    
+
     printf("processing navigator widget...\n");
 
-  } else { 
+  } else {
 
     printf("processing generic widget...\n");
 
   }
 }
 
-static jx_ob get_symbol_from_node(jx_ob node, jx_char *ident)
+static jx_ob get_symbol_from_node(jx_ob node, jx_char * ident)
 {
   jx_ob tmp = jx_ob_from_ident(ident);
-  jx_ob symbol = jx_hash_get(node,tmp);
+  jx_ob symbol = jx_hash_get(node, tmp);
   jx_ob_free(tmp);
   return symbol;
 }
 
-static jx_status locateKnowns(jx_ob node, Knowns *known)
+static jx_status locateKnowns(jx_ob node, Knowns * known)
 {
-  jx_os_memset(known,0,sizeof(Knowns));
+  jx_os_memset(known, 0, sizeof(Knowns));
 
   known->vSplitterType = get_symbol_from_node(node, "VSplitter");
   known->hSplitterType = get_symbol_from_node(node, "HSplitter");
@@ -116,7 +116,7 @@ static jx_status locateKnowns(jx_ob node, Knowns *known)
   return JX_SUCCESS;
 }
 
-static freeKnowns(Knowns *known)
+static freeKnowns(Knowns * known)
 {
   jx_ob_free(known->vSplitterType);
   jx_ob_free(known->hSplitterType);
@@ -128,25 +128,25 @@ static freeKnowns(Knowns *known)
 static void gui_run_from_node(jx_ob node)
 {
   Knowns known;
-  
-  if(jx_ok( locateKnowns(node, &known) )) {  
+
+  if(jx_ok(locateKnowns(node, &known))) {
 
     /* get the root gui component */
 
     jx_ob gui = get_symbol_from_node(node, "gui");
-    
+
     /* dump graph for debuggin' */
-    
-    jx_jxon_dump(stdout,"gui",gui);
-    
+
+    jx_jxon_dump(stdout, "gui", gui);
+
     /* traverse the graph nondestructively, processing each component in turn */
-    
+
     printf("processing components...\n");
-    
-    processComponents(gui,&known);
-    
+
+    processComponents(gui, &known);
+
     /* would now run the GUI */
-    
+
     /* when done...free what we took */
 
     jx_ob_free(gui);
@@ -159,18 +159,17 @@ int main(int argc, char *argv[])
 {
   int exit_status = EXIT_FAILURE;
 
-  if(jx_ok( jx_os_process_init(argc,argv) )) {
+  if(jx_ok(jx_os_process_init(argc, argv))) {
     exit_status = EXIT_SUCCESS;
 
     jx_ob node = jx_hash_new();
-    
-    if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
+
+    if(jx_ok(jx_main_exec_in_node(argc, argv, node))) {
       gui_run_from_node(node);
     }
-    
+
     jx_ob_free(node);
     jx_os_process_complete();
   }
   return exit_status;
 }
-

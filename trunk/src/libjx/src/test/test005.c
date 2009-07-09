@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -61,11 +62,11 @@ int main(int argc, char **argv)
     P1("0xfffceb8d == 0x%08x", jx_ob_hash_code(ob_1));
     P1("0x6488bdce == 0x%08x", jx_ob_hash_code(ob_2));
 
-    P2("(0xaf6fbb0a == 0x%08x) || (0x9e069f3e == 0x%08x)", /* x86 || ppc */
+    P2("(0xaf6fbb0a == 0x%08x) || (0x9e069f3e == 0x%08x)",      /* x86 || ppc */
        jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
 
-    P2("(0xced8ea80 == 0x%08x) || (0xf70711c3 == 0x%08x)", /* x86 || ppc */
-       jx_ob_hash_code(ob_tiny),jx_ob_hash_code(ob_tiny));
+    P2("(0xced8ea80 == 0x%08x) || (0xf70711c3 == 0x%08x)",      /* x86 || ppc */
+       jx_ob_hash_code(ob_tiny), jx_ob_hash_code(ob_tiny));
 
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge1));
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge2));
@@ -98,15 +99,15 @@ int main(int argc, char **argv)
     P1("0 == %d", jx_list_check(hash));
     P1("1 && %d", jx_hash_check(hash));
 
-    P1("0 == %d", (int)jx_hash_size(hash));
+    P1("0 == %d", (int) jx_hash_size(hash));
 
     P1("0 == %d", jx_hash_has_key(hash, jx_ob_from_int(1)));
     P1("0 == %d", jx_hash_set(hash, jx_ob_from_int(1), jx_ob_from_int(2)));
-    P1("1 == %d", (int)jx_hash_size(hash));
+    P1("1 == %d", (int) jx_hash_size(hash));
     P1("1 == %d", jx_hash_has_key(hash, jx_ob_from_int(1)));
 
     P1("0 == %d", jx_hash_set(hash, jx_ob_from_str("ky1"), jx_ob_from_str("vl1")));
-    P1("2 == %d", (int)jx_hash_size(hash));
+    P1("2 == %d", (int) jx_hash_size(hash));
     P1("1 == %d", jx_hash_has_key(hash, jx_ob_from_str("ky1")));
 
     {
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
       P1("0 == %d", jx_hash_set(hash, key1, value1));
       P1("1 == %d", jx_hash_has_key(hash, key1));
       P1("1 == %d", jx_hash_has_key(hash, key2));
-      P1("3 == %d", (int)jx_hash_size(hash));
+      P1("3 == %d", (int) jx_hash_size(hash));
 
       {
         jx_ob borrowed = jx_hash_borrow(hash, key2);
@@ -215,9 +216,13 @@ int main(int argc, char **argv)
       }
       {
         jx_ob hash2 = jx_hash_new_from_list(list);
-        jx_ob jxon1 = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_SORT_HASHES, 0, 0, 0);
-        jx_ob jxon2 = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash2, JX_JXON_FLAG_SORT_HASHES, 0, 0, 0);
-	//        P2("%s eq %s", jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
+        jx_ob jxon1 =
+          jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_SORT_HASHES, 0,
+                                   0, 0);
+        jx_ob jxon2 =
+          jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash2, JX_JXON_FLAG_SORT_HASHES, 0,
+                                   0, 0);
+        //        P2("%s eq %s", jx_ob_as_str(&jxon1), jx_ob_as_str(&jxon2));
         P1("0 == %d", jx_ob_free(jxon1));
         P1("0 == %d", jx_ob_free(jxon2));
         P1("0 == %d", jx_ob_free(hash2));
@@ -333,7 +338,9 @@ int main(int argc, char **argv)
     {
       jx_ob hash = jx_hash_new_with_list(list);
       {
-        jx_ob jxon = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_SORT_HASHES, 0, 0, 0);
+        jx_ob jxon =
+          jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_SORT_HASHES, 0,
+                                   0, 0);
 
         P1("'{1:2,3:4,5:6,7:8,9:10}' eq '%s'", jx_ob_as_str(&jxon));
         jx_ob_free(jxon);
@@ -379,17 +386,16 @@ int main(int argc, char **argv)
 
   {
     jx_ob hash = jx_hash_new();
-    
-    jx_hash_set(hash,jx_ob_from_null(),jx_ob_from_int(0));
-    jx_hash_set(hash,jx_ob_from_bool(1),jx_ob_from_int(1));
-    jx_hash_set(hash,jx_ob_from_bool(0),jx_ob_from_int(2));
-    jx_hash_set(hash,jx_ob_from_int(1),jx_ob_from_int(3));
-    jx_hash_set(hash,jx_ob_from_float(2.0),jx_ob_from_int(4));
-    jx_hash_set(hash,jx_ob_from_str("str"),jx_ob_from_int(5));
-    jx_hash_set(hash,jx_ob_from_ident("ident1"),jx_ob_from_ident("ident2"));
-    jx_hash_set(hash,jx_builtin_new_from_native_fn(NULL),
-                jx_builtin_new_from_selector(1));
 
+    jx_hash_set(hash, jx_ob_from_null(), jx_ob_from_int(0));
+    jx_hash_set(hash, jx_ob_from_bool(1), jx_ob_from_int(1));
+    jx_hash_set(hash, jx_ob_from_bool(0), jx_ob_from_int(2));
+    jx_hash_set(hash, jx_ob_from_int(1), jx_ob_from_int(3));
+    jx_hash_set(hash, jx_ob_from_float(2.0), jx_ob_from_int(4));
+    jx_hash_set(hash, jx_ob_from_str("str"), jx_ob_from_int(5));
+    jx_hash_set(hash, jx_ob_from_ident("ident1"), jx_ob_from_ident("ident2"));
+    jx_hash_set(hash, jx_builtin_new_from_native_fn(NULL),
+                jx_builtin_new_from_selector(1));
 
     {
       jx_ob jxon = jx_ob_to_jxon(hash);
@@ -397,7 +403,9 @@ int main(int argc, char **argv)
       jx_ob_free(jxon);
     }
     {
-      jx_ob jxon = jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash,JX_JXON_FLAG_JSON_LOSSY,0,0,0);
+      jx_ob jxon =
+        jx_ob_to_jxon_with_flags(jx_ob_from_null(), hash, JX_JXON_FLAG_JSON_LOSSY, 0, 0,
+                                 0);
       C1("%s", jx_ob_as_str(&jxon));
       jx_ob_free(jxon);
     }

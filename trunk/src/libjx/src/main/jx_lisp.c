@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -33,23 +34,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_main_tools.h"
 
-
 int main(int argc, char *argv[])
 {
   int exit_status = EXIT_FAILURE;
 
-  if(jx_ok( jx_os_process_init(argc,argv) )) {
+  if(jx_ok(jx_os_process_init(argc, argv))) {
     exit_status = EXIT_SUCCESS;
 
     jx_ob node = jx_hash_new();
-    
-    if(!jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
+
+    if(!jx_ok(jx_main_exec_in_node(argc, argv, node))) {
       exit_status = EXIT_FAILURE;
     }
-    
+
     jx_ob_free(node);
     jx_os_process_complete();
   }
   return exit_status;
 }
-

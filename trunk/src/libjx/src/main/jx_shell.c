@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -36,18 +37,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int main(int argc, char *argv[])
 {
   FILE *input = stdin;
-  if(argc>1) {
-    input = fopen(argv[1],"rb");
+  if(argc > 1) {
+    input = fopen(argv[1], "rb");
   }
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
-    
+
     jx_ob names = jx_hash_new();
     jx_ob scanner = jx_shell_scanner_new_with_file(input);
     jx_ob node = jx_hash_new();
     jx_bool console = jx_adapt_for_console(input);
 
     jx_code_expose_secure_builtins(names);
-    
+
     printf("Jenarix Shell-like Syntax (JXS):\n");
     printf(" usage: keyword \n");
     printf(" usage: keyword arg1, arg2, ... \n");
@@ -58,24 +59,25 @@ int main(int argc, char *argv[])
       jx_ob source = jx_ob_from_null();
       jx_status status;
       jx_bool done = JX_FALSE;
-      while( !done ) {
+      while(!done) {
         status = jx_shell_scanner_next_ob(&source, scanner);
-        switch(status) {
+        switch (status) {
         case JX_YES:
-          if(console) jx_jxon_dump_in_node(stdout, "# in", node, source);
+          if(console)
+            jx_jxon_dump_in_node(stdout, "# in", node, source);
           {
             jx_ob code = jx_code_bind_with_source(names, source);
             source = jx_ob_from_null();
-                      
+
             jx_jxon_dump_in_node(stdout, "# vm", node, code);
             {
-              jx_ob result = jx_code_eval(node,code);
-            
+              jx_ob result = jx_code_eval(node, code);
+
               if(console) {
                 jx_jxon_dump_in_node(stdout, "# ->", node, result);
               } else {
-                jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
-                printf("%s;\n",jx_ob_as_str(&jxon));
+                jx_ob jxon = jx_ob_to_jxon_in_node(node, result);
+                printf("%s;\n", jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               }
               jx_ob_free(result);
@@ -83,11 +85,11 @@ int main(int argc, char *argv[])
             jx_ob_free(code);
           }
           break;
-        case JX_STATUS_SYNTAX_ERROR: /* catch this error */
+        case JX_STATUS_SYNTAX_ERROR:   /* catch this error */
           {
             jx_ob message = jx_shell_scanner_get_error_message(scanner);
-            if(jx_str_check(message)) 
-              printf("%s\n",jx_ob_as_str(&message));
+            if(jx_str_check(message))
+              printf("%s\n", jx_ob_as_str(&message));
             else
               printf("Error: invalid syntax\n");
             if(!console)
@@ -97,7 +99,7 @@ int main(int argc, char *argv[])
             jx_ob_free(message);
           }
           break;
-        default: /* about on all other errors */
+        default:               /* about on all other errors */
           done = JX_TRUE;
           break;
         }
@@ -113,4 +115,3 @@ int main(int argc, char *argv[])
   }
   return EXIT_FAILURE;
 }
-

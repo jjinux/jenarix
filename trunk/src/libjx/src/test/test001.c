@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -35,9 +36,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
 #define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
 
-unsigned int random_int(unsigned int range) /* [0-range) */
-{
-  return (int)(((((double)random())*range)-1)/4294967296.0);
+unsigned int random_int(unsigned int range)
+{                               /* [0-range) */
+  return (int) (((((double) random()) * range) - 1) / 4294967296.0);
 }
 
 int main(int argc, char **argv)
@@ -60,29 +61,29 @@ int main(int argc, char **argv)
 
     P1("1 && %p", (void *) vla);
     P1("0 == %d", jx_vla_insert(&vla, 0, 1));
-    P1("1 == %d", (int)jx_vla_size(&vla));
+    P1("1 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_insert(&vla, 1, 1));
     P1("0 == %d", jx_vla_insert(&vla, 0, 1));
-    P1("3 == %d", (int)jx_vla_size(&vla));
+    P1("3 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_free(&vla));
   }
 
   {
     jx_int *vla = jx_vla_new(sizeof(jx_int), 10);
     P1("1 && %p", (void *) vla);
-    P1("10 == %d", (int)jx_vla_size(&vla));
+    P1("10 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_insert(&vla, 0, 10));
-    P1("20 == %d", (int)jx_vla_size(&vla));
+    P1("20 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_remove(&vla, 5, 10));
-    P1("10 == %d", (int)jx_vla_size(&vla));
+    P1("10 == %d", (int) jx_vla_size(&vla));
     P1("-1 == %d", jx_vla_remove(&vla, 5, 10));
-    P1("10 == %d", (int)jx_vla_size(&vla));
+    P1("10 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_append(&vla, 5));
-    P1("15 == %d", (int)jx_vla_size(&vla));
+    P1("15 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_remove(&vla, 5, 10));
-    P1("5 == %d", (int)jx_vla_size(&vla));
+    P1("5 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_remove(&vla, 0, 5));
-    P1("0 == %d", (int)jx_vla_size(&vla));
+    P1("0 == %d", (int) jx_vla_size(&vla));
     P1("0 == %d", jx_vla_free(&vla));
   }
 
@@ -90,8 +91,8 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 100000);
     {
       jx_int size;
-      while( (size = jx_vla_size(&vla)) ) {
-        jx_vla_remove(&vla,size-1,1);
+      while((size = jx_vla_size(&vla))) {
+        jx_vla_remove(&vla, size - 1, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -100,11 +101,11 @@ int main(int argc, char **argv)
   {
     jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
     int i;
-    for(i=0;i<1000000;i++) {
-      if(jx_vla_grow_check(&vla,i)) 
+    for(i = 0; i < 1000000; i++) {
+      if(jx_vla_grow_check(&vla, i))
         vla[i] = i;
     }
-    P1("999999 == %d", (int)vla[999999]);
+    P1("999999 == %d", (int) vla[999999]);
     P1("0 == %d", jx_vla_free(&vla));
   }
 
@@ -112,8 +113,8 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 100000);
     {
       jx_int size;
-      while( (size = jx_vla_size(&vla)) ) {
-        jx_vla_remove(&vla,0,1);
+      while((size = jx_vla_size(&vla))) {
+        jx_vla_remove(&vla, 0, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -123,9 +124,9 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 100000);
     {
       jx_int size;
-      while( (size = jx_vla_size(&vla))>1 ) {
-        jx_vla_remove(&vla,0,2);
-        jx_vla_append(&vla,1);
+      while((size = jx_vla_size(&vla)) > 1) {
+        jx_vla_remove(&vla, 0, 2);
+        jx_vla_append(&vla, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -135,13 +136,13 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 10000);
     {
       jx_int *start = vla;
-      P1("0 == %d",(int)(vla - start));
-      jx_vla_remove(&vla,0,5000);
-      P1("5000 == %d",(int)(vla - start));
-      jx_vla_insert(&vla,0,2500);
-      P1("2500 == %d",(int)(vla - start));
-      jx_vla_insert(&vla,0,2500);
-      P1("0 == %d",(int)(vla - start));
+      P1("0 == %d", (int) (vla - start));
+      jx_vla_remove(&vla, 0, 5000);
+      P1("5000 == %d", (int) (vla - start));
+      jx_vla_insert(&vla, 0, 2500);
+      P1("2500 == %d", (int) (vla - start));
+      jx_vla_insert(&vla, 0, 2500);
+      P1("0 == %d", (int) (vla - start));
     }
     P1("0 == %d", jx_vla_free(&vla));
   }
@@ -149,30 +150,30 @@ int main(int argc, char **argv)
   {
     jx_int *vla = jx_vla_new(sizeof(jx_int), 100);
     int i;
-    for(i=0;i<10000;i++) {
-      if(jx_vla_grow_check(&vla,i)) {
+    for(i = 0; i < 10000; i++) {
+      if(jx_vla_grow_check(&vla, i)) {
         vla[i] = i;
-        jx_vla_remove(&vla,0,1);
+        jx_vla_remove(&vla, 0, 1);
       }
     }
-    P1("5000 == %d", (int)vla[0]);
-    P1("0 == %d", (int)vla[1]);
-    P1("5001 == %d", (int)vla[2]);
+    P1("5000 == %d", (int) vla[0]);
+    P1("0 == %d", (int) vla[1]);
+    P1("5001 == %d", (int) vla[2]);
     P1("0 == %d", jx_vla_free(&vla));
   }
 
   {
     jx_int *vla = jx_vla_new(sizeof(jx_int), 10000000);
     int i;
-    P1("10000000 == %d", (int)jx_vla_size(&vla));
-    for(i=0;i<10000000;i++) {
+    P1("10000000 == %d", (int) jx_vla_size(&vla));
+    for(i = 0; i < 10000000; i++) {
       vla[i] = i;
     }
-    for(i=0;i<10000;i++) {
+    for(i = 0; i < 10000; i++) {
       jx_vla_remove(&vla, 0, 100);
     }
-    P1("9000000 == %d", (int)jx_vla_size(&vla));
-    P1("1000000 == %d", (int)vla[0]);
+    P1("9000000 == %d", (int) jx_vla_size(&vla));
+    P1("1000000 == %d", (int) vla[0]);
     P1("0 == %d", jx_vla_free(&vla));
   }
 
@@ -182,8 +183,8 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
     {
       int i;
-      for(i=0;i<1000000;i++) {
-        jx_vla_insert(&vla,0,1);
+      for(i = 0; i < 1000000; i++) {
+        jx_vla_insert(&vla, 0, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -193,8 +194,8 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 1);
     {
       int i;
-      for(i=0;i<1000000;i++) {
-        jx_vla_insert(&vla,1,1);
+      for(i = 0; i < 1000000; i++) {
+        jx_vla_insert(&vla, 1, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -204,8 +205,8 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 0);
     {
       int i;
-      for(i=0;i<1000000;i++) {
-        jx_vla_insert(&vla,i,1);
+      for(i = 0; i < 1000000; i++) {
+        jx_vla_insert(&vla, i, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -215,8 +216,8 @@ int main(int argc, char **argv)
     jx_int *vla = jx_vla_new(sizeof(jx_int), 1);
     {
       int i;
-      for(i=0;i<1000000;i++) {
-        jx_vla_insert(&vla,i,1);
+      for(i = 0; i < 1000000; i++) {
+        jx_vla_insert(&vla, i, 1);
       }
     }
     P1("0 == %d", jx_vla_free(&vla));
@@ -226,36 +227,36 @@ int main(int argc, char **argv)
 
   {
     int i;
-    for(i=2;i<3000;i+=(i/2)) {
+    for(i = 2; i < 3000; i += (i / 2)) {
       int ii;
-      for(ii=0;ii<i;ii++) {
+      for(ii = 0; ii < i; ii++) {
         jx_int size = random_int(i);
-        jx_int *vla = jx_vla_new(sizeof(jx_int),size);
+        jx_int *vla = jx_vla_new(sizeof(jx_int), size);
         int iii;
 
-        for(iii=0;iii<size;iii++) {
+        for(iii = 0; iii < size; iii++) {
           {
             int x;
-            for(x=0;x<size;x++) { /* renumber array */
+            for(x = 0; x < size; x++) { /* renumber array */
               vla[x] = x;
             }
           }
           {
             int index = random_int(size);
-            int count = random_int(size-index);
+            int count = random_int(size - index);
             int x;
             /* delete a chunk of the array */
             jx_vla_remove(&vla, index, count);
             size -= count;
             /* verify array integrity */
-            for(x=0;x<index;x++) {
-              if(vla[x]!=x) {
-                printf("die('fail1: %s line %d.');\n",__FILE__,__LINE__);
+            for(x = 0; x < index; x++) {
+              if(vla[x] != x) {
+                printf("die('fail1: %s line %d.');\n", __FILE__, __LINE__);
               }
             }
-            for(x=index;x<(size-count);x++) {
-              if(vla[x]!=x+count) {
-                printf("die('fail2: %s line %d.');\n",__FILE__,__LINE__);
+            for(x = index; x < (size - count); x++) {
+              if(vla[x] != x + count) {
+                printf("die('fail2: %s line %d.');\n", __FILE__, __LINE__);
               }
             }
           }
@@ -263,66 +264,66 @@ int main(int argc, char **argv)
         jx_vla_free(&vla);
       }
     }
-    printf("# passed %s line %d.\n",__FILE__,__LINE__);
+    printf("# passed %s line %d.\n", __FILE__, __LINE__);
   }
 
   {
     int i;
-    for(i=2;i<1000;i+=(i/2)) {
+    for(i = 2; i < 1000; i += (i / 2)) {
       int ii;
-      for(ii=0;ii<i;ii++) {
+      for(ii = 0; ii < i; ii++) {
         jx_int size = random_int(i);
-        jx_int *vla = jx_vla_new(sizeof(jx_int),size);
+        jx_int *vla = jx_vla_new(sizeof(jx_int), size);
         int iii;
 
-        for(iii=0;iii<size;iii++) {
+        for(iii = 0; iii < size; iii++) {
           {
             int x;
-            for(x=0;x<size;x++) { /* renumber array */
+            for(x = 0; x < size; x++) { /* renumber array */
               vla[x] = x;
             }
           }
           {
             int index = random_int(size);
-            int count = random_int(size-index);
+            int count = random_int(size - index);
             int x;
             /* delete a chunk of the array */
             jx_vla_remove(&vla, index, count);
             size -= count;
             /* verify array integrity */
-            for(x=0;x<index;x++) {
-              if(vla[x]!=x) {
-                printf("die('fail1: %s line %d.');\n",__FILE__,__LINE__);
+            for(x = 0; x < index; x++) {
+              if(vla[x] != x) {
+                printf("die('fail1: %s line %d.');\n", __FILE__, __LINE__);
               }
             }
-            for(x=index;x<(size-count);x++) {
-              if(vla[x]!=x+count) {
-                printf("die('fail2: %s line %d.');\n",__FILE__,__LINE__);
+            for(x = index; x < (size - count); x++) {
+              if(vla[x] != x + count) {
+                printf("die('fail2: %s line %d.');\n", __FILE__, __LINE__);
               }
             }
           }
           {
             int x;
-            for(x=0;x<size;x++) { /* renumber array */
+            for(x = 0; x < size; x++) { /* renumber array */
               vla[x] = x;
             }
           }
           {
             int index = random_int(size);
-            int count = random_int(size-index);
+            int count = random_int(size - index);
             int x;
             /* add a chunk to the array */
             jx_vla_insert(&vla, index, count);
             size += count;
             /* verify array integrity */
-            for(x=0;x<index;x++) {
-              if(vla[x]!=x) {
-                printf("die('fail3: %s line %d.');\n",__FILE__,__LINE__);
+            for(x = 0; x < index; x++) {
+              if(vla[x] != x) {
+                printf("die('fail3: %s line %d.');\n", __FILE__, __LINE__);
               }
             }
-            for(x=index+count;x<size;x++) {
-              if(vla[x]!=x-count) {
-                printf("die('fail4: %s line %d.');\n",__FILE__,__LINE__);
+            for(x = index + count; x < size; x++) {
+              if(vla[x] != x - count) {
+                printf("die('fail4: %s line %d.');\n", __FILE__, __LINE__);
               }
             }
           }
@@ -330,7 +331,7 @@ int main(int argc, char **argv)
         jx_vla_free(&vla);
       }
     }
-    printf("# passed %s line %d.\n",__FILE__,__LINE__);
+    printf("# passed %s line %d.\n", __FILE__, __LINE__);
   }
 
 }

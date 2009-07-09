@@ -1,3 +1,4 @@
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -39,7 +40,7 @@ int main(int argc, char *argv[])
   FILE *input = stdin;
   jx_int mode = 0;
   jx_int status = jx_main_parse_mode(&mode, &input, argc, argv);
-  
+
   if(jx_ok(status) && input && jx_ok(jx_os_process_init(argc, argv))) {
     jx_ob names = jx_hash_new();
     jx_ob node = jx_hash_new();
@@ -58,37 +59,36 @@ int main(int argc, char *argv[])
 
     jx_hash_set(node, jx_builtins(), jx_ob_copy(names));
 
-    if(console&&(mode == JX_MODE_CONSOLE))
-      printf(
-"Jenarix Python-like Syntax (JXP) [%d-byte #'s, %d-byte tiny strings, %d-byte jx_ob]\n",
-             (int)sizeof(jx_int),JX_TINY_STR_SIZE,(int)sizeof(jx_ob));
+    if(console && (mode == JX_MODE_CONSOLE))
+      printf
+        ("Jenarix Python-like Syntax (JXP) [%d-byte #'s, %d-byte tiny strings, %d-byte jx_ob]\n",
+         (int) sizeof(jx_int), JX_TINY_STR_SIZE, (int) sizeof(jx_ob));
 
     {
       jx_ob tree = jx_ob_from_null();
       jx_status status;
       jx_bool done = JX_FALSE;
-      while( !done ) {
+      while(!done) {
         status = jx_net_scanner_next_ob(&tree, scanner);
-        switch(status) {
+        switch (status) {
         case JX_YES:
           if(mode == JX_MODE_PARSE_ONLY) {
-            jx_ob jxon = jx_ob_to_jxon_in_node(node,tree);
-            printf("%s;\n",jx_ob_as_str(&jxon));
-    jx_ob_free(node);
-    jx_ob_free(scanner);
-    jx_ob_free(names);
-
+            jx_ob jxon = jx_ob_to_jxon_in_node(node, tree);
+            printf("%s;\n", jx_ob_as_str(&jxon));
+            jx_ob_free(node);
+            jx_ob_free(scanner);
+            jx_ob_free(names);
 
             jx_ob_free(jxon);
           } else {
             if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
               jx_jxon_dump_in_node(stdout, "# parsed", node, tree);
             {
-              jx_ob source = jx_ob_copy(tree); // jx_net_translate_with_tree( jx_ob_copy(tree));
-              
+              jx_ob source = jx_ob_copy(tree);  // jx_net_translate_with_tree( jx_ob_copy(tree));
+
               if(mode == JX_MODE_TRANSLATE_ONLY) {
-                jx_ob jxon = jx_ob_to_jxon_in_node(node,source);
-                printf("%s;\n",jx_ob_as_str(&jxon));
+                jx_ob jxon = jx_ob_to_jxon_in_node(node, source);
+                printf("%s;\n", jx_ob_as_str(&jxon));
                 jx_ob_free(jxon);
               } else {
                 if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
@@ -97,29 +97,30 @@ int main(int argc, char *argv[])
                   jx_ob code = jx_code_bind_with_source(names, source);
                   source = jx_ob_from_null();
                   if(mode == JX_MODE_COMPILE_ONLY) {
-                    jx_ob jxon = jx_ob_to_jxon_in_node(node,code);
-                    printf("%s;\n",jx_ob_as_str(&jxon));
+                    jx_ob jxon = jx_ob_to_jxon_in_node(node, code);
+                    printf("%s;\n", jx_ob_as_str(&jxon));
                     jx_ob_free(jxon);
                   } else {
                     if((mode == JX_MODE_CONSOLE) || (mode == JX_MODE_UNIT_TESTING))
                       jx_jxon_dump_in_node(stdout, "#   eval", node, code);
                     {
-                      jx_ob result = jx_code_eval(node,code);
-                      
+                      jx_ob result = jx_code_eval(node, code);
+
                       if(mode == JX_MODE_CONSOLE) {
                         jx_jxon_dump_in_node(stdout, "# result", node, result);
-                      } else if((mode == JX_MODE_EVALUATE) || (mode == JX_MODE_UNIT_TESTING)){
-                        jx_ob jxon = jx_ob_to_jxon_in_node(node,result);
-                        printf("%s;\n",jx_ob_as_str(&jxon));
+                      } else if((mode == JX_MODE_EVALUATE)
+                                || (mode == JX_MODE_UNIT_TESTING)) {
+                        jx_ob jxon = jx_ob_to_jxon_in_node(node, result);
+                        printf("%s;\n", jx_ob_as_str(&jxon));
                         jx_ob_free(jxon);
-                        if(mode == JX_MODE_UNIT_TESTING) { 
+                        if(mode == JX_MODE_UNIT_TESTING) {
                           /* all Python unit test exprs must equal null or true */
-                          if((!jx_ob_identical(jx_ob_from_null(),result))&&
-                             (!jx_ob_identical(jx_ob_from_bool(1),result))
-                             ) {
+                          if((!jx_ob_identical(jx_ob_from_null(), result)) &&
+                             (!jx_ob_identical(jx_ob_from_bool(1), result))
+                            ) {
                             jx_ob message = jx_net_scanner_get_error_message(scanner);
-                            if(jx_str_check(message)) 
-                              printf("%s\n",jx_ob_as_str(&message));
+                            if(jx_str_check(message))
+                              printf("%s\n", jx_ob_as_str(&message));
                             jx_ob_free(message);
                             exit_status = EXIT_FAILURE;
                             done = JX_TRUE;
@@ -137,11 +138,11 @@ int main(int argc, char *argv[])
             }
           }
           break;
-        case JX_STATUS_SYNTAX_ERROR: /* catch this error */
+        case JX_STATUS_SYNTAX_ERROR:   /* catch this error */
           {
             jx_ob message = jx_net_scanner_get_error_message(scanner);
-            if(jx_str_check(message)) 
-              printf("%s\n",jx_ob_as_str(&message));
+            if(jx_str_check(message))
+              printf("%s\n", jx_ob_as_str(&message));
             else
               printf("Error: invalid syntax\n");
             if(!console)
@@ -151,8 +152,8 @@ int main(int argc, char *argv[])
             jx_ob_free(message);
           }
           break;
-        default: 
-          if(!jx_ok(status)) 
+        default:
+          if(!jx_ok(status))
             done = JX_TRUE;
           break;
         }
