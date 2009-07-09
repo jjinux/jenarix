@@ -172,27 +172,27 @@ struct jx__ob {
    ordering for heterogenous compares (other than those involving
    numbers) */
 
-/* Jenarix primitive types (note that null has no meta bits set and
-   thus corresponds to zero'd memory) */
+/* pointers to built-in entities (runtime-only, not serializable) */
 
-#define JX_META_BIT_BOOL               0x0020
-#define JX_META_BIT_INT                0x0040
-#define JX_META_BIT_FLOAT              0x0080
-#define JX_META_BIT_HASH               0x0100
-#define JX_META_BIT_LIST               0x0200
-#define JX_META_BIT_STR                0x0400
-
-/* JXON identifiers */
-
-#define JX_META_BIT_IDENT              0x0800
+#define JX_META_BIT_BUILTIN            0x2000
 
 /* JXON VM opcodes */
 
 #define JX_META_BIT_OPCODE             0x1000
 
-/* pointers to built-in entities (runtime-only, not serializable) */
+/* JXON identifiers */
 
-#define JX_META_BIT_BUILTIN            0x2000
+#define JX_META_BIT_IDENT              0x0800
+
+/* Jenarix primitive types (note that null has no meta bits set and
+   thus corresponds to zero'd memory) */
+
+#define JX_META_BIT_STR                0x0400
+#define JX_META_BIT_LIST               0x0200
+#define JX_META_BIT_HASH               0x0100
+#define JX_META_BIT_FLOAT              0x0080
+#define JX_META_BIT_INT                0x0040
+#define JX_META_BIT_BOOL               0x0020
 
 #define JX_META_MASK_TINY_STR_SIZE     0x001F
 
@@ -1526,7 +1526,7 @@ JX_INLINE jx_status jx_tls_list_combine(jx_tls *tls, jx_ob list1, jx_ob list2)
        (jx_ob_shared(list2) ||
         (jx_ob_synchronized(list2)))) {
       /* copy list2 if weak or shared */
-      jx_ob list3 = jx_ob_copy_strong(list2);
+      jx_ob list3 = jx_tls_ob_copy_strong(tls,list2);
       if(!jx_ok(jx__list_combine(tls, list1.data.io.list, list3.data.io.list))) {
         jx_tls_ob_free(tls, list3);
         jx_tls_ob_free(tls, list2);
@@ -1550,7 +1550,7 @@ JX_INLINE jx_ob jx_tls_list_new_with_repeat(jx_tls *tls, jx_int size, jx_ob repe
   jx_ob result = jx_tls_list_new(tls);
   jx_int i;
   for(i=0;i<size;i++) {
-    jx_tls_list_combine(tls, result, jx_ob_copy_strong(repeat));
+    jx_tls_list_combine(tls, result, jx_tls_ob_copy_strong(tls,repeat));
   }
   jx_tls_ob_free(tls, repeat);
   return result;

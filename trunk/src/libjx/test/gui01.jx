@@ -34,6 +34,7 @@
   )
 )
 
+gui;
 # the C++ app should resolve the "gui" symbol and go from there...
 
 

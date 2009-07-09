@@ -984,10 +984,10 @@ jx_int jx__str_compare(jx_tls * tls, jx_ob left, jx_ob right)
   return 0;
 }
 
-jx_ob jx__str_gc_copy_strong(jx_char * str)
+jx_ob jx__str_gc_copy_strong(jx_tls *tls, jx_char * str)
 {
   jx_ob result = jx_ob_from_null();
-  result.data.io.str = (jx_char *) jx_vla_copy(&str);
+  result.data.io.str = (jx_char *) jx_tls_vla_copy(tls, &str);
   if(result.data.io.str) {
     jx__gc_init((jx_gc *) result.data.io.str);
     result.meta.bits = result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
@@ -1200,10 +1200,10 @@ jx_ob jx_ob_from_ident(jx_char * ident)
   return result;
 }
 
-jx_ob jx__ident_gc_copy_strong(jx_char * str)
+jx_ob jx__ident_gc_copy_strong(jx_tls *tls, jx_char * str)
 {
   jx_ob result = jx_ob_from_null();
-  result.data.io.str = (jx_char *) jx_vla_copy(&str);
+  result.data.io.str = (jx_char *) jx_tls_vla_copy(tls, &str);
   if(result.data.io.str) {
     jx__gc_init((jx_gc *) result.data.io.str);
     result.meta.bits = result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
@@ -1451,9 +1451,9 @@ jx_status jx__list_sort_locked(jx_list * I)
   return JX_SUCCESS;
 }
 
-jx_ob jx__list_copy(jx_list * I)
+jx_ob jx__list_copy(jx_tls *tls, jx_list * I)
 {
-  jx_ob result = jx_list_new();
+  jx_ob result = jx_tls_list_new(tls);
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_LIST) {
@@ -1461,13 +1461,13 @@ jx_ob jx__list_copy(jx_list * I)
       (*new_I) = (*I);
       new_I->gc.synchronized = JX_FALSE;
       jx__gc_init(&new_I->gc);
-      new_I->data.vla = jx_vla_copy(&I->data.vla);
+      new_I->data.vla = jx_tls_vla_copy(tls,&I->data.vla);
       if(!new_I->packed_meta_bits) {    /* need to recursively copy all GC content */
         jx_int i, size = jx_vla_size(&new_I->data.ob_vla);
         jx_ob *ob = new_I->data.ob_vla;
         for(i = 0; i < size; i++) {
           if(ob->meta.bits & JX_META_BIT_GC) {
-            *ob = jx_ob_copy(*ob);
+            *ob = jx_tls_ob_copy(tls,*ob);
           }
           ob++;
         }
@@ -1478,9 +1478,9 @@ jx_ob jx__list_copy(jx_list * I)
   return result;
 }
 
-jx_ob jx__list_copy_strong(jx_list * I)
+jx_ob jx__list_copy_strong(jx_tls *tls, jx_list * I)
 {
-  jx_ob result = jx_list_new();
+  jx_ob result = jx_tls_list_new(tls);
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     if(result.meta.bits & JX_META_BIT_LIST) {
@@ -1494,7 +1494,7 @@ jx_ob jx__list_copy_strong(jx_list * I)
         jx_ob *ob = new_I->data.ob_vla;
         for(i = 0; i < size; i++) {
           if(ob->meta.bits & JX_META_BIT_GC) {
-            *ob = jx_ob_copy_strong(*ob);
+            *ob = jx_tls_ob_copy_strong(tls,*ob);
           }
           ob++;
         }
@@ -2399,7 +2399,7 @@ jx_status jx__list_combine(jx_tls * tls, jx_list * list1, jx_list * list2)
       } else if(list1 == list2) {
         jx_gc_unlock(&list1->gc);
         {
-          jx_ob ob = jx__list_copy_strong(list2);
+          jx_ob ob = jx__list_copy_strong(tls,list2);
           if(jx_ok(jx__list_combine(tls, list1, ob.data.io.list))) {
             return JX_SUCCESS;
           } else {
@@ -5113,7 +5113,7 @@ jx_ob jx__builtin_copy(jx_tls * tls, jx_ob ob)
 
   switch (ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
   case JX_META_BIT_BUILTIN_ENTITY:     /* 0 */
-    return jx_builtin_new_entity_with_name(tls, jx__ident_gc_copy_strong(ob.data.io.str));
+    return jx_builtin_new_entity_with_name(tls, jx__ident_gc_copy_strong(tls, ob.data.io.str));
     break;
   case JX_META_BIT_BUILTIN_FUNCTION:
     {
@@ -5144,23 +5144,23 @@ jx_ob jx__builtin_copy_strong(jx_tls * tls, jx_ob ob)
 
   switch (ob.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
   case JX_META_BIT_BUILTIN_ENTITY:     /* 0 */
-    return jx_builtin_new_entity_with_name(tls, jx__ident_gc_copy_strong(ob.data.io.str));
+    return jx_builtin_new_entity_with_name(tls, jx__ident_gc_copy_strong(tls, ob.data.io.str));
     break;
   case JX_META_BIT_BUILTIN_FUNCTION:
     {
       jx_function *fn = ob.data.io.function;
       //      printf("NOTICE: copying a function!\n");
-      return jx_function_new_with_def(jx_ob_copy_strong(fn->name),
-                                      jx_ob_copy_strong(fn->args),
-                                      jx_ob_copy_strong(fn->body), fn->mode);
+      return jx_function_new_with_def(jx_tls_ob_copy_strong(tls, fn->name),
+                                      jx_tls_ob_copy_strong(tls, fn->args),
+                                      jx_tls_ob_copy_strong(tls, fn->body), fn->mode);
     }
     break;
   case JX_META_BIT_BUILTIN_MACRO:
     {
       jx_function *fn = ob.data.io.function;
-      return jx_macro_new_with_def(jx_ob_copy_strong(fn->name),
-                                   jx_ob_copy_strong(fn->args),
-                                   jx_ob_copy_strong(fn->body));
+      return jx_macro_new_with_def(jx_tls_ob_copy_strong(tls, fn->name),
+                                   jx_tls_ob_copy_strong(tls, fn->args),
+                                   jx_tls_ob_copy_strong(tls, fn->body));
     }
     break;
   case JX_META_BIT_BUILTIN_OPAQUE_OB:
@@ -5180,16 +5180,16 @@ jx_ob jx__tls_ob_gc_copy(jx_tls * tls, jx_ob ob)
      copied)  */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-    return jx__str_gc_copy_strong(ob.data.io.str);
+    return jx__str_gc_copy_strong(tls, ob.data.io.str);
     break;
   case JX_META_BIT_IDENT:
-    return jx__ident_gc_copy_strong(ob.data.io.str);
+    return jx__ident_gc_copy_strong(tls, ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
-    return jx__list_copy(ob.data.io.list);
+    return jx__list_copy(tls, ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
-    return jx__tls_hash_copy(JX_NULL, ob.data.io.hash);
+    return jx__tls_hash_copy(tls, ob.data.io.hash);
     break;
   case JX_META_BIT_BUILTIN:
     return jx__builtin_copy(tls, ob);
@@ -5203,13 +5203,13 @@ jx_ob jx__tls_ob_gc_copy_strong(jx_tls * tls, jx_ob ob)
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-    return jx__str_gc_copy_strong(ob.data.io.str);
+    return jx__str_gc_copy_strong(tls, ob.data.io.str);
     break;
   case JX_META_BIT_IDENT:
-    return jx__ident_gc_copy_strong(ob.data.io.str);
+    return jx__ident_gc_copy_strong(tls, ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
-    return jx__list_copy_strong(ob.data.io.list);
+    return jx__list_copy_strong(tls, ob.data.io.list);
     break;
   case JX_META_BIT_HASH:
     return jx__tls_hash_copy_strong(tls, ob.data.io.hash);
@@ -5228,32 +5228,32 @@ jx_ob jx__ob_make_strong_with_ob(jx_ob ob)
   if(bits & JX_META_BIT_WEAK_REF) {
     switch (bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
-      jx__list_make_strong(ob.data.io.list);
+      jx__list_make_strong(tls, ob.data.io.list);
       break;
     case JX_META_BIT_HASH:
-      jx__hash_make_strong(ob.data.io.hash);
+      jx__hash_make_strong(tls, ob.data.io.hash);
       break;
     case JX_META_BIT_STR:
-      jx__str_copy_strong(ob.data.io.hash);
+      jx__str_copy_strong(tls, ob.data.io.hash);
       break;
     case JX_META_BIT_IDENT:
-      jx__ident_copy_strong(ob.data.io.hash);
+      jx__ident_copy_strong(tls, ob.data.io.hash);
       break;
     }
   } else {
     /* on entry, we know the object is GC'd */
     switch (bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_STR:
-      return jx__str_gc_copy_strong(ob.data.io.str);
+      return jx__str_gc_copy_strong(tls, ob.data.io.str);
       break;
     case JX_META_BIT_IDENT:
-      return jx__ident_gc_copy_strong(ob.data.io.str);
+      return jx__ident_gc_copy_strong(tls, ob.data.io.str);
       break;
     case JX_META_BIT_LIST:
-      return jx__list_copy(ob.data.io.list);
+      return jx__list_copy(tls, ob.data.io.list);
       break;
     case JX_META_BIT_HASH:
-      return jx__tls_hash_copy(JX_NULL, ob.data.io.hash);
+      return jx__tls_hash_copy(tls, ob.data.io.hash);
       break;
     case JX_META_BIT_BUILTIN:
       return jx__builtin_copy(ob);
@@ -5507,10 +5507,10 @@ jx_ob jx__tls_ob_copy(jx_tls * tls, jx_ob ob)
   /* on entry, we know the object is GC'd */
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
-    return jx__str_gc_copy_strong(ob.data.io.str);
+    return jx__str_gc_copy_strong(tls, ob.data.io.str);
     break;
   case JX_META_BIT_IDENT:
-    return jx__ident_gc_copy_strong(ob.data.io.str);
+    return jx__ident_gc_copy_strong(tls, ob.data.io.str);
     break;
   case JX_META_BIT_LIST:
     return jx__tls_list_copy(tls, ob.data.io.list);
