@@ -90,9 +90,9 @@ JX_INLINE jx_ob jx_safe_entity(jx_tls * tls, jx_ob payload)
         break;
       }
     }
-    jx_tls_hash_set(tls, tls->node, jx_ob_copy(entity), def);   /* implementations always stored at node level */
+    jx_tls_hash_set(tls, tls->node, jx_tls_ob_copy(tls, entity), def);   /* implementations always stored at node level */
   }
-  jx_ob_free(scope);
+  jx_tls_ob_free(tls,scope);
   //  jx_ob_dump(stdout,"entity",entity);
   //printf("%08x [%s]\n",jx_ob_hash_code(entity),jx_ob_as_ident(entity));
   return entity;
@@ -122,7 +122,7 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_tls * tls, jx_ob container,
     case JX_META_BIT_HASH:
       return jx_tls_hash_set
         (tls, container,
-         jx_ob_not_weak_with_ob(jx_ob_copy(target)), jx_ob_not_weak_with_ob(value));
+         jx_ob_not_weak_with_ob(jx_tls_ob_copy(tls, target)), jx_ob_not_weak_with_ob(value));
       break;
     }
     return JX_STATUS_INVALID_CONTAINER;
@@ -300,10 +300,10 @@ JX_INLINE jx_ob jx_safe_incr(jx_tls * tls, jx_ob payload)
     jx_ob result = jx_hash_get(container, target);
     switch (size) {
     case 1:
-      jx_hash_set(container, jx_ob_copy(target), jx_ob_add(result, jx_ob_from_int(1)));
+      jx_hash_set(container, jx_tls_ob_copy(tls, target), jx_ob_add(result, jx_ob_from_int(1)));
       break;
     default:
-      jx_hash_set(container, jx_ob_copy(target), jx_ob_add
+      jx_hash_set(container, jx_tls_ob_copy(tls, target), jx_ob_add
                   (result, jx_list_borrow(payload, 1)));
       break;
     }
@@ -322,10 +322,10 @@ JX_INLINE jx_ob jx_safe_decr(jx_tls * tls, jx_ob payload)
     jx_ob result = jx_hash_get(container, target);
     switch (size) {
     case 1:
-      jx_hash_set(container, jx_ob_copy(target), jx_ob_sub(result, jx_ob_from_int(1)));
+      jx_hash_set(container, jx_tls_ob_copy(tls, target), jx_ob_sub(result, jx_ob_from_int(1)));
       break;
     default:
-      jx_hash_set(container, jx_ob_copy(target), jx_ob_sub
+      jx_hash_set(container, jx_tls_ob_copy(tls, target), jx_ob_sub
                   (result, jx_list_borrow(payload, 1)));
       break;
     }
@@ -339,10 +339,12 @@ JX_INLINE jx_ob jx_safe_synchronize(jx_tls * tls, jx_ob payload)
   jx_ob flag = jx_list_borrow(payload, 1);
   if(jx_null_check(flag))
     flag = jx_ob_from_bool(JX_TRUE);
-  return jx_ob_from_status
+  {
+    return jx_ob_from_status
     (jx_ob_set_synchronized(jx_list_borrow(payload, 0),
                             jx_ob_as_bool(flag),
                             jx_ob_as_bool(jx_list_borrow(payload, 2))));
+  }
 }
 
 JX_INLINE jx_ob jx_safe_synchronized(jx_tls * tls, jx_ob payload)
@@ -459,7 +461,7 @@ JX_INLINE jx_ob jx_safe_output(jx_tls * tls, jx_ob payload)
      instead if defined */
   jx_ob jxon = jx_ob_to_jxon_in_node(tls->node, jx_list_borrow(payload, 0));
   fprintf(stdout, "%s;\n", jx_ob_as_str(&jxon));
-  jx_ob_free(jxon);
+  jx_tls_ob_free(tls, jxon);
   return jx_ob_from_null();
 }
 
@@ -489,27 +491,33 @@ JX_INLINE jx_ob jx_safe_error(jx_tls * tls, jx_ob payload)
      instead if defined */
   jx_ob jxon = jx_ob_to_jxon_in_node(tls->node, jx_list_borrow(payload, 0));
   fprintf(stderr, "%s;\n", jx_ob_as_str(&jxon));
-  jx_ob_free(jxon);
+  jx_tls_ob_free(tls,jxon);
   return jx_ob_from_null();
 }
+
 
 JX_INLINE jx_ob jx_safe_add(jx_tls * tls, jx_ob payload)
 {
   return jx_ob_add(jx_list_borrow(payload, 0), jx_list_borrow(payload, 1));
 }
 
+JX_INLINE jx_ob jx_safe_mul(jx_tls * tls, jx_ob payload)
+{
+  return jx_tls_ob_mul(tls, jx_list_borrow(payload, 0), jx_list_borrow(payload, 1));
+}
+
 JX_BIN_OP(sub)
-  JX_BIN_OP(mul)
-  JX_BIN_OP(div)
-  JX_BIN_OP(idiv)
-  JX_BIN_OP(mod)
-  JX_BIN_OP(and)
-  JX_BIN_OP(or)
 
-  JX_UNI_OP(neg)
-  JX_UNI_OP(not)
+JX_BIN_OP(div)
+JX_BIN_OP(idiv)
+JX_BIN_OP(mod)
+JX_BIN_OP(and)
+JX_BIN_OP(or)
 
-     JX_INLINE jx_ob jx_safe_pow(jx_ob payload)
+JX_UNI_OP(neg)
+JX_UNI_OP(not)
+
+JX_INLINE jx_ob jx_safe_pow(jx_ob payload)
 {
   return jx_ob_pow(jx_list_borrow(payload, 0), jx_list_borrow(payload, 1));
 }
@@ -665,7 +673,7 @@ JX_INLINE jx_ob jx_safe_impl(jx_tls * tls, jx_ob payload)
 
 JX_INLINE jx_ob jx_safe_symbols(jx_tls * tls, jx_ob payload)
 {
-  jx_ob result = jx_ob_copy(jx_tls_scope_borrow(tls));
+  jx_ob result = jx_tls_ob_copy(tls, jx_tls_scope_borrow(tls));
   if(!jx_ob_as_bool(jx_list_borrow(payload, 0))) {
     /* hide builtin symbols unless specifically asked for them */
     jx_tls_hash_delete(tls, result, jx_builtins());

@@ -212,7 +212,7 @@ JX_INLINE jx_status jx_main_exec_in_node(int argc,char *argv[],jx_ob node)
                     }
                   }
                   //jx_jxon_dump_in_node(stdout,"node",node,node);
-                  jx_ob_free(result);
+                  jx_ob_free( result );
                 }
               }
               jx_ob_free(code);

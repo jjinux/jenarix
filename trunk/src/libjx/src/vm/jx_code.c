@@ -1,5 +1,3 @@
-
-
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -383,9 +381,9 @@ static jx_ob jx__code_bind_with_source(jx_tls * tls, jx_ob prebind, jx_ob source
           jx_tls_list_replace(tls, new_entry, 0,
                               jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
           jx_tls_list_replace(tls, new_entry, 1, jx_ident_split_with_dotted(tls, value));
-          jx_hash_set(result, key, new_entry);
+          jx_tls_hash_set(tls,result, key, new_entry);
         } else {
-          jx_hash_set(result, key,
+          jx_tls_hash_set(tls,result, key,
                       jx__code_bind_with_source(tls, prebind, value, unresol_depth - 1));
         }
       }
@@ -456,9 +454,9 @@ static jx_status jx__code_unbound_from_code(jx_tls * tls, jx_ob unbound, jx_ob c
           case JX_SELECTOR_DECR:
           case JX_SELECTOR_RESOLVE:
             {
-              jx_ob sym = jx_list_get(code, 1);
+              jx_ob sym = jx_tls_list_get(tls, code, 1);
               if(jx_list_check(sym)) {
-                jx_tls_ob_replace(tls, &sym, jx_list_get(sym, 0));
+                jx_tls_ob_replace(tls, &sym, jx_tls_list_get(tls, sym, 0));
               }
               jx_list_unshift(unbound, sym);
             }
@@ -494,26 +492,43 @@ jx_ob jx_code_unbound_from_code(jx_ob code)
   return unbound;
 }
 
-JX_INLINE void jx__code_copy_weak_transients(jx_tls * tls, jx_ob * ob, jx_int size)
+JX_INLINE void jx__code_result_copy_weak_transients(jx_tls * tls, jx_ob * ob, jx_int size)
 {
   while(size--) {
-    if(ob->meta.bits & JX_META_BIT_WEAK_REF)
-      *ob = jx_tls_ob_copy(tls, *ob);   /* NOTE: shared/synchronized objects remain weak */
+    if(ob->meta.bits & JX_META_BIT_WEAK_REF) {
+      /* this is the point at which transient weak references either
+         become genuine (potentially counted) weak references or are
+         copied into strongly-referenced memory */
+      *ob = JX_OWN(tls, jx_tls_ob_copy(tls, *ob)); 
+    }
     ob++;
   }
 }
 
-JX_INLINE void jx_code_copy_weak_transients(jx_tls * tls, jx_ob ob)
+JX_INLINE void jx_code_result_copy_weak_transients(jx_tls * tls, jx_ob ob)
 {
-  jx_int size = jx_list_size(ob);       /* LOCKING? */
-  jx_jxon_dump(stdout, "input", ob);
-  if(jx_list_size(ob)) {
+  jx_int size = jx_list_size(ob);     
+  if(size) {
     jx_list *list = ob.data.io.list;
     if(!list->packed_meta_bits) {       /* normal object input */
-      jx__code_copy_weak_transients(tls, list->data.ob_vla, size);
+      jx__code_result_copy_weak_transients(tls, list->data.ob_vla, size);
     }
   }
-  jx_jxon_dump(stdout, "output", ob);
+}
+
+JX_INLINE void jx__code_replace_payload(jx_tls * tls, jx_ob *ob, jx_ob result)
+{
+  jx_int size = jx_list_size(*ob);      
+  if(size) {
+    jx_list *list = ob->data.io.list;
+    if(!list->packed_meta_bits) {       /* normal object input */
+      jx_ob *ob_vla = list->data.ob_vla;
+      while(size--) {
+        jx_tls_ob_replace_with_null(tls, ob_vla++);
+      }
+    }
+  }
+  jx_tls_ob_replace(tls, ob, result);
 }
 
 JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payload)
@@ -524,21 +539,21 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payl
   switch (callable.meta.bits & JX_META_MASK_BUILTIN_TYPE) {
   case JX_META_BIT_BUILTIN_ENTITY:
     /* nothing should happen right now */
-    jx_list_unshift(payload, callable);
+    jx_list_unshift(payload, callable); /* tls */
     return payload;
     break;
   case JX_META_BIT_BUILTIN_NATIVE_FN:
     {
       jx_native_fn native_fn = callable.data.io.native_fn;
       if(native_fn) {
-        jx_ob result = native_fn(tls->node, jx_ob_not_weak_with_ob(payload));
+        jx_ob result = native_fn(tls->node, jx_tls_ob_not_weak_with_ob(tls, payload));
         jx_tls_ob_free(tls, callable);
         return result;
       }
     }
     break;
   case JX_META_BIT_BUILTIN_FUNCTION:
-    return jx__function_call(tls, callable, jx_ob_not_weak_with_ob(payload));
+    return jx__function_call(tls, callable, jx_tls_ob_not_weak_with_ob(tls, payload));
     break;
   case JX_META_BIT_BUILTIN_SELECTOR:
     {
@@ -550,10 +565,10 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payl
         tls->leave = -1;
         if(jx_list_size(payload)) {
           tls->have_result = JX_TRUE;
-          jx_tls_ob_replace(tls, &tls->result, jx_ob_not_weak_with_ob
-                            (jx_list_remove(payload, 0)));
+          jx__code_replace_payload(tls, &tls->result, jx_tls_ob_not_weak_with_ob
+                                   (tls, jx_list_remove(payload, 0)));
         } else {
-          jx_tls_ob_replace(tls, &payload, jx_ob_from_opcode(JX_OPCODE_RETURN, 0));
+          jx__code_replace_payload(tls, &payload, jx_ob_from_opcode(JX_OPCODE_RETURN, 0));
         }
         break;
       case JX_SELECTOR_TAIL:
@@ -561,9 +576,9 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payl
         tls->tail_call = JX_TRUE;
         if(jx_list_size(payload)) {
           tls->have_result = JX_TRUE;
-          jx_tls_ob_replace(tls, &tls->result, jx_ob_not_weak_with_ob(payload));
+          jx__code_replace_payload(tls, &tls->result, jx_tls_ob_not_weak_with_ob(tls, payload));
         } else {
-          jx_tls_ob_replace(tls, &payload, jx_ob_from_opcode(JX_OPCODE_RETURN, 0));
+          jx__code_replace_payload(tls, &payload, jx_ob_from_opcode(JX_OPCODE_RETURN, 0));
         }
         payload = jx_ob_from_null();
         break;
@@ -571,196 +586,194 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payl
         /* simply returns payload as a list */
         break;
       case JX_SELECTOR_ENTITY:
-        jx_tls_ob_replace(tls, &payload, jx_safe_entity(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_entity(tls, payload));
         break;
       case JX_SELECTOR_MAP_SET:
-        jx_tls_ob_replace(tls, &payload, jx_safe_map_set(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_map_set(tls, payload));
         break;
       case JX_SELECTOR_SET:
-        jx_tls_ob_replace(tls, &payload, jx_safe_set(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_set(tls, payload));
         break;
       case JX_SELECTOR_GET:
-        jx_tls_ob_replace(tls, &payload, jx_safe_get(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_get(tls, payload));
         break;
       case JX_SELECTOR_TAKE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_take(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_take(tls, payload));
         break;
       case JX_SELECTOR_DEL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_del(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_del(tls, payload));
         break;
       case JX_SELECTOR_SIZE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_size(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_size(payload));
         break;
       case JX_SELECTOR_SAME:
-        jx_tls_ob_replace(tls, &payload, jx_safe_same(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_same(payload));
         break;
       case JX_SELECTOR_IDENTICAL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_identical(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_identical(payload));
         break;
       case JX_SELECTOR_EQ:
-        jx_tls_ob_replace(tls, &payload, jx_safe_eq(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_eq(tls, payload));
         break;
       case JX_SELECTOR_NE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_ne(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_ne(tls, payload));
         break;
       case JX_SELECTOR_LT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_lt(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_lt(tls, payload));
         break;
       case JX_SELECTOR_GT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_gt(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_gt(tls, payload));
         break;
       case JX_SELECTOR_LE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_le(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_le(tls, payload));
         break;
       case JX_SELECTOR_GE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_ge(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_ge(tls, payload));
         break;
       case JX_SELECTOR_ADD:
-        jx_tls_ob_replace(tls, &payload, jx_safe_add(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_add(tls, payload));
         break;
       case JX_SELECTOR_SUB:
-        jx_tls_ob_replace(tls, &payload, jx_safe_sub(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_sub(payload));
         break;
       case JX_SELECTOR_MUL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_mul(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_mul(tls, payload));
         break;
       case JX_SELECTOR_DIV:
-        jx_tls_ob_replace(tls, &payload, jx_safe_div(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_div(payload));
         break;
       case JX_SELECTOR_IDIV:
-        jx_tls_ob_replace(tls, &payload, jx_safe_idiv(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_idiv(payload));
         break;
       case JX_SELECTOR_MOD:
-        jx_tls_ob_replace(tls, &payload, jx_safe_mod(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_mod(payload));
         break;
-
       case JX_SELECTOR_AND:
-        jx_tls_ob_replace(tls, &payload, jx_safe_and(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_and(payload));
         break;
       case JX_SELECTOR_OR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_or(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_or(payload));
         break;
       case JX_SELECTOR_POW:
-        jx_tls_ob_replace(tls, &payload, jx_safe_pow(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_pow(payload));
         break;
 
       case JX_SELECTOR_NEG:
-        jx_tls_ob_replace(tls, &payload, jx_safe_neg(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_neg(payload));
         break;
       case JX_SELECTOR_NOT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_not(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_not(payload));
         break;
 
       case JX_SELECTOR_OUTPUT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_output(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_output(tls, payload));
         break;
       case JX_SELECTOR_ERROR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_error(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_error(tls, payload));
         break;
 
       case JX_SELECTOR_APPEND:
-        jx_tls_ob_replace(tls, &payload, jx_safe_append(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_append(tls, payload));
         break;
       case JX_SELECTOR_EXTEND:
-        jx_tls_ob_replace(tls, &payload, jx_safe_extend(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_extend(tls, payload));
         break;
       case JX_SELECTOR_INSERT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_insert(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_insert(tls, payload));
         break;
       case JX_SELECTOR_RESIZE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_resize(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_resize(tls, payload));
         break;
       case JX_SELECTOR_POP:
-        jx_tls_ob_replace(tls, &payload, jx_safe_pop(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_pop(tls, payload));
         break;
       case JX_SELECTOR_PUSH:
-        jx_tls_ob_replace(tls, &payload, jx_safe_append(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_append(tls, payload));
         break;
       case JX_SELECTOR_SHIFT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_shift(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_shift(tls, payload));
         break;
       case JX_SELECTOR_UNSHIFT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_unshift(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_unshift(tls, payload));
         break;
       case JX_SELECTOR_SLICE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_slice(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_slice(tls, payload));
         break;
       case JX_SELECTOR_CUTOUT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_cutout(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_cutout(tls, payload));
         break;
       case JX_SELECTOR_REVERSE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_reverse(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_reverse(tls, payload));
         break;
       case JX_SELECTOR_SORT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_sort(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_sort(tls, payload));
         break;
       case JX_SELECTOR_IMPL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_impl(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_impl(tls, payload));
         break;
       case JX_SELECTOR_DECR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_decr(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_decr(tls, payload));
         break;
       case JX_SELECTOR_INCR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_incr(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_incr(tls, payload));
         break;
       case JX_SELECTOR_RANGE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_range(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_range(tls, payload));
         break;
       case JX_SELECTOR_FILL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_fill(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_fill(tls, payload));
         break;
       case JX_SELECTOR_SYMBOLS:
-        jx_tls_ob_replace(tls, &payload, jx_safe_symbols(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_symbols(tls, payload));
         break;
       case JX_SELECTOR_HAS:
-        jx_tls_ob_replace(tls, &payload, jx_safe_has(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_has(tls, payload));
         break;
       case JX_SELECTOR_STR:
-        jx_tls_ob_replace(tls, &payload, jx_safe_str(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_str(tls, payload));
         break;
       case JX_SELECTOR_INT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_int(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_int(payload));
         break;
       case JX_SELECTOR_FLOAT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_float(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_float(payload));
         break;
       case JX_SELECTOR_BOOL:
-        jx_tls_ob_replace(tls, &payload, jx_safe_bool(payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_bool(payload));
         break;
       case JX_SELECTOR_SYNCHRONIZE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_synchronize(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_synchronize(tls, payload));
         break;
       case JX_SELECTOR_SYNCHRONIZED:
-        jx_tls_ob_replace(tls, &payload, jx_safe_synchronized(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_synchronized(tls, payload));
         break;
       case JX_SELECTOR_SHARE:
-        jx_tls_ob_replace(tls, &payload, jx_safe_share(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_share(tls, payload));
         break;
       case JX_SELECTOR_SHARED:
-        jx_tls_ob_replace(tls, &payload, jx_safe_shared(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_shared(tls, payload));
         break;
       case JX_SELECTOR_ASSERT:
-        jx_tls_ob_replace(tls, &payload, jx_safe_assert(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_assert(tls, payload));
         break;
       case JX_SELECTOR_DUMP:
-        jx_tls_ob_replace(tls, &payload, jx_safe_dump(tls, payload));
+        jx__code_replace_payload(tls, &payload, jx_safe_dump(tls, payload));
         break;
       case JX_SELECTOR_NEW:
         payload = jx_tls_ob_with_new(tls, payload);
         break;
       case JX_SELECTOR_NULL_OP:
-        jx_tls_ob_replace_with_null(tls, &payload);
+        jx__code_replace_payload(tls, &payload, jx_ob_from_null());
         break;
-      default:                 /* unrecognized selector? purge weak */
+      default: /* unrecognized selector? purge weak */
         jx_tls_ob_free(tls, callable);
-        jx_tls_ob_replace_with_null(tls, &payload);
+        jx__code_replace_payload(tls, &payload, jx_ob_from_null());
         break;
       }
     }
     return payload;
     break;
   }
-
   jx_tls_ob_free(tls, callable);
   jx_tls_ob_free(tls, payload);
 
@@ -969,7 +982,7 @@ JX_INLINE jx_ob jx__code_pareval(jx_tls * tls, jx_int flags, jx_ob src_list)
       jx_vla_free(&thread_info);
     }
   }
-  jx_ob_free(src_list);
+  jx_tls_ob_free(tls, src_list);
   return result;
 }
 
@@ -1260,15 +1273,15 @@ static jx_ob jx__code_close_with_args(jx_tls * tls, jx_ob code, jx_ob args)
     {
       jx_ob kw_args = jx_list_borrow(args, 1);
       if(!jx_hash_check(kw_args)) {
-        jx_ob new_args = jx_list_new();
-        jx_list_append(new_args, args);
-        jx_list_append(new_args, closed);
+        jx_ob new_args = jx_tls_list_new(tls);
+        jx_tls_list_append(tls, new_args, args);
+        jx_tls_list_append(tls, new_args, closed);
         args = new_args;
       } else {
         jx_ob iter = jx_list_new_from_hash(kw_args);
         jx_int i, size = jx_list_size(iter);
         for(i = 0; i < size; i += 2) {
-          jx_hash_set(closed,
+          jx_tls_hash_set(tls,closed,
                       jx_list_swap_with_null(iter, i),
                       jx_list_swap_with_null(iter, i + 1));
         }
@@ -1617,7 +1630,9 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                     jx_ob *ob = inp_list->data.ob_vla;
                     for(i = 0; i < size; i++) {
                       for(j = 0; j < expr_size; j++) {
-                        jx_hash_set(scope, jx_list_get(expr, j), jx_list_get(*ob, j));
+                        jx_tls_hash_set(tls, scope,
+                                        jx_tls_list_get(tls, expr, j), 
+                                        jx_tls_list_get(tls, *ob, j));
                       }
                       ob++;
                       jx_tls_ob_replace(tls_, &result,
@@ -1627,7 +1642,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                     if(!inp_list->packed_meta_bits) {   /* normal object input */
                       jx_ob *ob = inp_list->data.ob_vla;
                       for(i = 0; i < size; i++) {
-                        jx_hash_set(scope, expr, jx_ob_copy(*(ob++)));
+                        jx_tls_hash_set(tls,scope, expr, jx_ob_copy(*(ob++)));
                         jx_tls_ob_replace(tls_, &result,
                                           jx_tls_code_exec(tls_, flags_, body));
                       }
@@ -1637,7 +1652,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                       jx_int *inp_int = inp_list->data.int_vla;
                       for(i = 0; i < size; i++) {
                         ob.data.io.int_ = *(inp_int++);
-                        jx_hash_set(scope, expr, ob);
+                        jx_tls_hash_set(tls,scope, expr, ob);
                         jx_tls_ob_replace(tls_, &result,
                                           jx_tls_code_exec(tls_, flags_, body));
                       }
@@ -1646,7 +1661,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                       jx_float *inp_float = inp_list->data.float_vla;
                       for(i = 0; i < size; i++) {
                         ob.data.io.float_ = *(inp_float++);
-                        jx_hash_set(scope, expr, ob);
+                        jx_tls_hash_set(tls,scope, expr, ob);
                         jx_tls_ob_replace(tls_, &result,
                                           jx_tls_code_exec(tls_, flags_, body));
                       }
@@ -1699,8 +1714,8 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                                                        jx_list_swap_with_null(value_list,
                                                                               i));
                 }
-                jx_ob_free(path_list);
-                jx_ob_free(value_list);
+                jx_tls_ob_free(tls,path_list);
+                jx_tls_ob_free(tls,value_list);
                 return jx_ob_from_status(status);
               }
               break;
@@ -1881,7 +1896,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                                    [method-fn self args] */
 
               if(jx_builtin_callable_check(method)) {
-                jx__list_insert(result_list, 0, method);
+                jx__list_insert(tls_, result_list, 0, method);
                 size++;
                 result_vla = result_list->data.ob_vla;
               } else {
@@ -1906,7 +1921,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
             if(flags_ & JX_EVAL_DEFER_INVOCATION) {     /* expanding a macro... */
 
               if(!(flags_ & JX_EVAL_ALLOW_NESTED_WEAK_REFS)) {
-                jx__code_copy_weak_transients(tls, result_vla, size);
+                jx__code_result_copy_weak_transients(tls, result_vla, size);
               }
 
               return result;
@@ -1916,7 +1931,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                  (transient weak references become real copies)  */
 
               if(!(flags_ & JX_EVAL_ALLOW_NESTED_WEAK_REFS)) {
-                jx__code_copy_weak_transients(tls, result_vla, size);
+                jx__code_result_copy_weak_transients(tls, result_vla, size);
               }
 
               if(flags_ & (JX_EVAL_DEBUG_DUMP_SUBEX)) {
@@ -1957,8 +1972,8 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                 }
                 break;
               default:
-                jx__code_copy_weak_transients(tls, result_list->data.ob_vla + 1,
-                                              size - 1);
+                jx__code_result_copy_weak_transients
+                  (tls, result_list->data.ob_vla + 1,size - 1);
                 {
                   jx_ob callable = jx__list_remove(result_list, 0);
                   return jx__code_apply_callable(tls_, callable, result);
@@ -1980,7 +1995,7 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
         jx_ob key = jx_list_remove(list, 0);
         jx_ob value = jx_list_remove(list, 0);
         size = size - 2;
-        jx_hash_set(result, key, jx_tls_code_eval(tls_, flags_, value));
+        jx_tls_hash_set(tls,result, key, jx_tls_code_eval(tls_, flags_, value));
         jx_tls_ob_free(tls_, value);
       }
       jx_tls_ob_free(tls_, list);
@@ -2078,7 +2093,8 @@ jx_ob jx__tls_code_eval(jx_tls * tls, jx_int flags, jx_ob code)
   jx_ob result;
   //  jx_jxon_dump(stdout,"jx__tls_code_eval entered",code);
   if(tls) {
-    result = jx_ob_not_weak_with_ob(jx__tls_code_eval_to_weak(tls, flags, code));
+    result = JX_OWN(tls, jx_tls_ob_not_weak_with_ob
+                    (tls, jx__tls_code_eval_to_weak(tls, flags, code)));
   } else {
     result = jx_ob_from_null();
   }
@@ -2091,7 +2107,8 @@ jx_ob jx__tls_code_exec(jx_tls * tls, jx_int flags, jx_ob code)
   //jx_jxon_dump(stdout,"                       and node",node,node);
   jx_ob result;
   if(tls) {
-    result = jx_ob_not_weak_with_ob(jx__tls_code_exec_to_weak(tls, flags, code));
+    result = JX_OWN(tls, jx_tls_ob_not_weak_with_ob
+                    (tls, jx__tls_code_exec_to_weak(tls, flags, code)));
   } else {
     result = jx_ob_from_null();
   }
