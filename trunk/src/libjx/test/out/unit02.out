@@ -736,6 +736,212 @@ null;
 # resolved value references must refer to object which lie somewhere
 # on the directed acyclic graph of the current scope (and are thus
 # persistent)
+# entities can now be created using Python class keyword
+# the __init__ method is called at construction
+# parsed: (null_op (entity SquareMatrix null null
+#             [ (def __init__
+#                 (self size)
+#                 [ (set self.dim
+#                     (nop size size)), (set data
+#                     []),
+#                   (foreach a
+#                     (range size)
+#                     [ (foreach b
+#                         (range size)
+#                         [ (if (eq a b)
+#                             [ (data.append 1.0)]
+#                             [ (data.append 0.0)])])]),
+#                   (set self.data data),
+#                   (print (add (add "Initialized with "
+#                         (str (len self.data))) " values."))])] __init__))
+# source: (null_op (entity SquareMatrix null null
+#             [ (def __init__
+#                 (self size)
+#                 [ (set self.dim
+#                     (nop size size)), (set data
+#                     []),
+#                   (foreach a
+#                     (range size)
+#                     [ (foreach b
+#                         (range size)
+#                         [ (if (eq a b)
+#                             [ (data.append 1.0)]
+#                             [ (data.append 0.0)])])]),
+#                   (set self.data data),
+#                   (print (add (add "Initialized with "
+#                         (str (size self.data))) " values."))])] __init__))
+#   eval: (`null_op (`entity SquareMatrix null null
+#             [ (`def __init__
+#                 (self size)
+#                 [ (`set (self dim)
+#                     (`nop (`resolve size)
+#                       (`resolve size))), (`set data
+#                     []),
+#                   (`foreach a
+#                     (`range (`resolve size))
+#                     [ (`foreach b
+#                         (`range (`resolve size))
+#                         [ (`if (`eq (`resolve a)
+#                               (`resolve b))
+#                             [ [ (`resolve (data append)),1.0]]
+#                             [ [ (`resolve (data append)),0.0]])])]),
+#                   (`set (self data)
+#                     (`resolve data)),
+#                   ( #native_fn`print (`add (`add "Initialized with "
+#                         (`str (`size (`resolve (self data))))) " values."))])] __init__))
+null;
+
+# parsed: (set m1
+#           (new SquareMatrix 30))
+# source: (set m1
+#           (new SquareMatrix 30))
+#   eval: (`set m1
+#           (`new (`resolve SquareMatrix) 30))
+Initialized with 900 values.
+null;
+
+# parsed: (print m1.dim)
+# source: (print m1.dim)
+#   eval: ( #native_fn`print (`resolve (m1 dim)))
+[30,30]
+null;
+
+# parsed: (print (len m1.data))
+# source: (print (size m1.data))
+#   eval: ( #native_fn`print (`size (`resolve (m1 data))))
+900
+null;
+
+# confirm ability of classess to call other classes
+# parsed: (null_op (entity Secondary null null
+#             [ (def __init__
+#                 (self mulval)
+#                 [ (print "secondary __init__ called"), (set self.mulval mulval)]), (def mult
+#                 (self x)
+#                 [ (return (nop x self.mulval
+#                       (mul self.mulval x)))])] __init__))
+# source: (null_op (entity Secondary null null
+#             [ (def __init__
+#                 (self mulval)
+#                 [ (print "secondary __init__ called"), (set self.mulval mulval)]), (def mult
+#                 (self x)
+#                 [ (return (nop x self.mulval
+#                       (mul self.mulval x)))])] __init__))
+#   eval: (`null_op (`entity Secondary null null
+#             [ (`def __init__
+#                 (self mulval)
+#                 [ ( #native_fn`print "secondary __init__ called"), (`set (self mulval)
+#                     (`resolve mulval))]), (`def mult
+#                 (self x)
+#                 [ (`return (`nop (`resolve x)
+#                       (`resolve (self mulval))
+#                       (`mul (`resolve (self mulval))
+#                         (`resolve x))))])] __init__))
+null;
+
+# parsed: (null_op (entity Primary null null
+#             [ (def __init__
+#                 (self)
+#                 [ (print "primary __init__ called"), (set self.secondary
+#                     (new Secondary 3))]), (def doMulti
+#                 (self value)
+#                 [ (return (self.secondary.mult 5))])] __init__))
+# source: (null_op (entity Primary null null
+#             [ (def __init__
+#                 (self)
+#                 [ (print "primary __init__ called"), (set self.secondary
+#                     (new Secondary 3))]), (def doMulti
+#                 (self value)
+#                 [ (return (self.secondary.mult 5))])] __init__))
+#   eval: (`null_op (`entity Primary null null
+#             [ (`def __init__
+#                 (self)
+#                 [ ( #native_fn`print "primary __init__ called"), (`set (self secondary)
+#                     (`new (`resolve Secondary) 3))]), (`def doMulti
+#                 (self value)
+#                 [ (`return [ (`resolve (self secondary mult)),5])])] __init__))
+null;
+
+# parsed: (set obj
+#           (new Primary))
+# source: (set obj
+#           (new Primary))
+#   eval: (`set obj
+#           (`new (`resolve Primary)))
+primary __init__ called
+secondary __init__ called
+null;
+
+# parsed: (print (obj.doMulti 2))
+# source: (print (obj.doMulti 2))
+#   eval: ( #native_fn`print [ (`resolve (obj doMulti)),2])
+[5,3,15]
+null;
+
+# confirm inner class support
+# parsed: (null_op (entity Outer null null
+#             [ (null_op (entity Inner null null
+#                   [ (def __init__
+#                       (self mulval)
+#                       [ (print "inner __init__ called"), (set self.mulval mulval)]), (def mult
+#                       (self x)
+#                       [ (return (nop x self.mulval
+#                             (mul self.mulval x)))])] __init__)), (def __init__
+#                 (self)
+#                 [ (print "outer __init__ called"), (set self.inner
+#                     (new self.Inner 3))]),
+#               (def doMulti
+#                 (self value)
+#                 [ (return (self.inner.mult 5))])] __init__))
+# source: (null_op (entity Outer null null
+#             [ (null_op (entity Inner null null
+#                   [ (def __init__
+#                       (self mulval)
+#                       [ (print "inner __init__ called"), (set self.mulval mulval)]), (def mult
+#                       (self x)
+#                       [ (return (nop x self.mulval
+#                             (mul self.mulval x)))])] __init__)), (def __init__
+#                 (self)
+#                 [ (print "outer __init__ called"), (set self.inner
+#                     (new self.Inner 3))]),
+#               (def doMulti
+#                 (self value)
+#                 [ (return (self.inner.mult 5))])] __init__))
+#   eval: (`null_op (`entity Outer null null
+#             [ (`null_op (`entity Inner null null
+#                   [ (`def __init__
+#                       (self mulval)
+#                       [ ( #native_fn`print "inner __init__ called"), (`set (self mulval)
+#                           (`resolve mulval))]), (`def mult
+#                       (self x)
+#                       [ (`return (`nop (`resolve x)
+#                             (`resolve (self mulval))
+#                             (`mul (`resolve (self mulval))
+#                               (`resolve x))))])] __init__)), (`def __init__
+#                 (self)
+#                 [ ( #native_fn`print "outer __init__ called"), (`set (self inner)
+#                     (`new (`resolve (self Inner)) 3))]),
+#               (`def doMulti
+#                 (self value)
+#                 [ (`return [ (`resolve (self inner mult)),5])])] __init__))
+null;
+
+# parsed: (set obj
+#           (new Outer))
+# source: (set obj
+#           (new Outer))
+#   eval: (`set obj
+#           (`new (`resolve Outer)))
+outer __init__ called
+inner __init__ called
+null;
+
+# parsed: (print (obj.doMulti 2))
+# source: (print (obj.doMulti 2))
+#   eval: ( #native_fn`print [ (`resolve (obj doMulti)),2])
+[5,3,15]
+null;
+
 # confirm ability to curry instance methods into functions
 # parsed: (null_op (entity A null null
 #             [ (def __init__

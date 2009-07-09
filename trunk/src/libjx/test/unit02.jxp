@@ -272,6 +272,77 @@ print tmp.d.e
 # on the directed acyclic graph of the current scope (and are thus
 # persistent)
 
+# entities can now be created using Python class keyword
+
+class SquareMatrix:
+
+    # the __init__ method is called at construction
+
+    def __init__(self, size):
+        self.dim = [size, size]
+        data = []
+        for a in range(size):
+            for b in range(size):
+                if a==b:
+                    data.append(1.0)
+                else:
+                    data.append(0.0)
+        self.data = data
+        print "Initialized with "+str(len(self.data))+" values."
+
+m1 = new(SquareMatrix,30)
+print m1.dim
+print len(m1.data)
+
+# confirm ability of classess to call other classes
+
+class Secondary:
+
+    def __init__(self, mulval):
+        print "secondary __init__ called"
+        self.mulval = mulval
+ 
+    def mult(self,x):
+        return [x,self.mulval,self.mulval * x]
+   
+class Primary:
+        
+    def __init__(self):
+        print "primary __init__ called"
+        self.secondary = new(Secondary,3)
+
+    def doMulti(self, value):
+        return self.secondary.mult(5)
+
+obj = new(Primary)
+
+print obj.doMulti(2)
+
+# confirm inner class support
+
+class Outer:
+        
+    class Inner:
+
+        def __init__(self, mulval):
+            print "inner __init__ called"
+            self.mulval = mulval
+
+        def mult(self,x):
+            return [x,self.mulval,self.mulval * x]
+   
+    def __init__(self):
+        print "outer __init__ called"
+        self.inner = new(self.Inner,3)
+
+    def doMulti(self, value):
+        return self.inner.mult(5)
+
+obj = new(Outer)
+
+print obj.doMulti(2)
+
+
 # confirm ability to curry instance methods into functions
 
 class A:
