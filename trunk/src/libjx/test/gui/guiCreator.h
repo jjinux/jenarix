@@ -4,7 +4,7 @@
 #include "jx_public.h"
 #include "jx_main_tools.h"
 #ifdef JX_QT
-#include "jxmenu.h"
+#include "jxaction.h"
 #include <QWidget>
 #include <QSplitter>
 #include <QMenuBar>
@@ -19,7 +19,7 @@
 #ifdef JX_QT
 #define JX_WIDGET QWidget
 #define JX_SPLITTER QSplitter
-#define JX_MENU JXMenu
+#define JX_MENU QMenu
 #else
 #define JX_WIDGET void
 #define JX_SPLITTER void

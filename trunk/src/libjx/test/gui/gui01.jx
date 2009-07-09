@@ -19,9 +19,10 @@ set bwidget {source: "bwidget.html", height: 100};
 
 # menu definition
 # file menu
+def file_exit [] [output "Exit, stage left"];
 set menu_file (MenuItem [
    "Open...",
-   "Exit"
+    (MenuItem [] {label: "Exit", callback: file_exit})
    ]
    {label: "File"})
 ;

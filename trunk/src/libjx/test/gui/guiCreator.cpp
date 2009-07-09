@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "guiCreator.h"
 #ifdef JX_QT
 #include "glwidget.h"
-#include "jxmenu.h"
+#include "jxaction.h"
 #include <QtDebug>
 #include <QTextEdit>
 #include <QtOpenGL>
@@ -234,7 +234,6 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
     if (out_type & GUI_PRINT) fprintf(stderr,"\n");
   } else if (jx_builtin_callable_check(callback)) {
     if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback);
-    jx_function_call(callback, callback, jx_ob());
   } else {
     if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback);
   }
@@ -247,12 +246,12 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
       menu_widget->addMenu(sub_menu);
     } else {
 
-      QAction *theAct = new QAction(jx_ob_as_str(&label), menu_widget);
+      JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, menu_widget);
       //theAct->setShortcut(tr("Ctrl+B"));
       menu_widget->addAction(theAct);
       if (!jx_null_check(callback)) {
         if (jx_builtin_callable_check(callback)) {
-          QObject::connect(menu_widget, SIGNAL(triggered(QAction *)), menu_widget, SLOT(jx_callback(QAction *)));
+          QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
         }
       }
       if (has_checkbox) {

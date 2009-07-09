@@ -20,7 +20,7 @@ QTLIBS=-L/usr/X11R6/lib \
  -lQtCore \
  -lGLU \
  -lGL
-QTOBS=glwidget.o moc_glwidget.o jxmenu.o moc_jxmenu.o
+QTOBS=glwidget.o moc_glwidget.o jxaction.o moc_jxaction.o
 QTFLAGS=-DJX_QT
 #uncomment the following lines to disable QT
 #MOC=
@@ -39,16 +39,16 @@ guiCreator.o: guiCreator.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
 glwidget.o: glwidget.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
-jxmenu.o: jxmenu.cpp
+jxaction.o: jxaction.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
 moc_glwidget.o: moc_glwidget.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
-moc_jxmenu.o: moc_jxmenu.cpp
+moc_jxaction.o: moc_jxaction.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
 
 moc_glwidget.cpp: glwidget.h
 	$(MOC) -o $@ $<
-moc_jxmenu.cpp: jxmenu.h
+moc_jxaction.cpp: jxaction.h
 	$(MOC) -o $@ $<
 
 guiCreator.o: guiCreator.h
