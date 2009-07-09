@@ -111,17 +111,18 @@ null;
 # parsed: (foreach (a b)
 #           (nop [1, 2]
 #             [3, 4])
-#           [ (print (a b))])
+#           [ (print a b)])
 # source: (foreach (a b)
 #           (nop [1, 2]
 #             [3, 4])
-#           [ (print (a b))])
+#           [ (print a b)])
 #   eval: (`foreach (a b)
 #           (`nop [1, 2]
 #             [3, 4])
-#           [ ( #native_fn`print [ (`resolve a), (`resolve b)])])
-[1,2]
-[3,4]
+#           [ ( #native_fn`print (`resolve a)
+#               (`resolve b))])
+1 2
+3 4
 null;
 
 # parsed: (set x 1)
@@ -183,30 +184,31 @@ null;
 
 # parsed: (def fn
 #           (a b)
-#           [ (print ["The sum of",a,"and",b,"is",
-#                 (add a b)])])
+#           [ (print "The sum of" a "and" b "is"
+#               (add a b))])
 # source: (def fn
 #           (a b)
-#           [ (print ["The sum of",a,"and",b,"is",
-#                 (add a b)])])
+#           [ (print "The sum of" a "and" b "is"
+#               (add a b))])
 #   eval: (`def fn
 #           (a b)
-#           [ ( #native_fn`print ["The sum of", (`resolve a),"and",
-#                 (`resolve b),"is",
-#                 (`add (`resolve a)
-#                   (`resolve b))])])
+#           [ ( #native_fn`print "The sum of"
+#               (`resolve a) "and"
+#               (`resolve b) "is"
+#               (`add (`resolve a)
+#                 (`resolve b)))])
 null;
 
 # parsed: (fn 1 2)
 # source: (fn 1 2)
 #   eval: [ (`resolve fn),1,2]
-["The sum of",1,"and",2,"is",3]
+The sum of 1 and 2 is 3
 null;
 
 # parsed: (fn 3 6)
 # source: (fn 3 6)
 #   eval: [ (`resolve fn),3,6]
-["The sum of",3,"and",6,"is",9]
+The sum of 3 and 6 is 9
 null;
 
 # we have map / lambda
@@ -251,7 +253,7 @@ null;
 #                   (sub b 1)),
 #                 (while c
 #                   [ (set c
-#                       (sub c 1)), (print (a b c))]),null,
+#                       (sub c 1)), (print a b c)]),
 #                 (set a 0)]),
 #             (print b),
 #             (if 1
@@ -264,7 +266,7 @@ null;
 #                   (sub b 1)),
 #                 (while c
 #                   [ (set c
-#                       (sub c 1)), (print (a b c))]),null,
+#                       (sub c 1)), (print a b c)]),
 #                 (set a 0)]),
 #             (print b),
 #             (if 1
@@ -279,22 +281,23 @@ null;
 #                   (`sub (`resolve b) 1)),
 #                 (`while (`resolve c)
 #                   [ (`set c
-#                       (`sub (`resolve c) 1)), ( #native_fn`print [ (`resolve a), (`resolve b),
-#                         (`resolve c)])]),null,
+#                       (`sub (`resolve c) 1)), ( #native_fn`print (`resolve a)
+#                       (`resolve b)
+#                       (`resolve c))]),
 #                 (`set a 0)]),
 #             ( #native_fn`print (`resolve b)),
 #             (`if 1
 #               [true])])
-[4,3,3]
-[4,3,2]
-[4,3,1]
-[4,3,0]
-[0,2,2]
-[0,2,1]
-[0,2,0]
-[0,1,1]
-[0,1,0]
-[0,0,0]
+4 3 3
+4 3 2
+4 3 1
+4 3 0
+0 2 2
+0 2 1
+0 2 0
+0 1 1
+0 1 0
+0 0 0
 0
 true;
 
@@ -321,30 +324,31 @@ null;
 #               [5, 6]
 #               [ (foreach c
 #                   [7, 6]
-#                   [ (print (a b c))])])])
+#                   [ (print a b c)])])])
 # source: (foreach a
 #           [1, 2]
 #           [ (foreach b
 #               [5, 6]
 #               [ (foreach c
 #                   [7, 6]
-#                   [ (print (a b c))])])])
+#                   [ (print a b c)])])])
 #   eval: (`foreach a
 #           [1, 2]
 #           [ (`foreach b
 #               [5, 6]
 #               [ (`foreach c
 #                   [7, 6]
-#                   [ ( #native_fn`print [ (`resolve a), (`resolve b),
-#                         (`resolve c)])])])])
-[1,5,7]
-[1,5,6]
-[1,6,7]
-[1,6,6]
-[2,5,7]
-[2,5,6]
-[2,6,7]
-[2,6,6]
+#                   [ ( #native_fn`print (`resolve a)
+#                       (`resolve b)
+#                       (`resolve c))])])])
+1 5 7
+1 5 6
+1 6 7
+1 6 6
+2 5 7
+2 5 6
+2 6 7
+2 6 6
 null;
 
 # parsed: (set a 0)
@@ -385,11 +389,14 @@ null;
 #           [ []])
 null;
 
-# parsed: (def fn null
+# parsed: (def fn
+#           []
 #           [ (print [1, 2, 3])])
-# source: (def fn null
+# source: (def fn
+#           []
 #           [ (print [1, 2, 3])])
-#   eval: (`def fn null
+#   eval: (`def fn
+#           []
 #           [ ( #native_fn`print [1, 2, 3])])
 null;
 
@@ -458,16 +465,18 @@ null;
 #           (`new (`resolve Base)))
 null;
 
-# parsed: (print (a b))
-# source: (print (a b))
-#   eval: ( #native_fn`print [ (`resolve a), (`resolve b)])
-[[$Base,[1,2,3]],[$Base,[1,2,3]]]
+# parsed: (print a b)
+# source: (print a b)
+#   eval: ( #native_fn`print (`resolve a)
+#           (`resolve b))
+[$Base,[1,2,3]] [$Base,[1,2,3]]
 null;
 
-# parsed: (print (a.x b.x))
-# source: (print (a.x b.x))
-#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (b x))])
-["X","X"]
+# parsed: (print a.x b.x)
+# source: (print a.x b.x)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (b x)))
+X X
 null;
 
 # setting attributes can be done through simple assignment
@@ -476,16 +485,18 @@ null;
 #   eval: (`set (a x) 2)
 null;
 
-# parsed: (print (a.x b.x))
-# source: (print (a.x b.x))
-#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (b x))])
-[2,"X"]
+# parsed: (print a.x b.x)
+# source: (print a.x b.x)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (b x)))
+2 X
 null;
 
-# parsed: (print (a b))
-# source: (print (a b))
-#   eval: ( #native_fn`print [ (`resolve a), (`resolve b)])
-[[$Base,[1,2,3],{x:2}],[$Base,[1,2,3]]]
+# parsed: (print a b)
+# source: (print a b)
+#   eval: ( #native_fn`print (`resolve a)
+#           (`resolve b))
+[$Base,[1,2,3],{x:2}] [$Base,[1,2,3]]
 null;
 
 # instance content is accessed via the zero-length symbol (trailing dot)
@@ -574,11 +585,12 @@ true;
 #           (`new (`resolve Deriv)))
 null;
 
-# parsed: (print (a.x a.y a.z))
-# source: (print (a.x a.y a.z))
-#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (a y)),
-#             (`resolve (a z))])
-["XX","Y","Z"]
+# parsed: (print a.x a.y a.z)
+# source: (print a.x a.y a.z)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (a y))
+#           (`resolve (a z)))
+XX Y Z
 null;
 
 # parsed: (set a.z "ZZZ")
@@ -586,11 +598,12 @@ null;
 #   eval: (`set (a z) "ZZZ")
 null;
 
-# parsed: (print (a.x a.y a.z))
-# source: (print (a.x a.y a.z))
-#   eval: ( #native_fn`print [ (`resolve (a x)), (`resolve (a y)),
-#             (`resolve (a z))])
-["XX","Y","ZZZ"]
+# parsed: (print a.x a.y a.z)
+# source: (print a.x a.y a.z)
+#   eval: ( #native_fn`print (`resolve (a x))
+#           (`resolve (a y))
+#           (`resolve (a z)))
+XX Y ZZZ
 null;
 
 # parsed: (assert "ZZZ" a.z)
@@ -613,10 +626,11 @@ null;
 #   eval: [ (`resolve (a . append)),3]
 null;
 
-# parsed: (print (a. b.))
-# source: (print (a. b.))
-#   eval: ( #native_fn`print [ (`resolve (a .)), (`resolve (b .))])
-[[3,4,5,3],[3,4,5]]
+# parsed: (print a. b.)
+# source: (print a. b.)
+#   eval: ( #native_fn`print (`resolve (a .))
+#           (`resolve (b .)))
+[3,4,5,3] [3,4,5]
 null;
 
 # entity definitions with methods 
@@ -722,8 +736,136 @@ null;
 # resolved value references must refer to object which lie somewhere
 # on the directed acyclic graph of the current scope (and are thus
 # persistent)
-# parsed: null
-# source: null
-#   eval: null
+# confirm ability to curry instance methods into functions
+# parsed: (null_op (entity A null null
+#             [ (def __init__
+#                 (self unique)
+#                 [ (set self.unique unique)]), (def fn1
+#                 (self)
+#                 [ (print "called fn1 in instance based on" self.unique), (return ["fn1",self.unique])]),
+#               (def fn2
+#                 (self)
+#                 [ (print "called fn2 in instance based on" self.unique), (return ["fn2",self.unique])])] __init__))
+# source: (null_op (entity A null null
+#             [ (def __init__
+#                 (self unique)
+#                 [ (set self.unique unique)]), (def fn1
+#                 (self)
+#                 [ (print "called fn1 in instance based on" self.unique), (return ["fn1",self.unique])]),
+#               (def fn2
+#                 (self)
+#                 [ (print "called fn2 in instance based on" self.unique), (return ["fn2",self.unique])])] __init__))
+#   eval: (`null_op (`entity A null null
+#             [ (`def __init__
+#                 (self unique)
+#                 [ (`set (self unique)
+#                     (`resolve unique))]), (`def fn1
+#                 (self)
+#                 [ ( #native_fn`print "called fn1 in instance based on"
+#                     (`resolve (self unique))), (`return ["fn1", (`resolve (self unique))])]),
+#               (`def fn2
+#                 (self)
+#                 [ ( #native_fn`print "called fn2 in instance based on"
+#                     (`resolve (self unique))), (`return ["fn2", (`resolve (self unique))])])] __init__))
+null;
+
+# parsed: (set a
+#           (new A "a"))
+# source: (set a
+#           (new A "a"))
+#   eval: (`set a
+#           (`new (`resolve A) "a"))
+null;
+
+# parsed: (set b
+#           (new A "b"))
+# source: (set b
+#           (new A "b"))
+#   eval: (`set b
+#           (`new (`resolve A) "b"))
+null;
+
+# regular method invocation
+# parsed: (print (a.fn1))
+# source: (print (a.fn1))
+#   eval: ( #native_fn`print [ (`resolve (a fn1))])
+called fn1 in instance based on a
+["fn1","a"]
+null;
+
+# parsed: (print (a.fn2))
+# source: (print (a.fn2))
+#   eval: ( #native_fn`print [ (`resolve (a fn2))])
+called fn2 in instance based on a
+["fn2","a"]
+null;
+
+# parsed: (print (b.fn2))
+# source: (print (b.fn2))
+#   eval: ( #native_fn`print [ (`resolve (b fn2))])
+called fn2 in instance based on b
+["fn2","b"]
+null;
+
+# parsed: (print (b.fn2))
+# source: (print (b.fn2))
+#   eval: ( #native_fn`print [ (`resolve (b fn2))])
+called fn2 in instance based on b
+["fn2","b"]
+null;
+
+# curried method invocation
+# (NOTE: that the entire instance is copied into the function
+# if reference taking is not permitted for the instance)
+# parsed: (set w a.fn1)
+# source: (set w a.fn1)
+#   eval: (`set w
+#           (`resolve (a fn1)))
+null;
+
+# parsed: (set x a.fn2)
+# source: (set x a.fn2)
+#   eval: (`set x
+#           (`resolve (a fn2)))
+null;
+
+# parsed: (set y b.fn1)
+# source: (set y b.fn1)
+#   eval: (`set y
+#           (`resolve (b fn1)))
+null;
+
+# parsed: (set z b.fn2)
+# source: (set z b.fn2)
+#   eval: (`set z
+#           (`resolve (b fn2)))
+null;
+
+# parsed: (print (w))
+# source: (print (w))
+#   eval: ( #native_fn`print [ (`resolve w)])
+called fn1 in instance based on a
+["fn1","a"]
+null;
+
+# parsed: (print (x))
+# source: (print (x))
+#   eval: ( #native_fn`print [ (`resolve x)])
+called fn2 in instance based on a
+["fn2","a"]
+null;
+
+# parsed: (print (y))
+# source: (print (y))
+#   eval: ( #native_fn`print [ (`resolve y)])
+called fn1 in instance based on b
+["fn1","b"]
+null;
+
+# parsed: (print (z))
+# source: (print (z))
+#   eval: ( #native_fn`print [ (`resolve z)])
+called fn2 in instance based on b
+["fn2","b"]
 null;
 

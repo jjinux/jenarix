@@ -747,7 +747,10 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_tls * tls, jx_ob callable, jx_ob payl
       case JX_SELECTOR_NEW:
         payload = jx_tls_ob_with_new(tls, payload);
         break;
-      default:                 /* unrecognized selector? purge weak */
+      case JX_SELECTOR_NULL_OP:
+        jx_tls_ob_replace_with_null(tls, &payload);
+        break;
+      default:  /* unrecognized selector? purge weak */
         jx_tls_ob_free(tls, callable);
         jx_tls_ob_replace_with_null(tls, &payload);
         break;
@@ -1157,6 +1160,59 @@ JX_INLINE jx_ob jx__code_mapN(jx_tls * tls, jx_int flags, jx_ob callable, jx_ob 
     jx_tls_ob_free(tls, src_list);
     jx_tls_ob_free(tls, callable);
     return out;
+  }
+}
+
+JX_INLINE jx_ob jx__code_curry_method(jx_tls *tls, jx_ob instance, jx_ob method)
+{
+  if(jx_null_check(method)) {
+    return jx_ob_from_null();
+  } else {
+    jx_ob names = jx_tls_hash_new(tls);
+    jx_ob code = jx_tls_list_new(tls);
+    
+    jx_tls_hash_set(tls, names, jx_ob_from_ident("self"), jx_tls_ob_copy(tls, instance));
+    jx_tls_hash_set(tls, names, jx_ob_from_ident("func"), jx_tls_ob_copy(tls, method));
+    
+    {
+      jx_ob unshift = jx_tls_list_new(tls);
+      jx_tls_list_append(tls,unshift, jx_builtin_new_from_selector(JX_SELECTOR_UNSHIFT));
+      {
+        jx_ob tmp1 = jx_tls_list_new(tls);
+        jx_tls_list_append(tls, tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
+        jx_tls_list_append(tls, tmp1, jx_ob_from_ident("_"));
+        jx_tls_list_append(tls, unshift, tmp1);
+      }
+      {
+        jx_ob tmp1 = jx_tls_list_new(tls);
+        jx_tls_list_append(tls, tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
+        jx_tls_list_append(tls, tmp1, jx_ob_from_ident("self"));
+        jx_tls_list_append(tls, unshift, tmp1);
+      }
+      jx_tls_list_append(tls,code,unshift);
+    }
+    {
+      jx_ob apply = jx_tls_list_new(tls);
+      
+      jx_tls_list_append(tls,apply, jx_builtin_new_from_selector(JX_SELECTOR_APPLY));
+      {
+        jx_ob tmp1 = jx_tls_list_new(tls);
+        jx_tls_list_append(tls, tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
+        jx_tls_list_append(tls, tmp1, jx_ob_from_ident("func"));
+        jx_tls_list_append(tls, apply, tmp1);
+      }
+      {
+        jx_ob tmp1 = jx_tls_list_new(tls);
+        jx_tls_list_append(tls, tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
+        jx_tls_list_append(tls, tmp1, jx_ob_from_ident("_"));
+        jx_tls_list_append(tls, apply, tmp1);
+      }
+      jx_tls_list_append(tls, code, apply);
+    }
+    return jx_function_new_with_def( jx_ob_from_null(),
+                                     names,
+                                     code, 
+                                     JX_FUNCTION_MODE_EXEC);
   }
 }
 
@@ -1796,62 +1852,8 @@ static jx_ob jx__tls_code_eval_to_weak(jx_tls * tls, jx_int flags, jx_ob expr)
                     *(result_ob++) =
                       jx__tls_code_eval_to_weak(tls_, flags_, *(expr_ob++));
                     if(tls_->have_method) {
-                      if(jx_null_check(tls_->method)) {
-                        jx_tls_ob_replace(tls_, result_ob - 1, jx_ob_from_null());
-                      } else {
-                        jx_ob names = jx_tls_hash_new(tls);
-                        jx_ob code = jx_list_new();
-                        
-                        jx_tls_hash_set(tls, names, jx_ob_from_ident("self"), jx_tls_ob_copy(tls, result_ob[-1]));
-                        jx_tls_hash_set(tls, names, jx_ob_from_ident("fn"), jx_tls_ob_copy(tls, tls_->method));
-                        
-                        {
-                          jx_ob unshift = jx_list_new();
-                          jx_list_append(unshift, jx_builtin_new_from_selector(JX_SELECTOR_UNSHIFT));
-                        {
-                          jx_ob tmp1 = jx_list_new();
-                          jx_list_append(tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
-                          jx_list_append(tmp1, jx_ob_from_ident("_"));
-                          jx_list_append(unshift, tmp1);
-                        }
-                        {
-                          jx_ob tmp1 = jx_list_new();
-                          jx_list_append(tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
-                          jx_list_append(tmp1, jx_ob_from_ident("self"));
-                          jx_list_append(unshift, tmp1);
-                        }
-                        jx_list_append(code,unshift);
-                      }
-                      {
-                        jx_ob apply = jx_list_new();
-                        
-                        jx_list_append(apply, jx_builtin_new_from_selector(JX_SELECTOR_APPLY));
-                        {
-                          jx_ob tmp1 = jx_list_new();
-                          jx_list_append(tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
-                          jx_list_append(tmp1, jx_ob_from_ident("fn"));
-                          jx_list_append(apply, tmp1);
-                        }
-                        {
-                          jx_ob tmp1 = jx_list_new();
-                          jx_list_append(tmp1, jx_builtin_new_from_selector(JX_SELECTOR_RESOLVE));
-                          jx_list_append(tmp1, jx_ob_from_ident("_"));
-                          jx_list_append(apply, tmp1);
-                        }
-                        jx_list_append(code, apply);
-                      }
-#if 0
-                      printf("DEBUG returning a method, not an attribute!\n");
-                      jx_jxon_dump(stdout, "result_ob[-1]", result_ob[-1]);
-                      jx_jxon_dump(stdout, "tls_->method", tls_->method);
-                      jx_jxon_dump_in_node(stdout, "code", tls->node, code);
-#endif
                       jx_tls_ob_replace(tls_, result_ob - 1,
-                                        jx_function_new_with_def( jx_ob_from_null(),
-                                                                  names,
-                                                                  code, 
-                                                                  JX_FUNCTION_MODE_EVAL ));
-                      }
+                                        jx__code_curry_method(tls, result_ob[-1], tls->method));
                       tls_->have_method = JX_FALSE;
                     }
                   } else {      /* not a container or we're processing a macro */

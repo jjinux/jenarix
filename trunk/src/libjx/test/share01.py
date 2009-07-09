@@ -7,7 +7,7 @@ large_ob = range(100000000)
 
 print len(large_ob)
 
-#share(large_ob)
+share(large_ob)
 
 
 print pareval( [len(large_ob), 

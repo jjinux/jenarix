@@ -62,7 +62,6 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"take", JX_SELECTOR_TAKE);
   ok = jx_declare(ok,names,"del", JX_SELECTOR_DEL);
 
-
   ok = jx_declare(ok,names,"eq", JX_SELECTOR_EQ);
   ok = jx_declare(ok,names,"gt", JX_SELECTOR_GT);
   ok = jx_declare(ok,names,"lt", JX_SELECTOR_LT);
@@ -129,6 +128,8 @@ jx_status jx_safe_expose_all_builtins(jx_ob names)
   ok = jx_declare(ok,names,"assert",  JX_SELECTOR_ASSERT);
   ok = jx_declare(ok,names,"dump", JX_SELECTOR_DUMP);
   ok = jx_declare(ok,names,"new", JX_SELECTOR_NEW);
+
+  ok = jx_declare(ok,names,"null_op", JX_SELECTOR_NULL_OP);
 
   return ok ? JX_SUCCESS : JX_FAILURE;
 }

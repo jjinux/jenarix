@@ -115,14 +115,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 single_input ::= EOI.
 {  
 #ifdef JX_PY_PARSER_DEBUG
-  printf("single_input ::= NEWLINE ");
+  printf("single_input ::= NEWLINE\n");
 #endif
 }
 
 single_input ::= NEWLINE.
 {  
 #ifdef JX_PY_PARSER_DEBUG
-  printf("single_input ::= NEWLINE ");
+  printf("single_input ::= NEWLINE\n");
 #endif
 }
 
@@ -155,11 +155,30 @@ funcdef(A) ::= DEF NAME(B) parameters(C) COLON suite(D).
   jx_list_append(A,D);
 }
 
+funcdef(A) ::= DEF NAME(B) COLON suite(D).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("def"));
+  jx_list_append(A,B);
+  jx_list_append(A,jx_ob_from_null()); 
+  jx_list_append(A,D);
+}
+
 /* parameters: '(' [varargslist] ')' */
 
 parameters(A) ::= OPEN_PAR CLOSE_PAR.
 {
-  A = jx_ob_from_null();
+  A = jx_list_new();
+}
+
+parameters(A) ::= OPEN_CURLY_BRACE CLOSE_CURLY_BRACE.
+{
+  A = jx_hash_new();
+}
+
+parameters(A) ::= OPEN_CURLY_BRACE dictmaker(B) CLOSE_CURLY_BRACE.
+{
+  A = B;
 }
 
 parameters(A) ::= OPEN_PAR varargslist(B) CLOSE_PAR.
@@ -399,7 +418,7 @@ print_stmt(A) ::= PRINT test(B).
   printf("print_stmt(A) ::= PRINT test(B).\n");
 #endif
 }
-/*
+
 print_stmt(A) ::= print_stmt(B) COMMA test(C).
 {  
    A=B;
@@ -408,7 +427,6 @@ print_stmt(A) ::= print_stmt(B) COMMA test(C).
   printf("print_stmt(A) ::= print_stmt(B) COMMA test(C).\n");
 #endif
 }
-*/
 
 /* compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated */
 
@@ -565,7 +583,6 @@ suite(A) ::= NEWLINE INDENT stmts(B) NEWLINE DEDENT.
 }
 
 /* stmt: simple_stmt | compound_stmt */
-
 
 stmts(A) ::= stmts(B) simple_stmt(C).
 {
@@ -1179,6 +1196,7 @@ listmaker(A) ::= listmaker(B) COMMA test(C).
   jx_list_append(A,C);
 }
 
+/*
 listmaker(A) ::= listmaker(B) NEWLINE.
 {
   A = B;
@@ -1208,6 +1226,7 @@ listmaker(A) ::= listmaker(B) COMMA DEDENT.
 {
   A = B;
 }
+*/
 
 /* lambdef: 'lambda' [varargslist] ':' test */
 
@@ -1216,6 +1235,22 @@ lambdef(A) ::= LAMBDA COLON test(C).
   A = jx_list_new();
   jx_list_append(A,jx_ob_from_ident("lambda"));
   jx_list_append(A,jx_ob_from_null());
+  jx_list_append(A,C);
+}
+
+lambdef(A) ::= LAMBDA OPEN_CURLY_BRACE CLOSE_CURLY_BRACE COLON test(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("lambda"));
+  jx_list_append(A,jx_hash_new());
+  jx_list_append(A,C);
+}
+
+lambdef(A) ::= LAMBDA OPEN_CURLY_BRACE dictmaker(B) CLOSE_CURLY_BRACE COLON test(C).
+{
+  A = jx_list_new();
+  jx_list_append(A,jx_ob_from_ident("lambda"));
+  jx_list_append(A,B);
   jx_list_append(A,C);
 }
 
@@ -1341,24 +1376,30 @@ dictmaker(A) ::= dictmaker(B) COMMA test(C) COLON test(D).
 
 classdef(A) ::= CLASS NAME(B) OPEN_PAR testlist(C) CLOSE_PAR COLON suite(D).
 {
+  jx_ob tmp = jx_list_new();
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("entity"));
-  jx_list_append(A,B); /* name */
-  jx_list_append(A,C); /* base class */ 
-  jx_list_append(A,jx_ob_from_null()); /* content */
-  jx_list_append(A,D); 
-  jx_list_append(A,jx_ob_from_ident("__init__")); /* name of constructor */
+  jx_list_append(A, jx_ob_from_ident("null_op"));
+  jx_list_append(A,tmp);
+  jx_list_append(tmp,jx_ob_from_ident("entity"));
+  jx_list_append(tmp,B); /* name */
+  jx_list_append(tmp,C); /* base class */ 
+  jx_list_append(tmp,jx_ob_from_null()); /* content */
+  jx_list_append(tmp,D); 
+  jx_list_append(tmp,jx_ob_from_ident("__init__")); /* name of constructor */
 }
 
 classdef(A) ::= CLASS NAME(B) COLON suite(D).
 {
+  jx_ob tmp = jx_list_new();
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("entity"));
-  jx_list_append(A,B); /* name */
-  jx_list_append(A,jx_ob_from_null()); /* base class */
-  jx_list_append(A,jx_ob_from_null()); /* content */
-  jx_list_append(A,D);
-  jx_list_append(A,jx_ob_from_ident("__init__")); /* name of constructor */
+  jx_list_append(A, jx_ob_from_ident("null_op"));
+  jx_list_append(A,tmp);
+  jx_list_append(tmp,jx_ob_from_ident("entity"));
+  jx_list_append(tmp,B); /* name */
+  jx_list_append(tmp,jx_ob_from_null()); /* base class */
+  jx_list_append(tmp,jx_ob_from_null()); /* content */
+  jx_list_append(tmp,D);
+  jx_list_append(tmp,jx_ob_from_ident("__init__")); /* name of constructor */
 }
 
 /* arglist: (argument ',')* (argument [',']

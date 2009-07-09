@@ -1,3 +1,4 @@
+
 #ifndef _H_jx_safe
 #define _H_jx_safe
 
@@ -112,7 +113,7 @@ JX_INLINE jx_status jx_set_from_path_with_value(jx_tls *tls, jx_ob container, jx
            jx_ob_as_int(target),
            jx_ob_not_weak_with_ob( value ));
       } else {
-        status = jx__list_entity_set(container.data.io.list, target, value);
+        status = jx__list_entity_set(tls, container.data.io.list, target, value);
         if(JX_ERR(status)) {
           jx_tls_ob_free(tls, value);
         }

@@ -2241,7 +2241,7 @@ jx_status jx__list_resize(jx_tls *tls, jx_list * I, jx_int size, jx_ob fill)
 }
 
 
-JX_INLINE jx_status jx__list__append_locked(jx_list * I, jx_ob ob)
+JX_INLINE jx_status jx__list__append_locked(jx_tls *tls, jx_list * I, jx_ob ob)
 {
   if(I->gc.shared) {
     return JX_STATUS_PERMISSION_DENIED;
@@ -2265,13 +2265,13 @@ JX_INLINE jx_status jx__list__append_locked(jx_list * I, jx_ob ob)
     jx_int packed_size = jx_meta_get_packed_size(ob.meta.bits);
     if(packed_size) {
       I->packed_meta_bits = ob.meta.bits;
-      I->data.vla = jx_vla_new(packed_size, 1);
+      I->data.vla = jx_tls_vla_new(tls, packed_size, 1, JX_FALSE);
       if(I->data.vla) {
         jx__list_set_packed_data_locked(I, 0, ob);
         return JX_SUCCESS;
       }
     } else {
-      I->data.vla = jx_vla_new(sizeof(jx_ob), 1);
+      I->data.vla = jx_tls_vla_new(tls, sizeof(jx_ob), 1, JX_FALSE);
       if(I->data.vla) {
         I->data.ob_vla[0] = JX_OWN(ob);
         return JX_SUCCESS;
@@ -2281,16 +2281,16 @@ JX_INLINE jx_status jx__list__append_locked(jx_list * I, jx_ob ob)
   return JX_FAILURE;
 }
 
-jx_status jx__list_append_locked(jx_list * I, jx_ob ob)
+jx_status jx__list_append_locked(jx_tls *tls, jx_list * I, jx_ob ob)
 {
-  return jx__list__append_locked(I,ob);
+  return jx__list__append_locked(tls,I,ob);
 }
 
-jx_status jx__list_append(jx_list * I, jx_ob ob)
+jx_status jx__list_append(jx_tls *tls, jx_list * I, jx_ob ob)
 {
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
-    status = jx__list__append_locked(I,ob);
+    status = jx__list__append_locked(tls,I,ob);
     jx_gc_unlock(&I->gc);
   }
   return status;

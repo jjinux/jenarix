@@ -110,8 +110,6 @@ while a:
         while c:
             c = c - 1
             print a,b,c
-        while c:
-            pass
         a = 0
     print b
     if 1:
@@ -273,3 +271,47 @@ print tmp.d.e
 # resolved value references must refer to object which lie somewhere
 # on the directed acyclic graph of the current scope (and are thus
 # persistent)
+
+# confirm ability to curry instance methods into functions
+
+class A:
+
+  def __init__(self,unique):
+     self.unique = unique
+
+  def fn1(self):
+     print "called fn1 in instance based on",self.unique
+     return ["fn1",self.unique]
+
+  def fn2(self):
+     print "called fn2 in instance based on",self.unique
+     return ["fn2",self.unique]
+
+a = new(A,"a")
+b = new(A,"b")
+
+# regular method invocation
+
+print a.fn1()
+print a.fn2()
+
+print b.fn2()
+print b.fn2()
+
+# curried method invocation
+
+# (NOTE: that the entire instance is copied into the function
+# if reference taking is not permitted for the instance)
+
+w = a.fn1
+x = a.fn2
+y = b.fn1
+z = b.fn2
+
+print w()
+print x()
+print y()
+print z()
+
+
+

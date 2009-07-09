@@ -51,6 +51,7 @@ typedef struct {
   jx_bool newline_just_seen;
   jx_bool colon_just_seen;
   jx_bool saved_token;
+  jx_ob saved_token_ob;
 } jx_py_scanner_state;
 
 #ifndef true
@@ -366,14 +367,24 @@ comment:
    (3) parsing from a character stream 
 */
 
-JX_INLINE void jx_py_send(void *parser, int token, jx_ob ob, jx_py_parse_context *context)
+JX_INLINE int jx_py_send(void *parser, int token, jx_ob ob, jx_py_parse_context *context)
 {
 #ifdef JX_PY_PARSER_DEBUG
   printf("scanner: sending %d\n",token);
 #endif
   jx_py_(parser,token, ob, context);
+  return context->status;
 }
 
+JX_INLINE void jx_py_save_token(jx_py_scanner_state *s, int tok_type)
+{
+  if(tok_type) {
+#ifdef JX_PY_PARSER_DEBUG
+    printf(" saving tok_type %d: \n",tok_type);
+#endif
+  }
+  s->saved_token = tok_type;
+}
 
 static void jx_py_scan_input(jx_py_scanner_state *s)
 {
@@ -386,25 +397,29 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
   s->context.status = 0;
   s->n_tok_parsed = 0;
   
-  while(!s->context.exhausted) {
+  while((!s->context.exhausted)&&(!s->context.status)) {
     jx_bool skip_token = JX_FALSE;
     jx_bool indent_just_changed = JX_FALSE;
-    if(!s->saved_token) 
-      tok_type = jx_scan(s);
-    else {
+    if(s->saved_token)  {
       tok_type = s->saved_token;
       s->saved_token = 0;
 #ifdef JX_PY_PARSER_DEBUG
-    printf("scanner: saved token index %d: \n",tok_type);
+      printf("scanner: restored saved token index %d: \n",tok_type);
 #endif
-    }
+    } else {
 #ifdef JX_PY_PARSER_DEBUG
-    printf("scanner: token index %d: \n",tok_type);
-    jx_jxon_dump(stdout,"scanner: indent_stack",s->indent_stack);
-    printf("scanner: current_indent %d\n",s->current_indent);
-    printf("scanner: newline_just_seen %d\n",s->newline_just_seen);
-    printf("scanner: colon_just_seen %d\n",s->colon_just_seen);
-    printf("scanner: expected indent %d\n",jx_ob_as_int(jx_list_borrow(s->indent_stack,-1)));
+      printf("scanner: scanning for next token...\n");
+#endif
+      tok_type = jx_scan(s);
+    }
+
+#ifdef JX_PY_PARSER_DEBUG
+      printf(" tok_type: %d ",tok_type);
+      printf(" current_indent: %d ",s->current_indent);
+      printf(" newline_just_seen: %d ",s->newline_just_seen);
+      printf(" colon_just_seen: %d ",s->colon_just_seen);
+      printf(" expected_indent: %d ",jx_ob_as_int(jx_list_borrow(s->indent_stack,-1)));
+      jx_jxon_dump(stdout," indent_stack",s->indent_stack);
 #endif
     /* Python / block indentation handling - UGH - COMPLEX!!! */
 
@@ -420,21 +435,24 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
               if(expected_indent != s->current_indent) {
                 if(s->current_indent > expected_indent) {
                   jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
-                  jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(),&s->context);
+                  if(jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(),&s->context))
+                    jx_py_save_token(s,tok_type);
                   indent_just_changed = JX_TRUE;
-		} else if(expected_indent > s->current_indent) {
-		  while(expected_indent > s->current_indent) {
-		    jx_list_pop(s->indent_stack);
-		    expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
-		    if(expected_indent < s->current_indent) {
-		      s->context.status = JX_STATUS_SYNTAX_ERROR;
-		      break;
-		    } else {
-		      jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(),&s->context); 
-		      jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);        
-		      indent_just_changed = JX_TRUE;
-		    }
-		  }
+                } else if(expected_indent > s->current_indent) {
+                  while((expected_indent > s->current_indent) && (!s->context.status)) {
+                    jx_list_pop(s->indent_stack);
+                    expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
+                    if(expected_indent < s->current_indent) {
+                      s->context.status = JX_STATUS_SYNTAX_ERROR;
+                      break;
+                    } else {
+                      if(jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(),&s->context))
+                        jx_py_save_token(s,tok_type);
+                      if(jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context))
+                        jx_py_save_token(s,tok_type);
+                      indent_just_changed = JX_TRUE;
+                    }
+                  }
                 }
               }
             }
@@ -463,19 +481,22 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
             if(expected_indent != s->current_indent) {
               if(s->current_indent > expected_indent) {
                 jx_list_push(s->indent_stack,jx_ob_from_int(s->current_indent));
-                jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(), &s->context);
+                if(jx_py_send(jx_Parser, JX_PY_INDENT, jx_ob_from_null(), &s->context)) 
+                  jx_py_save_token(s,tok_type);
                 indent_just_changed = JX_TRUE;
               } else {
                 while(s->current_indent < expected_indent) {
                   jx_list_pop(s->indent_stack);
                   expected_indent = jx_ob_as_int(jx_list_borrow(s->indent_stack,-1));
-                  jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(), &s->context); 
+                  if(jx_py_send(jx_Parser, JX_PY_DEDENT, jx_ob_from_null(), &s->context))
+                    jx_py_save_token(s,tok_type);
                   switch(tok_type) {
                   case JX_PY_ELIF:
                   case JX_PY_ELSE:
                     break;
                   default:
-                    jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);
+                    if(jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context))
+                      jx_py_save_token(s,tok_type);
                     break;
                   }
                   indent_just_changed = JX_TRUE;
@@ -492,7 +513,8 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
                   case JX_PY_ELSE:
                     break;
                   default:
-                    jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context); 
+                    if(jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context)) 
+                      jx_py_save_token(s,tok_type);
                     break;
                   }
                 }
@@ -527,7 +549,8 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
       } else if((!s->colon_just_seen) && 
                 (!jx_list_size(s->indent_stack) || (s->newline_just_seen))) {
         /* help parser along */                             
-        jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context);                
+        if(jx_py_send(jx_Parser, JX_PY_NEWLINE, jx_ob_from_null(), &s->context))
+          jx_py_save_token(s,tok_type);
       }
     }
     s->newline_just_seen = (tok_type == JX_PY_NEWLINE); /* for next time */
@@ -536,7 +559,6 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
       s->current_indent = 0;
 
     if(s->context.status) {/* accepted or complete */
-      s->saved_token = tok_type;
       break;
     }
 
@@ -549,10 +571,14 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
         jx_size i;
         jx_char *c = s->tok;
         
-        printf("scanner: token: '");
+        printf("scanner: TOKEN:          '");
         if(st_len) {
           for(i=0;i<st_len;i++) {
-            printf("%c",*(c++));
+            jx_char ch = *(c++);
+            if(ch>=31) 
+              printf("%c",ch);
+            else
+              printf("\\x%02x",ch);
           }
         }
         printf("'\n");
@@ -670,191 +696,6 @@ static void jx_py_scan_input(jx_py_scanner_state *s)
   jx_py_Free(jx_Parser, jx__py_free);
 }
 
-#if 0
-static void jx_py_scan_input(jx_py_scanner_state *state)
-{
-  /* allocate parser */
-
-  void *jx_Parser = jx_py_Alloc( (void *(*)(size_t))jx__py_alloc);
-  jx_int tok_type = 0;
-  jx_char stack_buffer[SSCANF_BUFSIZE];
-  jx_int colon_seen = JX_FALSE;
-  jx_int newline_seen = JX_FALSE;
-  s->context.status = 0;
-  s->n_tok_parsed = 0;
-
-  while(!s->context.exhausted) {
-    tok_type = jx_scan(state);
-    {
-      jx_ob token = JX_OB_NULL;
-      jx_size st_len = s->cur - s->tok;
-      jx_bool skip = JX_FALSE;
-      
-#ifdef JX_PY_PARSER_DEBUG
-      
-      if(1) {
-        jx_size i;
-        jx_char *c = s->tok;
-
-        printf("token type %d: ",tok_type);
-        
-        if(st_len) {
-          for(i=0;i<st_len;i++) {
-            printf("%c",*(c++));
-          }
-          printf("\n");
-        }
-      }
-#endif
-
-      switch(tok_type) {
-      case JX_PY_INDENT:
-      case JX_PY_DEDENT:
-      case JX_PY_NEWLINE:
-        break;
-      default:
-        if(newline_seen && 
-           (s->indent_level)) {
-          int new_indent = (s->tok - s->pos);
-          if(new_indent != s->indent_level) {
-            jx_ob ob = jx_ob_from_null();
-            jx_py_(jx_Parser, JX_PY_DEDENT, ob, &s->context);        
-            s->indent_level = new_indent;
-          }
-        }
-      }
-
-      switch(tok_type) {
-      case JX_PY_ICON:
-      case JX_PY_FCON:
-      case JX_PY_SCON:
-      case JX_PY_NAME:
-        {
-          char *buffer = stack_buffer;
-          if(st_len >= SSCANF_BUFSIZE) {
-            buffer = jx_malloc(st_len+1);
-          }
-          if(buffer) {
-            jx_os_strncpy(buffer, s->tok, st_len);                              
-            buffer[st_len] = 0;
-            switch(tok_type) {
-            case JX_PY_ICON:
-              {
-#ifdef JX_64_BIT
-                jx_int icon;
-                if( jx_os_sscanf(buffer, "%lli", &icon) != 1) { /* use strtol instead? */
-                  icon = 0;
-                }
-                token = jx_ob_from_int(icon);            
-#else
-                int icon;
-                if( jx_os_sscanf(buffer, "%i", &icon) != 1) { /* use strtol instead? */
-                  icon = 0;
-                }
-#endif
-                token = jx_ob_from_int(icon);            
-              }
-              break;
-            case JX_PY_FCON:
-              {
-#ifdef JX_64_BIT
-                double fcon;
-                if( jx_os_sscanf(buffer, "%lf", &fcon) != 1) { /* use strtof instead? */
-                  fcon = 0.0;
-                }
-#else
-                float fcon; 
-                if( jx_os_sscanf(buffer, "%f", &fcon) != 1) { /* use strtof instead? */
-                  fcon = 0.0F;
-                }
-#endif
-                token = jx_ob_from_float(fcon);
-              }
-              break;
-            case JX_PY_SCON:
-              buffer[st_len-1]=0;
-              token = jx_ob_from_str(buffer+1);
-              break;
-            case JX_PY_NAME:
-              token = jx_ob_from_ident(buffer);
-              break;
-            }
-            if(buffer != stack_buffer)
-              jx_free(buffer);
-          }
-        }
-        break;
-#if 0
-      case JX_PY_TRUE:
-        token = jx_ob_from_bool(true);
-        break;
-      case JX_PY_FALSE:
-        token = jx_ob_from_bool(false);
-        break;
-      case JX_PY_NULL:
-        token = jx_ob_from_null();
-        break;
-      case JX_PY_BUILTIN:
-        token = jx_builtin_new_from_selector(0);
-        break;
-#endif
-      case JX_PY_DEDENT_NEWLINE:
-        {
-          jx_ob ob = jx_ob_from_null();
-          jx_py_(jx_Parser, JX_PY_DEDENT, ob, &s->context);        
-          tok_type = JX_PY_NEWLINE;
-          jx_py_(jx_Parser, JX_PY_NEWLINE, ob, &s->context);        
-          tok_type = JX_PY_NEWLINE;
-        }
-        break;
-      case JX_PY_NEWLINE:
-        if((!colon_seen)&&(!s->indent_level)) { /* send double newline */
-          jx_ob ob = jx_ob_from_null();
-          jx_py_(jx_Parser, JX_PY_NEWLINE, ob, &s->context);        
-          tok_type = JX_PY_NEWLINE;
-        }
-        break;
-      case JX_PY_ERROR:
-        s->context.status = JX_STATUS_SYNTAX_ERROR;
-        break;
-      case JX_PY_EOI:
-        skip = JX_TRUE;
-        break;
-      }
-      
-      newline_seen = (tok_type == JX_PY_NEWLINE);
-
-      if(!skip) {
-        colon_seen = (tok_type == JX_PY_COLON);
-        jx_py_(jx_Parser, (int)tok_type, token, &s->context);
-        
-        if(!jx_ok(s->context.status)) /* something bad happened */
-          break;
-      }
-      switch(tok_type) {
-      case JX_PY_EOI:
-        {/* parse a null token to enable acceptance */
-          jx_ob ob = JX_OB_NULL;
-          jx_py_(jx_Parser, 0, ob, &s->context);
-        }
-        break;
-      }
-      
-      if(s->context.status) /* accepted or complete */
-        break;
-      else
-        s->n_tok_parsed++;
-    }
-  
-    if(tok_type == JX_PY_EOI) {
-      s->context.exhausted = JX_TRUE;
-    }
-  }
-  
-  /* free the parser instance */
-  jx_py_Free(jx_Parser, jx__py_free);
-}
-#endif
 
 static jx_status jx_py_scanner_state_init(jx_py_scanner_state *state)
 {
@@ -1033,9 +874,13 @@ jx_status jx_py_scanner_next_ob(jx_ob *result, jx_ob scanner_ob)
         jx_py_scan_input(state);
         switch(state->context.status) {
         case JX_YES: /* accept called */
-          jx_ob_replace(result, state->context.result);
-          state->context.result = jx_ob_from_null();
-          status = state->n_tok_parsed ? JX_YES : JX_NO; /* but were any tokens parsed */
+          if(jx_null_check(state->context.result)) {
+            status = JX_NO; /* nothing of substance parsed -- keep going! */
+          } else {
+            jx_ob_replace(result, state->context.result);
+            state->context.result = jx_ob_from_null();
+            status = state->n_tok_parsed ? JX_YES : JX_NO; /* but were any tokens parsed */
+          }
           break;
         default:
           status = state->context.status;

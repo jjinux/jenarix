@@ -1331,11 +1331,17 @@ JX_INLINE jx_ob jx_list_new_with_fill(jx_int size, jx_ob fill)
   return jx_tls_list_new_with_fill(JX_NULL, size, fill);
 }
 
-jx_status jx__list_append(jx_list * I, jx_ob ob);
+jx_status jx__list_append(jx_tls *tls, jx_list * I, jx_ob ob);
+JX_INLINE jx_status jx_tls_list_append(jx_tls *tls, jx_ob list, jx_ob ob)
+{
+  return (list.meta.bits & JX_META_BIT_LIST) ?
+    jx__list_append(tls, list.data.io.list, ob) : 
+    JX_FAILURE;
+}
 JX_INLINE jx_status jx_list_append(jx_ob list, jx_ob ob)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
-    jx__list_append(list.data.io.list, ob) : 
+    jx__list_append(JX_NULL, list.data.io.list, ob) : 
     JX_FAILURE;
 }
 
@@ -3347,9 +3353,9 @@ JX_INLINE jx_ob jx__macro_call(jx_tls *tls, jx_ob macro, jx_ob payload)
   }
 }
 
-jx_status jx__list_append_locked(jx_list * I, jx_ob ob);
+jx_status jx__list_append_locked(jx_tls *tls, jx_list * I, jx_ob ob);
 
-JX_INLINE jx_status jx__list_entity_set(jx_list * I, jx_ob target, jx_ob value)
+JX_INLINE jx_status jx__list_entity_set(jx_tls *tls, jx_list * I, jx_ob target, jx_ob value)
 {
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
@@ -3373,7 +3379,7 @@ JX_INLINE jx_status jx__list_entity_set(jx_list * I, jx_ob target, jx_ob value)
                    jx_ob_not_weak_with_ob( value ));
               } else { 
                 /* no existing content, so append it */
-                status = jx__list_append_locked(I, jx_ob_not_weak_with_ob( value ));
+                status = jx__list_append_locked(tls, I, jx_ob_not_weak_with_ob( value ));
               }
             } else { /* nonblank identifier? -> replace attribute */                  
               if(entity_size>2) {
@@ -3384,8 +3390,8 @@ JX_INLINE jx_status jx__list_entity_set(jx_list * I, jx_ob target, jx_ob value)
               } else {
                 jx_ob tmp = jx_hash_new();
                 if(entity_size<2)
-                  jx__list_append_locked(I, jx_ob_from_null());
-                jx__list_append_locked(I, tmp);
+                  jx__list_append_locked(tls, I, jx_ob_from_null());
+                jx__list_append_locked(tls, I, tmp);
                 /* TODO: error handling / cleanup for above new,append,append */
                 status = jx_hash_set
                   (tmp,
@@ -3558,7 +3564,7 @@ JX_INLINE jx_status jx__list_entity_delete(jx_tls *tls, jx_list * I, jx_ob targe
   return status;
 }
  
-JX_INLINE jx_ob jx__list_entity_create_path(jx_list *I, jx_ob *target)
+JX_INLINE jx_ob jx__list_entity_create_path(jx_tls *tls, jx_list *I, jx_ob *target)
 {
   jx_ob result = jx_ob_from_null();
   if(JX_POS(jx_gc_lock(&I->gc))) {
@@ -3582,8 +3588,8 @@ JX_INLINE jx_ob jx__list_entity_create_path(jx_list *I, jx_ob *target)
               if(!I->gc.shared) {
                 attr = jx_hash_new();
                 if(entity_size < 2) 
-                  jx__list_append_locked(I, jx_ob_from_null());
-                jx__list_append_locked(I, attr);
+                  jx__list_append_locked(tls, I, jx_ob_from_null());
+                jx__list_append_locked(tls, I, attr);
               } else {
                 attr = jx_ob_from_null();
               }
@@ -3623,7 +3629,7 @@ JX_INLINE jx_status jx__create_path(jx_tls *tls, jx_ob *container,jx_ob *target)
 	    if(jx_int_check(*target)) {
 	      *container = jx_list_borrow(*container,jx_ob_as_int(*target));
 	    } else {
-	      *container = jx__list_entity_create_path(container->data.io.list,target);
+	      *container = jx__list_entity_create_path(tls,container->data.io.list,target);
 	    }
 	    break;
 	  case JX_META_BIT_HASH:
