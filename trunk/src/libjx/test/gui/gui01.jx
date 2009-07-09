@@ -47,12 +47,14 @@ set menu_display_sequence_mode
      {label: "Sequence Mode"})
 ;
 # now the display menu incorporating the sub-menus
+def display_smooth [state] [output ("Smooth:" state)];
+def display_depth [state] [output ("Depth-cue:" state)];
 set menu_display
    (MenuItem [
    "Sequence",
    menu_display_sequence_mode,
-   (MenuItem [] {label: "Smooth Lines", checkbox: "on"}),
-   (MenuItem [] {label: "Depth Cue", checkbox: "off"}),
+   (MenuItem [] {label: "Smooth Lines", checkbox: "on", callback: display_smooth}),
+   (MenuItem [] {label: "Depth Cue", checkbox: "off", callback: display_depth}),
    "Two-sided Lighting"
    ]
    {label: "Display"})

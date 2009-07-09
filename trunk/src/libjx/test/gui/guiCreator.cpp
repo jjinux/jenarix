@@ -213,14 +213,14 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
 
 /* label attribute */
   label = getMenuItem(item, (jx_char *)"label");
-  if (out_type & GUI_PRINT) fprintf(stderr," label %s", jx_ob_as_str(&label));
+  if (out_type & GUI_PRINT) fprintf(stderr," label: %s", jx_ob_as_str(&label));
 
 /* checkbox attribute */
   checkbox = getMenuItem(item, (jx_char *)"checkbox");
   if (jx_null_check(checkbox)) {
     has_checkbox = 0;
   } else {
-    if (out_type & GUI_PRINT) fprintf(stderr," checkbox %s", jx_ob_as_str(&checkbox));
+    if (out_type & GUI_PRINT) fprintf(stderr," checkbox: %s", jx_ob_as_str(&checkbox));
     if (!strncmp(jx_ob_as_str(&checkbox), "on", 2)) {
       has_checkbox =  1;
     } else {
@@ -251,7 +251,7 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
       menu_widget->addAction(theAct);
       if (!jx_null_check(callback)) {
         if (jx_builtin_callable_check(callback)) {
-          QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
+          QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
         }
       }
       if (has_checkbox) {
