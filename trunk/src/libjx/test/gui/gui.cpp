@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   QVBoxLayout * layout;
 #endif
   JX_WIDGET *w;
-  GuiCreator gui = GuiCreator();
+  GuiCreator *gui = new GuiCreator();
   bool geom = false;
   for (int i=1; i<argc; ++i) {
      if (strlen(argv[i]) == 2 && !strncmp(argv[i], "-h", 2)) {
@@ -36,16 +36,16 @@ int main(int argc, char *argv[])
      } else if (!strncmp(argv[i], "-geometry", 9)) {
        geom = true;
      } else {
-       gui.setOutputType(argv[i]);
+       gui->setOutputType(argv[i]);
      }
   }
-  if (gui.out_type & GUI_QTUI) {
+  if (gui->out_type & GUI_QTUI) {
 #ifdef JX_QT
       app = new QApplication(argc, argv);
-      gui.window = new QWidget;
+      gui->window = new QWidget;
 #else
       printf ("qt output not supported in this version\n");
-      gui.out_type -= GUI_QTUI;
+      gui->out_type -= GUI_QTUI;
 #endif
   }
   if(jx_ok( jx_os_process_init(argc,argv) )) {
@@ -55,18 +55,18 @@ int main(int argc, char *argv[])
     
     //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
     if(jx_ok( jx_main_exec_in_node(0,NULL,node) )) {
-      w = gui.gui_run_from_node(node);
+      w = gui->gui_run_from_node(node);
     }
     
     jx_ob_free(node);
-    if (gui.out_type & GUI_QTUI) {
+    if (gui->out_type & GUI_QTUI) {
 #ifdef JX_QT
       layout = new QVBoxLayout;
       layout->addWidget(w);
-      gui.window->setLayout(layout);
-      gui.window->show();
+      gui->window->setLayout(layout);
+      gui->window->show();
       if (!geom) {
-        gui.window->resize(800,600);
+        gui->window->resize(800,600);
       }
       return app->exec();
 #endif

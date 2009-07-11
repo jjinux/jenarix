@@ -17,11 +17,17 @@
 set awidget {source: "awidget.html", height: 150};
 set bwidget {source: "bwidget.html", height: 100};
 
+# callback functions for later use
+def file_open [f] [output ("Open", f)];
+def display_smooth [state] [output ("Smooth:" state)];
+def display_depth [state] [output ("Depth-cue:" state)];
+def help_about [] [output "This is the jxon gui builder"];
+def file_exit [] [output "Exit, stage left"];
+
 # menu definition
 # file menu
-def file_exit [] [output "Exit, stage left"];
 set menu_file (MenuItem [
-   "Open...",
+    (MenuItem [] {label: "Open...", callback: file_open, popup: "fileDialog"})
     (MenuItem [] {label: "Exit", callback: file_exit})
    ]
    {label: "File"})
@@ -47,8 +53,6 @@ set menu_display_sequence_mode
      {label: "Sequence Mode"})
 ;
 # now the display menu incorporating the sub-menus
-def display_smooth [state] [output ("Smooth:" state)];
-def display_depth [state] [output ("Depth-cue:" state)];
 set menu_display
    (MenuItem [
    "Sequence",
@@ -61,7 +65,6 @@ set menu_display
 ;
 
 # help menu
-def help_about [] [output "This is the jxon gui builder"];
 set menu_help
    (MenuItem [
     (MenuItem [] {label: "About", callback: help_about})

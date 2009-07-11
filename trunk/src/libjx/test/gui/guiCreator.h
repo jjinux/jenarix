@@ -38,6 +38,8 @@ public:
     JX_WIDGET *window;
 
 private:
+    jx_ob gui;
+
     void printVal(int v);
     void printHFramesetHtml(jx_ob pane, int size);
     void printVFramesetHtml(jx_ob pane, int size);

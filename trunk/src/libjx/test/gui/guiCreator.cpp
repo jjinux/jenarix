@@ -208,7 +208,7 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
    This returns any sub_menu that might be created.
    A sub_menu will display a label, but ignore any checkbox or callback.
 */
-  jx_ob checkbox, callback, label;
+  jx_ob checkbox, callback, label, popup;
   int has_checkbox;
 
 /* label attribute */
@@ -234,6 +234,7 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
     if (out_type & GUI_PRINT) fprintf(stderr,"\n");
   } else if (jx_builtin_callable_check(callback)) {
     if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback);
+    popup = getMenuItem(item, (jx_char *)"popup");
   } else {
     if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback);
   }
@@ -246,12 +247,23 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
       menu_widget->addMenu(sub_menu);
     } else {
 
-      JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, menu_widget);
+      //JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, menu_widget);
+      JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, window);
       //theAct->setShortcut(tr("Ctrl+B"));
       menu_widget->addAction(theAct);
       if (!jx_null_check(callback)) {
         if (jx_builtin_callable_check(callback)) {
-          QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
+          if (has_checkbox) {
+            QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
+          } else if ( !strncmp( jx_ob_as_str(&popup), "fileDialog", 10) ) {
+            QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(openFile()));
+/*
+          } else if ( !strncmp( jx_ob_as_str(&label), "Exit", 4) ) {
+            QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doExit()));
+*/
+          } else {
+            QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
+          }
         }
       }
       if (has_checkbox) {
@@ -267,6 +279,7 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
 #endif
   jx_ob_free(label);
   jx_ob_free(checkbox);
+  jx_ob_free(popup);
   //jx_ob_free(callback);
 
   return sub_menu;
@@ -474,6 +487,7 @@ JX_WIDGET * GuiCreator::gui_run_from_node(jx_ob node)
     /* get the root gui component */
 
     jx_ob gui = get_symbol_from_node(node, (jx_char *)"gui");
+    this->gui = gui;
     
     /* dump graph for debuggin' */
     
