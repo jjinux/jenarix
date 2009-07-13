@@ -200,27 +200,16 @@ void GuiCreator::printWidgetInfo(jx_ob entity)
   jx_ob_free(src);
 }
 
-JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
-/*
-   deal with attributes of a single menu item: label, checkbox, callback.
-   This creates and adds an Action if this item is not a list.
-   This creates and adds a Menu (sub_menu) if this item is a list.
-   This returns any sub_menu that might be created.
-   A sub_menu will display a label, but ignore any checkbox or callback.
-*/
-  jx_ob checkbox, callback, label, popup;
+
+JX_MENU * GuiCreator::menuAction(jx_ob item, JX_MENU *menu_widget, jx_ob label, jx_ob callback, jx_ob checkbox, jx_ob popup)
+{
+  JX_MENU *sub_menu;
+#ifdef JX_QT
+
   int has_checkbox;
-
-/* label attribute */
-  label = getMenuItem(item, (jx_char *)"label");
-  if (out_type & GUI_PRINT) fprintf(stderr," label: %s", jx_ob_as_str(&label));
-
-/* checkbox attribute */
-  checkbox = getMenuItem(item, (jx_char *)"checkbox");
   if (jx_null_check(checkbox)) {
     has_checkbox = 0;
   } else {
-    if (out_type & GUI_PRINT) fprintf(stderr," checkbox: %s", jx_ob_as_str(&checkbox));
     if (!strncmp(jx_ob_as_str(&checkbox), "on", 2)) {
       has_checkbox =  1;
     } else {
@@ -228,27 +217,14 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
     }
   }
 
-/* callback attribute */
-  callback = getMenuItem(item, (jx_char *)"callback");
-  if (jx_null_check(callback)) {
-    if (out_type & GUI_PRINT) fprintf(stderr,"\n");
-  } else if (jx_builtin_callable_check(callback)) {
-    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback);
-    popup = getMenuItem(item, (jx_char *)"popup");
-  } else {
-    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback);
-  }
-
-  JX_MENU *sub_menu;
-#ifdef JX_QT
   if (out_type & GUI_QTUI) {
     if ( jx_list_size(jx_list_borrow(item,1)) > 0) { 
       sub_menu = new JX_MENU(jx_ob_as_str(&label));
       menu_widget->addMenu(sub_menu);
     } else {
 
-      //JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, menu_widget);
       JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, window);
+      //Actions.push_back(theAct);
       //theAct->setShortcut(tr("Ctrl+B"));
       menu_widget->addAction(theAct);
       if (!jx_null_check(callback)) {
@@ -257,10 +233,8 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
             QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
           } else if ( !strncmp( jx_ob_as_str(&popup), "fileDialog", 10) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(openFile()));
-/*
           } else if ( !strncmp( jx_ob_as_str(&label), "Exit", 4) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doExit()));
-*/
           } else {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
           }
@@ -276,10 +250,46 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
       }
     }
   }
+
+  return sub_menu;
+}
 #endif
+
+JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
+/*
+   deal with attributes of a single menu item: label, checkbox, callback.
+   This creates and adds an Action if this item is not a list.
+   This creates and adds a Menu (sub_menu) if this item is a list.
+   This returns any sub_menu that might be created.
+   A sub_menu will display a label, but ignore any checkbox or callback.
+*/
+  jx_ob checkbox=jx_ob(), callback=jx_ob(), label=jx_ob(), popup=jx_ob();
+
+/* label attribute */
+  label = getMenuItem(item, (jx_char *)"label");
+  if (out_type & GUI_PRINT) fprintf(stderr," label: %s", jx_ob_as_str(&label));
+
+/* checkbox attribute */
+  checkbox = getMenuItem(item, (jx_char *)"checkbox");
+  if (out_type & GUI_PRINT) fprintf(stderr," checkbox: %s", jx_ob_as_str(&checkbox));
+
+/* callback attribute */
+  callback = getMenuItem(item, (jx_char *)"callback");
+  if (jx_null_check(callback)) {
+    if (out_type & GUI_PRINT) fprintf(stderr,"\n");
+  } else if (jx_builtin_callable_check(callback)) {
+    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback);
+    popup = getMenuItem(item, (jx_char *)"popup");
+  } else {
+    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback);
+  }
+
+  
+  JX_MENU *sub_menu = menuAction(item, menu_widget, label, callback, checkbox, popup);
   jx_ob_free(label);
   jx_ob_free(checkbox);
   jx_ob_free(popup);
+  // needed for later callbacks.  see also freeActions()
   //jx_ob_free(callback);
 
   return sub_menu;
