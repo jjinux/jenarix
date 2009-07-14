@@ -252,8 +252,8 @@ JX_MENU * GuiCreator::menuAction(jx_ob item, JX_MENU *menu_widget, jx_ob label, 
   }
 
   return sub_menu;
-}
 #endif
+}
 
 JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
 /*
@@ -271,7 +271,7 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
 
 /* checkbox attribute */
   checkbox = getMenuItem(item, (jx_char *)"checkbox");
-  if (out_type & GUI_PRINT) fprintf(stderr," checkbox: %s", jx_ob_as_str(&checkbox));
+  if ((out_type & GUI_PRINT) & !jx_null_check(checkbox)) fprintf(stderr," checkbox: %s", jx_ob_as_str(&checkbox));
 
 /* callback attribute */
   callback = getMenuItem(item, (jx_char *)"callback");
@@ -290,7 +290,7 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
   jx_ob_free(checkbox);
   jx_ob_free(popup);
   // needed for later callbacks.  see also freeActions()
-  //jx_ob_free(callback);
+  if (out_type & GUI_QTUI); else jx_ob_free(callback);
 
   return sub_menu;
 }
