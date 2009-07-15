@@ -32,7 +32,7 @@ QTFLAGS=-DJX_QT
 CXXFLAGS=-g $(QTFLAGS)
 
 gui: gui.o guiCreator.o $(QTOBS)
-	$(CXX) -o $@ $^ $(LIBS) $(QTLIBS)
+	$(CXX) -o $@ -g $^ $(LIBS) $(QTLIBS)
 gui.o: gui.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
 guiCreator.o: guiCreator.cpp
