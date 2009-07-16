@@ -3209,7 +3209,6 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
         jx_ob saved_payload = jx_ob_from_null();
         jx_bool saved = jx_hash_take(&saved_payload, node, payload_ident);
         if(jx_ok( jx_tls_hash_set(tls, node, payload_ident, payload) ) ) { 
-          payload = jx_ob_from_null();
           /* call */
           result = fn->mode ? jx_tls_code_exec(tls, 0, fn->body) :
             jx_tls_code_eval(tls, 0,fn->body);
@@ -3223,6 +3222,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
           else
             jx_tls_hash_delete(tls, node, payload_ident);
         }
+        payload = jx_ob_from_null();
       } else if(jx_hash_check(args)) { /* simple namespace -- no processing */
         /* standard functions run inside their own node namespace (and
            thus can potentially be concurrent) */
@@ -3242,7 +3242,7 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
         }
         //jx_jxon_dump(stdout,"invoke_scope",jx_ob_from_null(),invoke_scope);
         //jx_jxon_dump(stdout,"payload",jx_ob_from_null(),payload);
-        if(jx_ok( jx_tls_hash_set(tls, invoke_scope,payload_ident,payload))) {
+        if(jx_ok( jx_tls_hash_set(tls,invoke_scope,payload_ident,payload))) {
           /* call */
           jx_tls_scope_push(tls, invoke_scope);
           result = fn->mode ? jx_tls_code_exec(tls, flags, fn->body) : 
@@ -3304,8 +3304,8 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
           payload = jx_ob_from_null();
         } else if(jx_list_size(args)) { /* naked primitive -> [first-arg] */
           jx_tls_hash_set(tls,invoke_scope, jx_list_borrow_weak(args,0), payload);
+          payload = jx_ob_from_null();
         }
-        
         /* process keyword argument hash, if present */
         if(jx_hash_check(kwd_hash)) {
           if(!jx_hash_size(invoke_scope)) { /* no symbols yet? */
@@ -3338,9 +3338,12 @@ JX_INLINE jx_ob jx__function_call(jx_tls *tls, jx_ob function, jx_ob payload)
         jx_tls_ob_free(tls, invoke_scope);
       } else {
         /* args declaration is a primitive */
-        jx_ob invoke_scope = jx_tls_hash_new_with_assoc(tls, args, payload);
+        jx_ob invoke_scope = jx_tls_hash_new_with_assoc(tls, 
+                                                        jx_tls_ob_copy(tls,args),
+                                                        payload);
+        payload = jx_ob_from_null();
         //      jx_jxon_dump(stdout,"args",args);
-        
+
         /* expose fn to itself */
         jx_tls_hash_set(tls, invoke_scope,jx_ob_take_weak_ref(fn->name),
                     jx_ob_take_weak_ref(function));
