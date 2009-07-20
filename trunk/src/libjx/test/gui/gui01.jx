@@ -18,11 +18,11 @@ set awidget {source: "awidget.html", height: 150};
 set bwidget {source: "bwidget.html", height: 100};
 
 # callback functions for later use
-def file_open [f] [output ("Open", f)];
+def file_open      [f]     [output ("Open", f)];
 def display_smooth [state] [output ("Smooth:" state)];
-def display_depth [state] [output ("Depth-cue:" state)];
-def help_about [] [output "This is the jxon gui builder"];
-def file_exit [] [output "Exit, stage left"];
+def display_depth  [state] [output ("Depth-cue:" state)];
+def help_about     []      [output "This is the jxon gui builder"];
+def file_exit      []      [output "Exit, stage left"];
 
 # menu definition
 # file menu
