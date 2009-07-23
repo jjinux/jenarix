@@ -1,20 +1,23 @@
+
 /* Driver template for the LEMON parser generator.
 ** The author disclaims copyright to this source code.
 */
+
 /* First off, code is include which follows the "include" declaration
 ** in the input file. */
 #include <stdio.h>
 #line 37 "jx_net_parse.lem"
-
 
 #include <stdio.h>
 
 #include "jx_net_private.h"
 
 #line 16 "jx_net_parse.c"
+
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
+
 /* 
 ** These constants (all generated automatically by the parser generator)
 ** specify the various kinds of tokens (terminals) that the parser
@@ -22,11 +25,13 @@
 **
 ** Each symbol here is a terminal symbol in the grammar.
 */
+
 /* Make sure the INTERFACE macro is defined.
 */
 #ifndef INTERFACE
 # define INTERFACE 1
 #endif
+
 /* The next thing included is series of defines which control
 ** various aspects of the generated parser.
 **    YYCODETYPE         is the data type used for storing terminal
@@ -84,6 +89,7 @@ typedef union {
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
 
+
 /* Next are that tables used to determine what action to take based on the
 ** current state and lookahead token.  These tables are used to implement
 ** functions that take a state number and lookahead value and return an
@@ -132,75 +138,81 @@ typedef union {
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */    76,   47,   31,  160,    1,    8,   82,   61,   26,   53,
- /*    10 */    29,   99,   27,   28,   69,   19,   17,   71,   48,    9,
- /*    20 */    82,   68,   26,   49,   29,   99,   27,   28,   77,   19,
- /*    30 */    17,   71,   57,   44,   99,   68,   26,    5,   29,   79,
- /*    40 */    27,   42,   99,   19,   17,   71,   75,    2,   25,   51,
- /*    50 */    61,   26,   22,   29,  104,   27,   42,   24,   99,   54,
- /*    60 */    50,   46,   78,   25,    6,   36,   32,   22,   25,   33,
- /*    70 */    99,   43,   22,   99,   54,   50,   46,    7,   99,   54,
- /*    80 */    50,   46,   89,   90,   37,   38,   73,   81,   95,   93,
- /*    90 */    91,   80,   82,   80,   55,   32,   32,   32,   33,   33,
- /*   100 */    33,   39,   25,   11,   80,   12,   22,   87,   32,   58,
- /*   110 */    98,   33,   99,   95,   93,   91,   10,   84,   32,   88,
- /*   120 */    14,   97,   32,   82,   92,   94,    4,   32,   60,   15,
- /*   130 */    33,   30,   21,   52,   63,   56,   62,   59,   35,   23,
- /*   140 */    46,   86,   66,   67,   50,   18,    3,   16,  102,   40,
- /*   150 */    72,  100,   65,  103,  101,   23,   74,   34,   30,   96,
- /*   160 */    13,   41,   20,   83,   64,   85,   14,   70,   45,
+  /*     0 */ 76, 47, 31, 160, 1, 8, 82, 61, 26, 53,
+  /*    10 */ 29, 99, 27, 28, 69, 19, 17, 71, 48, 9,
+  /*    20 */ 82, 68, 26, 49, 29, 99, 27, 28, 77, 19,
+  /*    30 */ 17, 71, 57, 44, 99, 68, 26, 5, 29, 79,
+  /*    40 */ 27, 42, 99, 19, 17, 71, 75, 2, 25, 51,
+  /*    50 */ 61, 26, 22, 29, 104, 27, 42, 24, 99, 54,
+  /*    60 */ 50, 46, 78, 25, 6, 36, 32, 22, 25, 33,
+  /*    70 */ 99, 43, 22, 99, 54, 50, 46, 7, 99, 54,
+  /*    80 */ 50, 46, 89, 90, 37, 38, 73, 81, 95, 93,
+  /*    90 */ 91, 80, 82, 80, 55, 32, 32, 32, 33, 33,
+  /*   100 */ 33, 39, 25, 11, 80, 12, 22, 87, 32, 58,
+  /*   110 */ 98, 33, 99, 95, 93, 91, 10, 84, 32, 88,
+  /*   120 */ 14, 97, 32, 82, 92, 94, 4, 32, 60, 15,
+  /*   130 */ 33, 30, 21, 52, 63, 56, 62, 59, 35, 23,
+  /*   140 */ 46, 86, 66, 67, 50, 18, 3, 16, 102, 40,
+  /*   150 */ 72, 100, 65, 103, 101, 23, 74, 34, 30, 96,
+  /*   160 */ 13, 41, 20, 83, 64, 85, 14, 70, 45,
 };
+
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */    25,    9,   27,   28,   29,   30,   31,   32,   33,   12,
- /*    10 */    35,   14,   37,   38,   25,   40,   41,   42,    2,   30,
- /*    20 */    31,   32,   33,   12,   35,   14,   37,   38,    2,   40,
- /*    30 */    41,   42,   12,   30,   14,   32,   33,   10,   35,   11,
- /*    40 */    37,   38,   14,   40,   41,   42,    2,   29,    4,    9,
- /*    50 */    32,   33,    8,   35,    2,   37,   38,    5,   14,   15,
- /*    60 */    16,   17,   31,    4,   10,   26,   35,    8,    4,   38,
- /*    70 */    14,   12,    8,   14,   15,   16,   17,   10,   14,   15,
- /*    80 */    16,   17,   14,   44,   45,   46,   25,   19,   20,   21,
- /*    90 */    22,   31,   31,   31,    9,   35,   35,   35,   38,   38,
- /*   100 */    38,   26,    4,   43,   31,   43,    8,   14,   35,   11,
- /*   110 */     2,   38,   14,   20,   21,   22,   43,   25,   35,   44,
- /*   120 */     7,   38,   35,   31,    2,   38,   18,   35,   12,    7,
- /*   130 */    38,   18,    6,    2,    2,    2,    2,    2,   36,   13,
- /*   140 */    17,    2,   42,    2,   16,   41,   10,   35,   39,   35,
- /*   150 */     3,   14,   34,   34,   34,   13,    2,   19,   18,    2,
- /*   160 */     5,    9,    2,   19,    2,   22,    7,   42,   12,
+  /*     0 */ 25, 9, 27, 28, 29, 30, 31, 32, 33, 12,
+  /*    10 */ 35, 14, 37, 38, 25, 40, 41, 42, 2, 30,
+  /*    20 */ 31, 32, 33, 12, 35, 14, 37, 38, 2, 40,
+  /*    30 */ 41, 42, 12, 30, 14, 32, 33, 10, 35, 11,
+  /*    40 */ 37, 38, 14, 40, 41, 42, 2, 29, 4, 9,
+  /*    50 */ 32, 33, 8, 35, 2, 37, 38, 5, 14, 15,
+  /*    60 */ 16, 17, 31, 4, 10, 26, 35, 8, 4, 38,
+  /*    70 */ 14, 12, 8, 14, 15, 16, 17, 10, 14, 15,
+  /*    80 */ 16, 17, 14, 44, 45, 46, 25, 19, 20, 21,
+  /*    90 */ 22, 31, 31, 31, 9, 35, 35, 35, 38, 38,
+  /*   100 */ 38, 26, 4, 43, 31, 43, 8, 14, 35, 11,
+  /*   110 */ 2, 38, 14, 20, 21, 22, 43, 25, 35, 44,
+  /*   120 */ 7, 38, 35, 31, 2, 38, 18, 35, 12, 7,
+  /*   130 */ 38, 18, 6, 2, 2, 2, 2, 2, 36, 13,
+  /*   140 */ 17, 2, 42, 2, 16, 41, 10, 35, 39, 35,
+  /*   150 */ 3, 14, 34, 34, 34, 13, 2, 19, 18, 2,
+  /*   160 */ 5, 9, 2, 19, 2, 22, 7, 42, 12,
 };
+
 #define YY_SHIFT_USE_DFLT (-9)
 #define YY_SHIFT_MAX 60
 static const short yy_shift_ofst[] = {
- /*     0 */    44,   64,   59,   98,   68,   28,   28,   28,   56,   56,
- /*    10 */    20,   -3,   11,   93,   56,   56,  108,  123,  123,  128,
- /*    20 */   136,   56,   56,  137,  137,  137,   52,  122,  113,  126,
- /*    30 */   138,  147,  142,  140,  154,  157,  143,  144,  155,  143,
- /*    40 */   152,  160,  159,  162,  156,  141,   -8,   16,   27,   26,
- /*    50 */    40,  131,   54,  132,   85,  133,   67,  134,  135,  116,
- /*    60 */   139,
+  /*     0 */ 44, 64, 59, 98, 68, 28, 28, 28, 56, 56,
+  /*    10 */ 20, -3, 11, 93, 56, 56, 108, 123, 123, 128,
+  /*    20 */ 136, 56, 56, 137, 137, 137, 52, 122, 113, 126,
+  /*    30 */ 138, 147, 142, 140, 154, 157, 143, 144, 155, 143,
+  /*    40 */ 152, 160, 159, 162, 156, 141, -8, 16, 27, 26,
+  /*    50 */ 40, 131, 54, 132, 85, 133, 67, 134, 135, 116,
+  /*    60 */ 139,
 };
+
 #define YY_REDUCE_USE_DFLT (-26)
 #define YY_REDUCE_MAX 25
 static const signed char yy_reduce_ofst[] = {
- /*     0 */   -25,  -11,    3,   18,   39,   62,   60,   73,   61,   92,
- /*    10 */    31,   31,   31,   75,   83,   87,  102,  100,  125,  104,
- /*    20 */   109,  112,  114,  118,  119,  120,
+  /*     0 */ -25, -11, 3, 18, 39, 62, 60, 73, 61, 92,
+  /*    10 */ 31, 31, 31, 75, 83, 87, 102, 100, 125, 104,
+  /*    20 */ 109, 112, 114, 118, 119, 120,
 };
+
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   159,  107,  159,  159,  159,  159,  159,  159,  109,  108,
- /*    10 */   159,  159,  159,  159,  159,  159,  159,  136,  134,  133,
- /*    20 */   159,  159,  159,  159,  159,  159,  159,  159,  159,  129,
- /*    30 */   159,  159,  129,  159,  159,  159,  155,  159,  152,  156,
- /*    40 */   159,  159,  159,  159,  159,  159,  159,  159,  159,  159,
- /*    50 */   159,  159,  159,  159,  159,  159,  159,  159,  159,  159,
- /*    60 */   159,  115,  139,  140,  127,  130,  137,  128,  116,  110,
- /*    70 */   135,  138,  106,  112,  145,  105,  113,  141,  144,  142,
- /*    80 */   143,  150,  114,  151,  111,  149,  126,  154,  158,  153,
- /*    90 */   157,  148,  122,  147,  124,  146,  121,  123,  120,  131,
- /*   100 */   132,  118,  125,  119,  117,
+  /*     0 */ 159, 107, 159, 159, 159, 159, 159, 159, 109, 108,
+  /*    10 */ 159, 159, 159, 159, 159, 159, 159, 136, 134, 133,
+  /*    20 */ 159, 159, 159, 159, 159, 159, 159, 159, 159, 129,
+  /*    30 */ 159, 159, 129, 159, 159, 159, 155, 159, 152, 156,
+  /*    40 */ 159, 159, 159, 159, 159, 159, 159, 159, 159, 159,
+  /*    50 */ 159, 159, 159, 159, 159, 159, 159, 159, 159, 159,
+  /*    60 */ 159, 115, 139, 140, 127, 130, 137, 128, 116, 110,
+  /*    70 */ 135, 138, 106, 112, 145, 105, 113, 141, 144, 142,
+  /*    80 */ 143, 150, 114, 151, 111, 149, 126, 154, 158, 153,
+  /*    90 */ 157, 148, 122, 147, 124, 146, 121, 123, 120, 131,
+  /*   100 */ 132, 118, 125, 119, 117,
 };
+
 #define YY_SZ_ACTTAB (sizeof(yy_action)/sizeof(yy_action[0]))
+
 
 /* The next table maps tokens into fallback tokens.  If a construct
 ** like the following:
@@ -217,6 +229,7 @@ static const YYCODETYPE yyFallback[] = {
 };
 #endif /* YYFALLBACK */
 
+
 /* The following structure represents a single element of the
 ** parser's stack.  Information stored includes:
 **
@@ -230,21 +243,22 @@ static const YYCODETYPE yyFallback[] = {
 **      It is sometimes called the "minor" token.
 */
 struct yyStackEntry {
-  int stateno;       /* The state-number */
-  int major;         /* The major token value.  This is the code
-                     ** number for the token at this stack level */
-  YYMINORTYPE minor; /* The user-supplied minor token value.  This
-                     ** is the value of the token  */
+  int stateno;                  /* The state-number */
+  int major;                    /* The major token value.  This is the code
+                                 ** number for the token at this stack level */
+  YYMINORTYPE minor;            /* The user-supplied minor token value.  This
+                                 ** is the value of the token  */
 };
 typedef struct yyStackEntry yyStackEntry;
+
 
 /* The state of the parser is completely contained in an instance of
 ** the following structure */
 struct yyParser {
   int yyidx;                    /* Index of top element in stack */
   int yyerrcnt;                 /* Shifts left before out of the error */
-  jx_net_ARG_SDECL                /* A place to hold %extra_argument */
-  yyStackEntry yystack[YYSTACKDEPTH];  /* The parser's stack */
+    jx_net_ARG_SDECL            /* A place to hold %extra_argument */
+    yyStackEntry yystack[YYSTACKDEPTH]; /* The parser's stack */
 };
 typedef struct yyParser yyParser;
 
@@ -255,6 +269,7 @@ static char *yyTracePrompt = 0;
 #endif /* NDEBUG */
 
 #ifndef NDEBUG
+
 /* 
 ** Turn parser tracing on by giving a stream to which to write the trace
 ** and a prompt to preface each trace message.  Tracing is turned off
@@ -272,109 +287,117 @@ static char *yyTracePrompt = 0;
 ** Outputs:
 ** None.
 */
-void jx_net_Trace(FILE *TraceFILE, char *zTracePrompt){
+void jx_net_Trace(FILE * TraceFILE, char *zTracePrompt)
+{
   yyTraceFILE = TraceFILE;
   yyTracePrompt = zTracePrompt;
-  if( yyTraceFILE==0 ) yyTracePrompt = 0;
-  else if( yyTracePrompt==0 ) yyTraceFILE = 0;
+  if(yyTraceFILE == 0)
+    yyTracePrompt = 0;
+  else if(yyTracePrompt == 0)
+    yyTraceFILE = 0;
 }
 #endif /* NDEBUG */
 
 #ifndef NDEBUG
+
 /* For tracing shifts, the names of all terminals and nonterminals
 ** are required.  The following table supplies these names */
-static const char *yyTokenName[] = { 
-  "$",             "ERROR",         "NEWLINE",       "EOI",         
-  "PORT",          "COMMA",         "EQUALS",        "PIPE",        
-  "NODE",          "COLON",         "INDENT",        "PASS",        
-  "DEDENT",        "DOT",           "IDENT",         "START",       
-  "RUN",           "STOP",          "OPEN_PAR",      "CLOSE_PAR",   
-  "ICON",          "FCON",          "SCON",          "error",       
-  "description",   "starter",       "string",        "network",     
-  "module",        "wiring",        "body",          "action",      
-  "entry",         "port_decl",     "port_name",     "node_name",   
-  "parameters",    "pipe_chain",    "node_or_port",  "node",        
-  "start",         "run",           "stop",          "code",        
-  "number",        "varargslist",   "fpdefs",      
+static const char *yyTokenName[] = {
+  "$", "ERROR", "NEWLINE", "EOI",
+  "PORT", "COMMA", "EQUALS", "PIPE",
+  "NODE", "COLON", "INDENT", "PASS",
+  "DEDENT", "DOT", "IDENT", "START",
+  "RUN", "STOP", "OPEN_PAR", "CLOSE_PAR",
+  "ICON", "FCON", "SCON", "error",
+  "description", "starter", "string", "network",
+  "module", "wiring", "body", "action",
+  "entry", "port_decl", "port_name", "node_name",
+  "parameters", "pipe_chain", "node_or_port", "node",
+  "start", "run", "stop", "code",
+  "number", "varargslist", "fpdefs",
 };
 #endif /* NDEBUG */
 
 #ifndef NDEBUG
+
 /* For tracing reduce actions, the names of all rules are required.
 */
 static const char *yyRuleName[] = {
- /*   0 */ "module ::= NEWLINE",
- /*   1 */ "module ::= network EOI",
- /*   2 */ "network ::= wiring",
- /*   3 */ "network ::= wiring body",
- /*   4 */ "network ::= body",
- /*   5 */ "network ::= wiring starter",
- /*   6 */ "network ::= wiring body starter",
- /*   7 */ "network ::= body starter",
- /*   8 */ "network ::= starter",
- /*   9 */ "starter ::= action",
- /*  10 */ "wiring ::= entry",
- /*  11 */ "wiring ::= wiring entry",
- /*  12 */ "entry ::= port_decl NEWLINE",
- /*  13 */ "port_decl ::= PORT port_name",
- /*  14 */ "port_decl ::= port_decl COMMA port_name",
- /*  15 */ "entry ::= node_name EQUALS node_name NEWLINE",
- /*  16 */ "entry ::= node_name EQUALS node_name parameters NEWLINE",
- /*  17 */ "entry ::= pipe_chain NEWLINE",
- /*  18 */ "pipe_chain ::= node_or_port PIPE node_or_port",
- /*  19 */ "pipe_chain ::= pipe_chain PIPE node_or_port",
- /*  20 */ "entry ::= NODE node_name COLON NEWLINE node",
- /*  21 */ "node ::= INDENT PASS NEWLINE DEDENT NEWLINE",
- /*  22 */ "node ::= INDENT wiring DEDENT NEWLINE",
- /*  23 */ "node ::= INDENT wiring body DEDENT NEWLINE",
- /*  24 */ "node_or_port ::= node_name",
- /*  25 */ "node_or_port ::= node_name DOT port_name",
- /*  26 */ "node_name ::= IDENT",
- /*  27 */ "port_name ::= IDENT",
- /*  28 */ "body ::= start",
- /*  29 */ "body ::= start run",
- /*  30 */ "body ::= start run stop",
- /*  31 */ "body ::= run",
- /*  32 */ "body ::= run stop",
- /*  33 */ "body ::= stop",
- /*  34 */ "start ::= START COLON NEWLINE INDENT code DEDENT NEWLINE",
- /*  35 */ "run ::= RUN COLON NEWLINE INDENT code DEDENT NEWLINE",
- /*  36 */ "stop ::= STOP COLON NEWLINE INDENT code DEDENT NEWLINE",
- /*  37 */ "code ::= PASS",
- /*  38 */ "code ::= action",
- /*  39 */ "code ::= code action",
- /*  40 */ "action ::= node_or_port OPEN_PAR CLOSE_PAR NEWLINE",
- /*  41 */ "number ::= ICON",
- /*  42 */ "number ::= FCON",
- /*  43 */ "string ::= SCON",
- /*  44 */ "string ::= string SCON",
- /*  45 */ "parameters ::= OPEN_PAR CLOSE_PAR",
- /*  46 */ "parameters ::= OPEN_PAR varargslist CLOSE_PAR",
- /*  47 */ "varargslist ::= fpdefs",
- /*  48 */ "fpdefs ::= IDENT",
- /*  49 */ "fpdefs ::= fpdefs COMMA IDENT",
- /*  50 */ "fpdefs ::= string",
- /*  51 */ "fpdefs ::= fpdefs COMMA string",
- /*  52 */ "fpdefs ::= number",
- /*  53 */ "fpdefs ::= fpdefs COMMA number",
+  /*   0 */ "module ::= NEWLINE",
+  /*   1 */ "module ::= network EOI",
+  /*   2 */ "network ::= wiring",
+  /*   3 */ "network ::= wiring body",
+  /*   4 */ "network ::= body",
+  /*   5 */ "network ::= wiring starter",
+  /*   6 */ "network ::= wiring body starter",
+  /*   7 */ "network ::= body starter",
+  /*   8 */ "network ::= starter",
+  /*   9 */ "starter ::= action",
+  /*  10 */ "wiring ::= entry",
+  /*  11 */ "wiring ::= wiring entry",
+  /*  12 */ "entry ::= port_decl NEWLINE",
+  /*  13 */ "port_decl ::= PORT port_name",
+  /*  14 */ "port_decl ::= port_decl COMMA port_name",
+  /*  15 */ "entry ::= node_name EQUALS node_name NEWLINE",
+  /*  16 */ "entry ::= node_name EQUALS node_name parameters NEWLINE",
+  /*  17 */ "entry ::= pipe_chain NEWLINE",
+  /*  18 */ "pipe_chain ::= node_or_port PIPE node_or_port",
+  /*  19 */ "pipe_chain ::= pipe_chain PIPE node_or_port",
+  /*  20 */ "entry ::= NODE node_name COLON NEWLINE node",
+  /*  21 */ "node ::= INDENT PASS NEWLINE DEDENT NEWLINE",
+  /*  22 */ "node ::= INDENT wiring DEDENT NEWLINE",
+  /*  23 */ "node ::= INDENT wiring body DEDENT NEWLINE",
+  /*  24 */ "node_or_port ::= node_name",
+  /*  25 */ "node_or_port ::= node_name DOT port_name",
+  /*  26 */ "node_name ::= IDENT",
+  /*  27 */ "port_name ::= IDENT",
+  /*  28 */ "body ::= start",
+  /*  29 */ "body ::= start run",
+  /*  30 */ "body ::= start run stop",
+  /*  31 */ "body ::= run",
+  /*  32 */ "body ::= run stop",
+  /*  33 */ "body ::= stop",
+  /*  34 */ "start ::= START COLON NEWLINE INDENT code DEDENT NEWLINE",
+  /*  35 */ "run ::= RUN COLON NEWLINE INDENT code DEDENT NEWLINE",
+  /*  36 */ "stop ::= STOP COLON NEWLINE INDENT code DEDENT NEWLINE",
+  /*  37 */ "code ::= PASS",
+  /*  38 */ "code ::= action",
+  /*  39 */ "code ::= code action",
+  /*  40 */ "action ::= node_or_port OPEN_PAR CLOSE_PAR NEWLINE",
+  /*  41 */ "number ::= ICON",
+  /*  42 */ "number ::= FCON",
+  /*  43 */ "string ::= SCON",
+  /*  44 */ "string ::= string SCON",
+  /*  45 */ "parameters ::= OPEN_PAR CLOSE_PAR",
+  /*  46 */ "parameters ::= OPEN_PAR varargslist CLOSE_PAR",
+  /*  47 */ "varargslist ::= fpdefs",
+  /*  48 */ "fpdefs ::= IDENT",
+  /*  49 */ "fpdefs ::= fpdefs COMMA IDENT",
+  /*  50 */ "fpdefs ::= string",
+  /*  51 */ "fpdefs ::= fpdefs COMMA string",
+  /*  52 */ "fpdefs ::= number",
+  /*  53 */ "fpdefs ::= fpdefs COMMA number",
 };
 #endif /* NDEBUG */
+
 
 /*
 ** This function returns the symbolic name associated with a token
 ** value.
 */
-const char *jx_net_TokenName(int tokenType){
+const char *jx_net_TokenName(int tokenType)
+{
 #ifndef NDEBUG
-  if( tokenType>0 && tokenType<(sizeof(yyTokenName)/sizeof(yyTokenName[0])) ){
+  if(tokenType > 0 && tokenType < (sizeof(yyTokenName) / sizeof(yyTokenName[0]))) {
     return yyTokenName[tokenType];
-  }else{
+  } else {
     return "Unknown";
   }
 #else
   return "";
 #endif
 }
+
 
 /* 
 ** This function allocates a new parser.
@@ -388,72 +411,83 @@ const char *jx_net_TokenName(int tokenType){
 ** A pointer to a parser.  This pointer is used in subsequent calls
 ** to jx_net_ and jx_net_Free.
 */
-void *jx_net_Alloc(void *(*mallocProc)(size_t)){
+void *jx_net_Alloc(void *(*mallocProc) (size_t))
+{
   yyParser *pParser;
-  pParser = (yyParser*)(*mallocProc)( (size_t)sizeof(yyParser) );
-  if( pParser ){
+  pParser = (yyParser *) (*mallocProc) ((size_t) sizeof(yyParser));
+  if(pParser) {
     pParser->yyidx = -1;
   }
   return pParser;
 }
+
 
 /* The following function deletes the value associated with a
 ** symbol.  The symbol can be either a terminal or nonterminal.
 ** "yymajor" is the symbol code, and "yypminor" is a pointer to
 ** the value.
 */
-static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
-  switch( yymajor ){
+static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE * yypminor)
+{
+  switch (yymajor) {
     /* Here is inserted the actions which take place when a
-    ** terminal or non-terminal is destroyed.  This can happen
-    ** when the symbol is popped from the stack during a
-    ** reduce or during error processing or when a parser is 
-    ** being destroyed before it is finished parsing.
-    **
-    ** Note: during a reduce, the only symbols destroyed are those
-    ** which appear on the RHS of the rule, but which are not used
-    ** inside the C code.
-    */
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-    case 13:
-    case 14:
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-    case 20:
-    case 21:
-    case 22:
+     ** terminal or non-terminal is destroyed.  This can happen
+     ** when the symbol is popped from the stack during a
+     ** reduce or during error processing or when a parser is 
+     ** being destroyed before it is finished parsing.
+     **
+     ** Note: during a reduce, the only symbols destroyed are those
+     ** which appear on the RHS of the rule, but which are not used
+     ** inside the C code.
+     */
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+  case 7:
+  case 8:
+  case 9:
+  case 10:
+  case 11:
+  case 12:
+  case 13:
+  case 14:
+  case 15:
+  case 16:
+  case 17:
+  case 18:
+  case 19:
+  case 20:
+  case 21:
+  case 22:
 #line 65 "jx_net_parse.lem"
-{ jx_ob_free((yypminor->yy0));}
+    {
+      jx_ob_free((yypminor->yy0));
+    }
 #line 443 "jx_net_parse.c"
-      break;
-    case 24:
-    case 25:
+    break;
+  case 24:
+  case 25:
 #line 59 "jx_net_parse.lem"
-{ jx_ob_free((yypminor->yy0)); }
+    {
+      jx_ob_free((yypminor->yy0));
+    }
 #line 449 "jx_net_parse.c"
-      break;
-    case 26:
+    break;
+  case 26:
 #line 61 "jx_net_parse.lem"
-{ jx_ob_free((yypminor->yy67)); }
+    {
+      jx_ob_free((yypminor->yy67));
+    }
 #line 454 "jx_net_parse.c"
-      break;
-    default:  break;   /* If no destructor action specified: do nothing */
+    break;
+  default:
+    break;                      /* If no destructor action specified: do nothing */
   }
 }
+
 
 /*
 ** Pop the parser's stack once.
@@ -463,23 +497,24 @@ static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
 **
 ** Return the major token number for the symbol popped.
 */
-static int yy_pop_parser_stack(yyParser *pParser){
+static int yy_pop_parser_stack(yyParser * pParser)
+{
   YYCODETYPE yymajor;
   yyStackEntry *yytos = &pParser->yystack[pParser->yyidx];
 
-  if( pParser->yyidx<0 ) return 0;
+  if(pParser->yyidx < 0)
+    return 0;
 #ifndef NDEBUG
-  if( yyTraceFILE && pParser->yyidx>=0 ){
-    fprintf(yyTraceFILE,"%sPopping %s\n",
-      yyTracePrompt,
-      yyTokenName[yytos->major]);
+  if(yyTraceFILE && pParser->yyidx >= 0) {
+    fprintf(yyTraceFILE, "%sPopping %s\n", yyTracePrompt, yyTokenName[yytos->major]);
   }
 #endif
   yymajor = yytos->major;
-  yy_destructor( yymajor, &yytos->minor);
+  yy_destructor(yymajor, &yytos->minor);
   pParser->yyidx--;
   return yymajor;
 }
+
 
 /* 
 ** Deallocate and destroy a parser.  Destructors are all called for
@@ -493,15 +528,18 @@ static int yy_pop_parser_stack(yyParser *pParser){
 **       from malloc.
 ** </ul>
 */
-void jx_net_Free(
-  void *p,                    /* The parser to be deleted */
-  void (*freeProc)(void*)     /* Function used to reclaim memory */
-){
-  yyParser *pParser = (yyParser*)p;
-  if( pParser==0 ) return;
-  while( pParser->yyidx>=0 ) yy_pop_parser_stack(pParser);
-  (*freeProc)((void*)pParser);
+void jx_net_Free(void *p,       /* The parser to be deleted */
+                 void (*freeProc) (void *)      /* Function used to reclaim memory */
+  )
+{
+  yyParser *pParser = (yyParser *) p;
+  if(pParser == 0)
+    return;
+  while(pParser->yyidx >= 0)
+    yy_pop_parser_stack(pParser);
+  (*freeProc) ((void *) pParser);
 }
+
 
 /*
 ** Find the appropriate action for a parser given the terminal
@@ -511,41 +549,42 @@ void jx_net_Free(
 ** independent of the look-ahead.  If it is, return the action, otherwise
 ** return YY_NO_ACTION.
 */
-static int yy_find_shift_action(
-  yyParser *pParser,        /* The parser */
-  int iLookAhead            /* The look-ahead token */
-){
+static int yy_find_shift_action(yyParser * pParser,     /* The parser */
+                                int iLookAhead  /* The look-ahead token */
+  )
+{
   int i;
   int stateno = pParser->yystack[pParser->yyidx].stateno;
- 
+
   /* if( pParser->yyidx<0 ) return YY_NO_ACTION;  */
   i = yy_shift_ofst[stateno];
-  if( i==YY_SHIFT_USE_DFLT ){
+  if(i == YY_SHIFT_USE_DFLT) {
     return yy_default[stateno];
   }
-  if( iLookAhead==YYNOCODE ){
+  if(iLookAhead == YYNOCODE) {
     return YY_NO_ACTION;
   }
   i += iLookAhead;
-  if( i<0 || i>=YY_SZ_ACTTAB || yy_lookahead[i]!=iLookAhead ){
+  if(i < 0 || i >= YY_SZ_ACTTAB || yy_lookahead[i] != iLookAhead) {
 #ifdef YYFALLBACK
-    int iFallback;            /* Fallback token */
-    if( iLookAhead<sizeof(yyFallback)/sizeof(yyFallback[0])
-           && (iFallback = yyFallback[iLookAhead])!=0 ){
+    int iFallback;              /* Fallback token */
+    if(iLookAhead < sizeof(yyFallback) / sizeof(yyFallback[0])
+       && (iFallback = yyFallback[iLookAhead]) != 0) {
 #ifndef NDEBUG
-      if( yyTraceFILE ){
+      if(yyTraceFILE) {
         fprintf(yyTraceFILE, "%sFALLBACK %s => %s\n",
-           yyTracePrompt, yyTokenName[iLookAhead], yyTokenName[iFallback]);
+                yyTracePrompt, yyTokenName[iLookAhead], yyTokenName[iFallback]);
       }
 #endif
       return yy_find_shift_action(pParser, iFallback);
     }
 #endif
     return yy_default[stateno];
-  }else{
+  } else {
     return yy_action[i];
   }
 }
+
 
 /*
 ** Find the appropriate action for a parser given the non-terminal
@@ -555,830 +594,893 @@ static int yy_find_shift_action(
 ** independent of the look-ahead.  If it is, return the action, otherwise
 ** return YY_NO_ACTION.
 */
-static int yy_find_reduce_action(
-  yyParser *pParser,        /* The parser */
-  int iLookAhead            /* The look-ahead token */
-){
+static int yy_find_reduce_action(yyParser * pParser,    /* The parser */
+                                 int iLookAhead /* The look-ahead token */
+  )
+{
   int i;
   int stateno = pParser->yystack[pParser->yyidx].stateno;
- 
+
   i = yy_reduce_ofst[stateno];
-  if( i==YY_REDUCE_USE_DFLT ){
+  if(i == YY_REDUCE_USE_DFLT) {
     return yy_default[stateno];
   }
-  if( iLookAhead==YYNOCODE ){
+  if(iLookAhead == YYNOCODE) {
     return YY_NO_ACTION;
   }
   i += iLookAhead;
-  if( i<0 || i>=YY_SZ_ACTTAB || yy_lookahead[i]!=iLookAhead ){
+  if(i < 0 || i >= YY_SZ_ACTTAB || yy_lookahead[i] != iLookAhead) {
     return yy_default[stateno];
-  }else{
+  } else {
     return yy_action[i];
   }
 }
 
+
 /*
 ** Perform a shift action.
 */
-static void yy_shift(
-  yyParser *yypParser,          /* The parser to be shifted */
-  int yyNewState,               /* The new state to shift in */
-  int yyMajor,                  /* The major token to shift in */
-  YYMINORTYPE *yypMinor         /* Pointer ot the minor token to shift in */
-){
+static void yy_shift(yyParser * yypParser,      /* The parser to be shifted */
+                     int yyNewState,    /* The new state to shift in */
+                     int yyMajor,       /* The major token to shift in */
+                     YYMINORTYPE * yypMinor     /* Pointer ot the minor token to shift in */
+  )
+{
   yyStackEntry *yytos;
   yypParser->yyidx++;
-  if( yypParser->yyidx>=YYSTACKDEPTH ){
-     jx_net_ARG_FETCH;
-     yypParser->yyidx--;
+  if(yypParser->yyidx >= YYSTACKDEPTH) {
+    jx_net_ARG_FETCH;
+    yypParser->yyidx--;
 #ifndef NDEBUG
-     if( yyTraceFILE ){
-       fprintf(yyTraceFILE,"%sStack Overflow!\n",yyTracePrompt);
-     }
+    if(yyTraceFILE) {
+      fprintf(yyTraceFILE, "%sStack Overflow!\n", yyTracePrompt);
+    }
 #endif
-     while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
-     /* Here code is inserted which will execute if the parser
+    while(yypParser->yyidx >= 0)
+      yy_pop_parser_stack(yypParser);
+    /* Here code is inserted which will execute if the parser
      ** stack every overflows */
-     jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument var */
-     return;
+    jx_net_ARG_STORE;           /* Suppress warning about unused %extra_argument var */
+    return;
   }
   yytos = &yypParser->yystack[yypParser->yyidx];
   yytos->stateno = yyNewState;
   yytos->major = yyMajor;
   yytos->minor = *yypMinor;
 #ifndef NDEBUG
-  if( yyTraceFILE && yypParser->yyidx>0 ){
+  if(yyTraceFILE && yypParser->yyidx > 0) {
     int i;
-    fprintf(yyTraceFILE,"%sShift %d\n",yyTracePrompt,yyNewState);
-    fprintf(yyTraceFILE,"%sStack:",yyTracePrompt);
-    for(i=1; i<=yypParser->yyidx; i++)
-      fprintf(yyTraceFILE," %s",yyTokenName[yypParser->yystack[i].major]);
-    fprintf(yyTraceFILE,"\n");
+    fprintf(yyTraceFILE, "%sShift %d\n", yyTracePrompt, yyNewState);
+    fprintf(yyTraceFILE, "%sStack:", yyTracePrompt);
+    for(i = 1; i <= yypParser->yyidx; i++)
+      fprintf(yyTraceFILE, " %s", yyTokenName[yypParser->yystack[i].major]);
+    fprintf(yyTraceFILE, "\n");
   }
 #endif
 }
+
 
 /* The following table contains information about every rule that
 ** is used during the reduce.
 */
 static struct {
-  YYCODETYPE lhs;         /* Symbol on the left-hand side of the rule */
-  unsigned char nrhs;     /* Number of right-hand side symbols in the rule */
+  YYCODETYPE lhs;               /* Symbol on the left-hand side of the rule */
+  unsigned char nrhs;           /* Number of right-hand side symbols in the rule */
 } yyRuleInfo[] = {
-  { 28, 1 },
-  { 28, 2 },
-  { 27, 1 },
-  { 27, 2 },
-  { 27, 1 },
-  { 27, 2 },
-  { 27, 3 },
-  { 27, 2 },
-  { 27, 1 },
-  { 25, 1 },
-  { 29, 1 },
-  { 29, 2 },
-  { 32, 2 },
-  { 33, 2 },
-  { 33, 3 },
-  { 32, 4 },
-  { 32, 5 },
-  { 32, 2 },
-  { 37, 3 },
-  { 37, 3 },
-  { 32, 5 },
-  { 39, 5 },
-  { 39, 4 },
-  { 39, 5 },
-  { 38, 1 },
-  { 38, 3 },
-  { 35, 1 },
-  { 34, 1 },
-  { 30, 1 },
-  { 30, 2 },
-  { 30, 3 },
-  { 30, 1 },
-  { 30, 2 },
-  { 30, 1 },
-  { 40, 7 },
-  { 41, 7 },
-  { 42, 7 },
-  { 43, 1 },
-  { 43, 1 },
-  { 43, 2 },
-  { 31, 4 },
-  { 44, 1 },
-  { 44, 1 },
-  { 26, 1 },
-  { 26, 2 },
-  { 36, 2 },
-  { 36, 3 },
-  { 45, 1 },
-  { 46, 1 },
-  { 46, 3 },
-  { 46, 1 },
-  { 46, 3 },
-  { 46, 1 },
-  { 46, 3 },
-};
+  {
+  28, 1}, {
+  28, 2}, {
+  27, 1}, {
+  27, 2}, {
+  27, 1}, {
+  27, 2}, {
+  27, 3}, {
+  27, 2}, {
+  27, 1}, {
+  25, 1}, {
+  29, 1}, {
+  29, 2}, {
+  32, 2}, {
+  33, 2}, {
+  33, 3}, {
+  32, 4}, {
+  32, 5}, {
+  32, 2}, {
+  37, 3}, {
+  37, 3}, {
+  32, 5}, {
+  39, 5}, {
+  39, 4}, {
+  39, 5}, {
+  38, 1}, {
+  38, 3}, {
+  35, 1}, {
+  34, 1}, {
+  30, 1}, {
+  30, 2}, {
+  30, 3}, {
+  30, 1}, {
+  30, 2}, {
+  30, 1}, {
+  40, 7}, {
+  41, 7}, {
+  42, 7}, {
+  43, 1}, {
+  43, 1}, {
+  43, 2}, {
+  31, 4}, {
+  44, 1}, {
+  44, 1}, {
+  26, 1}, {
+  26, 2}, {
+  36, 2}, {
+  36, 3}, {
+  45, 1}, {
+  46, 1}, {
+  46, 3}, {
+  46, 1}, {
+  46, 3}, {
+  46, 1}, {
+46, 3},};
 
-static void yy_accept(yyParser*);  /* Forward Declaration */
+static void yy_accept(yyParser *);      /* Forward Declaration */
+
 
 /*
 ** Perform a reduce action and the shift that must immediately
 ** follow the reduce.
 */
-static void yy_reduce(
-  yyParser *yypParser,         /* The parser */
-  int yyruleno                 /* Number of the rule by which to reduce */
-){
-  int yygoto;                     /* The next state */
-  int yyact;                      /* The next action */
-  YYMINORTYPE yygotominor;        /* The LHS of the rule reduced */
-  yyStackEntry *yymsp;            /* The top of the parser's stack */
-  int yysize;                     /* Amount to pop the stack */
+static void yy_reduce(yyParser * yypParser,     /* The parser */
+                      int yyruleno      /* Number of the rule by which to reduce */
+  )
+{
+  int yygoto;                   /* The next state */
+  int yyact;                    /* The next action */
+  YYMINORTYPE yygotominor;      /* The LHS of the rule reduced */
+  yyStackEntry *yymsp;          /* The top of the parser's stack */
+  int yysize;                   /* Amount to pop the stack */
   jx_net_ARG_FETCH;
   yymsp = &yypParser->yystack[yypParser->yyidx];
 #ifndef NDEBUG
-  if( yyTraceFILE && yyruleno>=0 
-        && yyruleno<sizeof(yyRuleName)/sizeof(yyRuleName[0]) ){
-    fprintf(yyTraceFILE, "%sReduce [%s].\n", yyTracePrompt,
-      yyRuleName[yyruleno]);
+  if(yyTraceFILE && yyruleno >= 0
+     && yyruleno < sizeof(yyRuleName) / sizeof(yyRuleName[0])) {
+    fprintf(yyTraceFILE, "%sReduce [%s].\n", yyTracePrompt, yyRuleName[yyruleno]);
   }
 #endif /* NDEBUG */
 
-  switch( yyruleno ){
-  /* Beginning here are the reduction cases.  A typical example
-  ** follows:
-  **   case 0:
-  **  #line <lineno> <grammarfile>
-  **     { ... }           // User supplied code
-  **  #line <lineno> <thisfile>
-  **     break;
-  */
-      case 0:
+  switch (yyruleno) {
+    /* Beginning here are the reduction cases.  A typical example
+     ** follows:
+     **   case 0:
+     **  #line <lineno> <grammarfile>
+     **     { ... }           // User supplied code
+     **  #line <lineno> <thisfile>
+     **     break;
+     */
+  case 0:
 #line 111 "jx_net_parse.lem"
-{  
+    {
 #ifdef JX_PY_PARSER_DEBUG
-  printf("module ::= NEWLINE.%s:%d\n",__FILE__,__LINE__); 
+      printf("module ::= NEWLINE.%s:%d\n", __FILE__, __LINE__);
 #endif
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 728 "jx_net_parse.c"
-        break;
-      case 1:
+    break;
+  case 1:
 #line 118 "jx_net_parse.lem"
-{
-  /* do nothing (other than call accept!) */
-  jx_ob_replace(&context->result, yymsp[-1].minor.yy67);
+    {
+      /* do nothing (other than call accept!) */
+      jx_ob_replace(&context->result, yymsp[-1].minor.yy67);
 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("module ::= network(yymsp[-1].minor.yy67).%s:%d\n",__FILE__,__LINE__); 
+      printf("module ::= network(yymsp[-1].minor.yy67).%s:%d\n", __FILE__, __LINE__);
 #endif
-  yy_destructor(3,&yymsp[0].minor);
-}
+      yy_destructor(3, &yymsp[0].minor);
+    }
 #line 741 "jx_net_parse.c"
-        break;
-      case 2:
+    break;
+  case 2:
 #line 128 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
 
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= wiring(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf("network(yygotominor.yy67) ::= wiring(yymsp[0].minor.yy0).%s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 754 "jx_net_parse.c"
-        break;
-      case 3:
+    break;
+  case 3:
 #line 139 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= wiring(yymsp[-1].minor.yy0) body(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("network(yygotominor.yy67) ::= wiring(yymsp[-1].minor.yy0) body(yymsp[0].minor.yy0).%s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 767 "jx_net_parse.c"
-        break;
-      case 4:
+    break;
+  case 4:
 #line 150 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node")); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= body(yymsp[0].minor.yy0)..%s:%d\n",__FILE__,__LINE__); 
+      printf("network(yygotominor.yy67) ::= body(yymsp[0].minor.yy0)..%s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 780 "jx_net_parse.c"
-        break;
-      case 5:
+    break;
+  case 5:
 #line 161 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy67,jx_ob_from_null());
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy67, jx_ob_from_null());
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= wiring(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("network(yygotominor.yy67) ::= wiring(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 794 "jx_net_parse.c"
-        break;
-      case 6:
+    break;
+  case 6:
 #line 173 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,yymsp[-2].minor.yy0); 
-  jx_list_append(yygotominor.yy67,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, yymsp[-2].minor.yy0);
+      jx_list_append(yygotominor.yy67, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= wiring(yymsp[-2].minor.yy0) body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("network(yygotominor.yy67) ::= wiring(yymsp[-2].minor.yy0) body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 808 "jx_net_parse.c"
-        break;
-      case 7:
+    break;
+  case 7:
 #line 185 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,jx_ob_from_null()); 
-  jx_list_append(yygotominor.yy67,yymsp[-1].minor.yy0); 
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, jx_ob_from_null());
+      jx_list_append(yygotominor.yy67, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("network(yygotominor.yy67) ::= body(yymsp[-1].minor.yy0) starter(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 822 "jx_net_parse.c"
-        break;
-      case 8:
+    break;
+  case 8:
 #line 197 "jx_net_parse.lem"
-{  
-  yygotominor.yy67 = jx_list_new();
-  jx_list_append(yygotominor.yy67,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy67,jx_ob_from_null());
-  jx_list_append(yygotominor.yy67,jx_ob_from_null()); 
-  jx_list_append(yygotominor.yy67,yymsp[0].minor.yy0); 
+    {
+      yygotominor.yy67 = jx_list_new();
+      jx_list_append(yygotominor.yy67, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy67, jx_ob_from_null());
+      jx_list_append(yygotominor.yy67, jx_ob_from_null());
+      jx_list_append(yygotominor.yy67, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("network(yygotominor.yy67) ::= starter(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf("network(yygotominor.yy67) ::= starter(yymsp[0].minor.yy0).%s:%d\n",
+             __FILE__, __LINE__);
 #endif
-}
+    }
 #line 836 "jx_net_parse.c"
-        break;
-      case 9:
+    break;
+  case 9:
 #line 209 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("starter(yygotominor.yy0) ::= action(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("starter(yygotominor.yy0) ::= action(yymsp[0].minor.yy0). %s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 846 "jx_net_parse.c"
-        break;
-      case 10:
+    break;
+  case 10:
 #line 217 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("wiring(yygotominor.yy0) ::= entry(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf("wiring(yygotominor.yy0) ::= entry(yymsp[0].minor.yy0).%s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 857 "jx_net_parse.c"
-        break;
-      case 11:
+    break;
+  case 11:
 #line 226 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-1].minor.yy0;
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = yymsp[-1].minor.yy0;
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("wiring(yygotominor.yy0) ::= wiring(yymsp[-1].minor.yy0) entry(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("wiring(yygotominor.yy0) ::= wiring(yymsp[-1].minor.yy0) entry(yymsp[0].minor.yy0).%s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 868 "jx_net_parse.c"
-        break;
-      case 12:
+    break;
+  case 12:
 #line 235 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-1].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[-1].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(yygotominor.yy0) ::= port_decl(yymsp[-1].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf("entry(yygotominor.yy0) ::= port_decl(yymsp[-1].minor.yy0).%s:%d\n",
+             __FILE__, __LINE__);
 #endif
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 879 "jx_net_parse.c"
-        break;
-      case 13:
+    break;
+  case 13:
 #line 243 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("port"));
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("port"));
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("port_decl(yygotominor.yy0) ::= PORT port_name(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf("port_decl(yygotominor.yy0) ::= PORT port_name(yymsp[0].minor.yy0).%s:%d\n",
+             __FILE__, __LINE__);
 #endif
-  yy_destructor(4,&yymsp[-1].minor);
-}
+      yy_destructor(4, &yymsp[-1].minor);
+    }
 #line 892 "jx_net_parse.c"
-        break;
-      case 14:
+    break;
+  case 14:
 #line 253 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("port_decl(yygotominor.yy0) ::= port_decl(yymsp[-2].minor.yy0) COMMA port_name(yymsp[0].minor.yy0).\n");
+      printf
+        ("port_decl(yygotominor.yy0) ::= port_decl(yymsp[-2].minor.yy0) COMMA port_name(yymsp[0].minor.yy0).\n");
 #endif
-  yy_destructor(5,&yymsp[-1].minor);
-}
+      yy_destructor(5, &yymsp[-1].minor);
+    }
 #line 904 "jx_net_parse.c"
-        break;
-      case 15:
+    break;
+  case 15:
 #line 262 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("copy"));
-  jx_list_append(yygotominor.yy0,yymsp[-3].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("copy"));
+      jx_list_append(yygotominor.yy0, yymsp[-3].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[-1].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(yygotominor.yy0) ::= node_name(yymsp[-3].minor.yy0) EQUALS node_name(yymsp[-1].minor.yy0) NEWLINE. %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("entry(yygotominor.yy0) ::= node_name(yymsp[-3].minor.yy0) EQUALS node_name(yymsp[-1].minor.yy0) NEWLINE. %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(6,&yymsp[-2].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(6, &yymsp[-2].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 919 "jx_net_parse.c"
-        break;
-      case 16:
+    break;
+  case 16:
 #line 273 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("copy"));
-  jx_list_append(yygotominor.yy0,yymsp[-4].minor.yy0);
-  if( jx_null_check(yymsp[-1].minor.yy0) )
-  {
-    jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
-  } else {
-    jx_list_insert(yymsp[-1].minor.yy0,0,yymsp[-2].minor.yy0);
-    jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
-  }
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("copy"));
+      jx_list_append(yygotominor.yy0, yymsp[-4].minor.yy0);
+      if(jx_null_check(yymsp[-1].minor.yy0)) {
+        jx_list_append(yygotominor.yy0, yymsp[-2].minor.yy0);
+      } else {
+        jx_list_insert(yymsp[-1].minor.yy0, 0, yymsp[-2].minor.yy0);
+        jx_list_append(yygotominor.yy0, yymsp[-1].minor.yy0);
+      }
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(yygotominor.yy0) ::= node_name(yymsp[-4].minor.yy0) EQUALS node_name(yymsp[-2].minor.yy0) parameters(yymsp[-1].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("entry(yygotominor.yy0) ::= node_name(yymsp[-4].minor.yy0) EQUALS node_name(yymsp[-2].minor.yy0) parameters(yymsp[-1].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(6,&yymsp[-3].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(6, &yymsp[-3].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 940 "jx_net_parse.c"
-        break;
-      case 17:
+    break;
+  case 17:
 #line 290 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-1].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[-1].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(yygotominor.yy0) ::= pipe_chain(yymsp[-1].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("entry(yygotominor.yy0) ::= pipe_chain(yymsp[-1].minor.yy0). %s:%d\n",
+             __FILE__, __LINE__);
 #endif
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 951 "jx_net_parse.c"
-        break;
-      case 18:
+    break;
+  case 18:
 #line 298 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("pipe"));
-  jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("pipe"));
+      jx_list_append(yygotominor.yy0, yymsp[-2].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("pipe_chain(yygotominor.yy0) ::= node_or_port(yymsp[-2].minor.yy0) PIPE node_or_port(yymsp[0].minor.yy0) NEWLINE.%s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("pipe_chain(yygotominor.yy0) ::= node_or_port(yymsp[-2].minor.yy0) PIPE node_or_port(yymsp[0].minor.yy0) NEWLINE.%s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(7,&yymsp[-1].minor);
-}
+      yy_destructor(7, &yymsp[-1].minor);
+    }
 #line 965 "jx_net_parse.c"
-        break;
-      case 19:
+    break;
+  case 19:
 #line 309 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("pipe_chain(yygotominor.yy0) ::= pipe_chain(yymsp[-2].minor.yy0) PIPE node_or_port(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("pipe_chain(yygotominor.yy0) ::= pipe_chain(yymsp[-2].minor.yy0) PIPE node_or_port(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(7,&yymsp[-1].minor);
-}
+      yy_destructor(7, &yymsp[-1].minor);
+    }
 #line 977 "jx_net_parse.c"
-        break;
-      case 20:
+    break;
+  case 20:
 #line 320 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("node_def"));
-  jx_list_append(yygotominor.yy0,yymsp[-3].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("node_def"));
+      jx_list_append(yygotominor.yy0, yymsp[-3].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("entry(yygotominor.yy0) ::= NODE node_name(yymsp[-3].minor.yy0) COLON NEWLINE node(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("entry(yygotominor.yy0) ::= NODE node_name(yymsp[-3].minor.yy0) COLON NEWLINE node(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(8,&yymsp[-4].minor);
-  yy_destructor(9,&yymsp[-2].minor);
-  yy_destructor(2,&yymsp[-1].minor);
-}
+      yy_destructor(8, &yymsp[-4].minor);
+      yy_destructor(9, &yymsp[-2].minor);
+      yy_destructor(2, &yymsp[-1].minor);
+    }
 #line 993 "jx_net_parse.c"
-        break;
-      case 21:
+    break;
+  case 21:
 #line 331 "jx_net_parse.lem"
-{  
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("node"));
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("node"));
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node(yygotominor.yy0) ::= INDENT wiring(C) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+      printf("node(yygotominor.yy0) ::= INDENT wiring(C) DEDENT. %s:%d\n", __FILE__,
+             __LINE__);
 #endif
-  yy_destructor(10,&yymsp[-4].minor);
-  yy_destructor(11,&yymsp[-3].minor);
-  yy_destructor(2,&yymsp[-2].minor);
-  yy_destructor(12,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(10, &yymsp[-4].minor);
+      yy_destructor(11, &yymsp[-3].minor);
+      yy_destructor(2, &yymsp[-2].minor);
+      yy_destructor(12, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1009 "jx_net_parse.c"
-        break;
-      case 22:
+    break;
+  case 22:
 #line 340 "jx_net_parse.lem"
-{  
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0); 
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy0, yymsp[-2].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node(yygotominor.yy0) ::= INDENT wiring(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("node(yygotominor.yy0) ::= INDENT wiring(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(10,&yymsp[-3].minor);
-  yy_destructor(12,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(10, &yymsp[-3].minor);
+      yy_destructor(12, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1024 "jx_net_parse.c"
-        break;
-      case 23:
+    break;
+  case 23:
 #line 350 "jx_net_parse.lem"
-{  
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_ident("node"));
-  jx_list_append(yygotominor.yy0,yymsp[-3].minor.yy0); 
-  jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0); 
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_ident("node"));
+      jx_list_append(yygotominor.yy0, yymsp[-3].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[-2].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node(yygotominor.yy0) ::= INDENT wiring(yymsp[-3].minor.yy0) body(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("node(yygotominor.yy0) ::= INDENT wiring(yymsp[-3].minor.yy0) body(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(10,&yymsp[-4].minor);
-  yy_destructor(12,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(10, &yymsp[-4].minor);
+      yy_destructor(12, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1040 "jx_net_parse.c"
-        break;
-      case 24:
+    break;
+  case 24:
 #line 361 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node_or_port(yygotominor.yy0) ::= node_name(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("node_or_port(yygotominor.yy0) ::= node_name(yymsp[0].minor.yy0). %s:%d\n",
+             __FILE__, __LINE__);
 #endif
-}
+    }
 #line 1050 "jx_net_parse.c"
-        break;
-      case 25:
+    break;
+  case 25:
 #line 369 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[-2].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node_or_port(yygotominor.yy0) ::= node_name(yymsp[-2].minor.yy0) DOT port_name(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("node_or_port(yygotominor.yy0) ::= node_name(yymsp[-2].minor.yy0) DOT port_name(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(13,&yymsp[-1].minor);
-}
+      yy_destructor(13, &yymsp[-1].minor);
+    }
 #line 1063 "jx_net_parse.c"
-        break;
-      case 26:
+    break;
+  case 26:
 #line 379 "jx_net_parse.lem"
-{
-    yygotominor.yy0 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node_name(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0).%s:%d\n",__FILE__,__LINE__); 
+      printf("node_name(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0).%s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 1073 "jx_net_parse.c"
-        break;
-      case 27:
+    break;
+  case 27:
 #line 387 "jx_net_parse.lem"
-{
-    yygotominor.yy0 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("port_name(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("port_name(yygotominor.yy0) ::= IDENT(yymsp[0].minor.yy0). %s:%d\n",
+             __FILE__, __LINE__);
 #endif
-}
+    }
 #line 1083 "jx_net_parse.c"
-        break;
-      case 28:
+    break;
+  case 28:
 #line 395 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("body(yygotominor.yy0) ::= start(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("body(yygotominor.yy0) ::= start(yymsp[0].minor.yy0). %s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 1094 "jx_net_parse.c"
-        break;
-      case 29:
+    break;
+  case 29:
 #line 404 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("body(yygotominor.yy0) ::= start(yymsp[-1].minor.yy0) run(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("body(yygotominor.yy0) ::= start(yymsp[-1].minor.yy0) run(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 1106 "jx_net_parse.c"
-        break;
-      case 30:
+    break;
+  case 30:
 #line 414 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[-2].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[-2].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("body(yygotominor.yy0) ::= start(yymsp[-2].minor.yy0) run(yymsp[-1].minor.yy0) stop(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("body(yygotominor.yy0) ::= start(yymsp[-2].minor.yy0) run(yymsp[-1].minor.yy0) stop(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 1119 "jx_net_parse.c"
-        break;
-      case 31:
+    break;
+  case 31:
 #line 425 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_null());
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_null());
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("body(yygotominor.yy0) ::= run(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("body(yygotominor.yy0) ::= run(yymsp[0].minor.yy0). %s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 1131 "jx_net_parse.c"
-        break;
-      case 32:
+    break;
+  case 32:
 #line 435 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_null());
-  jx_list_append(yygotominor.yy0,yymsp[-1].minor.yy0);
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_null());
+      jx_list_append(yygotominor.yy0, yymsp[-1].minor.yy0);
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("body(yygotominor.yy0) ::= run(yymsp[-1].minor.yy0) stop(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("body(yygotominor.yy0) ::= run(yymsp[-1].minor.yy0) stop(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 1144 "jx_net_parse.c"
-        break;
-      case 33:
+    break;
+  case 33:
 #line 446 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,jx_ob_from_null());
-  jx_list_append(yygotominor.yy0,jx_ob_from_null());
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, jx_ob_from_null());
+      jx_list_append(yygotominor.yy0, jx_ob_from_null());
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("body(yygotominor.yy0) ::= stop(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("body(yygotominor.yy0) ::= stop(yymsp[0].minor.yy0). %s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 1157 "jx_net_parse.c"
-        break;
-      case 34:
+    break;
+  case 34:
 #line 457 "jx_net_parse.lem"
-{  
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("start(yygotominor.yy0) ::= START COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("start(yygotominor.yy0) ::= START COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(15,&yymsp[-6].minor);
-  yy_destructor(9,&yymsp[-5].minor);
-  yy_destructor(2,&yymsp[-4].minor);
-  yy_destructor(10,&yymsp[-3].minor);
-  yy_destructor(12,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(15, &yymsp[-6].minor);
+      yy_destructor(9, &yymsp[-5].minor);
+      yy_destructor(2, &yymsp[-4].minor);
+      yy_destructor(10, &yymsp[-3].minor);
+      yy_destructor(12, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1173 "jx_net_parse.c"
-        break;
-      case 35:
+    break;
+  case 35:
 #line 465 "jx_net_parse.lem"
-{  
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("run(yygotominor.yy0) ::= RUN COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("run(yygotominor.yy0) ::= RUN COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(16,&yymsp[-6].minor);
-  yy_destructor(9,&yymsp[-5].minor);
-  yy_destructor(2,&yymsp[-4].minor);
-  yy_destructor(10,&yymsp[-3].minor);
-  yy_destructor(12,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(16, &yymsp[-6].minor);
+      yy_destructor(9, &yymsp[-5].minor);
+      yy_destructor(2, &yymsp[-4].minor);
+      yy_destructor(10, &yymsp[-3].minor);
+      yy_destructor(12, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1189 "jx_net_parse.c"
-        break;
-      case 36:
+    break;
+  case 36:
 #line 473 "jx_net_parse.lem"
-{  
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
 #ifdef JX_NET_PARSER_DEBUG
-  printf("stop(yygotominor.yy0) ::= STOP COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("stop(yygotominor.yy0) ::= STOP COLON INDENT code(yymsp[-2].minor.yy0) DEDENT. %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(17,&yymsp[-6].minor);
-  yy_destructor(9,&yymsp[-5].minor);
-  yy_destructor(2,&yymsp[-4].minor);
-  yy_destructor(10,&yymsp[-3].minor);
-  yy_destructor(12,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(17, &yymsp[-6].minor);
+      yy_destructor(9, &yymsp[-5].minor);
+      yy_destructor(2, &yymsp[-4].minor);
+      yy_destructor(10, &yymsp[-3].minor);
+      yy_destructor(12, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1205 "jx_net_parse.c"
-        break;
-      case 37:
+    break;
+  case 37:
 #line 481 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
+    {
+      yygotominor.yy0 = jx_list_new();
 #ifdef JX_NET_PARSER_DEBUG
-  printf("code(yygotominor.yy0) ::= PASS. %s:%d\n",__FILE__,__LINE__); 
+      printf("code(yygotominor.yy0) ::= PASS. %s:%d\n", __FILE__, __LINE__);
 #endif
-  yy_destructor(11,&yymsp[0].minor);
-}
+      yy_destructor(11, &yymsp[0].minor);
+    }
 #line 1216 "jx_net_parse.c"
-        break;
-      case 38:
+    break;
+  case 38:
 #line 489 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("code(yygotominor.yy0) ::= action(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf("code(yygotominor.yy0) ::= action(yymsp[0].minor.yy0). %s:%d\n", __FILE__,
+             __LINE__);
 #endif
-}
+    }
 #line 1227 "jx_net_parse.c"
-        break;
-      case 39:
+    break;
+  case 39:
 #line 498 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = yymsp[-1].minor.yy0;
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
+    {
+      yygotominor.yy0 = yymsp[-1].minor.yy0;
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("code(yygotominor.yy0) ::= code(yymsp[-1].minor.yy0) action(yymsp[0].minor.yy0). %s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("code(yygotominor.yy0) ::= code(yymsp[-1].minor.yy0) action(yymsp[0].minor.yy0). %s:%d\n",
+         __FILE__, __LINE__);
 #endif
-}
+    }
 #line 1238 "jx_net_parse.c"
-        break;
-      case 40:
+    break;
+  case 40:
 #line 507 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[-3].minor.yy0);
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[-3].minor.yy0);
 #ifdef JX_NET_PARSER_DEBUG
-  printf("action(yygotominor.yy0) ::= node_or_port(yymsp[-3].minor.yy0) OPEN_PAR CLOSE_PAR NEWLINE.%s:%d\n",__FILE__,__LINE__); 
+      printf
+        ("action(yygotominor.yy0) ::= node_or_port(yymsp[-3].minor.yy0) OPEN_PAR CLOSE_PAR NEWLINE.%s:%d\n",
+         __FILE__, __LINE__);
 #endif
-  yy_destructor(18,&yymsp[-2].minor);
-  yy_destructor(19,&yymsp[-1].minor);
-  yy_destructor(2,&yymsp[0].minor);
-}
+      yy_destructor(18, &yymsp[-2].minor);
+      yy_destructor(19, &yymsp[-1].minor);
+      yy_destructor(2, &yymsp[0].minor);
+    }
 #line 1252 "jx_net_parse.c"
-        break;
-      case 41:
+    break;
+  case 41:
 #line 516 "jx_net_parse.lem"
-{ 
-  yygotominor.yy0 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("number = ICON\n"); 
+      printf("number = ICON\n");
 #endif
-}
+    }
 #line 1262 "jx_net_parse.c"
-        break;
-      case 42:
+    break;
+  case 42:
 #line 524 "jx_net_parse.lem"
-{ 
-  yygotominor.yy0 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("number = FCON\n"); 
+      printf("number = FCON\n");
 #endif
-}
+    }
 #line 1272 "jx_net_parse.c"
-        break;
-      case 43:
+    break;
+  case 43:
 #line 532 "jx_net_parse.lem"
-{
-  yygotominor.yy67 = yymsp[0].minor.yy0;
+    {
+      yygotominor.yy67 = yymsp[0].minor.yy0;
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("string = SCON\n"); 
+      printf("string = SCON\n");
 #endif
-}
+    }
 #line 1282 "jx_net_parse.c"
-        break;
-      case 44:
+    break;
+  case 44:
 #line 542 "jx_net_parse.lem"
-{
-  yygotominor.yy67 = jx_ob_add(yymsp[-1].minor.yy67,yymsp[0].minor.yy0);
-  jx_ob_free(yymsp[-1].minor.yy67);
-  jx_ob_free(yymsp[0].minor.yy0);
+    {
+      yygotominor.yy67 = jx_ob_add(yymsp[-1].minor.yy67, yymsp[0].minor.yy0);
+      jx_ob_free(yymsp[-1].minor.yy67);
+      jx_ob_free(yymsp[0].minor.yy0);
 #ifdef JX_JXON_PARSER_DEBUG
-  printf("atom = SCON\n"); 
+      printf("atom = SCON\n");
 #endif
-}
+    }
 #line 1294 "jx_net_parse.c"
-        break;
-      case 45:
+    break;
+  case 45:
 #line 554 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_ob_from_null();
-  yy_destructor(18,&yymsp[-1].minor);
-  yy_destructor(19,&yymsp[0].minor);
-}
+    {
+      yygotominor.yy0 = jx_ob_from_null();
+      yy_destructor(18, &yymsp[-1].minor);
+      yy_destructor(19, &yymsp[0].minor);
+    }
 #line 1303 "jx_net_parse.c"
-        break;
-      case 46:
+    break;
+  case 46:
 #line 559 "jx_net_parse.lem"
-{
-  yygotominor.yy0=yymsp[-1].minor.yy0;
-  yy_destructor(18,&yymsp[-2].minor);
-  yy_destructor(19,&yymsp[0].minor);
-}
+    {
+      yygotominor.yy0 = yymsp[-1].minor.yy0;
+      yy_destructor(18, &yymsp[-2].minor);
+      yy_destructor(19, &yymsp[0].minor);
+    }
 #line 1312 "jx_net_parse.c"
-        break;
-      case 47:
+    break;
+  case 47:
 #line 568 "jx_net_parse.lem"
-{
-  yygotominor.yy0=yymsp[0].minor.yy0;
-}
+    {
+      yygotominor.yy0 = yymsp[0].minor.yy0;
+    }
 #line 1319 "jx_net_parse.c"
-        break;
-      case 48:
-      case 52:
+    break;
+  case 48:
+  case 52:
 #line 575 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
-}
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
+    }
 #line 1328 "jx_net_parse.c"
-        break;
-      case 49:
-      case 53:
+    break;
+  case 49:
+  case 53:
 #line 581 "jx_net_parse.lem"
-{
-  yygotominor.yy0=yymsp[-2].minor.yy0;
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy0);
-  yy_destructor(5,&yymsp[-1].minor);
-}
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy0);
+      yy_destructor(5, &yymsp[-1].minor);
+    }
 #line 1338 "jx_net_parse.c"
-        break;
-      case 50:
+    break;
+  case 50:
 #line 587 "jx_net_parse.lem"
-{
-  yygotominor.yy0 = jx_list_new();
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy67);
-}
+    {
+      yygotominor.yy0 = jx_list_new();
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy67);
+    }
 #line 1346 "jx_net_parse.c"
-        break;
-      case 51:
+    break;
+  case 51:
 #line 593 "jx_net_parse.lem"
-{
-  yygotominor.yy0=yymsp[-2].minor.yy0;
-  jx_list_append(yygotominor.yy0,yymsp[0].minor.yy67);
-  yy_destructor(5,&yymsp[-1].minor);
-}
+    {
+      yygotominor.yy0 = yymsp[-2].minor.yy0;
+      jx_list_append(yygotominor.yy0, yymsp[0].minor.yy67);
+      yy_destructor(5, &yymsp[-1].minor);
+    }
 #line 1355 "jx_net_parse.c"
-        break;
+    break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
   yysize = yyRuleInfo[yyruleno].nrhs;
   yypParser->yyidx -= yysize;
-  yyact = yy_find_reduce_action(yypParser,yygoto);
-  if( yyact < YYNSTATE ){
-    yy_shift(yypParser,yyact,yygoto,&yygotominor);
-  }else if( yyact == YYNSTATE + YYNRULE + 1 ){
+  yyact = yy_find_reduce_action(yypParser, yygoto);
+  if(yyact < YYNSTATE) {
+    yy_shift(yypParser, yyact, yygoto, &yygotominor);
+  } else if(yyact == YYNSTATE + YYNRULE + 1) {
     yy_accept(yypParser);
   }
 }
 
+
 /*
 ** The following code executes when the parse fails
 */
-static void yy_parse_failed(
-  yyParser *yypParser           /* The parser */
-){
+static void yy_parse_failed(yyParser * yypParser        /* The parser */
+  )
+{
   jx_net_ARG_FETCH;
 #ifndef NDEBUG
-  if( yyTraceFILE ){
-    fprintf(yyTraceFILE,"%sFail!\n",yyTracePrompt);
+  if(yyTraceFILE) {
+    fprintf(yyTraceFILE, "%sFail!\n", yyTracePrompt);
   }
 #endif
-  while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
+  while(yypParser->yyidx >= 0)
+    yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
-  ** parser fails */
+   ** parser fails */
 #line 82 "jx_net_parse.lem"
 
   context->status = JX_STATUS_SYNTAX_ERROR;
@@ -1386,52 +1488,56 @@ static void yy_parse_failed(
   printf("parse failed.\n");
 #endif
 #line 1391 "jx_net_parse.c"
-  jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  jx_net_ARG_STORE;             /* Suppress warning about unused %extra_argument variable */
 }
+
 
 /*
 ** The following code executes when a syntax error first occurs.
 */
-static void yy_syntax_error(
-  yyParser *yypParser,           /* The parser */
-  int yymajor,                   /* The major type of the error token */
-  YYMINORTYPE yyminor            /* The minor type of the error token */
-){
+static void yy_syntax_error(yyParser * yypParser,       /* The parser */
+                            int yymajor,        /* The major type of the error token */
+                            YYMINORTYPE yyminor /* The minor type of the error token */
+  )
+{
   jx_net_ARG_FETCH;
 #define TOKEN (yyminor.yy0)
 #line 91 "jx_net_parse.lem"
-  
+
 #ifdef JX_NET_PARSER_DEBUG
   printf("jx_net_parse-error: syntax error.\n");
 #endif
 #line 1411 "jx_net_parse.c"
-  jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  jx_net_ARG_STORE;             /* Suppress warning about unused %extra_argument variable */
 }
+
 
 /*
 ** The following is executed when the parser accepts
 */
-static void yy_accept(
-  yyParser *yypParser           /* The parser */
-){
+static void yy_accept(yyParser * yypParser      /* The parser */
+  )
+{
   jx_net_ARG_FETCH;
 #ifndef NDEBUG
-  if( yyTraceFILE ){
-    fprintf(yyTraceFILE,"%sAccept!\n",yyTracePrompt);
+  if(yyTraceFILE) {
+    fprintf(yyTraceFILE, "%sAccept!\n", yyTracePrompt);
   }
 #endif
-  while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
+  while(yypParser->yyidx >= 0)
+    yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
-  ** parser accepts */
+   ** parser accepts */
 #line 73 "jx_net_parse.lem"
 
-    context->status = JX_YES;
+  context->status = JX_YES;
 #ifdef JX_NET_PARSER_DEBUG
   printf("accept called\n");
 #endif
 #line 1437 "jx_net_parse.c"
-  jx_net_ARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  jx_net_ARG_STORE;             /* Suppress warning about unused %extra_argument variable */
 }
+
 
 /* The main parser program.
 ** The first argument is a pointer to a structure obtained from
@@ -1452,133 +1558,132 @@ static void yy_accept(
 ** Outputs:
 ** None.
 */
-void jx_net_(
-  void *yyp,                   /* The parser */
-  int yymajor,                 /* The major token code number */
-  jx_net_TOKENTYPE yyminor       /* The value for the token */
-  jx_net_ARG_PDECL               /* Optional %extra_argument parameter */
-){
+void jx_net_(void *yyp,         /* The parser */
+             int yymajor,       /* The major token code number */
+             jx_net_TOKENTYPE yyminor   /* The value for the token */
+             jx_net_ARG_PDECL   /* Optional %extra_argument parameter */
+  )
+{
   YYMINORTYPE yyminorunion;
-  int yyact;            /* The parser action. */
-  int yyendofinput;     /* True if we are at the end of input */
-  int yyerrorhit = 0;   /* True if yymajor has invoked an error */
-  yyParser *yypParser;  /* The parser */
+  int yyact;                    /* The parser action. */
+  int yyendofinput;             /* True if we are at the end of input */
+  int yyerrorhit = 0;           /* True if yymajor has invoked an error */
+  yyParser *yypParser;          /* The parser */
 
   /* (re)initialize the parser, if necessary */
-  yypParser = (yyParser*)yyp;
-  if( yypParser->yyidx<0 ){
-    if( yymajor==0 ) return;
+  yypParser = (yyParser *) yyp;
+  if(yypParser->yyidx < 0) {
+    if(yymajor == 0)
+      return;
     yypParser->yyidx = 0;
     yypParser->yyerrcnt = -1;
     yypParser->yystack[0].stateno = 0;
     yypParser->yystack[0].major = 0;
   }
   yyminorunion.yy0 = yyminor;
-  yyendofinput = (yymajor==0);
+  yyendofinput = (yymajor == 0);
   jx_net_ARG_STORE;
 
 #ifndef NDEBUG
-  if( yyTraceFILE ){
-    fprintf(yyTraceFILE,"%sInput %s\n",yyTracePrompt,yyTokenName[yymajor]);
+  if(yyTraceFILE) {
+    fprintf(yyTraceFILE, "%sInput %s\n", yyTracePrompt, yyTokenName[yymajor]);
   }
 #endif
 
-  do{
-    yyact = yy_find_shift_action(yypParser,yymajor);
-    if( yyact<YYNSTATE ){
-      yy_shift(yypParser,yyact,yymajor,&yyminorunion);
+  do {
+    yyact = yy_find_shift_action(yypParser, yymajor);
+    if(yyact < YYNSTATE) {
+      yy_shift(yypParser, yyact, yymajor, &yyminorunion);
       yypParser->yyerrcnt--;
-      if( yyendofinput && yypParser->yyidx>=0 ){
+      if(yyendofinput && yypParser->yyidx >= 0) {
         yymajor = 0;
-      }else{
+      } else {
         yymajor = YYNOCODE;
       }
-    }else if( yyact < YYNSTATE + YYNRULE ){
-      yy_reduce(yypParser,yyact-YYNSTATE);
-    }else if( yyact == YY_ERROR_ACTION ){
+    } else if(yyact < YYNSTATE + YYNRULE) {
+      yy_reduce(yypParser, yyact - YYNSTATE);
+    } else if(yyact == YY_ERROR_ACTION) {
       int yymx;
 #ifndef NDEBUG
-      if( yyTraceFILE ){
-        fprintf(yyTraceFILE,"%sSyntax Error!\n",yyTracePrompt);
+      if(yyTraceFILE) {
+        fprintf(yyTraceFILE, "%sSyntax Error!\n", yyTracePrompt);
       }
 #endif
 #ifdef YYERRORSYMBOL
       /* A syntax error has occurred.
-      ** The response to an error depends upon whether or not the
-      ** grammar defines an error token "ERROR".  
-      **
-      ** This is what we do if the grammar does define ERROR:
-      **
-      **  * Call the %syntax_error function.
-      **
-      **  * Begin popping the stack until we enter a state where
-      **    it is legal to shift the error symbol, then shift
-      **    the error symbol.
-      **
-      **  * Set the error count to three.
-      **
-      **  * Begin accepting and shifting new tokens.  No new error
-      **    processing will occur until three tokens have been
-      **    shifted successfully.
-      **
-      */
-      if( yypParser->yyerrcnt<0 ){
-        yy_syntax_error(yypParser,yymajor,yyminorunion);
+       ** The response to an error depends upon whether or not the
+       ** grammar defines an error token "ERROR".  
+       **
+       ** This is what we do if the grammar does define ERROR:
+       **
+       **  * Call the %syntax_error function.
+       **
+       **  * Begin popping the stack until we enter a state where
+       **    it is legal to shift the error symbol, then shift
+       **    the error symbol.
+       **
+       **  * Set the error count to three.
+       **
+       **  * Begin accepting and shifting new tokens.  No new error
+       **    processing will occur until three tokens have been
+       **    shifted successfully.
+       **
+       */
+      if(yypParser->yyerrcnt < 0) {
+        yy_syntax_error(yypParser, yymajor, yyminorunion);
       }
       yymx = yypParser->yystack[yypParser->yyidx].major;
-      if( yymx==YYERRORSYMBOL || yyerrorhit ){
+      if(yymx == YYERRORSYMBOL || yyerrorhit) {
 #ifndef NDEBUG
-        if( yyTraceFILE ){
-          fprintf(yyTraceFILE,"%sDiscard input token %s\n",
-             yyTracePrompt,yyTokenName[yymajor]);
+        if(yyTraceFILE) {
+          fprintf(yyTraceFILE, "%sDiscard input token %s\n",
+                  yyTracePrompt, yyTokenName[yymajor]);
         }
 #endif
-        yy_destructor(yymajor,&yyminorunion);
+        yy_destructor(yymajor, &yyminorunion);
         yymajor = YYNOCODE;
-      }else{
-         while(
-          yypParser->yyidx >= 0 &&
-          yymx != YYERRORSYMBOL &&
-          (yyact = yy_find_shift_action(yypParser,YYERRORSYMBOL)) >= YYNSTATE
-        ){
+      } else {
+        while(yypParser->yyidx >= 0 &&
+              yymx != YYERRORSYMBOL &&
+              (yyact = yy_find_shift_action(yypParser, YYERRORSYMBOL)) >= YYNSTATE) {
           yy_pop_parser_stack(yypParser);
         }
-        if( yypParser->yyidx < 0 || yymajor==0 ){
-          yy_destructor(yymajor,&yyminorunion);
+        if(yypParser->yyidx < 0 || yymajor == 0) {
+          yy_destructor(yymajor, &yyminorunion);
           yy_parse_failed(yypParser);
           yymajor = YYNOCODE;
-        }else if( yymx!=YYERRORSYMBOL ){
+        } else if(yymx != YYERRORSYMBOL) {
           YYMINORTYPE u2;
           u2.YYERRSYMDT = 0;
-          yy_shift(yypParser,yyact,YYERRORSYMBOL,&u2);
+          yy_shift(yypParser, yyact, YYERRORSYMBOL, &u2);
         }
       }
       yypParser->yyerrcnt = 3;
       yyerrorhit = 1;
-#else  /* YYERRORSYMBOL is not defined */
+#else /* YYERRORSYMBOL is not defined */
       /* This is what we do if the grammar does not define ERROR:
-      **
-      **  * Report an error message, and throw away the input token.
-      **
-      **  * If the input token is $, then fail the parse.
-      **
-      ** As before, subsequent error messages are suppressed until
-      ** three input tokens have been successfully shifted.
-      */
-      if( yypParser->yyerrcnt<=0 ){
-        yy_syntax_error(yypParser,yymajor,yyminorunion);
+       **
+       **  * Report an error message, and throw away the input token.
+       **
+       **  * If the input token is $, then fail the parse.
+       **
+       ** As before, subsequent error messages are suppressed until
+       ** three input tokens have been successfully shifted.
+       */
+      if(yypParser->yyerrcnt <= 0) {
+        yy_syntax_error(yypParser, yymajor, yyminorunion);
       }
       yypParser->yyerrcnt = 3;
-      yy_destructor(yymajor,&yyminorunion);
-      if( yyendofinput ){
+      yy_destructor(yymajor, &yyminorunion);
+      if(yyendofinput) {
         yy_parse_failed(yypParser);
       }
       yymajor = YYNOCODE;
 #endif
-    }else{
+    } else {
       yy_accept(yypParser);
       yymajor = YYNOCODE;
     }
-  }while( yymajor!=YYNOCODE && yypParser->yyidx>=0 );
+  } while(yymajor != YYNOCODE && yypParser->yyidx >= 0);
   return;
 }

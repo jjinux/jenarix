@@ -1,6 +1,7 @@
 #ifndef _H_jx_py_private
 #define _H_jx_py_private
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -41,26 +42,22 @@ extern "C" {
 }
 #endif
 #endif
-
 #define noJX_PY_PARSER_DEBUG
 
 /* include token identifiers */
-
 #include "jx_py_parse.h"
-
-/* parser context */
-
-typedef struct {
-  jx_status status; 
+/* parser context */ typedef struct {
+  jx_status status;
   jx_bool exhausted;
   jx_ob result;
 } jx_py_parse_context;
 
+
 /* prototypes for calling the Lemon-generated parser */
 
-void *jx_py_Alloc(void *(*mallocProc)(size_t));
-void jx_py_(void *yyp, int yymajor, jx_ob ob, jx_py_parse_context *context);
-void jx_py_Free(void *p, void (*freeProc)(void*));
+void *jx_py_Alloc(void *(*mallocProc) (size_t));
+void jx_py_(void *yyp, int yymajor, jx_ob ob, jx_py_parse_context * context);
+void jx_py_Free(void *p, void (*freeProc) (void *));
 
 #ifdef __cplusplus
 #if 0

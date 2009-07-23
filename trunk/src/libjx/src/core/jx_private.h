@@ -1,6 +1,7 @@
 #ifndef _H_jx_private
 #define _H_jx_private
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -36,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "jx_public.h"
 #include "jx_mem_wrap.h"
 #include "jx_os_process_private.h"
+
 
 /* macros for our private status-handling idiom */
 
@@ -89,11 +91,11 @@ jx_ob jx_ob_with_str_vla(jx_char ** ref);
 #define JX_TLS_VLA_MAX          100
 #define JX_TLS_MAX              100
 
-struct jx__tls_chain {
-  jx_tls_chain *next;
+struct jx__mem_chain {
+  jx_mem_chain *next;
 };
 
-jx_ob jx_ident_split_from_dotted(jx_tls *tls, jx_ob ident);
-jx_ob jx_ident_split_with_dotted(jx_tls *tls, jx_ob ident);
+jx_ob jx_ident_split_from_dotted(jx_env * E, jx_ob ident);
+jx_ob jx_ident_split_with_dotted(jx_env * E, jx_ob ident);
 
 #endif

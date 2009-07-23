@@ -1,6 +1,7 @@
 #ifndef _H_jx_mem_wrap
 #define _H_jx_mem_wrap
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -36,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_MEM_LOG_ALL 0
 #define JX_MEM_LOG_SUMMARY 1
 
+
 /* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -45,33 +47,26 @@ extern "C" {
 #endif
 
 /* heap tracker requires and implies JX_MEM_WRAP */
-
 #ifdef JX_HEAP_TRACKER
 #define JX_MEM_WRAP
 #endif
-
 #ifndef JX_MEM_WRAP
 
 /* just use system malloc, etc. */
-
 #define jx_malloc(s) malloc(s)
 #define jx_calloc(c,s) calloc(c,s)
 #define jx_realloc(p,s) realloc(p,s)
 #define jx_free(p) free(p)
-#define jx_mem_dump() 
-
+#define jx_mem_dump()
 #else
- 
 #ifndef JX_HEAP_TRACKER
 
 /* use our lightweight (threads blind) memory logger, counter, &
    overrun detector */
-
 #define jx_malloc(s) jx__malloc(s, JX__FILE__, JX__LINE__)
 #define jx_calloc(c,s) jx__calloc(c, s, JX__FILE__, JX__LINE__)
 #define jx_realloc(p,s) jx__realloc(p, s, JX__FILE__, JX__LINE__)
 #define jx_free(p) jx__free(p, JX__FILE__, JX__LINE__)
-
 void jx_mem_dump(void);
 
 void *jx__malloc(jx_size size, char *file, int line);
@@ -82,16 +77,13 @@ void jx__free(void *ptr, char *file, int line);
 
 #else
 
-/* use our robust, thread-safe, status-returning JX_HEAP system */
-
-/* disable C++ mangling */
+/* use our robust, thread-safe, status-returning JX_HEAP system *//* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
 #if 0
 }
 #endif
 #endif
-
 #include "jx_heap.h"
 
 /* enable C++ mangling */
@@ -101,14 +93,11 @@ extern "C" {
 }
 #endif
 #endif
-
 #define jx_mem_dump jx_heap_dump(0);
-
 #define jx_malloc(s) JX_HEAP_MALLOC_RAW_VOID(s)
 #define jx_calloc(c,s) JX_HEAP_CALLOC_RAW_VOID((c)*(s))
 #define jx_realloc(p,s) JX_HEAP_REALLOC_RAW_VOID(p,s)
 #define jx_free(p) JX_HEAP_FREE_RAW(p)
-
 #endif
 #endif
 
@@ -119,6 +108,4 @@ extern "C" {
 }
 #endif
 #endif
-
 #endif
-

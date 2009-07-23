@@ -1,4 +1,5 @@
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -37,11 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define P1(ex,s1) printf(ex " || die('fail: %s line %d.');\n",s1,__FILE__,__LINE__);
 #define P2(ex,s1,s2) printf(ex " || die('fail: %s line %d.');\n",s1,s2,__FILE__,__LINE__);
 
-jx_ob my_fn(jx_ob node, jx_ob payload)
+jx_ob my_fn(jx_env * E, jx_ob payload)
 {
   printf("# my_fn called with value %d\n",
          (int) jx_ob_as_int(jx_list_borrow(payload, 1)));
-  jx_ob_free(payload);
+  Jx_ob_free(E, payload);
   return jx_ob_from_str("this is the result of the call");
 }
 

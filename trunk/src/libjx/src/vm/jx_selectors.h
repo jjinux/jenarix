@@ -1,6 +1,7 @@
 #ifndef _H_jx_selectors
 #define _H_jx_selectors
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -34,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "jx_private.h"
+
 
 /* special forms (built into "eval" for max. performance) */
 
@@ -73,10 +75,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_PARASET   32
 #define JX_SELECTOR_PAREVAL   33
 
+
 /* the number below must be higher than the last special form 
    but lower than the first "safe" selector */
 
 #define JX_SELECTOR_SPECIAL_FORMS_LIMIT 45
+
 
 /* The next batch of selectors (through 1024?) are reserved for "safe"
    functions which only involve internal actions performed within the
@@ -91,6 +95,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    reference into a container 
 */
 
+
 /* symbols */
 
 #define JX_SELECTOR_NEW         46
@@ -104,6 +109,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_NOP         51
 
 #define JX_SELECTOR_MAP_SET     60
+
 
 /* our six primary container methods: set, get, has, take, del */
 
@@ -120,9 +126,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_LE          71
 #define JX_SELECTOR_GE          72
 #define JX_SELECTOR_NE          73
-#define JX_SELECTOR_AND         74    
+#define JX_SELECTOR_AND         74
 #define JX_SELECTOR_OR          75
-#define JX_SELECTOR_BIT_AND     76 
+#define JX_SELECTOR_BIT_AND     76
 #define JX_SELECTOR_BIT_OR      77
 #define JX_SELECTOR_BIT_XOR     78
 #define JX_SELECTOR_BIT_SHL     79
@@ -159,12 +165,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_INCR       104
 #define JX_SELECTOR_DECR       105
 #define JX_SELECTOR_SYMBOLS    106
-#define JX_SELECTOR_BORROW     107 /* NOT CURRENTLY USED */
+#define JX_SELECTOR_BORROW     107      /* NOT CURRENTLY USED */
 
 #define JX_SELECTOR_SAME       108
 
 #define JX_SELECTOR_STR        109
-#define JX_SELECTOR_INT        110 
+#define JX_SELECTOR_INT        110
 #define JX_SELECTOR_FLOAT      111
 #define JX_SELECTOR_BOOL       112
 #define JX_SELECTOR_SYNCHRONIZE  113
@@ -184,6 +190,5 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_SELECTOR_DUMP       121
 
 #define JX_SELECTOR_NULL_OP    122
-
 
 #endif

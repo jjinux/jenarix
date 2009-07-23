@@ -1,3 +1,4 @@
+
 /* 
  * COPYRIGHT NOTICE: This file contains original source code from the
  * Jenarix (TM) Library, Copyright (C) 2007-8 by Warren L. Delano of
@@ -12,6 +13,7 @@
 
 #include "jx_public.h"
 
+
 /* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -19,10 +21,9 @@ extern "C" {
 }
 #endif
 #endif
-
 /* global variable for operating-system-process level state */
+  extern jx_os_process *jx_os_Process;
 
-extern jx_os_process *jx_os_Process;
 
 /* enable C++ mangling */
 #ifdef __cplusplus
@@ -31,5 +32,4 @@ extern "C" {
 }
 #endif
 #endif
-
 #endif

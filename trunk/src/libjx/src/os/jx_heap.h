@@ -1,3 +1,4 @@
+
 /* 
  * COPYRIGHT NOTICE: This file contains original source code from the
  * Jenarix (TM) Library, Copyright (C) 2007-8 by Warren L. Delano of
@@ -12,6 +13,7 @@
 
 #include "jx_public.h"
 
+
 /* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -22,17 +24,15 @@ extern "C" {
 
 /* Note -- this version of tracker is thread-save (but not
    thread-efficient) due to use of a global mutex */
-
 #define JX_HEAP_DUMP_FILES_TOO      0x1
 #define JX_HEAP_DUMP_NO_ADDRESSES   0x2
 #define JX_HEAP_DUMP_SUMMARY_ONLY   0x4
 #define JX_HEAP_DUMP_CONTENT_TOO    0x8
 #define JX_HEAP_DUMP_SORT          0x10
-
 typedef struct {
   jx_os_size_t size, alloc, unit_size;
   jx_bool auto_zero;
-} Jx_HeapVLA;
+} jx_heap_vla;
 
 #ifdef JX_HEAP_TRACKER
 
@@ -43,26 +43,38 @@ jx_size jx_heap_usage(void);
 
 #else
 
-JX_INLINE jx_status jx_heap_dump(jx_int32 flags) { return JX_SUCCESS; }
-JX_INLINE jx_size jx_heap_usage(void) { return 0; }
+JX_INLINE jx_status jx_heap_dump(jx_int32 flags)
+{
+  return JX_SUCCESS;
+}
+
+JX_INLINE jx_size jx_heap_usage(void)
+{
+  return 0;
+}
 
 #define _JX_HEAP_TRACKER_CALL
 #define _JX_HEAP_TRACKER_DECL
 
 #endif
 
+
 /* macros */
+
 
 /* NOTE: all normal FREE methods set result to NULL in order to reduce
    the chance of successfully accessing deallocated memory by accident
    and to cause errors to surface ASAP */
 
+
 /* RAW suffix means that we return the result instead of returning a status
    and passing the result into the memory pointed to by the first
    argument */
 
+
 /* VOID suffix means that return a void* and that we don't atomically scale
    arrays by the unit array element size */
+
 
 /* RECOPY suffix means that copy data into new memory and free the
    original pointer.  This is necesssary to actually reclaim memory on
@@ -77,7 +89,6 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
 #define JX_HEAP_ALLOC_RAW_VOID(size) \
   jx_heap_CallocRaw(size _JX_HEAP_TRACKER_CALL)
 
-
 #define JX_HEAP_MALLOC(result, type, size) \
    jx_heap_Malloc((void**)result,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
 
@@ -86,7 +97,6 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
 
 #define JX_HEAP_MALLOC_RAW_VOID(size) \
   jx_heap_MallocRaw(size _JX_HEAP_TRACKER_CALL)
-
 
 #define JX_HEAP_CALLOC(result, type, size) \
   jx_heap_Calloc((void**)result,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
@@ -99,8 +109,6 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
 
 #define JX_HEAP_CALLOC_RAW_VOID(size) \
   jx_heap_CallocRaw(size _JX_HEAP_TRACKER_CALL)
-
-
 
 #define JX_HEAP_REALLOC(result, type, size) \
   jx_heap_Realloc((void**)result,sizeof(type)*(size) _JX_HEAP_TRACKER_CALL)
@@ -117,13 +125,11 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
 #define JX_HEAP_REALLOC_RAW_VOID(ptr, size) \
   jx_heap_ReallocRaw((void*)ptr,(size) _JX_HEAP_TRACKER_CALL)
 
-
 #define JX_HEAP_RECALLOC(result, type, size, old_size)                  \
   jx_heap_Recalloc((void**)result,sizeof(type)*(size),sizeof(type)*(old_size) _JX_HEAP_TRACKER_CALL)
 
 #define JX_HEAP_RECALLOC_VOID(result, size, old_size)                \
   jx_heap_Recalloc((void**)result,size,old_size _JX_HEAP_TRACKER_CALL)
-
 
 #define JX_HEAP_FREE(result) jx_heap_Free((void**)result _JX_HEAP_TRACKER_CALL)
 
@@ -172,6 +178,7 @@ JX_INLINE jx_size jx_heap_usage(void) { return 0; }
    jx_heap_VlaAddIndexRaw((void*)(ptr),idx _JX_HEAP_TRACKER_CALL)
 
 #if 0
+
 /* consider... */
 #define JX_HEAP_VLA_CHECK(result,idx) \
   (((*result) && (idx >= (*result)->size)) ? \
@@ -210,23 +217,24 @@ void *jx_heap_CallocRaw(jx_size size _JX_HEAP_TRACKER_DECL);
 jx_status jx_heap_Realloc(void **result, jx_size size _JX_HEAP_TRACKER_DECL);
 
 jx_status jx_heap_ReallocRecopy(void **result, jx_size new_size,
-                                 jx_size cur_size _JX_HEAP_TRACKER_DECL);
+                                jx_size cur_size _JX_HEAP_TRACKER_DECL);
 
 void *jx_heap_ReallocRaw(void *ptr, jx_size size _JX_HEAP_TRACKER_DECL);
 
 void *jx_heap_ReallocRawRecopy(void *ptr, jx_size new_size,
-                                jx_size cur_size _JX_HEAP_TRACKER_DECL); 
+                               jx_size cur_size _JX_HEAP_TRACKER_DECL);
 
-jx_status jx_heap_Recalloc(void **result, jx_size size, jx_size old_size 
+jx_status jx_heap_Recalloc(void **result, jx_size size, jx_size old_size
                            _JX_HEAP_TRACKER_DECL);
 
-jx_status jx_heap_Free(void **result _JX_HEAP_TRACKER_DECL );
+jx_status jx_heap_Free(void **result _JX_HEAP_TRACKER_DECL);
 
 jx_status jx_heap_FreeRaw(void *ptr _JX_HEAP_TRACKER_DECL);
 
+
 /* variable-length arrays */
 
-jx_status jx_heap_VlaAlloc(void **result, 
+jx_status jx_heap_VlaAlloc(void **result,
                            jx_size unit_size, jx_size init_size,
                            jx_bool auto_zero _JX_HEAP_TRACKER_DECL);
 
@@ -253,9 +261,10 @@ void *jx_heap_VlaSetSizeRaw(void *ptr, jx_size size _JX_HEAP_TRACKER_DECL);
 
 void *jx_heap_VlaSetSizeRawRecopy(void *ptr, jx_size size _JX_HEAP_TRACKER_DECL);
 
-jx_status jx_heap_VlaGetSize(jx_size *result, void *array _JX_HEAP_TRACKER_DECL);
+jx_status jx_heap_VlaGetSize(jx_size * result, void *array _JX_HEAP_TRACKER_DECL);
 
 jx_size jx_heap_VlaGetSizeRaw(void *array _JX_HEAP_TRACKER_DECL);
+
 
 /* enable C++ mangling */
 #ifdef __cplusplus
@@ -264,5 +273,4 @@ extern "C" {
 }
 #endif
 #endif
-
 #endif

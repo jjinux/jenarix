@@ -1,3 +1,5 @@
+
+
 /* 
  * COPYRIGHT NOTICE: This file contains original source code from the
  * Jenarix (TM) Library, Copyright (C) 2007-8 by Warren L. Delano of
@@ -10,14 +12,17 @@
 #ifndef _H_jx_os
 #define _H_jx_os
 
+
 /* here we basically create a thin layer of "defines" around the OS
    and the compiler */
+
 
 /* platform-specific hacks */
 
 #ifdef WIN32
 #include "stdafx.h"
 #endif
+
 
 /* standard headers we rely upon */
 
@@ -48,6 +53,7 @@
 #include <stdint.h>
 #endif
 
+
 /* memory management */
 
 #define jx_os_malloc malloc
@@ -55,15 +61,18 @@
 #define jx_os_realloc realloc
 #define jx_os_free free
 
+
 /* termination */
 
 #define jx_os_abort abort
 #define jx_os_exit exit
 
+
 /* platform and header-dependent types */
 
 #define jx_os_size_t   size_t
 #define jx_os_sizeof(x) ((jx_size)sizeof(x))
+
 
 /* io */
 
@@ -90,7 +99,7 @@
 #define jx_os_snprintf snprintf
 #endif
 
-#define jx_os_sscanf sscanf 
+#define jx_os_sscanf sscanf
 
 #ifndef WIN32
 #define jx_os_read read
@@ -99,6 +108,7 @@
 #define jx_os_read _read
 #define jx_os_close _close
 #endif
+
 
 /* commonly used routines */
 
@@ -115,6 +125,7 @@
 #define jx_os_qsort qsort
 #define jx_os_rand rand
 
+
 /* declare our own C types (to be used exclusively throughout) */
 
 typedef int jx_bool;
@@ -127,23 +138,26 @@ typedef int jx_int32;
 typedef unsigned int jx_uint32; /* for hash codes, etc. */
 
 #ifdef WIN32
-  typedef __int64 jx_int64;
-  typedef unsigned __int64 jx_uint64;
+typedef __int64 jx_int64;
+typedef unsigned __int64 jx_uint64;
 #else
-  typedef long long jx_int64;
-  typedef unsigned long long jx_uint64;
+typedef long long jx_int64;
+typedef unsigned long long jx_uint64;
 #endif
+
 
 /* for pointer arithmetic, memory allocations, and
    machine-word-optimal fields */
 
-typedef size_t jx_size; 
+typedef size_t jx_size;
 typedef ptrdiff_t jx_diff;
 typedef ptrdiff_t jx_word;
+
 
 /* define base types */
 
 #ifdef JX_64_BIT
+
 
 /* uses 64-bit integers and double-precision floating point */
 typedef jx_int64 jx_int;
@@ -154,12 +168,15 @@ typedef double jx_float;
 #define JX_UWORD_MAX 0xFFFFFFFFFFFFFFFF
 
 #else
+
+
 /* uses 32-bit integers and single-precision floating point */
 typedef jx_int32 jx_int;
 typedef jx_uint32 jx_uint;
 typedef float jx_float;
 #define JX_FLOAT_ZERO 0.0F
 #define JX_UINT_MAX 0xFFFFFFFF
+
 
 /* make sure tiny_str matches pointer width */
 
@@ -190,16 +207,25 @@ typedef float jx_float;
 #endif
 
 #endif
+
+
 /* ends ifdef PTRDIFF_MAX */
 
 #endif
+
+
 /* ends ifdef UINTPTR_MAX */
 
 #endif
+
+
 /* ends ifdef __APPLE__ */
 
 #endif
+
+
 /* ends ifdef JX_64_BIT */
+
 
 /* processes, threads, locks, etc. */
 
@@ -227,6 +253,7 @@ typedef struct jx__os_tls jx_os_tls;
 typedef struct jx__os_rlock jx_os_rlock;
 typedef struct jx__os_spinlock jx_os_spinlock;
 
+
 /* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -234,54 +261,54 @@ extern "C" {
 }
 #endif
 #endif
-
 jx_status jx_os_usleep(jx_size usec);
 
-jx_status jx_os_thread_array_new(jx_os_thread **result, jx_size count);
-jx_os_thread *jx_os_thread_array_entry(jx_os_thread *thread, jx_size offset);
-jx_status jx_os_thread_array_free(jx_os_thread **result);
+jx_status jx_os_thread_array_new(jx_os_thread ** result, jx_size count);
+jx_os_thread *jx_os_thread_array_entry(jx_os_thread * thread, jx_size offset);
+jx_status jx_os_thread_array_free(jx_os_thread ** result);
 
-typedef void *(*jx_os_thread_fn)(void*);
+typedef void *(*jx_os_thread_fn) (void *);
 
-jx_status jx_os_thread_start(jx_os_thread *thread, jx_os_thread_fn func, void *arg);
-jx_status jx_os_thread_join(jx_os_thread *thread);
-jx_status jx_os_thread_get_current(jx_os_thread *thread);
+jx_status jx_os_thread_start(jx_os_thread * thread, jx_os_thread_fn func, void *arg);
+jx_status jx_os_thread_join(jx_os_thread * thread);
+jx_status jx_os_thread_get_current(jx_os_thread * thread);
 
-jx_status jx_os_mutex_array_new(jx_os_mutex **result, jx_size size);
-jx_os_mutex *jx_os_mutex_array_entry(jx_os_mutex *mutex, jx_size offset);
-jx_status jx_os_mutex_array_free(jx_os_mutex **result);
+jx_status jx_os_mutex_array_new(jx_os_mutex ** result, jx_size size);
+jx_os_mutex *jx_os_mutex_array_entry(jx_os_mutex * mutex, jx_size offset);
+jx_status jx_os_mutex_array_free(jx_os_mutex ** result);
 
-jx_status jx_os_mutex_init(jx_os_mutex *mutex);
-jx_status jx_os_mutex_lock(jx_os_mutex *mutex);
-jx_status jx_os_mutex_unlock(jx_os_mutex *mutex);
-jx_status jx_os_mutex_trylock(jx_os_mutex *mutex);
-jx_status jx_os_mutex_destroy(jx_os_mutex *mutex);
+jx_status jx_os_mutex_init(jx_os_mutex * mutex);
+jx_status jx_os_mutex_lock(jx_os_mutex * mutex);
+jx_status jx_os_mutex_unlock(jx_os_mutex * mutex);
+jx_status jx_os_mutex_trylock(jx_os_mutex * mutex);
+jx_status jx_os_mutex_destroy(jx_os_mutex * mutex);
 
-jx_status jx_os_cond_array_new(jx_os_cond **result, jx_size size);
-jx_os_cond *jx_os_cond_array_entry(jx_os_cond *cond, jx_size offset);
-jx_status jx_os_cond_array_free(jx_os_cond **result);
+jx_status jx_os_cond_array_new(jx_os_cond ** result, jx_size size);
+jx_os_cond *jx_os_cond_array_entry(jx_os_cond * cond, jx_size offset);
+jx_status jx_os_cond_array_free(jx_os_cond ** result);
 
-jx_status jx_os_cond_init(jx_os_cond *cond);
-jx_status jx_os_cond_wait(jx_os_cond *cond, jx_os_mutex *mutex);
-jx_status jx_os_cond_timedwait(jx_os_cond *cond, jx_os_mutex *mutex, jx_size usec);
-jx_status jx_os_cond_signal(jx_os_cond *cond);
-jx_status jx_os_cond_broadcast(jx_os_cond *cond);
-jx_status jx_os_cond_destroy(jx_os_cond *cond);
+jx_status jx_os_cond_init(jx_os_cond * cond);
+jx_status jx_os_cond_wait(jx_os_cond * cond, jx_os_mutex * mutex);
+jx_status jx_os_cond_timedwait(jx_os_cond * cond, jx_os_mutex * mutex, jx_size usec);
+jx_status jx_os_cond_signal(jx_os_cond * cond);
+jx_status jx_os_cond_broadcast(jx_os_cond * cond);
+jx_status jx_os_cond_destroy(jx_os_cond * cond);
 
-jx_status jx_os_tls_set(jx_os_tls *tls, void *value);
-jx_status jx_os_tls_get(jx_os_tls *tls, void **value);
-jx_status jx_os_tls_init(jx_os_tls *tls);
-jx_status jx_os_tls_destroy(jx_os_tls *tls);
+jx_status jx_os_tls_set(jx_os_tls * tls, void *value);
+jx_status jx_os_tls_get(jx_os_tls * tls, void **value);
+jx_status jx_os_tls_init(jx_os_tls * tls);
+jx_status jx_os_tls_destroy(jx_os_tls * tls);
 
-jx_status jx_os_rlock_array_new(jx_os_rlock **result, jx_size size);
-jx_status jx_os_rlock_array_free(jx_os_rlock **result);
-jx_status jx_os_rlock_init(jx_os_rlock *rlock);
-jx_status jx_os_rlock_acquire(jx_os_rlock *rlock, jx_bool blocking);
-jx_status jx_os_rlock_release(jx_os_rlock *rlock);
-jx_status jx_os_rlock_destroy(jx_os_rlock *rlock);
+jx_status jx_os_rlock_array_new(jx_os_rlock ** result, jx_size size);
+jx_status jx_os_rlock_array_free(jx_os_rlock ** result);
+jx_status jx_os_rlock_init(jx_os_rlock * rlock);
+jx_status jx_os_rlock_acquire(jx_os_rlock * rlock, jx_bool blocking);
+jx_status jx_os_rlock_release(jx_os_rlock * rlock);
+jx_status jx_os_rlock_destroy(jx_os_rlock * rlock);
 
-jx_status jx_os_spinlock_acquire(jx_os_spinlock *spinlock, jx_bool spin);
-jx_status jx_os_spinlock_release(jx_os_spinlock *spinlock);
+jx_status jx_os_spinlock_acquire(jx_os_spinlock * spinlock, jx_bool spin);
+jx_status jx_os_spinlock_release(jx_os_spinlock * spinlock);
+
 
 /* enable C++ mangling */
 #ifdef __cplusplus
@@ -291,12 +318,14 @@ jx_status jx_os_spinlock_release(jx_os_spinlock *spinlock);
 }
 #endif
 
+
 /* platform-specific time stuff */
 
 #ifndef WIN32
 typedef struct timeval jx_os_timeval;
 #define jx_os_select select
 #endif
+
 
 /* convenience aliases */
 
@@ -308,6 +337,8 @@ typedef struct timeval jx_os_timeval;
 #define jx_stdout jx_os_stdout
 #define jx_strlen jx_os_strlen
 #define jx_strstr jx_os_strstr
+
+
 /* defines */
 
 #ifdef __cplusplus
@@ -315,6 +346,7 @@ typedef struct timeval jx_os_timeval;
 #else
 #define JX_NULL ((void*)0)
 #endif
+
 
 /* for maximum efficiency: 
 
@@ -330,6 +362,7 @@ typedef struct timeval jx_os_timeval;
 #define JX__FILE__ __FILE__
 #define JX__LINE__ __LINE__
 
+
 /* how do we declare inline methods? */
 
 #ifdef WIN32
@@ -344,5 +377,3 @@ typedef struct timeval jx_os_timeval;
 #define JX_ZERO_ARRAY_SIZE 1
 
 #endif
-
-

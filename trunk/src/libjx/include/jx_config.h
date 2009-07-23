@@ -1,3 +1,5 @@
+
+
 /* 
  * COPYRIGHT NOTICE: This file contains original source code from the
  * Jenarix (TM) Library, Copyright (C) 2007-8 by Warren L. Delano of
@@ -10,15 +12,19 @@
 #ifndef _H_jx_config
 #define _H_jx_config
 
+
 /* Jenarix configuration */
 
 #ifndef JX_CONFIGURED
 
+
 /* STANDALONE DEFAULT CONFIG */
+
 
 /* Are our native ints & floats 64-bits wide? */
 
 #define notJX_64_BIT
+
 
 /* How many characters do we want to be able to squish into an object
    so as to avoid touching the heap?  (can only be 6, 10, or 14 in
@@ -30,27 +36,34 @@
 #define JX_TINY_STR_SIZE 6
 #endif
 
+
 /* do we want fake threads or real threads? */
 
-#define noJX_OS_FAKE_THREADS 
+#define noJX_OS_FAKE_THREADS
+
 
 /* DEBUG SETTINGS */
+
 
 /* track heap objects in depth? (print atexit) */
 
 #define noJX_HEAP_TRACKER
 
+
 /* no heap tracker, but still wrap malloc, etc.? (print atexit) */
 
 #define noJX_MEM_WRAP
+
 
 /* should we scramble released memory whenever possible? */
 
 #define noJX_HEAP_GRINDER
 
+
 /* should we avoid re-using memory? */
 
 #define noJX_HEAP_SINGLE_USE
+
 
 /* let's not do this again... */
 #define JX_CONFIGURED

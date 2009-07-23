@@ -1,4 +1,5 @@
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -85,6 +86,7 @@ jx_int random_int(void)
 
 jx_float random_float(void)
 
+
 /* only return floats which are exact in both decimal and binary representations */
 {
   jx_float result;
@@ -105,9 +107,11 @@ jx_float random_float(void)
 
 #if 1
 
+
 /* allow non-string primitives to be hash keys */
 #define random_key random_primitive
 #else
+
 
 /* only string primitives as hash keys */
 jx_ob random_key(void)

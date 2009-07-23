@@ -1,7 +1,7 @@
 
 # build a million-element list as fast as you can!
 
-(set a 2000000);
+(set a 4000000);
 
 (set b []);
 

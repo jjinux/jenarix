@@ -1,4 +1,5 @@
 
+
 /* 
 Copyright (c) 2009, DeLano Scientific LLC, Palo Alto, California, USA.
 All rights reserved.
@@ -109,7 +110,7 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
   }
 }
 
-jx_ob jx_py_print(jx_ob node, jx_ob payload)
+jx_ob jx_py_print(jx_env *E, jx_ob payload)
 {
   jx_int i, size = jx_list_size(payload);
   for(i = 0; i < size; i++) {
@@ -120,7 +121,7 @@ jx_ob jx_py_print(jx_ob node, jx_ob payload)
       break;
     default:
       {
-        jx_ob jxon = jx_ob_to_jxon_in_node(node, ob);
+        jx_ob jxon = jx_ob_to_jxon_in_node(E->node, ob);
         fprintf(stdout, "%s", jx_ob_as_str(&jxon));
         jx_ob_free(jxon);
       }
