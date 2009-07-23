@@ -11,12 +11,20 @@ int main(int argc, char **argv)
   OUT("object", obj);
   Object copy = Object(obj);
   OUT("object copy", copy);
+  Object bcopy = obj;
+  OUT("object bcopy", bcopy);
 
   Float x = Float(435.22);
   OUT("Float", x);
+  Object x2 = x;
+  OUT("Object x2", x2);
+  Float x3;
+  OUT("Float x3", x3);
 
   Integer y = Integer(7765);
   OUT("Integer", y);
+  Integer y2;
+  OUT("Integer y2", y2);
 
   Integer z = 1982;
   OUT("Integer", z);

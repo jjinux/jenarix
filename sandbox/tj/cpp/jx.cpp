@@ -32,6 +32,10 @@ bool Object::value() {
 }
 
 // Derived classes
+Integer::Integer() {
+  //jxob = jx_ob_to_int(jx_ob());
+  jxob = jx_ob_from_int(0);
+}
 Integer::Integer(int v) {
   jxob = jx_ob_from_int(v);
 }
@@ -39,6 +43,10 @@ int Integer::value() {
   return jx_ob_as_int(jxob);
 }
 
+Float::Float() {
+  //jxob = jx_ob_to_float(jx_ob());
+  jxob = jx_ob_from_float(0.0);
+}
 Float::Float(float v) {
   jxob = jx_ob_from_float(v);
 }
@@ -46,6 +54,10 @@ float Float::value() {
   return jx_ob_as_float(jxob);
 }
 
+Bool::Bool() {
+  //jxob = jx_ob_to_bool(jx_ob());
+  jxob = jx_ob_from_bool(false);
+}
 Bool::Bool(bool v) {
   jxob = jx_ob_from_bool(v);
 }

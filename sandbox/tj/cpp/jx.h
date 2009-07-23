@@ -31,6 +31,7 @@ class jx {
   class Integer : public Object {
 
     public:
+      Integer();
       Integer(int v);
 
       int value();
@@ -40,6 +41,7 @@ class jx {
   class Float : public Object {
 
     public:
+      Float();
       Float(float v);
 
       float value();
@@ -49,6 +51,7 @@ class jx {
   class Bool : public Object {
 
     public:
+      Bool();
       Bool(bool v);
 
       bool value();
