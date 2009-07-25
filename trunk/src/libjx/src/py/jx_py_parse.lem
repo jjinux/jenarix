@@ -1384,8 +1384,9 @@ classdef(A) ::= CLASS NAME(B) OPEN_PAR testlist(C) CLOSE_PAR COLON suite(D).
   jx_list_append(tmp,B); /* name */
   jx_list_append(tmp,C); /* base class */ 
   jx_list_append(tmp,jx_ob_from_null()); /* content */
-  jx_list_append(tmp,D); 
+  jx_list_append(tmp,jx_ob_from_null()); /* attr_hash */
   jx_list_append(tmp,jx_ob_from_ident("__init__")); /* name of constructor */
+  jx_list_append(tmp,D); /* code */
 }
 
 classdef(A) ::= CLASS NAME(B) COLON suite(D).
@@ -1398,8 +1399,9 @@ classdef(A) ::= CLASS NAME(B) COLON suite(D).
   jx_list_append(tmp,B); /* name */
   jx_list_append(tmp,jx_ob_from_null()); /* base class */
   jx_list_append(tmp,jx_ob_from_null()); /* content */
-  jx_list_append(tmp,D);
+  jx_list_append(tmp,jx_ob_from_null()); /* attr_hash */  
   jx_list_append(tmp,jx_ob_from_ident("__init__")); /* name of constructor */
+  jx_list_append(tmp,D); /* code */
 }
 
 /* arglist: (argument ',')* (argument [',']

@@ -67,31 +67,52 @@ JX_INLINE jx_ob jx_safe_entity(jx_env * E, jx_ob payload)
       def = jx_list_new_with_size(size);
       switch (size) {
       default:
+      case 5:
+        /* scope from the evaluated code becomes the attribute table */
+        jx_list_swap(payload, 3, scope);
+        scope = jx_ob_from_null();
+        /* deliberate full through */        
       case 4:
         jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
                         jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 4)));
+        /* deliberate full through */        
       case 3:
         {
-          jx_ob attr_hash = jx_list_swap_with_null(payload, 3);
-          if(!jx_list_check(attr_hash)) {
-            jx_list_replace(def, JX_ENTITY_ATTR_HASH, jx_ob_not_weak_with_ob(attr_hash));
-          } else {
-            jx_list_replace(def, JX_ENTITY_ATTR_HASH, scope);
-            scope = jx_ob_from_null();
-            Jx_ob_free(E, attr_hash);
-          }
+          jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 3));
+          if( jx_hash_check(slot)) 
+            jx_list_entity_set_attr_hash(E, def, slot );
+          else if( jx_list_check(slot))
+            jx_list_entity_set_content(E, def, slot );
+          else
+            Jx_ob_free(E,slot);
         }
+        /* deliberate full through */
       case 2:
+#if 1
+        {
+          jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 2));
+          if( jx_hash_check(slot)) 
+            jx_list_entity_set_attr_hash(E, def, slot );
+          else if( jx_list_check(slot))
+            jx_list_entity_set_content(E, def, slot );
+          else
+            Jx_ob_free(E,slot);
+        }
+#else
         jx_list_replace(def, JX_ENTITY_CONTENT_LIST,
                         jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 2)));
+#endif
+        /* deliberate full through */
       case 1:
         jx_list_replace(def, JX_ENTITY_BASE_HANDLE,
                         jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 1)));
         break;
       }
     }
-    Jx_hash_set(E, E->node, Jx_ob_copy(E, entity), def);  /* implementations always stored at node level */
+    Jx_hash_set(E, E->node, Jx_ob_copy(E, entity), def);
+    /* implementations always stored at node level */
   }
+
   Jx_ob_free(E, scope);
   //  jx_ob_dump(stdout,"entity",entity);
   //printf("%08x [%s]\n",jx_ob_hash_code(entity),jx_ob_as_ident(entity));

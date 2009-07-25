@@ -276,10 +276,9 @@ struct jx__ob {
 /* entities are composed of the following */
 
 #define JX_ENTITY_BASE_HANDLE  0
-#define JX_ENTITY_CONTENT_LIST 1
-#define JX_ENTITY_ATTR_HASH    2
+#define JX_ENTITY_SLOT_1       1
+#define JX_ENTITY_SLOT_2       2
 #define JX_ENTITY_CONSTRUCTOR  3
-
 
 /* for whatever reason, having a set of global extern jx_ob constants
  * for common values really helps performance vis-a-vis using "inline"
@@ -366,6 +365,33 @@ typedef struct {
 } jx_queue;
 #endif
 
+/* sample use cases (stored here for now...eventually move to docs)
+
+jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
+
+Jx_function_call(jx_env *E, jx_ob function, jx_ob payload);
+
+jx_ob your_fn(jx_env *E, jx_ob payload)
+{
+  jx_ob value = Jx_hash_get(E, E->node, Jx_ob_from_ident(E, "my_sym"));
+  Jx_ob_free(E, value);
+}
+
+(set a [] )
+
+(a.size) 
+
+(size a)
+
+(return value) -> JX_RETURN
+
+(def fn []
+  (fn a b c)
+  (if 1 (tail a b c) (other a b c))
+)
+
+*/
+
 struct jx__env {
   jx_ob node;                   /* global scope for node */
   jx_ob scope;                  /* local scope stack */
@@ -382,8 +408,6 @@ struct jx__env {
   jx_bool tail_call;
   jx_bool leave;
 #ifdef JX_COUNT_WEAK_REFS
-
-
 /* asynchronous reference counting queues */
   jx_queue decref, incref;
 #endif
@@ -1170,7 +1194,14 @@ JX_INLINE jx_bool jx_macro_check(jx_ob ob)
 }
 
 
-/* convenience function */
+/* convenience functions */
+
+JX_INLINE void jx_ob_swap_ptrs(jx_ob * ob1_ptr, jx_ob * ob2_ptr)
+{
+  jx_ob tmp = *ob1_ptr;
+  *ob2_ptr = *ob1_ptr;
+  *ob1_ptr = tmp;
+}
 
 JX_INLINE jx_ob jx_ob_swap(jx_ob * ob_ptr, jx_ob ob)
 {
@@ -1182,6 +1213,13 @@ JX_INLINE jx_ob jx_ob_swap(jx_ob * ob_ptr, jx_ob ob)
 JX_INLINE jx_ob jx_ob_swap_with_null(jx_ob * ob_ptr)
 {
   jx_ob result = *ob_ptr;
+  *ob_ptr = jx_ob_from_null();
+  return result;
+}
+
+JX_INLINE jx_ob Jx_ob_swap_owned_with_null(jx_env *E, jx_ob * ob_ptr)
+{
+  jx_ob result = JX_DISOWN(E, *ob_ptr);
   *ob_ptr = jx_ob_from_null();
   return result;
 }
@@ -1202,6 +1240,13 @@ JX_INLINE jx_status Jx_ob_replace_owned(jx_env * E, jx_ob * ob_ptr, jx_ob ob)
 {
   jx_status status = Jx_ob_free(E, JX_DISOWN(E, *ob_ptr));
   *ob_ptr = JX_OWN(E, ob);
+  return status;
+}
+
+JX_INLINE jx_status Jx_ob_replace_owned_with_null(jx_env * E, jx_ob * ob_ptr)
+{
+  jx_status status = Jx_ob_free(E, JX_DISOWN(E, *ob_ptr));
+  *ob_ptr = jx_ob_from_null();
   return status;
 }
 
@@ -3554,6 +3599,309 @@ JX_INLINE jx_ob jx__macro_call(jx_env * E, jx_ob macro, jx_ob payload)
 
 jx_status jx__list_append_locked(jx_env * E, jx_list * I, jx_ob ob);
 
+JX_INLINE jx_ob jx__list_entity_take_content_locked(jx_env *E, jx_list *I)
+{
+  jx_ob *ob_vla = I->data.ob_vla;
+  jx_int entity_size;
+  if( (entity_size = jx_vla_size(&ob_vla)) &&
+      jx_builtin_entity_check(ob_vla[0]) ) {      
+    switch(entity_size) {
+    case 2:
+      if(jx_list_check(ob_vla[1]))
+        return Jx_ob_swap_owned_with_null(E, ob_vla + 1);
+      return jx_ob_from_null();
+      break;
+    case 3:
+    default:
+      if(jx_list_check(ob_vla[1]))
+        return Jx_ob_swap_owned_with_null(E, ob_vla + 1);
+      else if(jx_list_check(ob_vla[2]))
+        return Jx_ob_swap_owned_with_null(E, ob_vla + 2);
+      return jx_ob_from_null();
+    case 0:
+    case 1:
+      return jx_ob_from_null();
+      break;
+    }
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_entity_borrow_content_locked(jx_list *I)
+{
+  jx_ob *ob_vla = I->data.ob_vla;
+  jx_int entity_size;
+  if( (entity_size = jx_vla_size(&ob_vla)) ) {      
+    switch(entity_size) {
+    case 2:
+      if(jx_list_check(ob_vla[1]))
+        return ob_vla[1];
+      return jx_ob_from_null();
+      break;
+    case 3:
+    default:
+      if(jx_list_check(ob_vla[1]))
+        return ob_vla[1];
+      else if(jx_list_check(ob_vla[2]))
+        return ob_vla[2];
+      return jx_ob_from_null();
+    case 0:
+    case 1:
+      return jx_ob_from_null();
+      break;
+    }
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_entity_borrow_content(jx_list *I)
+{
+  jx_ob result = jx_ob_from_null();
+  if(JX_POS(jx_gc_lock(&I->gc))) {
+    if(!I->packed_meta_bits) {
+      result = jx__list_entity_borrow_content_locked(I);
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return result;
+}
+
+JX_INLINE jx_ob jx_list_entity_borrow_content(jx_ob ob)
+{
+  if(jx_list_check(ob)) 
+    return jx__list_entity_borrow_content(ob.data.io.list);
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_entity_borrow_attr_hash_locked(jx_list *I)
+{
+  jx_ob *ob_vla = I->data.ob_vla;
+  jx_int entity_size;
+  if( (entity_size = jx_vla_size(&ob_vla) )) {  
+    switch(entity_size) {
+    case 2:
+      if(jx_hash_check(ob_vla[1]))
+        return ob_vla[1];
+      return jx_ob_from_null();
+      break;
+    case 3:
+    default:
+      if(jx_hash_check(ob_vla[1]))
+        return ob_vla[1];
+      else if(jx_hash_check(ob_vla[2]))
+        return ob_vla[2];
+      return jx_ob_from_null();
+    case 0:
+    case 1:
+      return jx_ob_from_null();
+      break;
+    }
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_entity_borrow_attr_hash(jx_list *I)
+{
+  jx_ob result = jx_ob_from_null();
+  if(JX_POS(jx_gc_lock(&I->gc))) {
+    if(!I->packed_meta_bits) {
+      result = jx__list_entity_borrow_attr_hash_locked(I);
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return result;
+}
+
+JX_INLINE jx_ob jx_list_entity_borrow_attr_hash(jx_ob ob)
+{
+  if(jx_list_check(ob)) 
+    return jx__list_entity_borrow_attr_hash(ob.data.io.list);
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_status jx__list_entity_set_content_locked(jx_env *E, jx_list *I, jx_ob value)
+{
+  jx_int entity_size = jx_vla_size(&I->data.vla);
+  jx_ob *entity_ob = I->data.ob_vla;
+  jx_status status = JX_STATUS_FAILURE;
+  switch(entity_size) {
+  case 2:
+    if(jx_list_check(entity_ob[1]) || jx_null_check(entity_ob[1])) { 
+      /* existing content, so replace */
+      status = Jx_ob_replace_owned
+        (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
+    } else {
+      /* no existing content, so append */
+      status =
+        jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
+    }
+    break;
+  case 3:
+  default:
+    if(!jx_list_check(entity_ob[2])) {
+      if(jx_list_check(entity_ob[1]) || jx_null_check(entity_ob[1]) ) {
+        jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2 );
+      }
+    }
+    status = Jx_ob_replace_owned
+      (E, entity_ob + 2, Jx_ob_not_weak_with_ob(E, value));
+    break;
+  case 1:
+    status =
+      jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
+    break;
+  case 0:
+    jx_ob_free(value);
+    break;
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx__list_entity_set_content(jx_env *E, jx_list *I,jx_ob value)
+{
+  jx_status status = JX_STATUS_FAILURE;
+  if(JX_POS(jx_gc_lock(&I->gc))) {
+    if(!I->packed_meta_bits) {
+      status = jx__list_entity_set_content_locked(E,I,value);
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx_list_entity_set_content(jx_env *E, jx_ob ob, jx_ob value)
+{
+  if(jx_list_check(ob)) 
+    return jx__list_entity_set_content(E, ob.data.io.list, value);
+  return JX_STATUS_FAILURE;
+}
+
+jx_status jx__list_insert_locked(jx_env * E, jx_list * I, jx_int index, jx_ob ob);
+
+JX_INLINE jx_status jx__list_entity_set_attr_hash_locked(jx_env *E, jx_list *I, jx_ob value)
+{
+  jx_int entity_size = jx_vla_size(&I->data.vla);
+  jx_ob *entity_ob = I->data.ob_vla;
+  jx_status status = JX_STATUS_FAILURE;
+  switch(entity_size) {
+  case 2:
+    if(jx_hash_check(entity_ob[1]) || jx_null_check(entity_ob[1])) { 
+      /* existing attr_hash, so replace */
+      status = Jx_ob_replace_owned
+        (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
+    } else {
+      /* no existing attr_hash, so insert into slot 1 */
+      status =
+        jx__list_insert_locked(E, I, 1, Jx_ob_not_weak_with_ob(E, value));
+    }
+    break;
+  case 3:
+  default:
+    if(!jx_hash_check(entity_ob[1])) {
+      if(jx_hash_check(entity_ob[2]) || jx_null_check(entity_ob[2]) ) {
+        jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2 );
+      }
+    }
+    status = Jx_ob_replace_owned
+      (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
+    break;
+  case 1:
+    status =
+      jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
+    break;
+  case 0:
+    jx_ob_free(value);
+    break;
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx__list_entity_set_attr_hash(jx_env *E, jx_list *I,jx_ob value)
+{
+  jx_status status = JX_STATUS_FAILURE;
+  if(JX_POS(jx_gc_lock(&I->gc))) {
+    if(!I->packed_meta_bits) {
+      status = jx__list_entity_set_attr_hash_locked(E,I,value);
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return status;
+}
+
+JX_INLINE jx_status jx_list_entity_set_attr_hash(jx_env *E, jx_ob ob, jx_ob value)
+{
+  if(jx_list_check(ob)) 
+    return jx__list_entity_set_attr_hash(E, ob.data.io.list, value);
+  return JX_STATUS_FAILURE;
+}
+
+JX_INLINE jx_ob jx__list_entity_validate_attr_hash_locked(jx_env *E, jx_list *I)
+{
+  if(!I->gc.shared) {
+    jx_int entity_size = jx_vla_size(&I->data.vla);
+    jx_ob *entity_ob = I->data.ob_vla;
+    switch(entity_size) {
+    case 2:
+      if(jx_hash_check(entity_ob[1]))
+        return entity_ob[1];
+      {
+        jx_ob result = Jx_hash_new(E);
+        if( JX_OK( jx__list_insert_locked(E, I, 1, result) )) {
+          return result;
+        } else {
+          return Jx_null_with_ob(E, result);
+        }
+      }
+      break;
+    case 3:
+    default:
+      if(jx_hash_check(entity_ob[1]))
+        return entity_ob[1];
+      else if(jx_hash_check(entity_ob[2]))
+        return entity_ob[2];
+      else {
+        jx_ob result = Jx_hash_new(E);
+        if(jx_null_check(entity_ob[1])) {
+          entity_ob[1] = JX_OWN(E, result);
+        } else {
+          jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2 );
+          Jx_ob_replace_owned(E, entity_ob + 1, result);
+        }
+        return result;
+      }
+      break;
+    case 1:
+      {
+        jx_ob result = Jx_hash_new(E);
+        if( JX_OK( jx__list_append_locked(E, I, result) )) {
+          return result;
+        } else {
+          return Jx_null_with_ob(E, result);
+        }
+      }
+      break;
+    case 0:
+      return jx_ob_from_null();
+      break;
+    }
+  } else {
+    return jx_ob_from_null();
+  }
+}
+
+JX_INLINE jx_status jx__list_entity_set_attr_locked(jx_env *E, jx_list *I, jx_ob target, jx_ob value)
+{
+  jx_ob hash = jx__list_entity_validate_attr_hash_locked(E, I);
+  if( jx_hash_check(hash) ) {
+    return Jx_hash_set(E, hash,
+                       Jx_ob_not_weak_with_ob(E, Jx_ob_copy(E, target)),
+                       Jx_ob_not_weak_with_ob(E, value));
+  } else {
+    jx_ob_free(value);
+    return JX_STATUS_FAILURE;
+  }
+}
+
 JX_INLINE jx_status jx__list_entity_set(jx_env * E, jx_list * I, jx_ob target,
                                         jx_ob value)
 {
@@ -3565,22 +3913,30 @@ JX_INLINE jx_status jx__list_entity_set(jx_env * E, jx_list * I, jx_ob target,
       jx_int entity_size;
       jx_ob *entity_ob = I->data.ob_vla;
       if((!I->packed_meta_bits) &&
-         (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+         (entity_size = jx_vla_size(&I->data)) && 
+         jx_builtin_entity_check(entity_ob[0])) {
         /* first entry in result contains an entity (a class / instance, etc.) */
         switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
         case JX_META_BIT_IDENT:
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? replace content */
+#if 1
+              status = jx__list_entity_set_content_locked(E, I, value);
+#else 
               if(entity_size > 1) {     /* existing content, so replace */
-                status = Jx_ob_replace
+                status = Jx_ob_replace_owned
                   (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
               } else {
                 /* no existing content, so append it */
                 status =
                   jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
               }
+#endif
             } else {            /* nonblank identifier? -> replace attribute */
+#if 1
+              status = jx__list_entity_set_attr_locked(E, I, target, value);
+#else              
               if(entity_size > 2) {
                 status = jx_hash_set
                   (entity_ob[2],
@@ -3597,6 +3953,7 @@ JX_INLINE jx_status jx__list_entity_set(jx_env * E, jx_list * I, jx_ob target,
                    Jx_ob_not_weak_with_ob(E, Jx_ob_copy(E, target)),
                    Jx_ob_not_weak_with_ob(E, value));
               }
+#endif
             }
           }
           break;
@@ -3620,24 +3977,35 @@ JX_INLINE jx_ob jx__list_entity_get(jx_list * I, jx_ob target)
     jx_int entity_size;
     jx_ob *entity_ob = I->data.ob_vla;
     if((!I->packed_meta_bits) &&
-       (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+       (entity_size = jx_vla_size(&I->data)) && 
+       jx_builtin_entity_check(entity_ob[0])) {
       /* first entry in result contains an entity (a class / instance, etc.) */
       switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_IDENT:
         {
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
+#if 1
+            result = jx_ob_take_weak_ref
+              (jx__list_entity_borrow_content_locked(I));
+#else
             if(entity_size > 1) {       /* take content */
               result = jx_ob_take_weak_ref(entity_ob[1]);
             } else {            /* no content */
               result = jx_ob_from_null();
             }
+#endif
           } else {              /* nonblank identifier? -> access attribute / method */
+#if 1
+            result = jx_ob_take_weak_ref
+              (jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), target));
+#else
             if(entity_size > 2) {
               result = jx_ob_take_weak_ref(jx_hash_borrow(entity_ob[2], target));
             } else {
               result = jx_ob_from_null();
             }
+#endif
           }
         }
         break;
@@ -3656,20 +4024,30 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
     jx_int entity_size;
     jx_ob *entity_ob = I->data.ob_vla;
     if((!I->packed_meta_bits) &&
-       (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+       (entity_size = jx_vla_size(&I->data)) && 
+       jx_builtin_entity_check(entity_ob[0])) {
       /* first entry in result contains an entity (a class / instance, etc.) */
       switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_IDENT:
         {
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
+#if 1
+            result = ! jx_null_check( jx__list_entity_borrow_content_locked(I) );
+#else
             if(entity_size > 1) {       /* yes content */
               result = JX_TRUE;
             }
+#endif
           } else {              /* nonblank identifier? -> access attribute / method */
+#if 1
+            result = jx_hash_has_key( jx__list_entity_borrow_attr_hash_locked(I),
+                                      target );
+#else
             if(entity_size > 2) {
               result = jx_hash_has_key(entity_ob[2], target);
             }
+#endif
           }
         }
         break;
@@ -3688,24 +4066,34 @@ JX_INLINE jx_ob jx__list_entity_take(jx_env * E, jx_list * I, jx_ob target)
       jx_int entity_size;
       jx_ob *entity_ob = I->data.ob_vla;
       if((!I->packed_meta_bits) &&
-         (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+         (entity_size = jx_vla_size(&I->data)) && 
+         jx_builtin_entity_check(entity_ob[0])) {
         /* first entry in result contains an entity (a class / instance, etc.) */
         switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
         case JX_META_BIT_IDENT:
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? access content */
+#if 1
+              result = jx__list_entity_take_content_locked(E, I);
+#else
               if(entity_size > 1) {     /* take content */
                 result = jx_ob_swap_with_null(entity_ob + 1);
               } else {          /* no content */
                 result = jx_ob_from_null();
               }
+#endif
             } else {            /* nonblank identifier? -> access attribute / method */
+#if 1
+              result = Jx_hash_remove(E, jx__list_entity_borrow_attr_hash_locked(I),
+                                      target);
+#else
               if(entity_size > 2) {
                 result = Jx_hash_remove(E, entity_ob[2], target);
               } else {
                 result = jx_ob_from_null();
               }
+#endif
             }
           }
           break;
@@ -3727,22 +4115,33 @@ JX_INLINE jx_status jx__list_entity_delete(jx_env * E, jx_list * I, jx_ob target
       jx_int entity_size;
       jx_ob *entity_ob = I->data.ob_vla;
       if((!I->packed_meta_bits) &&
-         (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+         (entity_size = jx_vla_size(&I->data)) && 
+         jx_builtin_entity_check(entity_ob[0])) {
         /* first entry in result contains an entity (a class / instance, etc.) */
         switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
         case JX_META_BIT_IDENT:
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? access content */
+#if 1
+              jx_ob ob = jx__list_entity_take_content_locked(E, I);
+              Jx_ob_free(E, ob);
+#else
               if(entity_size > 1) {     /* take content */
-                status = Jx_ob_replace_with_null(E, entity_ob + 1);
+                status = Jx_ob_replace_owned_with_null(E, entity_ob + 1);
               } else {          /* no content */
                 status = JX_SUCCESS;
               }
+#endif
             } else {            /* nonblank identifier? -> access attribute / method */
+#if 1
+              status = Jx_hash_delete(E, jx__list_entity_borrow_attr_hash_locked(I),
+                                      target);
+#else
               if(entity_size > 2) {
                 status = Jx_hash_delete(E, entity_ob[2], target);
               }
+#endif
             }
           }
           break;
@@ -3766,18 +4165,26 @@ JX_INLINE jx_ob jx__list_entity_create_path(jx_env * E, jx_list * I, jx_ob * tar
     jx_int entity_size;
     jx_ob *entity_ob = I->data.ob_vla;
     if((!I->packed_meta_bits) &&
-       (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+       (entity_size = jx_vla_size(&I->data)) && 
+       jx_builtin_entity_check(entity_ob[0])) {
       /* first entry in result contains an entity (a class / instance, etc.) */
       switch (target->meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_IDENT:
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
+#if 1
+            result = jx__list_entity_borrow_content_locked(I);
+#else
             if(entity_size > 1) {       /* use content */
               result = entity_ob[1];
             }
+#endif
           } else {              /* nonblank identifier? -> access attribute / method */
             jx_ob attr;
+#if 1
+            attr = jx__list_entity_validate_attr_hash_locked(E,I);
+#else
             if(entity_size < 3) {
               if(!I->gc.shared) {
                 attr = Jx_hash_new(E);
@@ -3790,6 +4197,7 @@ JX_INLINE jx_ob jx__list_entity_create_path(jx_env * E, jx_list * I, jx_ob * tar
             } else {
               attr = entity_ob[2];
             }
+#endif
             if(!jx_hash_peek(&result, attr, *target)) {
               if(!I->gc.shared) {
                 result = Jx_hash_new(E);
@@ -3856,20 +4264,30 @@ JX_INLINE jx_ob jx__list_entity_resolve_path(jx_list * I, jx_ob * target)
     jx_int entity_size;
     jx_ob *entity_ob = I->data.ob_vla;
     if((!I->packed_meta_bits) &&
-       (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+       (entity_size = jx_vla_size(&I->data)) && 
+       jx_builtin_entity_check(entity_ob[0])) {
       /* first entry in result contains an entity (a class / instance, etc.) */
       switch (target->meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_IDENT:
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
+            
             if(entity_size > 1) {       /* use content */
+#if 1
+              result = jx__list_entity_borrow_content_locked(I);
+#else
               result = entity_ob[1];
+#endif
             }
-          } else {              /* nonblank identifier? -> access attribute / method */
+          } else {                     /* nonblank identifier? -> access attribute / method */
+#if 1
+            result = jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), *target);
+#else
             if(entity_size > 2) {
               result = jx_hash_borrow(entity_ob[2], *target);
             }
+#endif
           }
         }
         break;
@@ -3932,6 +4350,8 @@ JX_INLINE jx_status jx__resolve_path(jx_env * E, jx_ob * container, jx_ob * targ
   return JX_NO;
 }
 
+
+
 JX_INLINE jx_ob jx_entity_resolve_name(jx_env * E, jx_ob handle, jx_ob name)
 {
   jx_ob result = jx_ob_from_null();
@@ -3940,7 +4360,7 @@ JX_INLINE jx_ob jx_entity_resolve_name(jx_env * E, jx_ob handle, jx_ob name)
     if(!jx_hash_peek(&def, E->node, handle))
       break;
     else {
-      if(jx_hash_peek(&result, jx_list_borrow(def, JX_ENTITY_ATTR_HASH), name))
+      if(jx_hash_peek(&result, jx_list_entity_borrow_attr_hash(def), name))
         break;
       handle = jx_list_borrow(def, JX_ENTITY_BASE_HANDLE);
     }
@@ -3975,7 +4395,7 @@ JX_INLINE jx_ob jx_entity_resolve_content(jx_env * E, jx_ob handle)
     if(!jx_hash_peek(&def, E->node, handle))
       break;
     else {
-      result = jx_list_borrow(def, JX_ENTITY_CONTENT_LIST);
+      result = jx_list_entity_borrow_content(def);
       if(!jx_null_check(result))
         break;
       handle = jx_list_borrow(def, JX_ENTITY_BASE_HANDLE);
@@ -3992,7 +4412,7 @@ JX_INLINE jx_ob jx_entity_resolve_attrs(jx_env * E, jx_ob handle)
     //    printf("%08x [%s]\n",jx_ob_hash_code(handle),jx_ob_as_ident(&handle));
     jx_ob def = jx_hash_borrow(E->node, handle);
     //    jx_jxon_dump(stdout,"def",node,def);
-    result = jx_list_borrow(def, JX_ENTITY_ATTR_HASH);
+    result = jx_list_entity_borrow_attr_hash(def);
   }
   return Jx_ob_copy(E, result);
 }
@@ -4006,29 +4426,37 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_env * E,
     jx_int entity_size;
     jx_ob *entity_ob = I->data.ob_vla;
     if((!I->packed_meta_bits) &&
-       (entity_size = jx_vla_size(&I->data)) && jx_builtin_entity_check(entity_ob[0])) {
+       (entity_size = jx_vla_size(&I->data)) && 
+       jx_builtin_entity_check(entity_ob[0])) {
       /* first entry in result contains an entity (a class / instance, etc.) */
       switch (target->meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_IDENT:
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
+#if 1 
+            *container = jx_ob_take_weak_ref( jx__list_entity_borrow_content_locked(I) );
+#else           
             if(entity_size > 1) {       /* use content */
               *container = jx_ob_take_weak_ref(entity_ob[1]);
             } else {
               *container = jx_ob_from_null();
             }
+#endif
             status = JX_YES;
           } else {              /* nonblank identifier? -> access attribute / method */
             jx_ob meth_or_attr;
+#if 1
+            meth_or_attr = jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I) ,
+                                          *target);            
+#else
             if(entity_size > 2) {
               meth_or_attr = jx_hash_borrow(entity_ob[2], *target);
             } else
               meth_or_attr = jx_ob_from_null();
+#endif
             if(jx_null_check(meth_or_attr)) {
-              //jx_jxon_dump(stdout,"entity_ob", entity_ob[0]);
               meth_or_attr = jx_entity_resolve_name(E, entity_ob[0], *target);
-              //jx_jxon_dump(stdout,"method",meth_or_attr);
             }
             //jx_jxon_dump(stdout,"meth_or_attr",meth_or_attr);
             //jx_jxon_dump(stdout,"container",*container);
@@ -4055,7 +4483,8 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_env * E,
         }
         break;
       }
-    } else {                    /* not an entity -- just an ordinary list */
+    } else {                    
+      /* not an entity -- just an ordinary list */
       if(E && (!E->have_method)) {
         if(!jx_hash_peek(&E->method, Jx_builtins(E), *target))
           E->method = jx_ob_from_null();
@@ -4152,6 +4581,7 @@ JX_INLINE jx_ob Jx_ob_with_new(jx_env * E, jx_ob payload)
       /* copy entity handle and content */
       Jx_ob_replace(E, &result, Jx_list_new_with_size(E, 2));
       Jx_list_replace(E, result, 0, Jx_ob_copy(E, entity));
+      
       Jx_list_replace(E, result, 1, Jx_ob_copy(E, content));
     }
     {

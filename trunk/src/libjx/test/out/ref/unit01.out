@@ -2018,7 +2018,7 @@ true;
 # then that doesn't work
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null,null, {add:fn`vector.add_0xXXXXXX}]}
+#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null, {add:fn`vector.add_0xXXXXXX},null]}
 true;
 
 # source: (assert (dump (myfn2 v1 v2)))
@@ -2037,7 +2037,7 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null,null, {add:fn`vector.add_0xXXXXXX}]}
+#  dump: {VectorBase:$VectorBase, myfn:fn`myfn_0xXXXXXX, myfn2:fn`myfn2_0xXXXXXX, v1: [$Vector, [1, 2, 3]], v2: [$Vector, [2, 3, 4]], vector: {add:fn`vector.add_0xXXXXXX}, $VectorBase: [null, {add:fn`vector.add_0xXXXXXX},null]}
 true;
 
 # source: (assert (del v1))
@@ -2508,7 +2508,8 @@ true;
 
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Matrix33f:$Matrix33f, MatrixBase:$MatrixBase, $Matrix33f: [$MatrixBase, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], {dim: [3, 3]}], $MatrixBase: [null,null, {dim: [], method:fn`_method_0xXXXXXX}]}
+#  dump: {Matrix33f:$Matrix33f, MatrixBase:$MatrixBase, $Matrix33f: [$MatrixBase, {dim: [3, 3]},
+#           [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]], $MatrixBase: [null, {dim: [], method:fn`_method_0xXXXXXX},null]}
 true;
 
 # instances are constructed using "new"
@@ -2604,7 +2605,7 @@ true;
 # newly-defined class methods are available to all instances in the namespace
 # source: (assert (dump (symbols false)))
 #   eval: (`assert (`dump (`symbols false)))
-#  dump: {Vector:$Vector, vect1: [$Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}], $Vector: [null,null, {length:fn`0xXXXXXX}]}
+#  dump: {Vector:$Vector, vect1: [$Vector, [0, 0, 1, 0, 0, 0, 1], {take_first_two:fn`0xXXXXXX}], $Vector: [null, {length:fn`0xXXXXXX},null]}
 true;
 
 # result: 7

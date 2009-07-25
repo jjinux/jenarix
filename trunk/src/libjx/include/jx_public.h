@@ -180,6 +180,18 @@ jx_env *jx_env_new_in_node(jx_env * storage, jx_ob node);  /* storage can be nul
 
 void jx_env_free(jx_env * E); 
 
+/* sample use case for the above:
+{
+  jx_ob node = jx_hash_new();
+  jx_env *E = jx_env_new_in_node(JX_NULL, node);
+
+  Now use E as first argument to all Jx_... methods.
+
+  jx_env_free(E);
+  jx_ob_free(node);
+}
+*/
+
 /* boxing (all of these return owned objects) */
 
 jx_ob jx_ob_from_null(void);
@@ -544,8 +556,9 @@ jx_ob jx_macro_to_impl(jx_ob ob);
 
 jx_ob jx_function_new_with_def(jx_ob name, jx_ob args, jx_ob body, jx_int mode);
 jx_ob jx_function_to_impl(jx_ob ob);
-jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
 
+jx_ob jx_function_call(jx_ob node, jx_ob function, jx_ob payload);
+jx_ob Jx_function_call(jx_env * E, jx_ob function, jx_ob payload);
 
 /* code objects */
 
