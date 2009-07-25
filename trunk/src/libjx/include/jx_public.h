@@ -524,8 +524,8 @@ jx_ob Jx_entity_attr_hash_validate_n_borrow(jx_env * E, jx_ob entity);
 jx_ob jx_entity_attr_hash_borrow(jx_ob entity);
 
 jx_status Jx_entity_set(jx_env * E, jx_ob entity, jx_ob key, jx_ob value);
-jx_bool jx_entity_has(jx_ob entity, jx_ob key);
-jx_ob jx_entity_borrow(jx_ob entity, jx_ob key);
+jx_bool Jx_entity_has(jx_env * E, jx_ob entity, jx_ob key);
+jx_ob Jx_entity_borrow(jx_env * E, jx_ob entity, jx_ob key);
 jx_ob Jx_entity_get(jx_env * E, jx_ob entity, jx_ob key);
 jx_ob Jx_entity_take(jx_env * E, jx_ob entity, jx_ob key);
 jx_status Jx_entity_del(jx_env * E, jx_ob entity, jx_ob key);

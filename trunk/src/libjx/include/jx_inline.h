@@ -3991,15 +3991,11 @@ JX_INLINE jx_ob jx__list_entity_validate_attr_hash_locked(jx_env *E, jx_list *I)
         }
         break;
       case 0:
-        return jx_ob_from_null();
         break;
       }
-    } else {
-      return jx_ob_from_null();
     }
-  } else {
-    return jx_ob_from_null();
   }
+  return jx_ob_from_null();
 }
 
 JX_INLINE jx_status jx__list_entity_set_attr_locked(jx_env *E, jx_list *I, jx_ob target, jx_ob value)
@@ -4091,26 +4087,9 @@ JX_INLINE jx_ob jx__list_entity_borrow(jx_list * I, jx_ob target)
   return result;
 }
 
-
-JX_INLINE jx_ob Jx_entity_borrow(jx_ob entity, jx_ob key)
+JX_INLINE jx_bool jx__list_entity_peek(jx_ob * result, jx_list * I, jx_ob target)
 {
-  if(jx_list_check(entity)) {
-    return jx__list_entity_borrow(entity.data.io.list, key);
-  }
-  return jx_ob_from_null();
-}
-
-JX_INLINE jx_ob Jx_entity_get(jx_env * E, jx_ob entity, jx_ob key)
-{
-  if(jx_list_check(entity)) {
-    return Jx_ob_copy(E, jx__list_entity_borrow(entity.data.io.list, key));
-  }
-  return jx_ob_from_null();
-}
-
-JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
-{
-  jx_bool result = JX_FALSE;
+  jx_bool found = JX_FALSE;
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
     jx_int entity_size;
@@ -4118,16 +4097,17 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
     if((!I->packed_meta_bits) &&
        (entity_size = jx_vla_size(&I->data)) && 
        jx_builtin_entity_check(entity_ob[0])) {
-      /* first entry in result contains an entity (a class / instance, etc.) */
       switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
       case JX_META_BIT_IDENT:
         {
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-            result = ! jx_null_check( jx__list_entity_borrow_cont_list_locked(I) );
+            *result = jx__list_entity_borrow_cont_list_locked(I);
+            found = JX_TRUE;
           } else {              /* nonblank identifier? -> access attribute / method */
-            result = jx_hash_has_key( jx__list_entity_borrow_attr_hash_locked(I),
-                                      target );
+            found = jx_hash_peek( result, 
+                                  jx__list_entity_borrow_attr_hash_locked(I),
+                                  target );
           }
         }
         break;
@@ -4135,17 +4115,22 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
     }
     jx_gc_unlock(&I->gc);
   }
-  return result;
+  return found;
 }
 
-JX_INLINE jx_bool jx_entity_has(jx_ob entity, jx_ob key)
+JX_INLINE jx_bool jx_list_entity_peek(jx_ob * result, jx_ob entity, jx_ob target)
 {
   if(jx_list_check(entity)) {
-    return jx__list_entity_has(entity.data.io.list, key);
+    return jx__list_entity_peek(result, entity.data.io.list, target);
   }
   return JX_FALSE;
 }
 
+JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
+{
+  jx_ob unused;
+  return jx__list_entity_peek(&unused, I, target);
+}
 
 JX_INLINE jx_status jx__list_entity_remove(jx_env * E, jx_ob * result, jx_list * I, jx_ob target)
 {
@@ -4179,16 +4164,6 @@ JX_INLINE jx_status jx__list_entity_remove(jx_env * E, jx_ob * result, jx_list *
     jx_gc_unlock(&I->gc);
   }
   return status;
-}
-
-JX_INLINE jx_ob Jx_entity_take(jx_env * E, jx_ob entity, jx_ob key)
-{
-  if(jx_list_check(entity)) {
-    jx_ob result = jx_ob_from_null();
-    jx__list_entity_remove(E, &result, entity.data.io.list, key);
-    return result;
-  }
-  return jx_ob_from_null();
 }
 
 JX_INLINE jx_status Jx_entity_del(jx_env * E, jx_ob entity, jx_ob key)
@@ -4240,6 +4215,7 @@ JX_INLINE jx_status jx__list_entity_delete(jx_env * E, jx_list * I, jx_ob target
   }
   return status;
 }
+
 
 JX_INLINE jx_ob jx__list_entity_create_path(jx_env * E, jx_list * I, jx_ob * target)
 {
@@ -4402,19 +4378,74 @@ JX_INLINE jx_status jx__resolve_path(jx_env * E, jx_ob * container, jx_ob * targ
   return JX_NO;
 }
 
+JX_INLINE jx_bool Jx_entity_peek(jx_env * E, jx_ob *result, jx_ob entity, jx_ob key)
+{
+  jx_bool found = jx_list_entity_peek(result, entity, key);
+  if(!found) {
+    jx_ob handle = jx_list_borrow(entity, JX_ENTITY_BASE_HANDLE);    
+    while(!jx_null_check(handle)) {
+      if(!jx_hash_peek(&entity, E->node, handle))
+        break;
+      else {
+        if(jx_hash_peek(result, jx_entity_attr_hash_borrow(entity), key)) {
+          found = JX_TRUE;
+          break;
+        }
+        handle = jx_list_borrow(entity, JX_ENTITY_BASE_HANDLE);
+      }
+    }
+  }
+  return found;
+}
 
+JX_INLINE jx_bool Jx_entity_has(jx_env * E, jx_ob entity, jx_ob key)
+{
+  jx_ob dummy = jx_ob_from_null();
+  return Jx_entity_peek(E, &dummy, entity, key);
+}
+
+JX_INLINE jx_ob Jx_entity_borrow(jx_env * E, jx_ob entity, jx_ob key)
+{
+  jx_ob result = jx_ob_from_null();
+  Jx_entity_peek(E, &result, entity, key);
+  return result;
+}
+
+JX_INLINE jx_ob Jx_entity_get(jx_env * E, jx_ob entity, jx_ob key)
+{
+  jx_ob result = jx_ob_from_null();
+  if(Jx_entity_peek(E, &result, entity, key)) {
+    result = Jx_ob_copy(E,result);
+  }
+  return result;
+}
+
+JX_INLINE jx_ob Jx_entity_take(jx_env * E, jx_ob entity, jx_ob key)
+{
+  if(jx_list_check(entity)) {
+    jx_ob result = jx_ob_from_null();
+    if(!jx__list_entity_remove(E, &result, entity.data.io.list, key)) {
+      if(Jx_entity_peek(E, &result, entity, key)) {
+        /* can't take from parent classes, so we just get a copy */
+        result = Jx_ob_copy(E,result);        
+      }
+    }
+    return result;
+  }
+  return jx_ob_from_null();
+}
 
 JX_INLINE jx_ob jx_entity_resolve_name(jx_env * E, jx_ob handle, jx_ob name)
 {
   jx_ob result = jx_ob_from_null();
   while(!jx_null_check(handle)) {
-    jx_ob def;
-    if(!jx_hash_peek(&def, E->node, handle))
+    jx_ob entity;
+    if(!jx_hash_peek(&entity, E->node, handle))
       break;
     else {
-      if(jx_hash_peek(&result, jx_entity_attr_hash_borrow(def), name))
+      if(jx_hash_peek(&result, jx_entity_attr_hash_borrow(entity), name))
         break;
-      handle = jx_list_borrow(def, JX_ENTITY_BASE_HANDLE);
+      handle = jx_list_borrow(entity, JX_ENTITY_BASE_HANDLE);
     }
   }
   return result;

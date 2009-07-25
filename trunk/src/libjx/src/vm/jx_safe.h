@@ -203,7 +203,8 @@ JX_INLINE jx_ob jx_safe_get(jx_env * E, jx_ob payload)
       if(jx_int_check(target)) {
         return jx_ob_take_weak_ref(jx_list_borrow(container, jx_ob_as_int(target)));
       } else {
-        return jx__list_entity_borrow(container.data.io.list, target);
+        //        return jx__list_entity_borrow(container.data.io.list, target);
+        return Jx_entity_get(E, container, target);
       }
       break;
     case JX_META_BIT_HASH:
@@ -234,7 +235,8 @@ JX_INLINE jx_ob jx_safe_has(jx_env * E, jx_ob payload)
           index += size;
         return jx_ob_from_bool((index >= 0) && (index < size));
       } else {
-        return jx_ob_from_bool(jx__list_entity_has(container.data.io.list, target));
+        //        return jx_ob_from_bool(jx__list_entity_has(container.data.io.list, target));
+        return jx_ob_from_bool( Jx_entity_has(E, container, target));
       }
       break;
     case JX_META_BIT_HASH:
@@ -261,9 +263,12 @@ JX_INLINE jx_ob jx_safe_take(jx_env * E, jx_ob payload)
       if(jx_int_check(target)) {
         return jx_list_take(container, jx_ob_as_int(target));
       } else {
+#if 0
         jx_ob result = jx_ob_from_null();
         jx__list_entity_remove(E, &result, container.data.io.list, target);
         return result;
+#endif
+        return Jx_entity_take(E, container, target);
       }
       break;
     case JX_META_BIT_HASH:
