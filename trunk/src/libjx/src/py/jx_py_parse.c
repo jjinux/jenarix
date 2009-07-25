@@ -2578,7 +2578,7 @@ static void yy_reduce(
      (jx_ob_identical(jx_list_borrow(yymsp[-1].minor.yy11,0),resolve))) {
     yygotominor.yy0 = yymsp[-1].minor.yy11;
     if(!jx_list_check(jx_list_borrow(yymsp[-1].minor.yy11,1))) {
-      jx_list_unshift(yymsp[0].minor.yy0, jx_list_remove(yymsp[-1].minor.yy11,1));
+      jx_list_unshift(yymsp[0].minor.yy0, jx_list_take(yymsp[-1].minor.yy11,1));
       jx_list_append(yymsp[-1].minor.yy11,yymsp[0].minor.yy0);
     } else {
       jx_list_combine(jx_list_borrow(yymsp[-1].minor.yy11,1), yymsp[0].minor.yy0);

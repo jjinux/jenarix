@@ -141,8 +141,8 @@ int main(int argc, char **argv)
     jx_ob hash = jx_hash_new();
     jx_ob key1 = jx_ob_from_str("heap string as hash key");
 
-    P1("1 == %d", jx_null_check(jx_hash_remove(hash, jx_ob_from_null())));
-    P1("1 == %d", jx_null_check(jx_hash_remove(hash, key1)));
+    P1("1 == %d", jx_null_check(jx_hash_take(hash, jx_ob_from_null())));
+    P1("1 == %d", jx_null_check(jx_hash_take(hash, key1)));
 
     {
       jx_ob key2 = jx_ob_from_str("heap string as hash key");
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
     }
 
     P1("1 == %d", jx_hash_has_key(hash, key1));
-    P1("0 == %d", jx_hash_delete(hash, key1));
+    P1("0 == %d", jx_hash_del(hash, key1));
     P1("0 == %d", jx_hash_has_key(hash, key1));
 
     P1("0 == %d", jx_ob_free(key1));
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
     }
 
     for(i = 0; i < 48; i++) {
-      P1("0 == %d", jx_hash_delete(hash, jx_ob_from_int(i)));
+      P1("0 == %d", jx_hash_del(hash, jx_ob_from_int(i)));
       {
         jx_ob list = jx_hash_keys(hash);
         jx_ob jxon = jx_ob_to_jxon(list);

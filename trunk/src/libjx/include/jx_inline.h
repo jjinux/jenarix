@@ -1039,6 +1039,47 @@ JX_INLINE jx_ob jx_ob_to_ident(jx_ob ob)
   return result;
 }
 
+
+JX_INLINE jx_bool jx_builtin_check(jx_ob ob)
+{
+  return (ob.meta.bits & JX_META_BIT_BUILTIN) && JX_TRUE;
+}
+
+JX_INLINE jx_bool jx_builtin_entity_check(jx_ob ob)
+{
+  register jx_fast_bits bits = ob.meta.bits;
+  return ((bits & JX_META_BIT_BUILTIN) &&
+          ((bits & JX_META_MASK_BUILTIN_TYPE) == JX_META_BIT_BUILTIN_ENTITY));
+}
+
+JX_INLINE jx_bool jx_builtin_selector_check(jx_ob ob)
+{
+  return (ob.meta.bits & (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR)) ==
+    (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR);
+}
+
+JX_INLINE jx_bool jx_builtin_opaque_ob_check(jx_ob ob)
+{
+  return (ob.meta.bits & (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB)) ==
+    (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB);
+}
+
+JX_INLINE jx_bool jx_builtin_native_fn_check(jx_ob ob)
+{
+  return (ob.meta.bits & (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN)) ==
+    (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN);
+}
+
+JX_INLINE jx_bool jx_builtin_callable_check(jx_ob ob)
+{
+  register jx_fast_bits bits = ob.meta.bits;
+  return (bits & JX_META_BIT_BUILTIN) &&
+    ((bits &
+      (JX_META_BIT_BUILTIN_MACRO |
+       JX_META_BIT_BUILTIN_SELECTOR |
+       JX_META_BIT_BUILTIN_NATIVE_FN | JX_META_BIT_BUILTIN_FUNCTION)));
+}
+
 JX_INLINE jx_bool jx_opcode_check(jx_ob ob)
 {
   return (ob.meta.bits & JX_META_BIT_OPCODE);
@@ -1102,6 +1143,21 @@ JX_INLINE jx_bool jx_hash_check(jx_ob ob)
 }
 
 
+JX_INLINE jx_bool jx_entity_check(jx_ob ob)
+{
+  if(ob.meta.bits & JX_META_BIT_LIST) {
+    jx_list *I = ob.data.io.list;
+    if(!I->packed_meta_bits) {
+      jx_ob *ob_vla = I->data.ob_vla;
+      if((jx_vla_size(&ob_vla)) &&
+         jx_builtin_entity_check(ob_vla[0]) ) {      
+        return JX_TRUE;
+      }
+    }
+  }
+  return JX_FALSE;
+}
+
 /* builtin fn objects are a means through which jenarix can be extended */
 
 JX_INLINE jx_ob jx_builtin_new_from_selector(jx_int selector)
@@ -1141,45 +1197,6 @@ JX_INLINE jx_ob jx_builtin_new_with_opaque_ob(jx_opaque_ob * opaque_ob)
   return result;
 }
 
-JX_INLINE jx_bool jx_builtin_check(jx_ob ob)
-{
-  return (ob.meta.bits & JX_META_BIT_BUILTIN) && JX_TRUE;
-}
-
-JX_INLINE jx_bool jx_builtin_entity_check(jx_ob ob)
-{
-  register jx_fast_bits bits = ob.meta.bits;
-  return ((bits & JX_META_BIT_BUILTIN) &&
-          ((bits & JX_META_MASK_BUILTIN_TYPE) == JX_META_BIT_BUILTIN_ENTITY));
-}
-
-JX_INLINE jx_bool jx_builtin_selector_check(jx_ob ob)
-{
-  return (ob.meta.bits & (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR)) ==
-    (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_SELECTOR);
-}
-
-JX_INLINE jx_bool jx_builtin_opaque_ob_check(jx_ob ob)
-{
-  return (ob.meta.bits & (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB)) ==
-    (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_OPAQUE_OB);
-}
-
-JX_INLINE jx_bool jx_builtin_native_fn_check(jx_ob ob)
-{
-  return (ob.meta.bits & (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN)) ==
-    (JX_META_BIT_BUILTIN | JX_META_BIT_BUILTIN_NATIVE_FN);
-}
-
-JX_INLINE jx_bool jx_builtin_callable_check(jx_ob ob)
-{
-  register jx_fast_bits bits = ob.meta.bits;
-  return (bits & JX_META_BIT_BUILTIN) &&
-    ((bits &
-      (JX_META_BIT_BUILTIN_MACRO |
-       JX_META_BIT_BUILTIN_SELECTOR |
-       JX_META_BIT_BUILTIN_NATIVE_FN | JX_META_BIT_BUILTIN_FUNCTION)));
-}
 
 JX_INLINE jx_bool jx_function_check(jx_ob ob)
 {
@@ -1921,7 +1938,7 @@ JX_INLINE jx_ob jx__list_get(jx_list * I, jx_int index)
 }
 
 jx_ob jx__list_remove(jx_list * I, jx_int index);
-JX_INLINE jx_ob jx_list_remove(jx_ob list, jx_int index)
+JX_INLINE jx_ob jx_list_take(jx_ob list, jx_int index)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
     jx__list_remove(list.data.io.list, index) : jx_ob_from_null();
@@ -1943,7 +1960,7 @@ JX_INLINE jx_ob jx_list_new_with_cutout(jx_ob list, jx_int start, jx_int stop)
 
 JX_INLINE jx_ob jx_list_shift(jx_ob list)
 {
-  return jx_list_remove(list, 0);
+  return jx_list_take(list, 0);
 }
 
 JX_INLINE jx_status jx_list_unshift(jx_ob list, jx_ob ob)
@@ -1972,15 +1989,15 @@ JX_INLINE jx_int jx_list_index(jx_ob list, jx_ob ob)
 }
 
 jx_status jx__list_delete(jx_env * E, jx_list * I, jx_int index);
-JX_INLINE jx_status Jx_list_delete(jx_env * E, jx_ob list, jx_int index)
+JX_INLINE jx_status Jx_list_del(jx_env * E, jx_ob list, jx_int index)
 {
   return (list.meta.bits & JX_META_BIT_LIST) ?
     jx__list_delete(E, list.data.io.list, index) : JX_FAILURE;
 }
 
-JX_INLINE jx_status jx_list_delete(jx_ob list, jx_int index)
+JX_INLINE jx_status jx_list_del(jx_ob list, jx_int index)
 {
-  return Jx_list_delete(JX_NULL, list, index);
+  return Jx_list_del(JX_NULL, list, index);
 }
 
 jx_status jx__list_set_int_vla(jx_list * list, jx_int ** ref);
@@ -2363,7 +2380,7 @@ JX_INLINE jx_ob jx_hash_get(jx_ob hash, jx_ob key)
 }
 
 jx_bool jx__hash_remove(jx_env * E, jx_ob * result, jx_hash * I, jx_ob key);
-JX_INLINE jx_ob Jx_hash_remove(jx_env * E, jx_ob hash, jx_ob key)
+JX_INLINE jx_ob Jx_hash_take(jx_env * E, jx_ob hash, jx_ob key)
 {
   jx_fast_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
@@ -2374,12 +2391,12 @@ JX_INLINE jx_ob Jx_hash_remove(jx_env * E, jx_ob hash, jx_ob key)
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx_hash_remove(jx_ob hash, jx_ob key)
+JX_INLINE jx_ob jx_hash_take(jx_ob hash, jx_ob key)
 {
-  return Jx_hash_remove(JX_NULL, hash, key);
+  return Jx_hash_take(JX_NULL, hash, key);
 }
 
-JX_INLINE jx_bool Jx_hash_take(jx_env * E, jx_ob * result, jx_ob hash, jx_ob key)
+JX_INLINE jx_bool Jx__hash_take(jx_env * E, jx_ob * result, jx_ob hash, jx_ob key)
 {
   if(hash.meta.bits & JX_META_BIT_HASH) {
     return jx__hash_remove(E, result, hash.data.io.hash, key);
@@ -2387,12 +2404,12 @@ JX_INLINE jx_bool Jx_hash_take(jx_env * E, jx_ob * result, jx_ob hash, jx_ob key
   return JX_FALSE;
 }
 
-JX_INLINE jx_bool jx_hash_take(jx_ob * result, jx_ob hash, jx_ob key)
+JX_INLINE jx_bool jx__hash_take(jx_ob * result, jx_ob hash, jx_ob key)
 {
-  return Jx_hash_take(JX_NULL, result, hash, key);
+  return Jx__hash_take(JX_NULL, result, hash, key);
 }
 
-JX_INLINE jx_status Jx_hash_delete(jx_env * E, jx_ob hash, jx_ob key)
+JX_INLINE jx_status Jx_hash_del(jx_env * E, jx_ob hash, jx_ob key)
 {
   jx_fast_bits bits = hash.meta.bits;
   if(bits & JX_META_BIT_HASH) {
@@ -2406,12 +2423,12 @@ JX_INLINE jx_status Jx_hash_delete(jx_env * E, jx_ob hash, jx_ob key)
   return JX_STATUS_NOT_FOUND;
 }
 
-JX_INLINE jx_status jx_hash_delete(jx_ob hash, jx_ob key)
+JX_INLINE jx_status jx_hash_del(jx_ob hash, jx_ob key)
 {
   jx_status status;
   jx_env env;
   jx_env *E = jx_env_new_in_node(&env, jx_ob_from_null());
-  status = Jx_hash_delete(E, hash, key);
+  status = Jx_hash_del(E, hash, key);
   jx_env_free(E);
   return status;
 }
@@ -3148,12 +3165,12 @@ JX_INLINE jx_ob Jx_scope_borrow(jx_env * E)
 
 JX_INLINE jx_status Jx_scope_delete(jx_env * E)
 {
-  return jx_list_delete(E->scope, -1);
+  return jx_list_del(E->scope, -1);
 }
 
 JX_INLINE jx_ob Jx_scope_pop(jx_env * E)
 {
-  return jx_list_remove(E->scope, -1);
+  return jx_list_take(E->scope, -1);
 }
 
 JX_INLINE jx_status Jx_scope_push(jx_env * E, jx_ob scope)
@@ -3244,7 +3261,7 @@ JX_INLINE jx_ob jx__function_call(jx_env * E, jx_ob function, jx_ob payload)
         /* inner functions run within the host node namespace */
         jx_ob payload_ident = jx_ob_from_ident("_");
         jx_ob saved_payload = jx_ob_from_null();
-        jx_bool saved = jx_hash_take(&saved_payload, node, payload_ident);
+        jx_bool saved = jx__hash_take(&saved_payload, node, payload_ident);
         if(jx_ok(Jx_hash_set(E, node, payload_ident, payload))) {
           /* call */
           result = fn->mode ? Jx_code_exec(E, 0, fn->body) :
@@ -3252,12 +3269,12 @@ JX_INLINE jx_ob jx__function_call(jx_env * E, jx_ob function, jx_ob payload)
           if(saved)
             Jx_hash_set(E, node, payload_ident, saved_payload);
           else
-            Jx_hash_delete(E, node, payload_ident);
+            Jx_hash_del(E, node, payload_ident);
         } else {
           if(saved)
             Jx_hash_set(E, node, payload_ident, saved_payload);
           else
-            Jx_hash_delete(E, node, payload_ident);
+            Jx_hash_del(E, node, payload_ident);
         }
         payload = jx_ob_from_null();
       } else if(jx_hash_check(args)) { /* simple namespace -- no processing */
@@ -3453,14 +3470,14 @@ JX_INLINE jx_ob jx__macro_call(jx_env * E, jx_ob macro, jx_ob payload)
     if(jx_null_check(args)) {   /* scopeless functions run within the caller's namespace */
       jx_ob payload_ident = jx_ob_from_ident("_");
       jx_ob saved_payload = jx_ob_from_null();
-      jx_bool saved = jx_hash_take(&saved_payload, node, payload_ident);
+      jx_bool saved = jx__hash_take(&saved_payload, node, payload_ident);
       if(jx_ok(Jx_hash_set(E, node, payload_ident, payload))) {
         jx_ob ob = Jx_code_eval(E, JX_EVAL_DEFER_INVOCATION |
                                 JX_EVAL_ALLOW_NESTED_WEAK_REFS, fn->body);
         if(saved)
           Jx_hash_set(E, node, payload_ident, saved_payload);
         else
-          Jx_hash_delete(E, node, payload_ident);
+          Jx_hash_del(E, node, payload_ident);
         {
           jx_ob result = Jx_code_eval(E, 0, ob);
           Jx_ob_free(E, ob);
@@ -3472,7 +3489,7 @@ JX_INLINE jx_ob jx__macro_call(jx_env * E, jx_ob macro, jx_ob payload)
         if(saved)
           Jx_hash_set(E, node, payload_ident, saved_payload);
         else
-          Jx_hash_delete(E, node, payload_ident);
+          Jx_hash_del(E, node, payload_ident);
         Jx_ob_free(E, payload);
         Jx_ob_free(E, macro);
         return jx_ob_from_null();
@@ -3599,12 +3616,12 @@ JX_INLINE jx_ob jx__macro_call(jx_env * E, jx_ob macro, jx_ob payload)
 
 jx_status jx__list_append_locked(jx_env * E, jx_list * I, jx_ob ob);
 
-JX_INLINE jx_ob jx__list_entity_take_content_locked(jx_env *E, jx_list *I)
+JX_INLINE jx_ob jx__list_entity_take_cont_list_locked(jx_env *E, jx_list *I)
 {
   jx_ob *ob_vla = I->data.ob_vla;
   jx_int entity_size;
-  if( (entity_size = jx_vla_size(&ob_vla)) &&
-      jx_builtin_entity_check(ob_vla[0]) ) {      
+  if((entity_size = jx_vla_size(&ob_vla)) &&
+     jx_builtin_entity_check(ob_vla[0])) {      
     switch(entity_size) {
     case 2:
       if(jx_list_check(ob_vla[1]))
@@ -3627,11 +3644,12 @@ JX_INLINE jx_ob jx__list_entity_take_content_locked(jx_env *E, jx_list *I)
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx__list_entity_borrow_content_locked(jx_list *I)
+JX_INLINE jx_ob jx__list_entity_borrow_cont_list_locked(jx_list *I)
 {
   jx_ob *ob_vla = I->data.ob_vla;
   jx_int entity_size;
-  if( (entity_size = jx_vla_size(&ob_vla)) ) {      
+  if((entity_size = jx_vla_size(&ob_vla)) &&
+     jx_builtin_entity_check(ob_vla[0])) {
     switch(entity_size) {
     case 2:
       if(jx_list_check(ob_vla[1]))
@@ -3654,22 +3672,101 @@ JX_INLINE jx_ob jx__list_entity_borrow_content_locked(jx_list *I)
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_ob jx__list_entity_borrow_content(jx_list *I)
+JX_INLINE jx_ob jx__list_entity_borrow_cont_list(jx_list *I)
 {
   jx_ob result = jx_ob_from_null();
   if(JX_POS(jx_gc_lock(&I->gc))) {
     if(!I->packed_meta_bits) {
-      result = jx__list_entity_borrow_content_locked(I);
+      result = jx__list_entity_borrow_cont_list_locked(I);
     }
     jx_gc_unlock(&I->gc);
   }
   return result;
 }
 
-JX_INLINE jx_ob jx_list_entity_borrow_content(jx_ob ob)
+JX_INLINE jx_ob jx_entity_cont_list_borrow(jx_ob entity)
 {
-  if(jx_list_check(ob)) 
-    return jx__list_entity_borrow_content(ob.data.io.list);
+  if(jx_list_check(entity)) 
+    return jx__list_entity_borrow_cont_list(entity.data.io.list);
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob jx__list_entity_validate_cont_list_locked(jx_env *E, jx_list *I)
+{
+  if(!I->gc.shared) {
+    jx_ob *entity_ob = I->data.ob_vla;
+    jx_int entity_size;
+    if((entity_size = jx_vla_size(&entity_ob)) &&
+       jx_builtin_entity_check(entity_ob[0])) {
+      switch(entity_size) {
+      case 2:
+        if(jx_list_check(entity_ob[1]))
+          return entity_ob[1];
+        {
+          jx_ob result = Jx_list_new(E);
+          if( JX_OK( jx__list_append_locked(E, I, result) )) {
+            return result;
+          } else {
+            return Jx_null_with_ob(E, result);
+          }
+        }
+        break;
+      case 3:
+      default:
+        if(jx_list_check(entity_ob[1]))
+          return entity_ob[1];
+        else if(jx_list_check(entity_ob[2]))
+          return entity_ob[2];
+        else {
+          jx_ob result = Jx_list_new(E);
+          if(jx_null_check(entity_ob[2])) {
+            entity_ob[2] = JX_OWN(E, result);
+          } else {
+            if(jx_null_check(entity_ob[1])) 
+              jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2);
+            Jx_ob_replace_owned(E, entity_ob + 2, result);
+          }
+          return result;
+        }
+        break;
+      case 1:
+        {
+          jx_ob result = Jx_list_new(E);
+          if( JX_OK( jx__list_append_locked(E, I, result) )) {
+            return result;
+          } else {
+            return Jx_null_with_ob(E, result);
+          }
+        }
+        break;
+      case 0:
+        return jx_ob_from_null();
+        break;
+      }
+    } else {
+      return jx_ob_from_null();
+    }
+  } else {
+    return jx_ob_from_null();
+  }
+}
+
+JX_INLINE jx_ob jx__list_entity_validate_cont_list(jx_env * E, jx_list *I)
+{
+  jx_ob result = jx_ob_from_null();
+  if(JX_POS(jx_gc_lock(&I->gc))) {
+    if(!I->packed_meta_bits) {
+      result = jx__list_entity_validate_cont_list_locked(E,I);
+    }
+    jx_gc_unlock(&I->gc);
+  }
+  return result;
+}
+
+JX_INLINE jx_ob Jx_entity_cont_list_validate_n_borrow(jx_env * E, jx_ob entity)
+{
+  if(jx_list_check(entity)) 
+    return jx__list_entity_validate_cont_list(E, entity.data.io.list);
   return jx_ob_from_null();
 }
 
@@ -3677,7 +3774,8 @@ JX_INLINE jx_ob jx__list_entity_borrow_attr_hash_locked(jx_list *I)
 {
   jx_ob *ob_vla = I->data.ob_vla;
   jx_int entity_size;
-  if( (entity_size = jx_vla_size(&ob_vla) )) {  
+  if((entity_size = jx_vla_size(&ob_vla)) &&
+     jx_builtin_entity_check(ob_vla[0])) {
     switch(entity_size) {
     case 2:
       if(jx_hash_check(ob_vla[1]))
@@ -3712,106 +3810,114 @@ JX_INLINE jx_ob jx__list_entity_borrow_attr_hash(jx_list *I)
   return result;
 }
 
-JX_INLINE jx_ob jx_list_entity_borrow_attr_hash(jx_ob ob)
+JX_INLINE jx_ob jx_entity_attr_hash_borrow(jx_ob entity)
 {
-  if(jx_list_check(ob)) 
-    return jx__list_entity_borrow_attr_hash(ob.data.io.list);
+  if(jx_list_check(entity)) 
+    return jx__list_entity_borrow_attr_hash(entity.data.io.list);
   return jx_ob_from_null();
 }
 
-JX_INLINE jx_status jx__list_entity_set_content_locked(jx_env *E, jx_list *I, jx_ob value)
+JX_INLINE jx_status jx__list_entity_set_cont_list_locked(jx_env *E, jx_list *I,
+                                                       jx_ob value)
 {
-  jx_int entity_size = jx_vla_size(&I->data.vla);
   jx_ob *entity_ob = I->data.ob_vla;
   jx_status status = JX_STATUS_FAILURE;
-  switch(entity_size) {
-  case 2:
-    if(jx_list_check(entity_ob[1]) || jx_null_check(entity_ob[1])) { 
-      /* existing content, so replace */
+  jx_int entity_size;
+  if((entity_size = jx_vla_size(&entity_ob)) &&
+     jx_builtin_entity_check(entity_ob[0])) {
+    switch(entity_size) {
+    case 2:
+      if(jx_list_check(entity_ob[1]) || jx_null_check(entity_ob[1])) { 
+        /* existing content, so replace */
+        status = Jx_ob_replace_owned
+          (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
+      } else {
+        /* no existing content, so append */
+        status =
+          jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
+      }
+      break;
+    case 3:
+    default:
+      if(!jx_list_check(entity_ob[2])) {
+        if(jx_list_check(entity_ob[1]) || jx_null_check(entity_ob[1]) ) {
+          jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2);
+        }
+      }
       status = Jx_ob_replace_owned
-        (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
-    } else {
-      /* no existing content, so append */
+        (E, entity_ob + 2, Jx_ob_not_weak_with_ob(E, value));
+      break;
+    case 1:
       status =
         jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
+      break;
+    case 0:
+      jx_ob_free(value);
+      break;
     }
-    break;
-  case 3:
-  default:
-    if(!jx_list_check(entity_ob[2])) {
-      if(jx_list_check(entity_ob[1]) || jx_null_check(entity_ob[1]) ) {
-        jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2 );
-      }
-    }
-    status = Jx_ob_replace_owned
-      (E, entity_ob + 2, Jx_ob_not_weak_with_ob(E, value));
-    break;
-  case 1:
-    status =
-      jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
-    break;
-  case 0:
-    jx_ob_free(value);
-    break;
   }
   return status;
 }
 
-JX_INLINE jx_status jx__list_entity_set_content(jx_env *E, jx_list *I,jx_ob value)
+JX_INLINE jx_status jx__list_entity_set_cont_list(jx_env *E, jx_list *I,jx_ob value)
 {
   jx_status status = JX_STATUS_FAILURE;
   if(JX_POS(jx_gc_lock(&I->gc))) {
     if(!I->packed_meta_bits) {
-      status = jx__list_entity_set_content_locked(E,I,value);
+      status = jx__list_entity_set_cont_list_locked(E,I,value);
     }
     jx_gc_unlock(&I->gc);
   }
   return status;
 }
 
-JX_INLINE jx_status jx_list_entity_set_content(jx_env *E, jx_ob ob, jx_ob value)
+JX_INLINE jx_status Jx_entity_cont_list_set(jx_env *E, jx_ob ob, jx_ob value)
 {
   if(jx_list_check(ob)) 
-    return jx__list_entity_set_content(E, ob.data.io.list, value);
+    return jx__list_entity_set_cont_list(E, ob.data.io.list, value);
   return JX_STATUS_FAILURE;
 }
 
 jx_status jx__list_insert_locked(jx_env * E, jx_list * I, jx_int index, jx_ob ob);
 
-JX_INLINE jx_status jx__list_entity_set_attr_hash_locked(jx_env *E, jx_list *I, jx_ob value)
+JX_INLINE jx_status jx__list_entity_set_attr_hash_locked(jx_env *E, jx_list *I,
+                                                         jx_ob value)
 {
-  jx_int entity_size = jx_vla_size(&I->data.vla);
   jx_ob *entity_ob = I->data.ob_vla;
   jx_status status = JX_STATUS_FAILURE;
-  switch(entity_size) {
-  case 2:
-    if(jx_hash_check(entity_ob[1]) || jx_null_check(entity_ob[1])) { 
-      /* existing attr_hash, so replace */
+  jx_int entity_size;
+  if((entity_size = jx_vla_size(&entity_ob)) &&
+      jx_builtin_entity_check(entity_ob[0])) {
+    switch(entity_size) {
+    case 2:
+      if(jx_hash_check(entity_ob[1]) || jx_null_check(entity_ob[1])) { 
+        /* existing attr_hash, so replace */
+        status = Jx_ob_replace_owned
+          (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
+      } else {
+        /* no existing attr_hash, so insert into slot 1 */
+        status =
+          jx__list_insert_locked(E, I, 1, Jx_ob_not_weak_with_ob(E, value));
+      }
+      break;
+    case 3:
+    default:
+      if(!jx_hash_check(entity_ob[1])) {
+        if(jx_hash_check(entity_ob[2]) || jx_null_check(entity_ob[2]) ) {
+          jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2);
+        }
+      }
       status = Jx_ob_replace_owned
         (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
-    } else {
-      /* no existing attr_hash, so insert into slot 1 */
+      break;
+    case 1:
       status =
-        jx__list_insert_locked(E, I, 1, Jx_ob_not_weak_with_ob(E, value));
+        jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
+      break;
+    case 0:
+      jx_ob_free(value);
+      break;
     }
-    break;
-  case 3:
-  default:
-    if(!jx_hash_check(entity_ob[1])) {
-      if(jx_hash_check(entity_ob[2]) || jx_null_check(entity_ob[2]) ) {
-        jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2 );
-      }
-    }
-    status = Jx_ob_replace_owned
-      (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
-    break;
-  case 1:
-    status =
-      jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
-    break;
-  case 0:
-    jx_ob_free(value);
-    break;
   }
   return status;
 }
@@ -3828,61 +3934,68 @@ JX_INLINE jx_status jx__list_entity_set_attr_hash(jx_env *E, jx_list *I,jx_ob va
   return status;
 }
 
-JX_INLINE jx_status jx_list_entity_set_attr_hash(jx_env *E, jx_ob ob, jx_ob value)
+JX_INLINE jx_status Jx_entity_attr_hash_set(jx_env *E, jx_ob entity, jx_ob value)
 {
-  if(jx_list_check(ob)) 
-    return jx__list_entity_set_attr_hash(E, ob.data.io.list, value);
+  if(jx_list_check(entity)) 
+    return jx__list_entity_set_attr_hash(E, entity.data.io.list, value);
   return JX_STATUS_FAILURE;
 }
 
 JX_INLINE jx_ob jx__list_entity_validate_attr_hash_locked(jx_env *E, jx_list *I)
 {
   if(!I->gc.shared) {
-    jx_int entity_size = jx_vla_size(&I->data.vla);
     jx_ob *entity_ob = I->data.ob_vla;
-    switch(entity_size) {
-    case 2:
-      if(jx_hash_check(entity_ob[1]))
-        return entity_ob[1];
-      {
-        jx_ob result = Jx_hash_new(E);
-        if( JX_OK( jx__list_insert_locked(E, I, 1, result) )) {
+    jx_int entity_size;
+    if((entity_size = jx_vla_size(&entity_ob)) &&
+        jx_builtin_entity_check(entity_ob[0])) {
+      
+      switch(entity_size) {
+      case 2:
+        if(jx_hash_check(entity_ob[1]))
+          return entity_ob[1];
+        {
+          jx_ob result = Jx_hash_new(E);
+          if( JX_OK( jx__list_insert_locked(E, I, 1, result) )) {
+            return result;
+          } else {
+            return Jx_null_with_ob(E, result);
+          }
+        }
+        break;
+      case 3:
+      default:
+        if(jx_hash_check(entity_ob[1]))
+          return entity_ob[1];
+        else if(jx_hash_check(entity_ob[2]))
+          return entity_ob[2];
+        else {
+          jx_ob result = Jx_hash_new(E);
+          if(jx_null_check(entity_ob[1])) {
+            entity_ob[1] = JX_OWN(E, result);
+          } else {
+            if(jx_null_check(entity_ob[2])) 
+              jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2);
+            Jx_ob_replace_owned(E, entity_ob + 1, result);
+          }
           return result;
-        } else {
-          return Jx_null_with_ob(E, result);
         }
-      }
-      break;
-    case 3:
-    default:
-      if(jx_hash_check(entity_ob[1]))
-        return entity_ob[1];
-      else if(jx_hash_check(entity_ob[2]))
-        return entity_ob[2];
-      else {
-        jx_ob result = Jx_hash_new(E);
-        if(jx_null_check(entity_ob[1])) {
-          entity_ob[1] = JX_OWN(E, result);
-        } else {
-          jx_ob_swap_ptrs(entity_ob + 1, entity_ob + 2 );
-          Jx_ob_replace_owned(E, entity_ob + 1, result);
+        break;
+      case 1:
+        {
+          jx_ob result = Jx_hash_new(E);
+          if( JX_OK( jx__list_append_locked(E, I, result) )) {
+            return result;
+          } else {
+            return Jx_null_with_ob(E, result);
+          }
         }
-        return result;
+        break;
+      case 0:
+        return jx_ob_from_null();
+        break;
       }
-      break;
-    case 1:
-      {
-        jx_ob result = Jx_hash_new(E);
-        if( JX_OK( jx__list_append_locked(E, I, result) )) {
-          return result;
-        } else {
-          return Jx_null_with_ob(E, result);
-        }
-      }
-      break;
-    case 0:
+    } else {
       return jx_ob_from_null();
-      break;
     }
   } else {
     return jx_ob_from_null();
@@ -3910,18 +4023,18 @@ JX_INLINE jx_status jx__list_entity_set(jx_env * E, jx_list * I, jx_ob target,
     if(I->gc.shared) {
       status = JX_STATUS_PERMISSION_DENIED;
     } else {
-      jx_int entity_size;
-      jx_ob *entity_ob = I->data.ob_vla;
-      if((!I->packed_meta_bits) &&
-         (entity_size = jx_vla_size(&I->data)) && 
-         jx_builtin_entity_check(entity_ob[0])) {
+    jx_ob *entity_ob = I->data.ob_vla;
+    jx_int entity_size;
+    if((!I->packed_meta_bits) &&
+       (entity_size = jx_vla_size(&entity_ob)) &&
+       jx_builtin_entity_check(entity_ob[0])) {
         /* first entry in result contains an entity (a class / instance, etc.) */
         switch (target.meta.bits & JX_META_MASK_TYPE_BITS) {
         case JX_META_BIT_IDENT:
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? replace content */
-              status = jx__list_entity_set_content_locked(E, I, value);
+              status = jx__list_entity_set_cont_list_locked(E, I, value);
             } else {            /* nonblank identifier? -> replace attribute */
               status = jx__list_entity_set_attr_locked(E, I, target, value);
             }
@@ -3940,7 +4053,15 @@ JX_INLINE jx_status jx__list_entity_set(jx_env * E, jx_list * I, jx_ob target,
   return status;
 }
 
-JX_INLINE jx_ob jx__list_entity_get(jx_list * I, jx_ob target)
+JX_INLINE jx_status Jx_entity_set(jx_env * E, jx_ob entity, jx_ob key, jx_ob value)
+{
+  if(jx_list_check(entity)) {
+    return jx__list_entity_set(E, entity.data.io.list, key, value);
+  }
+  return JX_FAILURE;
+}
+
+JX_INLINE jx_ob jx__list_entity_borrow(jx_list * I, jx_ob target)
 {
   jx_ob result = jx_ob_from_null();
   if(JX_POS(jx_gc_lock(&I->gc))) {
@@ -3956,7 +4077,7 @@ JX_INLINE jx_ob jx__list_entity_get(jx_list * I, jx_ob target)
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
             result = jx_ob_take_weak_ref
-              (jx__list_entity_borrow_content_locked(I));
+              (jx__list_entity_borrow_cont_list_locked(I));
           } else {              /* nonblank identifier? -> access attribute / method */
             result = jx_ob_take_weak_ref
               (jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), target));
@@ -3968,6 +4089,23 @@ JX_INLINE jx_ob jx__list_entity_get(jx_list * I, jx_ob target)
     jx_gc_unlock(&I->gc);
   }
   return result;
+}
+
+
+JX_INLINE jx_ob Jx_entity_borrow(jx_ob entity, jx_ob key)
+{
+  if(jx_list_check(entity)) {
+    return jx__list_entity_borrow(entity.data.io.list, key);
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_ob Jx_entity_get(jx_env * E, jx_ob entity, jx_ob key)
+{
+  if(jx_list_check(entity)) {
+    return Jx_ob_copy(E, jx__list_entity_borrow(entity.data.io.list, key));
+  }
+  return jx_ob_from_null();
 }
 
 JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
@@ -3986,7 +4124,7 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
         {
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-            result = ! jx_null_check( jx__list_entity_borrow_content_locked(I) );
+            result = ! jx_null_check( jx__list_entity_borrow_cont_list_locked(I) );
           } else {              /* nonblank identifier? -> access attribute / method */
             result = jx_hash_has_key( jx__list_entity_borrow_attr_hash_locked(I),
                                       target );
@@ -4000,9 +4138,18 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
   return result;
 }
 
-JX_INLINE jx_ob jx__list_entity_take(jx_env * E, jx_list * I, jx_ob target)
+JX_INLINE jx_bool jx_entity_has(jx_ob entity, jx_ob key)
 {
-  jx_ob result = jx_ob_from_null();
+  if(jx_list_check(entity)) {
+    return jx__list_entity_has(entity.data.io.list, key);
+  }
+  return JX_FALSE;
+}
+
+
+JX_INLINE jx_status jx__list_entity_remove(jx_env * E, jx_ob * result, jx_list * I, jx_ob target)
+{
+  jx_status status = JX_FAILURE;
   if(JX_POS(jx_gc_lock(&I->gc))) {
     if(!I->gc.shared) {
       jx_int entity_size;
@@ -4016,10 +4163,13 @@ JX_INLINE jx_ob jx__list_entity_take(jx_env * E, jx_list * I, jx_ob target)
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? access content */
-              result = jx__list_entity_take_content_locked(E, I);
+              *result = jx__list_entity_take_cont_list_locked(E, I);
+              status = JX_SUCCESS;
             } else {            /* nonblank identifier? -> access attribute / method */
-              result = Jx_hash_remove(E, jx__list_entity_borrow_attr_hash_locked(I),
-                                      target);
+              status = Jx__hash_take(E,
+                                     result,
+                                     jx__list_entity_borrow_attr_hash_locked(I),
+                                     target);
             }
           }
           break;
@@ -4028,7 +4178,28 @@ JX_INLINE jx_ob jx__list_entity_take(jx_env * E, jx_list * I, jx_ob target)
     }
     jx_gc_unlock(&I->gc);
   }
-  return result;
+  return status;
+}
+
+JX_INLINE jx_ob Jx_entity_take(jx_env * E, jx_ob entity, jx_ob key)
+{
+  if(jx_list_check(entity)) {
+    jx_ob result = jx_ob_from_null();
+    jx__list_entity_remove(E, &result, entity.data.io.list, key);
+    return result;
+  }
+  return jx_ob_from_null();
+}
+
+JX_INLINE jx_status Jx_entity_del(jx_env * E, jx_ob entity, jx_ob key)
+{
+  if(jx_list_check(entity)) {
+    jx_ob result = jx_ob_from_null();
+    jx_status status = jx__list_entity_remove(E, &result, entity.data.io.list, key);
+    Jx_ob_free(E, result);
+    return status;
+  }
+  return JX_FAILURE;
 }
 
 JX_INLINE jx_status jx__list_entity_delete(jx_env * E, jx_list * I, jx_ob target)
@@ -4049,11 +4220,11 @@ JX_INLINE jx_status jx__list_entity_delete(jx_env * E, jx_list * I, jx_ob target
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? access content */
-              jx_ob ob = jx__list_entity_take_content_locked(E, I);
+              jx_ob ob = jx__list_entity_take_cont_list_locked(E, I);
               Jx_ob_free(E, ob);
             } else {            /* nonblank identifier? -> access attribute / method */
-              status = Jx_hash_delete(E, jx__list_entity_borrow_attr_hash_locked(I),
-                                      target);
+              status = Jx_hash_del(E, jx__list_entity_borrow_attr_hash_locked(I),
+                                   target);
             }
           }
           break;
@@ -4085,7 +4256,7 @@ JX_INLINE jx_ob jx__list_entity_create_path(jx_env * E, jx_list * I, jx_ob * tar
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-            result = jx__list_entity_borrow_content_locked(I);
+            result = jx__list_entity_borrow_cont_list_locked(I);
           } else {              /* nonblank identifier? -> access attribute / method */
             jx_ob attr;
             attr = jx__list_entity_validate_attr_hash_locked(E,I);
@@ -4165,7 +4336,7 @@ JX_INLINE jx_ob jx__list_entity_resolve_path(jx_list * I, jx_ob * target)
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
             
             if(entity_size > 1) {       /* use content */
-              result = jx__list_entity_borrow_content_locked(I);
+              result = jx__list_entity_borrow_cont_list_locked(I);
             }
           } else {                     /* nonblank identifier? -> access attribute / method */
             result = jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), *target);
@@ -4241,7 +4412,7 @@ JX_INLINE jx_ob jx_entity_resolve_name(jx_env * E, jx_ob handle, jx_ob name)
     if(!jx_hash_peek(&def, E->node, handle))
       break;
     else {
-      if(jx_hash_peek(&result, jx_list_entity_borrow_attr_hash(def), name))
+      if(jx_hash_peek(&result, jx_entity_attr_hash_borrow(def), name))
         break;
       handle = jx_list_borrow(def, JX_ENTITY_BASE_HANDLE);
     }
@@ -4268,7 +4439,7 @@ JX_INLINE jx_ob jx_entity_resolve_constructor(jx_env * E, jx_ob handle)
   return result;
 }
 
-JX_INLINE jx_ob jx_entity_resolve_content(jx_env * E, jx_ob handle)
+JX_INLINE jx_ob jx_entity_resolve_cont_list(jx_env * E, jx_ob handle)
 {
   jx_ob result = jx_ob_from_null();
   while(!jx_null_check(handle)) {
@@ -4276,7 +4447,7 @@ JX_INLINE jx_ob jx_entity_resolve_content(jx_env * E, jx_ob handle)
     if(!jx_hash_peek(&def, E->node, handle))
       break;
     else {
-      result = jx_list_entity_borrow_content(def);
+      result = jx_entity_cont_list_borrow(def);
       if(!jx_null_check(result))
         break;
       handle = jx_list_borrow(def, JX_ENTITY_BASE_HANDLE);
@@ -4293,7 +4464,7 @@ JX_INLINE jx_ob jx_entity_resolve_attrs(jx_env * E, jx_ob handle)
     //    printf("%08x [%s]\n",jx_ob_hash_code(handle),jx_ob_as_ident(&handle));
     jx_ob def = jx_hash_borrow(E->node, handle);
     //    jx_jxon_dump(stdout,"def",node,def);
-    result = jx_list_entity_borrow_attr_hash(def);
+    result = jx_entity_attr_hash_borrow(def);
   }
   return Jx_ob_copy(E, result);
 }
@@ -4315,7 +4486,7 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_env * E,
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-            *container = jx_ob_take_weak_ref( jx__list_entity_borrow_content_locked(I) );
+            *container = jx_ob_take_weak_ref( jx__list_entity_borrow_cont_list_locked(I) );
             status = JX_YES;
           } else {              /* nonblank identifier? -> access attribute / method */
             jx_ob meth_or_attr =
@@ -4435,10 +4606,10 @@ JX_INLINE jx_ob Jx_ob_with_new(jx_env * E, jx_ob payload)
 {
   //  jx_jxon_dump(stdout,"payload_with_new",payload);
   //  jx_jxon_dump(stdout,"node",E->node);
-  jx_ob entity = jx_list_remove(payload, 0);
+  jx_ob entity = jx_list_take(payload, 0);
   if(jx_builtin_entity_check(entity)) {
     jx_ob result = jx_ob_from_null();
-    jx_ob content = jx_entity_resolve_content(E, entity);
+    jx_ob content = jx_entity_resolve_cont_list(E, entity);
     if(jx_null_check(content)) {
       /* only copy entity handle */
       Jx_ob_replace(E, &result, Jx_list_new_with_first(E, Jx_ob_copy(E, entity)));

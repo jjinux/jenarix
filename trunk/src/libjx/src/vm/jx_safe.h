@@ -54,64 +54,68 @@ jx_status jx_safe_expose_all_builtins(jx_ob names);
 
 JX_INLINE jx_ob jx_safe_entity(jx_env * E, jx_ob payload)
 {
-  jx_ob name = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 0));
-  jx_ob entity = jx_builtin_new_entity_with_name(E, Jx_ob_copy(E, name));
   jx_ob scope = Jx_scope_pop(E);
+  jx_ob name = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 0));
+  jx_ob handle = jx_builtin_new_entity_with_name(E, Jx_ob_copy(E, name));
   jx_ob receiver = Jx_scope_borrow(E);
-  Jx_hash_set(E, receiver, name, Jx_ob_copy(E, entity));
+  Jx_hash_set(E, receiver, name, Jx_ob_copy(E, handle));
   {
-    jx_ob def = jx_ob_from_null();
     jx_int size = jx_list_size(payload) - 1;
-
-    if(size) {
-      def = jx_list_new_with_size((size>4) ? 4 : size);
-      switch (size) {
-      default:
-      case 5:
-        /* scope from the evaluated code becomes the attribute table */
-        jx_list_swap(payload, 3, scope);
-        scope = jx_ob_from_null();
-        /* deliberate fall through */        
-      case 4:
-        jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
-                        jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 4)));
-        /* deliberate fall through */        
-      case 3:
-        {
-          jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 3));
-          if( jx_hash_check(slot)) 
-            jx_list_entity_set_attr_hash(E, def, slot );
-          else if( jx_list_check(slot))
-            jx_list_entity_set_content(E, def, slot );
-          else
-            Jx_ob_free(E,slot);
-        }
-        /* deliberate fall through */
-      case 2:
-        {
-          jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 2));
-          if( jx_hash_check(slot)) 
-            jx_list_entity_set_attr_hash(E, def, slot );
-          else if( jx_list_check(slot))
-            jx_list_entity_set_content(E, def, slot );
-          else
-            Jx_ob_free(E,slot);
-        }
-        /* deliberate fall through */
-      case 1:
-        jx_list_replace(def, JX_ENTITY_BASE_HANDLE,
-                        jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 1)));
-        break;
+    jx_ob def = jx_list_new_with_size( (size < 1) ? 1 : 
+                                       ((size > 4) ? 4 : size) );
+    {
+      jx_ob base_handle = jx_list_swap_with_null(payload, 1);
+      if(!jx_builtin_entity_check(base_handle)) {
+        Jx_ob_free(E, base_handle);
+        base_handle = jx_builtin_new_entity_with_name(E, jx_ob_from_ident(""));
       }
+      jx_list_replace(def, JX_ENTITY_BASE_HANDLE, 
+                      jx_ob_not_weak_with_ob(base_handle));
     }
-    Jx_hash_set(E, E->node, Jx_ob_copy(E, entity), def);
+    switch (size) {
+    default:
+    case 5:
+      /* scope from the evaluated code becomes the attribute table */
+      jx_list_swap(payload, 3, scope);
+      scope = jx_ob_from_null();
+      /* deliberate fall through */        
+    case 4:
+      jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
+                      jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 4)));
+      /* deliberate fall through */        
+    case 3:
+      {
+        jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 3));
+        if( jx_hash_check(slot)) 
+          Jx_entity_attr_hash_set(E, def, slot );
+        else if( jx_list_check(slot))
+          Jx_entity_cont_list_set(E, def, slot );
+        else
+          Jx_ob_free(E,slot);
+      }
+      /* deliberate fall through */
+    case 2:
+      {
+        jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 2));
+        if( jx_hash_check(slot)) 
+          Jx_entity_attr_hash_set(E, def, slot);
+        else if( jx_list_check(slot))
+          Jx_entity_cont_list_set(E, def, slot);
+        else
+          Jx_ob_free(E,slot);
+      }
+      break;
+    case 1:
+    case 0:
+      break;
+    }
+    Jx_hash_set(E, E->node, Jx_ob_copy(E, handle), def);
     /* implementations always stored at node level */
   }
-
   Jx_ob_free(E, scope);
   //  jx_ob_dump(stdout,"entity",entity);
   //printf("%08x [%s]\n",jx_ob_hash_code(entity),jx_ob_as_ident(entity));
-  return entity;
+  return handle;
 }
 
 JX_INLINE jx_status jx_set_from_path_with_value(jx_env * E, jx_ob container,
@@ -199,7 +203,7 @@ JX_INLINE jx_ob jx_safe_get(jx_env * E, jx_ob payload)
       if(jx_int_check(target)) {
         return jx_ob_take_weak_ref(jx_list_borrow(container, jx_ob_as_int(target)));
       } else {
-        return jx__list_entity_get(container.data.io.list, target);
+        return jx__list_entity_borrow(container.data.io.list, target);
       }
       break;
     case JX_META_BIT_HASH:
@@ -255,13 +259,15 @@ JX_INLINE jx_ob jx_safe_take(jx_env * E, jx_ob payload)
     switch (container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
       if(jx_int_check(target)) {
-        return jx_list_remove(container, jx_ob_as_int(target));
+        return jx_list_take(container, jx_ob_as_int(target));
       } else {
-        return jx__list_entity_take(E, container.data.io.list, target);
+        jx_ob result = jx_ob_from_null();
+        jx__list_entity_remove(E, &result, container.data.io.list, target);
+        return result;
       }
       break;
     case JX_META_BIT_HASH:
-      return Jx_hash_remove(E, container, target);
+      return Jx_hash_take(E, container, target);
       break;
     }
   }
@@ -282,14 +288,14 @@ JX_INLINE jx_ob jx_safe_del(jx_env * E, jx_ob payload)
     switch (container.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_LIST:
       if(jx_int_check(target)) {
-        return jx_ob_from_status(jx_list_delete(container, jx_ob_as_int(target)));
+        return jx_ob_from_status(jx_list_del(container, jx_ob_as_int(target)));
       } else {
         return jx_ob_from_status
           (jx__list_entity_delete(E, container.data.io.list, target));
       }
       break;
     case JX_META_BIT_HASH:
-      return jx_ob_from_status(Jx_hash_delete(E, container, target));
+      return jx_ob_from_status(Jx_hash_del(E, container, target));
       break;
     default:
       return jx_ob_from_status(JX_STATUS_INVALID_CONTAINER);
@@ -617,7 +623,7 @@ JX_INLINE jx_ob jx_safe_shift(jx_env * E, jx_ob payload)
   jx_ob container = Jx_scope_borrow(E);
   jx_ob target = jx_list_borrow(payload, 0);
   if(JX_OK(jx__resolve_container(E, &container, &target))) {
-    return jx_list_remove(container, 0);
+    return jx_list_take(container, 0);
   }
   return jx_ob_from_null();
 }
@@ -693,7 +699,7 @@ JX_INLINE jx_ob jx_safe_symbols(jx_env * E, jx_ob payload)
   jx_ob result = Jx_ob_copy(E, Jx_scope_borrow(E));
   if(!jx_ob_as_bool(jx_list_borrow(payload, 0))) {
     /* hide builtin symbols unless specifically asked for them */
-    Jx_hash_delete(E, result, jx_builtins());
+    Jx_hash_del(E, result, jx_builtins());
   }
   if(jx_null_check(jx_list_borrow(payload, 0))) {
     /* hide entity definitions too */
@@ -702,7 +708,7 @@ JX_INLINE jx_ob jx_safe_symbols(jx_env * E, jx_ob payload)
     for(i = 0; i < size; i++) {
       jx_ob key = jx_list_borrow(keys, i);
       if(jx_builtin_entity_check(key)) {
-        Jx_hash_delete(E, result, key);
+        Jx_hash_del(E, result, key);
       }
     }
     Jx_ob_free(E, keys);

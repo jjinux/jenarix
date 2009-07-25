@@ -162,7 +162,7 @@ static jx_ob jx__code_bind_with_source(jx_env * E, jx_ob prebind, jx_ob source,
             unresolved = 1;
             switch (builtin.data.io.int_) {
             case JX_SELECTOR_SKIP:     /* [skip # ...] -> bind(#) */
-              Jx_ob_replace(E, &source, jx_list_remove(source, 1));
+              Jx_ob_replace(E, &source, jx_list_take(source, 1));
               return jx__code_bind_with_source(E, prebind, source, unresol_depth - 1);
               break;
             case JX_SELECTOR_RAW:      /* [raw # ...] -> [*raw* # ...] */
@@ -174,7 +174,7 @@ static jx_ob jx__code_bind_with_source(jx_env * E, jx_ob prebind, jx_ob source,
                 jx_ob tst = jx_list_borrow(source, 1);
                 if(!(tst.meta.bits & (JX_META_BIT_LIST | JX_META_BIT_IDENT |
                                       JX_META_BIT_BUILTIN | JX_META_BIT_OPCODE))) {
-                  jx_list_remove(source, 0);
+                  jx_list_take(source, 0);
                   return jx__code_bind_with_source(E, prebind, source, unresol_depth);
                 }
               }
@@ -230,7 +230,7 @@ static jx_ob jx__code_bind_with_source(jx_env * E, jx_ob prebind, jx_ob source,
       } else if(jx_builtin_selector_check(ident) &&
                 ident.data.io.int_ == JX_SELECTOR_SKIP) {
         /* [*skip* # ...] -> bind(#) */
-        Jx_ob_replace(E, &source, jx_list_remove(source, 1));
+        Jx_ob_replace(E, &source, jx_list_take(source, 1));
         return jx__code_bind_with_source(E, prebind, source, unresol_depth - 1);
       }
       //      jx_jxon_dump(stdout,"post-sub",source);
@@ -373,8 +373,8 @@ static jx_ob jx__code_bind_with_source(jx_env * E, jx_ob prebind, jx_ob source,
       jx_ob list = jx_list_new_with_hash(source);       /* destroys source */
       jx_int size = jx_list_size(list);
       while(size) {
-        jx_ob key = jx_list_remove(list, 0);
-        jx_ob value = jx_list_remove(list, 0);
+        jx_ob key = jx_list_take(list, 0);
+        jx_ob value = jx_list_take(list, 0);
         size = size - 2;
         if(jx_ident_check(value) && (!unresol_depth)) {
           jx_ob new_entry = Jx_list_new_with_size(E, 2);
@@ -565,7 +565,7 @@ JX_INLINE jx_ob jx__code_apply_callable(jx_env * E, jx_ob callable, jx_ob payloa
         if(jx_list_size(payload)) {
           E->have_result = JX_TRUE;
           jx__code_replace_payload(E, &E->result, Jx_ob_not_weak_with_ob
-                                   (E, jx_list_remove(payload, 0)));
+                                   (E, jx_list_take(payload, 0)));
         } else {
           jx__code_replace_payload(E, &payload, jx_ob_from_opcode(JX_OPCODE_RETURN, 0));
         }
@@ -897,7 +897,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_env * E, jx_int flags, jx_ob callable, jx_ob 
           break;
         }
       }
-      out = jx_list_remove(arg_ob, 0);
+      out = jx_list_take(arg_ob, 0);
       jx_vla_reset(&inp_list->data.ob_vla);
     }
     Jx_ob_free(E, inp);
@@ -950,7 +950,7 @@ JX_INLINE jx_ob jx__code_pareval(jx_env * E, jx_int flags, jx_ob src_list)
   jx_ob result = jx_ob_from_null();
   if(jx_ob_identical(jx_list_borrow(src_list, 0),
                      jx_builtin_new_from_selector(JX_SELECTOR_NOP)))
-    Jx_list_delete(E, src_list, 0);
+    Jx_list_del(E, src_list, 0);
   jx_int size = jx_list_size(src_list);
   if(size) {
     result = Jx_list_new_with_size(E, size);
@@ -1978,8 +1978,8 @@ static jx_ob Jx__code_eval_to_weak(jx_env * E, jx_int flags, jx_ob expr)
       jx_ob list = jx_list_new_from_hash(expr);
       jx_int size = jx_list_size(list);
       while(size) {
-        jx_ob key = jx_list_remove(list, 0);
-        jx_ob value = jx_list_remove(list, 0);
+        jx_ob key = jx_list_take(list, 0);
+        jx_ob value = jx_list_take(list, 0);
         size = size - 2;
         Jx_hash_set(E, result, key, Jx_code_eval(E, flags, value));
         Jx_ob_free(E, value);

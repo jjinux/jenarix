@@ -1025,7 +1025,7 @@ power(A) ::= atom(B) dot_trailer_list(C).
      (jx_ob_identical(jx_list_borrow(B,0),resolve))) {
     A = B;
     if(!jx_list_check(jx_list_borrow(B,1))) {
-      jx_list_unshift(C, jx_list_remove(B,1));
+      jx_list_unshift(C, jx_list_take(B,1));
       jx_list_append(B,C);
     } else {
       jx_list_combine(jx_list_borrow(B,1), C);

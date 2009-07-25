@@ -230,11 +230,11 @@ int main(int argc, char **argv)
       jx_ob_free(jxon);
     }
 
-    P1("0 == %d", jx_list_delete(list, 1))
+    P1("0 == %d", jx_list_del(list, 1))
       P1("0 == %p", (void *) jx_list_as_float_vla(list));
     P1("0 == %p", (void *) jx_list_as_int_vla(list));
 
-    P1("0 == %d", jx_list_delete(list, 1))
+    P1("0 == %d", jx_list_del(list, 1))
       P1("0 == %p", (void *) jx_list_as_float_vla(list));
     P1("1 && %p", (void *) jx_list_as_int_vla(list));
 

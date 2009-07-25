@@ -58,7 +58,7 @@ void *thread_fn(void *id_ptr)
     } else {
       int cnt = 0;
       while(1) {
-        jx_ob ob = jx_list_remove(info[-1].list, 0);
+        jx_ob ob = jx_list_take(info[-1].list, 0);
         if(!jx_null_check(ob)) {
           cnt++;
           if(info->id != (N_THREAD - 1)) {

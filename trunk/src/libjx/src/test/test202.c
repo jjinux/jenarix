@@ -53,7 +53,7 @@ void *thread_fn(void *id_ptr)
       jx_hash_set(info->hash, jx_ob_from_int(i), jx_ob_from_int(info->id));
     }
     for(i = 100; i < 5000; i++) {
-      jx_hash_delete(info->hash, jx_ob_from_int(i));
+      jx_hash_del(info->hash, jx_ob_from_int(i));
     }
   }
 

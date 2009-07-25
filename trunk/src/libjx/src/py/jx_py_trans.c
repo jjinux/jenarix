@@ -67,8 +67,8 @@ jx_ob jx_py_translate_with_tree(jx_ob source)
       jx_ob list = jx_list_new_with_hash(source);       /* destroys source */
       jx_int size = jx_list_size(list);
       while(size) {
-        jx_ob key = jx_list_remove(list, 0);
-        jx_ob value = jx_list_remove(list, 0);
+        jx_ob key = jx_list_take(list, 0);
+        jx_ob value = jx_list_take(list, 0);
         size = size - 2;
         jx_hash_set(result, key, jx_py_translate_with_tree(value));
       }

@@ -109,8 +109,8 @@ int main(int argc, char **argv)
     P1("-14 == %d", jx_list_append(list0, jx_ob_from_int(3)));
     P1("-14 == %d", jx_list_resize(list0, 0));
     P1("-14 == %d", jx_list_insert(list0, 0, jx_ob_from_null()));
-    P1("1 == %d", jx_null_check(jx_list_remove(list0, 0)))
-      P1("-14 == %d", jx_list_delete(list0, 0));
+    P1("1 == %d", jx_null_check(jx_list_take(list0, 0)))
+      P1("-14 == %d", jx_list_del(list0, 0));
 
     P1("0 == %d", jx_list_resize_with_fill(list1, 2, list0));
 
@@ -152,9 +152,9 @@ int main(int argc, char **argv)
     }
 
     P1("-14 == %d", jx_hash_set(hash, jx_ob_from_int(7), jx_ob_from_int(8)));
-    P1("1 == %d", jx_null_check(jx_hash_remove(hash, jx_ob_from_int(7))));
-    P1("1 == %d", jx_null_check(jx_hash_remove(hash, jx_ob_from_int(3))));
-    P1("-17 == %d", jx_hash_delete(hash, jx_ob_from_int(3)));
+    P1("1 == %d", jx_null_check(jx_hash_take(hash, jx_ob_from_int(7))));
+    P1("1 == %d", jx_null_check(jx_hash_take(hash, jx_ob_from_int(3))));
+    P1("-17 == %d", jx_hash_del(hash, jx_ob_from_int(3)));
 
     P1("3 == %d", jx_ob_free(hash));
 

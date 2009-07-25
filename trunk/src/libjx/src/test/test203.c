@@ -54,7 +54,7 @@ void *thread_fn(void *id_ptr)
     }
     for(i = 0; i < 100000; i++) {
       jx_list_append(info->list, jx_ob_from_int(info->id));
-      jx_list_delete(info->list, 0);
+      jx_list_del(info->list, 0);
     }
   }
 

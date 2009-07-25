@@ -276,6 +276,10 @@ jx_bool jx_list_check(jx_ob ob);
 jx_bool jx_hash_check(jx_ob ob);
 jx_bool jx_ident_check(jx_ob ob);
 
+/* object-oriented container type: entity (a special kind of list) */
+
+jx_bool jx_entity_check(jx_ob ob);
+
 /* builtin object types */
 
 jx_bool jx_builtin_check(jx_ob ob);
@@ -326,7 +330,6 @@ jx_bool jx_ob_lt(jx_ob left, jx_ob right);
 jx_bool jx_ob_gt(jx_ob left, jx_ob right);
 jx_bool jx_ob_le(jx_ob left, jx_ob right);
 jx_bool jx_ob_ge(jx_ob left, jx_ob right);
-
 
 
 /* read only status (no changes allowed, cannot be freed, but can be
@@ -429,7 +432,7 @@ jx_ob jx_list_borrow(jx_ob list, jx_int index); /* borrows list entry */
 jx_ob jx_list_get(jx_ob list, jx_int index);    /* copies list entry (returns ownership) */
 jx_ob jx_list_pop(jx_ob list);  /* returns ownership of removed entry */
 
-jx_ob jx_list_remove(jx_ob list, jx_int index); /* returns ownership of removed entry */
+jx_ob jx_list_take(jx_ob list, jx_int index); /* returns ownership of removed entry */
 jx_ob jx_list_new_from_slice(jx_ob list, jx_int start, jx_int stop);    /* returns ownership of sliced entry */
 jx_ob jx_list_new_with_cutout(jx_ob list, jx_int start, jx_int stop);   /* returns ownership of cutout entry */
 jx_ob jx_list_swap_with_null(jx_ob list, jx_int index); /* return ownership of swapped-out object */
@@ -437,11 +440,16 @@ jx_ob jx_list_swap(jx_ob list, jx_int index, jx_ob ob); /* return ownership of s
 
 jx_int jx_list_index(jx_ob list, jx_ob ob);
 
-jx_status jx_list_delete(jx_ob list, jx_int index);     /* frees entry at index */
+jx_status jx_list_del(jx_ob list, jx_int index);     /* frees entry at index */
 jx_status jx_list_reset(jx_ob list);
 jx_status jx_list_reverse(jx_ob list);
 jx_status jx_list_sort(jx_ob list);
 
+/* old names, deprecated in order to better match the API with JXON */
+
+#define jx_list_delete jx_list_del
+#define jx_hash_delete jx_hash_del
+#define jx_list_remove jx_list_take
 
 /* homogenous lists with variable length arrays (vla's)  */
 
@@ -494,12 +502,35 @@ jx_ob jx_hash_values(jx_ob hash);       /* returns owned list of copied values *
 jx_bool jx_hash_peek(jx_ob * result, jx_ob hash, jx_ob key);    /* borrows value if present */
 
 jx_ob jx_hash_borrow(jx_ob hash, jx_ob key);    /* borrows key and returns borrowed value */
+
 jx_ob jx_hash_get(jx_ob hash, jx_ob key);       /* borrows and returns copied (owned) value */
-jx_ob jx_hash_remove(jx_ob hash, jx_ob key);    /* borrows key and returns owned value (destroys key inside hash) */
-jx_status jx_hash_delete(jx_ob hash, jx_ob key);        /* borrows key and deletes matched key & value */
+
+jx_ob jx_hash_take(jx_ob hash, jx_ob key);    /* borrows key and returns owned value (destroys key inside hash) */
+jx_ob Jx_hash_take(jx_env * E, jx_ob hash, jx_ob key);    
+
+jx_status jx_hash_del(jx_ob hash, jx_ob key);        /* borrows key and deletes matched key & value */
 
 jx_ob jx_hash_borrow_key(jx_ob hash, jx_ob value);      /* borrows value and returns borrowed key */
 jx_ob jx_hash_get_key(jx_ob hash, jx_ob value); /* borrows value and returns owned copy of key */
+
+/* entity methods */
+
+jx_status Jx_entity_cont_list_set(jx_env * E, jx_ob entity,jx_ob value);
+jx_ob Jx_entity_cont_list_validate_n_borrow(jx_env * E, jx_ob entity);
+jx_ob jx_entity_cont_list_borrow(jx_ob entity);
+
+jx_status Jx_entity_attr_hash_set(jx_env * E, jx_ob entity,jx_ob value);
+jx_ob Jx_entity_attr_hash_validate_n_borrow(jx_env * E, jx_ob entity);
+jx_ob jx_entity_attr_hash_borrow(jx_ob entity);
+
+jx_status Jx_entity_set(jx_env * E, jx_ob entity, jx_ob key, jx_ob value);
+jx_bool jx_entity_has(jx_ob entity, jx_ob key);
+jx_ob jx_entity_borrow(jx_ob entity, jx_ob key);
+jx_ob Jx_entity_get(jx_env * E, jx_ob entity, jx_ob key);
+jx_ob Jx_entity_take(jx_env * E, jx_ob entity, jx_ob key);
+jx_status Jx_entity_del(jx_env * E, jx_ob entity, jx_ob key);
+
+jx_ob jx_entity_content_append(jx_env * E, jx_ob entity, jx_ob value);
 
 
 /* json input */
