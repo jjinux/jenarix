@@ -530,9 +530,6 @@ jx_ob Jx_entity_get(jx_env * E, jx_ob entity, jx_ob key);
 jx_ob Jx_entity_take(jx_env * E, jx_ob entity, jx_ob key);
 jx_status Jx_entity_del(jx_env * E, jx_ob entity, jx_ob key);
 
-jx_ob jx_entity_content_append(jx_env * E, jx_ob entity, jx_ob value);
-
-
 /* json input */
 
 jx_ob jx_ob_from_jxon_str(jx_char * str);
