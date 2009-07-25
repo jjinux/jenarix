@@ -64,18 +64,18 @@ JX_INLINE jx_ob jx_safe_entity(jx_env * E, jx_ob payload)
     jx_int size = jx_list_size(payload) - 1;
 
     if(size) {
-      def = jx_list_new_with_size(size);
+      def = jx_list_new_with_size((size>4) ? 4 : size);
       switch (size) {
       default:
       case 5:
         /* scope from the evaluated code becomes the attribute table */
         jx_list_swap(payload, 3, scope);
         scope = jx_ob_from_null();
-        /* deliberate full through */        
+        /* deliberate fall through */        
       case 4:
         jx_list_replace(def, JX_ENTITY_CONSTRUCTOR,
                         jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 4)));
-        /* deliberate full through */        
+        /* deliberate fall through */        
       case 3:
         {
           jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 3));
@@ -86,9 +86,8 @@ JX_INLINE jx_ob jx_safe_entity(jx_env * E, jx_ob payload)
           else
             Jx_ob_free(E,slot);
         }
-        /* deliberate full through */
+        /* deliberate fall through */
       case 2:
-#if 1
         {
           jx_ob slot = jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 2));
           if( jx_hash_check(slot)) 
@@ -98,11 +97,7 @@ JX_INLINE jx_ob jx_safe_entity(jx_env * E, jx_ob payload)
           else
             Jx_ob_free(E,slot);
         }
-#else
-        jx_list_replace(def, JX_ENTITY_CONTENT_LIST,
-                        jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 2)));
-#endif
-        /* deliberate full through */
+        /* deliberate fall through */
       case 1:
         jx_list_replace(def, JX_ENTITY_BASE_HANDLE,
                         jx_ob_not_weak_with_ob(jx_list_swap_with_null(payload, 1)));

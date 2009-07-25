@@ -3921,39 +3921,9 @@ JX_INLINE jx_status jx__list_entity_set(jx_env * E, jx_list * I, jx_ob target,
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? replace content */
-#if 1
               status = jx__list_entity_set_content_locked(E, I, value);
-#else 
-              if(entity_size > 1) {     /* existing content, so replace */
-                status = Jx_ob_replace_owned
-                  (E, entity_ob + 1, Jx_ob_not_weak_with_ob(E, value));
-              } else {
-                /* no existing content, so append it */
-                status =
-                  jx__list_append_locked(E, I, Jx_ob_not_weak_with_ob(E, value));
-              }
-#endif
             } else {            /* nonblank identifier? -> replace attribute */
-#if 1
               status = jx__list_entity_set_attr_locked(E, I, target, value);
-#else              
-              if(entity_size > 2) {
-                status = jx_hash_set
-                  (entity_ob[2],
-                   Jx_ob_not_weak_with_ob(E, Jx_ob_copy(E, target)),
-                   Jx_ob_not_weak_with_ob(E, value));
-              } else {
-                jx_ob tmp = Jx_hash_new(E);
-                if(entity_size < 2)
-                  jx__list_append_locked(E, I, jx_ob_from_null());
-                jx__list_append_locked(E, I, tmp);
-                /* TODO: error handling / cleanup for above new,append,append */
-                status = jx_hash_set
-                  (tmp,
-                   Jx_ob_not_weak_with_ob(E, Jx_ob_copy(E, target)),
-                   Jx_ob_not_weak_with_ob(E, value));
-              }
-#endif
             }
           }
           break;
@@ -3985,27 +3955,11 @@ JX_INLINE jx_ob jx__list_entity_get(jx_list * I, jx_ob target)
         {
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-#if 1
             result = jx_ob_take_weak_ref
               (jx__list_entity_borrow_content_locked(I));
-#else
-            if(entity_size > 1) {       /* take content */
-              result = jx_ob_take_weak_ref(entity_ob[1]);
-            } else {            /* no content */
-              result = jx_ob_from_null();
-            }
-#endif
           } else {              /* nonblank identifier? -> access attribute / method */
-#if 1
             result = jx_ob_take_weak_ref
               (jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), target));
-#else
-            if(entity_size > 2) {
-              result = jx_ob_take_weak_ref(jx_hash_borrow(entity_ob[2], target));
-            } else {
-              result = jx_ob_from_null();
-            }
-#endif
           }
         }
         break;
@@ -4032,22 +3986,10 @@ JX_INLINE jx_bool jx__list_entity_has(jx_list * I, jx_ob target)
         {
           jx_char ch = jx_ob_as_ident(&target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-#if 1
             result = ! jx_null_check( jx__list_entity_borrow_content_locked(I) );
-#else
-            if(entity_size > 1) {       /* yes content */
-              result = JX_TRUE;
-            }
-#endif
           } else {              /* nonblank identifier? -> access attribute / method */
-#if 1
             result = jx_hash_has_key( jx__list_entity_borrow_attr_hash_locked(I),
                                       target );
-#else
-            if(entity_size > 2) {
-              result = jx_hash_has_key(entity_ob[2], target);
-            }
-#endif
           }
         }
         break;
@@ -4074,26 +4016,10 @@ JX_INLINE jx_ob jx__list_entity_take(jx_env * E, jx_list * I, jx_ob target)
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? access content */
-#if 1
               result = jx__list_entity_take_content_locked(E, I);
-#else
-              if(entity_size > 1) {     /* take content */
-                result = jx_ob_swap_with_null(entity_ob + 1);
-              } else {          /* no content */
-                result = jx_ob_from_null();
-              }
-#endif
             } else {            /* nonblank identifier? -> access attribute / method */
-#if 1
               result = Jx_hash_remove(E, jx__list_entity_borrow_attr_hash_locked(I),
                                       target);
-#else
-              if(entity_size > 2) {
-                result = Jx_hash_remove(E, entity_ob[2], target);
-              } else {
-                result = jx_ob_from_null();
-              }
-#endif
             }
           }
           break;
@@ -4123,25 +4049,11 @@ JX_INLINE jx_status jx__list_entity_delete(jx_env * E, jx_list * I, jx_ob target
           {
             jx_char ch = jx_ob_as_ident(&target)[0];
             if((!ch) || (ch == '.')) {  /* blank identifier? access content */
-#if 1
               jx_ob ob = jx__list_entity_take_content_locked(E, I);
               Jx_ob_free(E, ob);
-#else
-              if(entity_size > 1) {     /* take content */
-                status = Jx_ob_replace_owned_with_null(E, entity_ob + 1);
-              } else {          /* no content */
-                status = JX_SUCCESS;
-              }
-#endif
             } else {            /* nonblank identifier? -> access attribute / method */
-#if 1
               status = Jx_hash_delete(E, jx__list_entity_borrow_attr_hash_locked(I),
                                       target);
-#else
-              if(entity_size > 2) {
-                status = Jx_hash_delete(E, entity_ob[2], target);
-              }
-#endif
             }
           }
           break;
@@ -4173,31 +4085,10 @@ JX_INLINE jx_ob jx__list_entity_create_path(jx_env * E, jx_list * I, jx_ob * tar
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-#if 1
             result = jx__list_entity_borrow_content_locked(I);
-#else
-            if(entity_size > 1) {       /* use content */
-              result = entity_ob[1];
-            }
-#endif
           } else {              /* nonblank identifier? -> access attribute / method */
             jx_ob attr;
-#if 1
             attr = jx__list_entity_validate_attr_hash_locked(E,I);
-#else
-            if(entity_size < 3) {
-              if(!I->gc.shared) {
-                attr = Jx_hash_new(E);
-                if(entity_size < 2)
-                  jx__list_append_locked(E, I, jx_ob_from_null());
-                jx__list_append_locked(E, I, attr);
-              } else {
-                attr = jx_ob_from_null();
-              }
-            } else {
-              attr = entity_ob[2];
-            }
-#endif
             if(!jx_hash_peek(&result, attr, *target)) {
               if(!I->gc.shared) {
                 result = Jx_hash_new(E);
@@ -4274,20 +4165,10 @@ JX_INLINE jx_ob jx__list_entity_resolve_path(jx_list * I, jx_ob * target)
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
             
             if(entity_size > 1) {       /* use content */
-#if 1
               result = jx__list_entity_borrow_content_locked(I);
-#else
-              result = entity_ob[1];
-#endif
             }
           } else {                     /* nonblank identifier? -> access attribute / method */
-#if 1
             result = jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), *target);
-#else
-            if(entity_size > 2) {
-              result = jx_hash_borrow(entity_ob[2], *target);
-            }
-#endif
           }
         }
         break;
@@ -4434,27 +4315,11 @@ JX_INLINE jx_status jx__list_entity_resolve_container(jx_env * E,
         {
           jx_char ch = jx_ob_as_ident(target)[0];
           if((!ch) || (ch == '.')) {    /* blank identifier? access content */
-#if 1 
             *container = jx_ob_take_weak_ref( jx__list_entity_borrow_content_locked(I) );
-#else           
-            if(entity_size > 1) {       /* use content */
-              *container = jx_ob_take_weak_ref(entity_ob[1]);
-            } else {
-              *container = jx_ob_from_null();
-            }
-#endif
             status = JX_YES;
           } else {              /* nonblank identifier? -> access attribute / method */
-            jx_ob meth_or_attr;
-#if 1
-            meth_or_attr = jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I) ,
-                                          *target);            
-#else
-            if(entity_size > 2) {
-              meth_or_attr = jx_hash_borrow(entity_ob[2], *target);
-            } else
-              meth_or_attr = jx_ob_from_null();
-#endif
+            jx_ob meth_or_attr =
+              jx_hash_borrow(jx__list_entity_borrow_attr_hash_locked(I), *target);            
             if(jx_null_check(meth_or_attr)) {
               meth_or_attr = jx_entity_resolve_name(E, entity_ob[0], *target);
             }

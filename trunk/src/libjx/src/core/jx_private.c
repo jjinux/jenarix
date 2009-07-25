@@ -2393,50 +2393,7 @@ jx_status jx__list_insert(jx_env * E, jx_list * I, jx_int index, jx_ob ob)
 {
   jx_status status = jx_gc_lock(&I->gc);
   if(JX_POS(status)) {
-#if 1
     status = jx__list__insert_locked(E,I,index,ob);    
-#else
-    status = JX_FAILURE;
-    if(I->gc.shared) {
-      status = JX_STATUS_PERMISSION_DENIED;
-      goto unlock;
-    }
-    if(I->data.vla && I->packed_meta_bits && (I->packed_meta_bits != ob.meta.bits)) {
-      if(!jx_ok(jx__list_unpack_data_locked(I)))
-        goto unlock;
-    }
-    if(I->data.vla) {
-      index = (index < 0) ? 1 + jx_vla_size(&I->data.vla) + index : index;
-      if(!jx_ok(jx_vla_insert(&I->data.vla, index, 1)))
-        goto unlock;
-      else if(I->packed_meta_bits && (I->packed_meta_bits == ob.meta.bits)) {
-        jx__list_set_packed_data_locked(I, index, ob);
-      } else if(!I->packed_meta_bits) {
-        I->data.ob_vla[index] = JX_OWN(E, ob);
-      }
-      status = JX_SUCCESS;
-      goto unlock;
-    } else if(index == 0) {
-      jx_int packed_size = jx_meta_get_packed_size(ob.meta.bits);
-      if(packed_size) {
-        I->packed_meta_bits = ob.meta.bits;
-        I->data.vla = jx_vla_new(packed_size, 1);
-        if(I->data.vla) {
-          jx__list_set_packed_data_locked(I, 0, ob);
-          status = JX_SUCCESS;
-          goto unlock;
-        }
-      } else {
-        I->data.vla = jx_vla_new(sizeof(jx_ob), 1);
-        if(I->data.vla) {
-          I->data.ob_vla[0] = JX_OWN(E, ob);
-          status = JX_SUCCESS;
-          goto unlock;
-        }
-      }
-    }
-  unlock:
-#endif
     jx_gc_unlock(&I->gc);
   }
   return status;
