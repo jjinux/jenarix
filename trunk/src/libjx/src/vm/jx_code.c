@@ -1296,11 +1296,9 @@ JX_INLINE jx_ob Jx_code_eval_to_weak(jx_env * E, jx_int flags, jx_ob expr)
     Jx__code_eval_to_weak(E, flags, expr) : expr;
 }
 
-static jx_ob Jx__code_eval_to_weak(jx_env * E_p, jx_int flags_p, jx_ob expr)
+static jx_ob Jx__code_eval_to_weak(jx_env * E, jx_int flags, jx_ob expr)
 {
   /* E may NOT be NULL at this point */
-  register jx_env *E = E_p;
-  register jx_int flags = flags_p;
   if(flags & JX_EVAL_DEBUG_MASK) {
     if(flags & JX_EVAL_DEBUG_TRACE) {
       fprintf(stderr, "# trace: eval_to_weak(E %p, flags 0x%x, ...)\n",
