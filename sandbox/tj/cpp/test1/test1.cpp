@@ -5,6 +5,7 @@ using namespace jx;
 #include <vector>
 
 #define OUT(t,a) cout << t << ":: value:" << a.value() << " type:" << a.type() << " size:" << a.size() << endl;
+
 int main(int argc, char **argv)
 {
   Object obj = Object();
@@ -25,6 +26,8 @@ int main(int argc, char **argv)
   OUT("Integer", y);
   Integer y2;
   OUT("Integer y2", y2);
+  Integer x4 = x.value();
+  OUT("Integer x4", x4);
 
   Integer z = 1982;
   OUT("Integer", z);
