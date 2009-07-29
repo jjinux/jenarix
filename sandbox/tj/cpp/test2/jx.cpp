@@ -3,7 +3,7 @@
 
 /* Constructors */
 jx::Object::Object() {
-  jxob = jx_ob();
+  jxob = jx_ob_from_null();
 };
 jx::Object::Object(jx_ob from) {
   jxob = jx_ob_copy(from);
@@ -43,6 +43,8 @@ jx::Object::Object(const Object& from) {
 
 /* Destructor */
 jx::Object::~Object() {
+  //jx_status status = jx_ob_free(jxob);
+  //fprintf(stderr, "free %d\n", status);
   jx_ob_free(jxob);
 };
 
@@ -59,7 +61,6 @@ jx::Object::~Object() {
    ..._in_... implies usage of the input object (usually transient)
 */
 jx_ob jx::Object::get_jxob() {
-  fprintf(stderr, "get_jxob: %d\n", jxob);
   return jxob;
 }
 
@@ -140,9 +141,8 @@ jx::List::List() {
 jx::List::List(int size) {
   jxob = jx_list_new_with_size(size);
 }
-jx::List::List(int size, Object *repeat) {
-  fprintf(stderr, "%d %d\n", repeat->get_jxob(), repeat->jxob);
-  jxob = jx_list_new_with_repeat(size, repeat->jxob);
+jx::List::List(int size, Object &repeat) {
+  jxob = jx_list_new_with_repeat(size, jx_ob_copy(repeat.get_jxob()));
 }
 jx::List::List(int *array, int size) {
   jxob = jx_list_new_from_int_array(array, size);

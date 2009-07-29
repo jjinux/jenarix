@@ -1,10 +1,9 @@
 #include "jx.h"
 #include <iostream>
-using namespace std;
 using namespace jx;
 #include <vector>
 
-#define OUT(t,a) cout << t << ":type:" << a.type() << ":size:" << a.size() << ":as_int: " << a.as_int() << endl;
+#define OUT(t,a) std::cout << t << ":type:" << a.type() << ":size:" << a.size() << ":as_int: " << a.as_int() << std::endl;
 
 int main(int argc, char **argv)
 {
@@ -15,14 +14,18 @@ int main(int argc, char **argv)
 
   Object b = Object(true);
   OUT("bool", b);
-  Object i = Object(12);
+  Object i = Object(312);
   OUT("int", i);
+  Object j = 399;
+  OUT("int", j);
   Object v = Object(27.88);
   OUT("float", v);
   Object s = Object("this is a test");
   OUT("string", s);
-  Object s2 = Object("this is a test", 7);
-  OUT("string+len", s2);
+  Object s2 = "this is another test";
+  OUT("string", s2);
+  Object s3 = Object("this is a test", 7);
+  OUT("string+len", s3);
 /* must use from_ident for idents, to distinguish from string type */
   Object nid = Object();
   nid.from_ident("aname");
@@ -36,8 +39,17 @@ int main(int argc, char **argv)
   OUT("List", alist);
   List blist = List(11);
   OUT("List", blist);
-  List rlist = List(7, &i);
+  List rlist = List(5, i);
   OUT("List repeat", rlist);
+
+  int jlist = (1,2,3,4,5);
+  List klist(&jlist,5);
+  OUT("List int array", klist);
+
+  int flist = (1.2,3.4,5.6);
+  List glist(&flist,3);
+  OUT("List float array", glist);
+
 
   return 1;
 }

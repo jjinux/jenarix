@@ -7,12 +7,11 @@ namespace jx {
 
   class Object {
 
-    //protected:
-      //jx_ob jxob; // underlying jx object representation 
-
-    public:
+    protected:
       jx_ob jxob; // underlying jx object representation 
 
+
+    public:
       Object();
       Object(const Object&);
       Object(jx_ob);
@@ -84,7 +83,7 @@ namespace jx {
       List(int size);
       List(int * array, int size);
       List(float * array, int size);
-      List(int size, Object *repeat);
+      List(int size, Object &repeat);
 
       int size();
   };
