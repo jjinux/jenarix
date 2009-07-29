@@ -6,6 +6,7 @@
 //#include <list>
 #ifdef JX_QT
 #include "jxaction.h"
+#include "jxobject.h"
 #include <QWidget>
 #include <QSplitter>
 #include <QMenuBar>
@@ -53,11 +54,11 @@ private:
     JX_SPLITTER * createQtHsplitter(jx_ob pane, int size);
     JX_SPLITTER * createQtVsplitter(jx_ob pane, int size);
 
-    JX_MENU * menuAction(jx_ob item, JX_MENU *menu_widget, jx_ob label, jx_ob callback, jx_ob checkbox, jx_ob popup);
+    JX_MENU * menuAction(jx_ob item, JX_MENU *menu_widget, jx::Object label, jx::Object callback, jx::Object checkbox, jx::Object popup);
     //std::list<JXAction *> Actions;
 
-    jx_ob getMenuItem(jx_ob item, jx_char *attr);
-    jx_ob getSource(jx_ob widget);
+    jx::Object getMenuItem(jx_ob item, jx_char *attr);
+    jx::Object getSource(jx_ob widget);
     int getWidth(jx_ob widget);
     int getHeight(jx_ob widget);
     JX_WIDGET * processComponents(jx_ob component);

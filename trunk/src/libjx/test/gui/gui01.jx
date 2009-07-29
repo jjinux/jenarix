@@ -1,3 +1,12 @@
+(entity FileDialog
+  null
+  null
+  {__init__ : newFileDialog}
+  __init__
+);
+# newFileDialog must be defined externally BEFORE this is eval'ed.
+set GuiFileDialog QtFileDialog;
+
 (entity HSplitter);
 (entity VSplitter);
 
@@ -27,15 +36,15 @@ def file_exit      []      [output "Exit, stage left"];
 # menu definition
 # file menu
 set menu_file (MenuItem [
-    (MenuItem [] {label: "Open...", callback: file_open, popup: "fileDialog"})
-    (MenuItem [] {label: "Exit", callback: file_exit})
+    (MenuItem null {label: "Open...", callback: file_open, popup: "fileDialog"})
+    (MenuItem null {label: "Exit", callback: file_exit})
    ]
    {label: "File"})
 ;
 
 # edit menu
 set menu_edit (MenuItem [
-   (MenuItem [] {label: "Undo", callback: edit_undo})
+   (MenuItem null {label: "Undo", callback: edit_undo})
    ]
    {label: "Edit"})
 ;
@@ -57,8 +66,8 @@ set menu_display
    (MenuItem [
    "Sequence",
    menu_display_sequence_mode,
-   (MenuItem [] {label: "Smooth Lines", checkbox: "on", callback: display_smooth}),
-   (MenuItem [] {label: "Depth Cue", checkbox: "off", callback: display_depth}),
+   (MenuItem null {label: "Smooth Lines", checkbox: "on", callback: display_smooth}),
+   (MenuItem null {label: "Depth Cue", checkbox: "off", callback: display_depth}),
    "Two-sided Lighting"
    ]
    {label: "Display"})
@@ -67,7 +76,7 @@ set menu_display
 # help menu
 set menu_help
    (MenuItem [
-    (MenuItem [] {label: "About", callback: help_about})
+    (MenuItem null {label: "About", callback: help_about})
    ]
    {label: "Help"})
 ;
@@ -85,8 +94,8 @@ set menu_items [menu_file menu_edit menu_display menu_help];
           ( VSplitter 
             [
               ( Navigator )
-              ( MyWidget [] awidget )
-              ( MyWidget [] bwidget )
+              ( MyWidget null awidget )
+              ( MyWidget null bwidget )
               ( MyWidget )
             ]
             { width: 200 }

@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "guiCreator.h"
 #ifdef JX_QT
 #include "glwidget.h"
+#include "jxobject.h"
 #include "jxaction.h"
 #include <QtDebug>
 #include <QTextEdit>
@@ -74,23 +75,23 @@ bool GuiCreator::setOutputType(char *a)
   return false;
 }
 
-jx_ob GuiCreator::getMenuItem(jx_ob item, jx_char *attr) 
+jx::Object GuiCreator::getMenuItem(jx_ob item, jx_char *attr) 
 {
     return get_symbol_from_node(jx_list_borrow(item, 2), attr);
 }
 
-jx_ob GuiCreator::getSource(jx_ob entity) 
+jx::Object GuiCreator::getSource(jx_ob entity) 
 {
-    jx_ob source = get_symbol_from_node(jx_list_borrow(entity, 2), (jx_char *)"source");
-    if (jx_null_check(source)) {
+    jx::Object source = get_symbol_from_node(jx_list_borrow(entity, 2), (jx_char *)"source");
+    if (source.null_check()) {
       if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
-          return jx_ob_from_str((jx_char *)"opengl.html");
+          return jx::Object("opengl.html");
       } else if(jx_ob_identical(jx_list_borrow(entity,0), navigatorType)) {
-          return jx_ob_from_str((jx_char *)"navigator.html");
+          return jx::Object("navigator.html");
       } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
-          return jx_ob_from_str((jx_char *)"menubar.html");
+          return jx::Object("menubar.html");
       } else  {
-          return jx_ob_from_str((jx_char *)"");
+          return jx::Object("");
       }
     }
     return source;
@@ -130,8 +131,8 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
     JX_WIDGET *widget;
     int width = getWidth(entity);
     int height = getHeight(entity);
-    jx_ob src = getSource(entity);
-    if (out_type & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
+    jx::Object src = getSource(entity);
+    if (out_type & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.as_str(), width, height);
     if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
       GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
@@ -139,7 +140,7 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
       widget = w;
     } else if(jx_ob_identical(jx_list_borrow(entity,0), navigatorType)) {
       QTextEdit *w = new QTextEdit;
-      w->setPlainText(jx_ob_as_str(&src));
+      w->setPlainText(src.as_str());
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
@@ -150,12 +151,12 @@ JX_WIDGET * GuiCreator::createQtWidget(jx_ob entity)
     } else if(jx_ob_identical(jx_list_borrow(entity,0), menuItemType)) {
     } else  {
       QTextEdit *w = new QTextEdit;
-      w->setPlainText(jx_ob_as_str(&src));
+      w->setPlainText(src.as_str());
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
     }
-    jx_ob_free(src);
+    //jx_ob_free(src);
     return widget;
 }
 
@@ -186,31 +187,31 @@ void GuiCreator::printWidgetInfo(jx_ob entity)
 {
   int width = getWidth(entity);
   int height = getHeight(entity);
-  jx_ob src = getSource(entity);
+  jx::Object src = getSource(entity);
   if(jx_ob_identical(jx_list_borrow(entity,0), openglContextType)) {
-     fprintf(stderr,"OpenGL widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"OpenGL widget %s %dx%d\n", src.as_str(), width, height);
   } else if(jx_ob_identical(jx_list_borrow(entity,0), navigatorType)) {
-     fprintf(stderr,"Navigator widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"Navigator widget %s %dx%d\n", src.as_str(), width, height);
   } else if(jx_ob_identical(jx_list_borrow(entity,0), menuBarType)) {
-     fprintf(stderr,"MenuBar widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"MenuBar widget %s %dx%d\n", src.as_str(), width, height);
      if (out_type == GUI_PRINT) processMenuItems(entity,0,NULL);
   } else {
-     fprintf(stderr,"Generic widget %s %dx%d\n", jx_ob_as_str(&src), width, height);
+     fprintf(stderr,"Generic widget %s %dx%d\n", src.as_str(), width, height);
   }
-  jx_ob_free(src);
+  //jx_ob_free(src);
 }
 
 
-JX_MENU * GuiCreator::menuAction(jx_ob item, JX_MENU *menu_widget, jx_ob label, jx_ob callback, jx_ob checkbox, jx_ob popup)
+JX_MENU * GuiCreator::menuAction(jx_ob item, JX_MENU *menu_widget, jx::Object label, jx::Object callback, jx::Object checkbox, jx::Object popup)
 {
   JX_MENU *sub_menu;
 #ifdef JX_QT
 
   int has_checkbox;
-  if (jx_null_check(checkbox)) {
+  if (checkbox.null_check()) {
     has_checkbox = 0;
   } else {
-    if (!strncmp(jx_ob_as_str(&checkbox), "on", 2)) {
+    if (!strncmp(checkbox.as_str(), "on", 2)) {
       has_checkbox =  1;
     } else {
       has_checkbox = -1;
@@ -219,21 +220,21 @@ JX_MENU * GuiCreator::menuAction(jx_ob item, JX_MENU *menu_widget, jx_ob label, 
 
   if (out_type & GUI_QTUI) {
     if ( jx_list_size(jx_list_borrow(item,1)) > 0) { 
-      sub_menu = new JX_MENU(jx_ob_as_str(&label));
+      sub_menu = new JX_MENU(label.as_str());
       menu_widget->addMenu(sub_menu);
     } else {
 
-      JXAction *theAct = new JXAction(jx_ob_as_str(&label), callback, window);
+      JXAction *theAct = new JXAction(label.as_str(), callback, window);
       //Actions.push_back(theAct);
       //theAct->setShortcut(tr("Ctrl+B"));
       menu_widget->addAction(theAct);
-      if (!jx_null_check(callback)) {
-        if (jx_builtin_callable_check(callback)) {
+      if (!callback.null_check()) {
+        if (jx_builtin_callable_check(callback.get_jxob())) {
           if (has_checkbox) {
             QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
-          } else if ( !strncmp( jx_ob_as_str(&popup), "fileDialog", 10) ) {
+          } else if ( !strncmp( popup.as_str(), "fileDialog", 10) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(openFile()));
-          } else if ( !strncmp( jx_ob_as_str(&label), "Exit", 4) ) {
+          } else if ( !strncmp( label.as_str(), "Exit", 4) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doExit()));
           } else {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
@@ -263,34 +264,36 @@ JX_MENU * GuiCreator::processMenuItem(jx_ob item, JX_MENU * menu_widget) {
    This returns any sub_menu that might be created.
    A sub_menu will display a label, but ignore any checkbox or callback.
 */
-  jx_ob checkbox=jx_ob(), callback=jx_ob(), label=jx_ob(), popup=jx_ob();
+  //jx_ob checkbox=jx_ob(), callback=jx_ob(), label=jx_ob(), popup=jx_ob();
 
 /* label attribute */
-  label = getMenuItem(item, (jx_char *)"label");
-  if (out_type & GUI_PRINT) fprintf(stderr," label: %s", jx_ob_as_str(&label));
+  jx::Object label = getMenuItem(item, (jx_char *)"label");
+  if (out_type & GUI_PRINT) fprintf(stderr," label: %s", label.as_str());
 
 /* checkbox attribute */
-  checkbox = getMenuItem(item, (jx_char *)"checkbox");
-  if ((out_type & GUI_PRINT) & !jx_null_check(checkbox)) fprintf(stderr," checkbox: %s", jx_ob_as_str(&checkbox));
+  jx::Object checkbox = getMenuItem(item, (jx_char *)"checkbox");
+  if ((out_type & GUI_PRINT) & !checkbox.null_check()) fprintf(stderr," checkbox: %s", checkbox.as_str());
 
 /* callback attribute */
-  callback = getMenuItem(item, (jx_char *)"callback");
-  if (jx_null_check(callback)) {
+  jx::Object callback = getMenuItem(item, (jx_char *)"callback");
+  jx::Object popup = getMenuItem(item, (jx_char *)"popup");
+  if (callback.null_check()) {
     if (out_type & GUI_PRINT) fprintf(stderr,"\n");
-  } else if (jx_builtin_callable_check(callback)) {
-    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback);
-    popup = getMenuItem(item, (jx_char *)"popup");
+  } else if (jx_builtin_callable_check(callback.get_jxob())) {
+    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback.get_jxob());
   } else {
-    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback);
+    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback.get_jxob());
   }
 
   
   JX_MENU *sub_menu = menuAction(item, menu_widget, label, callback, checkbox, popup);
+/*
   jx_ob_free(label);
   jx_ob_free(checkbox);
   jx_ob_free(popup);
+*/
   // needed for later callbacks.  see also freeActions()
-  if (out_type & GUI_QTUI); else jx_ob_free(callback);
+  //if (out_type & GUI_QTUI); else jx_ob_free(callback);
 
   return sub_menu;
 }
@@ -325,12 +328,12 @@ void GuiCreator::printFrameHtml(jx_ob entity)
 {
    int width = getWidth(entity);
    int height = getHeight(entity);
-   jx_ob src = getSource(entity);
-   printf("  <FRAME SRC=\"%s\"", jx_ob_as_str(&src));
+   jx::Object src = getSource(entity);
+   printf("  <FRAME SRC=\"%s\"", src.as_str());
    if (width > 0)  printf(" WIDTH=%d", width);
    if (height > 0) printf(" HEIGHT=%d", height);
    printf(">\n");
-   jx_ob_free(src);
+   //jx_ob_free(src);
 }
 
 void GuiCreator::printHFramesetHtml(jx_ob pane, int size)
@@ -459,9 +462,11 @@ JX_WIDGET * GuiCreator::processComponents(jx_ob component)
 
 jx_ob GuiCreator::get_symbol_from_node(jx_ob node, jx_char *ident)
 {
-  jx_ob tmp = jx_ob_from_ident(ident);
-  jx_ob symbol = jx_hash_get(node,tmp);
-  jx_ob_free(tmp);
+  //jx::Object tmp = jx::Object_from_ident(ident);
+  //tmp.from_ident(ident);
+  jx::Ident tmp = ident;
+  jx_ob symbol = jx_hash_get(node,tmp.get_jxob());
+  //jx_ob_free(tmp);
   return symbol;
 }
 
