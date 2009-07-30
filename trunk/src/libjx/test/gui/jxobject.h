@@ -32,6 +32,8 @@ namespace jx {
 
       ~Object();
 
+      bool operator == (const Object&);
+
 /* meaningful prepositions, for systematic memory management:
 
    ..._with_...(...) implies a destructive conversion of input object (destroyed)
@@ -46,18 +48,21 @@ namespace jx {
 */
       jx_ob get_jxob();
 
-      Object from_int(int);
-      Object from_float(float);
-      Object from_float(double);
-      Object from_bool(bool);
-      Object from_string(char *);
-      Object from_string(const char *);
-      Object from_string(char *, int);
-      Object from_string(const char *, int);
-      Object from_ident(char *);
-      Object from_ident(const char *);
-      Object from_ident(char *, int);
-      Object from_ident(const char *, int);
+/* these methods are used, for example:
+      jx::Object a = jx::Object::from_int(47);
+*/
+      static Object from_int(int);
+      static Object from_float(float);
+      static Object from_float(double);
+      static Object from_bool(bool);
+      static Object from_string(char *);
+      static Object from_string(const char *);
+      static Object from_string(char *, int);
+      static Object from_string(const char *, int);
+      static Object from_ident(char *);
+      static Object from_ident(const char *);
+      static Object from_ident(char *, int);
+      static Object from_ident(const char *, int);
 
       //Object to_int(jx::Object &);
       Object to_int();
@@ -94,9 +99,9 @@ namespace jx {
     public:
       List();
       List(int size);
-      List(int * array, int size);
-      List(float * array, int size);
-      List(int size, Object &repeat);
+      List(int array[], int size);
+      List(float array[], int size);
+      List(int size, Object &fill);
 
       int size();
   };

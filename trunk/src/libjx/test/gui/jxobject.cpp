@@ -37,6 +37,11 @@ jx::Object::Object(const char * st, int stlen) {
   jxob = jx_ob_from_str_with_len((jx_char *)st, stlen);
 };
 
+/* Operators */
+bool jx::Object::operator == (const Object & rhs) {
+  return jx_ob_identical(jxob, rhs.jxob);
+}
+
 /* Copy */
 jx::Object::Object(const Object& from) {
   jxob = jx_ob_copy(from.jxob);
@@ -68,41 +73,44 @@ bool jx::Object::null_check() {
   return jx_null_check(jxob);
 }
 
+/* these static "creators" are used, for example:
+    jx::Object i = jx::Object::from_int(123);
+*/
 jx::Object jx::Object::from_int(int v) {
-  jxob = jx_ob_from_int(v);
+  return jx_ob_from_int(v);
 };
 jx::Object jx::Object::from_float(float v) {
-  jxob = jx_ob_from_float(v);
+  return jx_ob_from_float(v);
 };
 jx::Object jx::Object::from_float(double v) {
-  jxob = jx_ob_from_float(v);
+  return jx_ob_from_float(v);
 };
 jx::Object jx::Object::from_bool(bool v) {
-  jxob = jx_ob_from_bool(v);
+  return jx_ob_from_bool(v);
 };
 jx::Object jx::Object::from_string(char * st) {
-  jxob = jx_ob_from_str(st);
+  return jx_ob_from_str(st);
 };
 jx::Object jx::Object::from_string(const char * st) {
-  jxob = jx_ob_from_str((jx_char *)st);
+  return jx_ob_from_str((jx_char *)st);
 };
 jx::Object jx::Object::from_string(char * st, int stlen) {
-  jxob = jx_ob_from_str_with_len((jx_char *)st, stlen);
+  return jx_ob_from_str_with_len((jx_char *)st, stlen);
 };
 jx::Object jx::Object::from_string(const char * st, int stlen) {
-  jxob = jx_ob_from_str_with_len((jx_char *)st, stlen);
+  return jx_ob_from_str_with_len((jx_char *)st, stlen);
 };
 jx::Object jx::Object::from_ident(char * st) {
-  jxob = jx_ob_from_ident((jx_char *)st);
+  return jx_ob_from_ident((jx_char *)st);
 };
 jx::Object jx::Object::from_ident(const char * st) {
-  jxob = jx_ob_from_ident((jx_char *)st);
+  return jx_ob_from_ident((jx_char *)st);
 };
 jx::Object jx::Object::from_ident(char * st, int stlen) {
-  jxob = jx_ob_from_ident_with_len((jx_char *)st, stlen);
+  return jx_ob_from_ident_with_len((jx_char *)st, stlen);
 };
 jx::Object jx::Object::from_ident(const char * st, int stlen) {
-  jxob = jx_ob_from_ident_with_len((jx_char *)st, stlen);
+  return jx_ob_from_ident_with_len((jx_char *)st, stlen);
 };
 
 /*
@@ -168,13 +176,13 @@ jx::List::List() {
 jx::List::List(int size) {
   jxob = jx_list_new_with_size(size);
 }
-jx::List::List(int size, Object &repeat) {
-  jxob = jx_list_new_with_repeat(size, jx_ob_copy(repeat.get_jxob()));
+jx::List::List(int size, Object &fill) {
+  jxob = jx_list_new_with_fill(size, jx_ob_copy(fill.get_jxob()));
 }
-jx::List::List(int *array, int size) {
+jx::List::List(int array[], int size) {
   jxob = jx_list_new_from_int_array(array, size);
 }
-jx::List::List(float *array, int size) {
+jx::List::List(float array[], int size) {
   jxob = jx_list_new_from_float_array(array, size);
 }
 int jx::List::size() {

@@ -34,52 +34,51 @@ class GuiCreator
 public:
     GuiCreator(int otype=GUI_NONE);
     ~GuiCreator();
-    JX_WIDGET * gui_run_from_node(jx_ob node);
+    JX_WIDGET * gui_run_from_node(jx::Object node);
     bool setOutputType(char *a);
     int out_type;
     JX_WIDGET *window;
 
 private:
-    jx_ob gui;
+    jx::Object gui;
 
     void printVal(int v);
-    void printHFramesetHtml(jx_ob pane, int size);
-    void printVFramesetHtml(jx_ob pane, int size);
-    void printFrameHtml(jx_ob widget);
-    void printWidgetInfo(jx_ob widget);
-    JX_MENU * processMenuItem(jx_ob item, JX_MENU *menu_widget);
-    void processMenuItems(jx_ob menu, int depth, JX_MENU *menu_widget);
+    void printHFramesetHtml(jx::Object pane, int size);
+    void printVFramesetHtml(jx::Object pane, int size);
+    void printFrameHtml(jx::Object widget);
+    void printWidgetInfo(jx::Object widget);
+    JX_MENU * processMenuItem(jx::Object item, JX_MENU *menu_widget);
+    void processMenuItems(jx::Object menu, int depth, JX_MENU *menu_widget);
 
-    JX_WIDGET * createQtWidget(jx_ob widget);
-    JX_SPLITTER * createQtHsplitter(jx_ob pane, int size);
-    JX_SPLITTER * createQtVsplitter(jx_ob pane, int size);
+    JX_WIDGET * createQtWidget(jx::Object widget);
+    JX_SPLITTER * createQtHsplitter(jx::Object pane, int size);
+    JX_SPLITTER * createQtVsplitter(jx::Object pane, int size);
 
-    JX_MENU * menuAction(jx_ob item, JX_MENU *menu_widget, jx::Object label, jx::Object callback, jx::Object checkbox, jx::Object popup);
-    //std::list<JXAction *> Actions;
+    JX_MENU * menuAction(jx::Object item, JX_MENU *menu_widget, jx::Object label, jx::Object callback, jx::Object checkbox, jx::Object popup);
 
-    jx::Object getMenuItem(jx_ob item, jx_char *attr);
-    jx::Object getSource(jx_ob widget);
-    int getWidth(jx_ob widget);
-    int getHeight(jx_ob widget);
-    JX_WIDGET * processComponents(jx_ob component);
-    JX_SPLITTER * processHSplitter(jx_ob splitter);
-    JX_SPLITTER * processVSplitter(jx_ob splitter);
-    JX_WIDGET * processOpenGL(jx_ob widget);
-    JX_WIDGET * processNavigator(jx_ob widget);
-    JX_WIDGET * processMenuBar(jx_ob widget);
-    JX_WIDGET * processWidget(jx_ob widget);
+    static jx::Object getMenuItem(jx::Object item, char *attr);
+    static jx::Object getSource(jx::Object entity);
+    int getWidth(jx::Object entity);
+    int getHeight(jx::Object entity);
+    JX_WIDGET * processComponents(jx::Object component);
+    JX_SPLITTER * processHSplitter(jx::Object splitter);
+    JX_SPLITTER * processVSplitter(jx::Object splitter);
+    JX_WIDGET * processOpenGL(jx::Object widget);
+    JX_WIDGET * processNavigator(jx::Object widget);
+    JX_WIDGET * processMenuBar(jx::Object widget);
+    JX_WIDGET * processWidget(jx::Object widget);
 
-    jx_ob get_symbol_from_node(jx_ob node, jx_char *ident);
+    static jx::Object get_symbol_from_node(jx::Object node, jx_char *ident);
     jx_status freeKnowns();
-    jx_status locateKnowns(jx_ob node);
+    jx_status locateKnowns(jx::Object node);
 
     //struct known {
-      jx_ob hSplitterType;
-      jx_ob vSplitterType;
-      jx_ob menuBarType;
-      jx_ob menuItemType;
-      jx_ob openglContextType;
-      jx_ob navigatorType;
+    static jx::Object hSplitterType;
+    static jx::Object vSplitterType;
+    static jx::Object menuBarType;
+    static jx::Object menuItemType;
+    static jx::Object openglContextType;
+    static jx::Object navigatorType;
     //};
 
 };
