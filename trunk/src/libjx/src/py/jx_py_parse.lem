@@ -383,6 +383,13 @@ expr_stmt(A) ::= testlist(B) EQUALS testlist(C).
     A = jx_list_new();
     jx_list_append(A,jx_ob_from_ident("map_set"));
     jx_list_append(A,B);
+    {
+        jx_ob nop = jx_ob_from_ident("nop");
+        if(jx_ob_identical(jx_list_borrow(B,0),nop)) {
+          jx_list_delete(B,0);
+        }
+        jx_ob_free(nop);
+    }
     jx_list_append(A,C);
   } else {
     A = jx_list_new();
