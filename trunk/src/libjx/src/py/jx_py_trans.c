@@ -117,12 +117,18 @@ jx_ob jx_py_print(jx_env *E, jx_ob payload)
     jx_ob ob = jx_list_borrow(payload, i);
     switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
     case JX_META_BIT_STR:
-      fprintf(stdout, "%s", jx_ob_as_str(&ob));
+      if(i==(size-1))
+        fprintf(stdout, "%s\n", jx_ob_as_str(&ob));
+      else
+        fprintf(stdout, "%s", jx_ob_as_str(&ob));
       break;
     default:
       {
         jx_ob jxon = jx_ob_to_jxon_in_node(E->node, ob);
-        fprintf(stdout, "%s", jx_ob_as_str(&jxon));
+        if(i==(size-1))
+          fprintf(stdout, "%s\n", jx_ob_as_str(&jxon));
+        else
+          fprintf(stdout, "%s", jx_ob_as_str(&jxon));          
         jx_ob_free(jxon);
       }
       break;
@@ -130,7 +136,6 @@ jx_ob jx_py_print(jx_env *E, jx_ob payload)
     if((i + 1) < size)
       fprintf(stdout, " ");
   }
-  fprintf(stdout, "\n");
   jx_ob_free(payload);
   return jx_ob_from_null();
 }
