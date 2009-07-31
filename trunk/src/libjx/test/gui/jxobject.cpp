@@ -72,6 +72,24 @@ jx_ob jx::Object::get_jxob() {
 bool jx::Object::null_check() {
   return jx_null_check(jxob);
 }
+bool jx::Object::str_check() {
+  return jx_str_check(jxob);
+}
+bool jx::Object::int_check() {
+  return jx_int_check(jxob);
+}
+bool jx::Object::float_check() {
+  return jx_float_check(jxob);
+}
+bool jx::Object::bool_check() {
+  return jx_bool_check(jxob);
+}
+bool jx::Object::list_check() {
+  return jx_list_check(jxob);
+}
+bool jx::Object::hash_check() {
+  return jx_hash_check(jxob);
+}
 
 /* these static "creators" are used, for example:
     jx::Object i = jx::Object::from_int(123);
@@ -113,17 +131,26 @@ jx::Object jx::Object::from_ident(const char * st, int stlen) {
   return jx_ob_from_ident_with_len((jx_char *)st, stlen);
 };
 
-/*
-jx::Object jx::Object_from_ident(char * st) {
-  return jx_ob_from_ident((jx_char *)st);
-};
-*/
+/* useful for Ob not declared a List, but is */
+jx::Object jx::Object::list_borrow(int ielement) {
+  if (jx_list_check(jxob)) {
+    return jx_list_borrow(jxob, ielement);
+  } else {
+    return jx_ob_from_null();
+  }
+}
 
-/*
-jx::Object to_int(jx::Object &from) {
-  jx_ob_to_int(from.get_jxob());
-};
-*/
+/* useful for Ob not declared a Hash, but is */
+jx::Object jx::Object::hash_get(const char * ckey) {
+  jx_ob key = jx_ob_from_str((jx_char *)ckey);
+  if (jx_hash_check(jxob)) {
+    return jx_hash_get(jxob, key);
+  } else {
+    return jx_ob_from_null();
+  }
+  jx_ob_free(key);
+}
+
 jx::Object jx::Object::to_int() {
   return jx_ob_to_int(jxob);
 };
@@ -185,6 +212,22 @@ jx::List::List(int array[], int size) {
 jx::List::List(float array[], int size) {
   jxob = jx_list_new_from_float_array(array, size);
 }
+
+jx::Object jx::List::borrow(int ielement) {
+  return ((Object)this).list_borrow(ielement);
+}
 int jx::List::size() {
   return jx_list_size(jxob);
+}
+
+/* Hash Object class */
+jx::Hash::Hash() {
+  jxob = jx_hash_new();
+}
+
+int jx::Hash::size() {
+  return jx_hash_size(jxob);
+}
+jx::Object jx::Hash::get(const char * key) {
+  return ((Object)this).hash_get(key);
 }

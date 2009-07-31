@@ -2,6 +2,7 @@
 #include "jx_main_tools.h"
 
 #include "guiCreator.h"
+#include "jxobject.h"
 #ifdef JX_QT
 #include "glwidget.h"
 #include <QDebug>
@@ -51,14 +52,15 @@ int main(int argc, char *argv[])
   if(jx_ok( jx_os_process_init(argc,argv) )) {
     exit_status = EXIT_SUCCESS;
 
-    jx_ob node = jx_hash_new();
+    //jx_ob node = jx_hash_new();
+    jx::Hash node;
     
     //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
-    if(jx_ok( jx_main_exec_in_node(0,NULL,node) )) {
+    if(jx_ok( jx_main_exec_in_node(0,NULL,node.get_jxob()) )) {
       w = gui->gui_run_from_node(node);
     }
     
-    jx_ob_free(node);
+    //jx_ob_free(node);
     if (gui->out_type & GUI_QTUI) {
 #ifdef JX_QT
       layout = new QVBoxLayout;

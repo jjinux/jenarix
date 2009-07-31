@@ -79,6 +79,14 @@ namespace jx {
       bool bool_check();
       bool str_check();
       bool ident_check();
+      bool list_check();
+      bool hash_check();
+
+/* useful for Ob that is not declared a List, but is */
+      Object list_borrow(int);
+/* useful for Ob that is not declared a Hash, but is */
+      Object hash_get(const char * key);
+      Object hash_get(Object * key);
 
       int size();
       int type();
@@ -103,8 +111,18 @@ namespace jx {
       List(float array[], int size);
       List(int size, Object &fill);
 
+      Object borrow(int);
       int size();
   };
+
+  class Hash: public Object {
+
+    public:
+      Hash();
+
+      Object get(const char *);
+      int size();
+   };
 
   //Object Object_from_ident(char *);
 };

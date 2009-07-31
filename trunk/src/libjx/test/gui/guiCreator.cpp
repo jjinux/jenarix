@@ -75,20 +75,28 @@ bool GuiCreator::setOutputType(char *a)
   return false;
 }
 
-jx::Object GuiCreator::getMenuItem(jx::Object item, char *attr) 
+jx::Object GuiCreator::getMenuItem(jx::Object item, const char *attr) 
 {
-    return get_symbol_from_node(jx_list_borrow(item.get_jxob(), 2), attr);
+   return getAttr(item, attr);
+}
+jx::Object GuiCreator::getAttr(jx::Object item, const char *attr) 
+{
+    //return get_symbol_from_node(jx_list_borrow(item.get_jxob(), 2), attr);
+    jx::Object tmp = item.list_borrow(2);
+    return tmp.hash_get(attr);
 }
 
 jx::Object GuiCreator::getSource(jx::Object entity) 
 {
-    jx::Object source = get_symbol_from_node(jx_list_borrow(entity.get_jxob(), 2), "source");
+    jx::Object source = getAttr(entity, "source");
+    jx::Object type = entity.list_borrow(0);
     if (source.null_check()) {
-      if(jx_list_borrow(entity.get_jxob(),0) == openglContextType) {
+      //if(jx_list_borrow(entity.get_jxob(),0) == openglContextType) {
+      if(type == openglContextType) {
           return jx::Object("opengl.html");
-      } else if(jx_list_borrow(entity.get_jxob(),0) == navigatorType) {
+      } else if(type == navigatorType) {
           return jx::Object("navigator.html");
-      } else if(jx_list_borrow(entity.get_jxob(),0) == menuBarType) {
+      } else if(type == menuBarType) {
           return jx::Object("menubar.html");
       } else  {
           return jx::Object("");
@@ -99,8 +107,7 @@ jx::Object GuiCreator::getSource(jx::Object entity)
 
 int GuiCreator::getWidth(jx::Object entity) 
 {
-    int width = 0;
-    width = get_symbol_from_node(jx_list_borrow(entity.get_jxob(), 2), "width").as_int();
+    int width = getAttr(entity, "width").as_int();
 /*
     if (width == 0) {
         width = 10;
@@ -110,10 +117,9 @@ int GuiCreator::getWidth(jx::Object entity)
 }
 int GuiCreator::getHeight(jx::Object entity) 
 {
-    int height = 0;
-    height = get_symbol_from_node(jx_list_borrow(entity.get_jxob(), 2), "height").as_int();
+    int height = getAttr(entity, "height").as_int();
     if (height == 0) {
-      if(jx_list_borrow(entity.get_jxob(),0) == menuBarType) {
+      if(entity.list_borrow(0) == menuBarType) {
         height = GUI_MENUBAR_HEIGHT;
       }
     }
@@ -133,22 +139,22 @@ JX_WIDGET * GuiCreator::createQtWidget(jx::Object entity)
     int height = getHeight(entity);
     jx::Object src = getSource(entity);
     if (out_type & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.as_str(), width, height);
-    if(jx_list_borrow(entity.get_jxob(),0) == openglContextType) {
+    if(entity.list_borrow(0) == openglContextType) {
       GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
-    } else if(jx_list_borrow(entity.get_jxob(),0) == navigatorType) {
+    } else if(entity.list_borrow(0) == navigatorType) {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.as_str());
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
-    } else if(jx_list_borrow(entity.get_jxob(),0) == menuBarType) {
+    } else if(entity.list_borrow(0) == menuBarType) {
       QMenuBar *w = new QMenuBar;
       processMenuItems(entity,0,(JX_MENU *)w);
       widget = w;
-    } else if(jx_list_borrow(entity.get_jxob(),0) == menuItemType) {
+    } else if(entity.list_borrow(0) == menuItemType) {
     } else  {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.as_str());
@@ -188,11 +194,11 @@ void GuiCreator::printWidgetInfo(jx::Object entity)
   int width = getWidth(entity);
   int height = getHeight(entity);
   jx::Object src = getSource(entity);
-  if(jx_list_borrow(entity.get_jxob(),0) == openglContextType) {
+  if(entity.list_borrow(0) == openglContextType) {
      fprintf(stderr,"OpenGL widget %s %dx%d\n", src.as_str(), width, height);
-  } else if(jx_list_borrow(entity.get_jxob(),0) == navigatorType) {
+  } else if(entity.list_borrow(0) == navigatorType) {
      fprintf(stderr,"Navigator widget %s %dx%d\n", src.as_str(), width, height);
-  } else if(jx_list_borrow(entity.get_jxob(),0) == menuBarType) {
+  } else if(entity.list_borrow(0) == menuBarType) {
      fprintf(stderr,"MenuBar widget %s %dx%d\n", src.as_str(), width, height);
      if (out_type == GUI_PRINT) processMenuItems(entity,0,NULL);
   } else {
@@ -219,7 +225,7 @@ JX_MENU * GuiCreator::menuAction(jx::Object item, JX_MENU *menu_widget, jx::Obje
   }
 
   if (out_type & GUI_QTUI) {
-    if ( jx_list_size(jx_list_borrow(item.get_jxob(),1)) > 0) { 
+    if (item.list_borrow(1).size() > 0) { 
       sub_menu = new JX_MENU(label.as_str());
       menu_widget->addMenu(sub_menu);
     } else {
@@ -304,22 +310,22 @@ void GuiCreator::processMenuItems(jx::Object menu, int depth, JX_MENU *menu_widg
   recursively process menuItemTypes
 */
   std::string blanx(depth*2, ' ');  // for pretty printing
-  jx::Object menu_items = jx_list_borrow(menu.get_jxob(),1);
-  for (int i=0; i<jx_list_size(menu_items); ++i) {
-    jx::Object item = jx_list_borrow(menu_items.get_jxob(),i);
-    if(jx_list_borrow(item.get_jxob(),0) == menuItemType) {
+  jx::Object menu_items = menu.list_borrow(1);
+  for (int i=0; i<menu_items.size(); ++i) {
+    jx::Object item = menu_items.list_borrow(i);
+    if(item.list_borrow(0) == menuItemType) {
       if (out_type & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
       JX_MENU *sub_menu = processMenuItem(item, menu_widget);
       processMenuItems(item, depth+1, (JX_MENU *)sub_menu);
-    } else if (jx_str_check(item)) {
+    } else if (item.str_check()) {
 #ifdef JX_QT
       if (out_type & GUI_QTUI) menu_widget->addAction(item.as_str());
 #endif
       if (out_type & GUI_PRINT) fprintf(stderr,"%s  string %s\n", blanx.c_str(), item.as_str());
-    } else if (jx_null_check(item)) {
+    } else if (item.null_check()) {
       if (out_type & GUI_PRINT) fprintf(stderr,"%s  null\n", blanx.c_str());
     } else {
-      if (out_type & GUI_PRINT) fprintf(stderr,"%s  other type %d\n", blanx.c_str(), item,type());
+      if (out_type & GUI_PRINT) fprintf(stderr,"%s  other type %d\n", blanx.c_str(), item.type());
     }
   }
 }
@@ -339,11 +345,11 @@ void GuiCreator::printFrameHtml(jx::Object entity)
 void GuiCreator::printHFramesetHtml(jx::Object pane, int size)
 {
     printf("<FRAMESET COLS=");
-    int width = getWidth(jx_list_borrow(pane.get_jxob(),0));
+    int width = getWidth(pane.list_borrow(0));
     //int height = getHeight(jx_list_borrow(pane,0));
     printVal(width);
     for(int i=1;i<size;i++) {
-      width = getWidth(jx_list_borrow(pane.get_jxob(),i));
+      width = getWidth(pane.list_borrow(i));
       printf (",");
       printVal(width);
     }
@@ -353,11 +359,11 @@ void GuiCreator::printHFramesetHtml(jx::Object pane, int size)
 void GuiCreator::printVFramesetHtml(jx::Object pane, int size)
 {
     printf("<FRAMESET ROWS=");
-    int height = getHeight(jx_list_borrow(pane.get_jxob(),0));
+    int height = getHeight(pane.list_borrow(0));
     //int width = getWidth(jx_list_borrow(pane,0));
     printVal(height);
     for(int i=1;i<size;i++) {
-      height = getHeight(jx_list_borrow(pane.get_jxob(),i));
+      height = getHeight(pane.list_borrow(i));
       printf (",");
       printVal(height);
     }
@@ -366,8 +372,8 @@ void GuiCreator::printVFramesetHtml(jx::Object pane, int size)
 
 JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
 {
-  jx::Object pane = jx_list_borrow(splitter.get_jxob(),1);
-  jx_int i,size = jx_list_size(pane);
+  jx::Object pane = splitter.list_borrow(1);
+  jx_int i,size = pane.size();
 
   JX_SPLITTER *s;
 #ifdef JX_QT
@@ -384,7 +390,7 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
 
   JX_WIDGET *w;
   for(i=0;i<size;i++) {
-    w = processComponents(jx_list_borrow(pane.get_jxob(),i));
+    w = processComponents(pane.list_borrow(i));
 #ifdef JX_QT
     if (out_type & GUI_QTUI) {
        s->addWidget(w);
@@ -398,8 +404,8 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
 
 JX_SPLITTER * GuiCreator::processVSplitter(jx::Object splitter)
 {
-  jx::Object pane = jx_list_borrow(splitter.get_jxob(),1);
-  jx_int i,size = jx_list_size(pane);
+  jx::Object pane = splitter.list_borrow(1);
+  jx_int i,size = pane.size();
 
   JX_SPLITTER *s;
 #ifdef JX_QT
@@ -416,7 +422,7 @@ JX_SPLITTER * GuiCreator::processVSplitter(jx::Object splitter)
 
   JX_WIDGET *w;
   for(i=0;i<size;i++) {
-    w = processComponents(jx_list_borrow(pane.get_jxob(),i));
+    w = processComponents(pane.list_borrow(i));
 #ifdef JX_QT
     if (out_type & GUI_QTUI) {
        s->addWidget(w);
@@ -443,7 +449,7 @@ JX_WIDGET * GuiCreator::processWidget(jx::Object widget)
 
 JX_WIDGET * GuiCreator::processComponents(jx::Object component)
 {
-  jx::Object comp_type = jx_list_borrow(component.get_jxob(),0);
+  jx::Object comp_type = component.list_borrow(0);
 
   if(comp_type == hSplitterType) {
 
@@ -460,13 +466,13 @@ JX_WIDGET * GuiCreator::processComponents(jx::Object component)
   }
 }
 
-jx::Object GuiCreator::get_symbol_from_node(jx::Object node, char *ident)
+jx::Object GuiCreator::get_symbol_from_node(jx::Hash node, const char *ident)
 {
 /* either style of creating tmp works */
-  jx::Object tmp = jx::Object::from_ident(ident);
-  //jx::Ident tmp = ident;
-
-  jx::Object symbol = jx_hash_get(node,tmp.get_jxob());
+  //jx::Object tmp = jx::Object::from_ident(ident);
+  jx::Ident tmp = ident;
+  //jx::Object symbol = jx_hash_get(node,tmp.get_jxob());
+  jx::Object symbol = node.get(ident);
   //jx_ob_free(tmp);
   return symbol;
 }
@@ -474,16 +480,17 @@ jx::Object GuiCreator::get_symbol_from_node(jx::Object node, char *ident)
 /*
 jx_status GuiCreator::freeKnowns()
 {
-  jx_ob_free(vSplitterType);
-  jx_ob_free(hSplitterType);
-  jx_ob_free(menuBarType);
-  jx_ob_free(menuItemType);
-  jx_ob_free(openglContextType);
-  return jx_ob_free(navigatorType);
+  jx_ob_free vSplitterType;
+  jx_ob_free hSplitterType;
+  jx_ob_free menuBarType;
+  jx_ob_free menuItemType;
+  jx_ob_free openglContextType;
+  jx_ob_free navigatorType;
+  return JX_STATUS_SUCCESS;
 }
 */
 
-jx_status GuiCreator::locateKnowns(jx::Object node)
+jx_status GuiCreator::locateKnowns(jx::Hash node)
 {
 
   vSplitterType = get_symbol_from_node(node, "VSplitter");
@@ -496,7 +503,7 @@ jx_status GuiCreator::locateKnowns(jx::Object node)
   return JX_SUCCESS;
 }
 
-JX_WIDGET * GuiCreator::gui_run_from_node(jx::Object node)
+JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash node)
 {
   
   JX_WIDGET *w;
@@ -522,8 +529,8 @@ JX_WIDGET * GuiCreator::gui_run_from_node(jx::Object node)
     
     /* when done...free what we took */
 
-    freeKnowns();
-    jx_ob_free(gui);
+    //freeKnowns();
+    //jx_ob_free(gui);
 
     return w;
   }

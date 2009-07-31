@@ -30,11 +30,20 @@
 
 class GuiCreator
 {
+    //struct known {
+    jx::Object hSplitterType;
+    jx::Object vSplitterType;
+    jx::Object menuBarType;
+    jx::Object menuItemType;
+    jx::Object openglContextType;
+    jx::Object navigatorType;
+    //};
+
 
 public:
     GuiCreator(int otype=GUI_NONE);
     ~GuiCreator();
-    JX_WIDGET * gui_run_from_node(jx::Object node);
+    JX_WIDGET * gui_run_from_node(jx::Hash node);
     bool setOutputType(char *a);
     int out_type;
     JX_WIDGET *window;
@@ -56,8 +65,9 @@ private:
 
     JX_MENU * menuAction(jx::Object item, JX_MENU *menu_widget, jx::Object label, jx::Object callback, jx::Object checkbox, jx::Object popup);
 
-    static jx::Object getMenuItem(jx::Object item, char *attr);
-    static jx::Object getSource(jx::Object entity);
+    jx::Object getMenuItem(jx::Object item, const char *attr);
+    jx::Object get_attr_from_entity(jx::Object entity, const char *attr);
+    jx::Object getSource(jx::Object entity);
     int getWidth(jx::Object entity);
     int getHeight(jx::Object entity);
     JX_WIDGET * processComponents(jx::Object component);
@@ -68,18 +78,10 @@ private:
     JX_WIDGET * processMenuBar(jx::Object widget);
     JX_WIDGET * processWidget(jx::Object widget);
 
-    static jx::Object get_symbol_from_node(jx::Object node, jx_char *ident);
+    jx::Object get_symbol_from_node(jx::Hash node, const char *ident);
+    jx::Object getAttr(jx::Object item, const char *attr);
     jx_status freeKnowns();
-    jx_status locateKnowns(jx::Object node);
-
-    //struct known {
-    static jx::Object hSplitterType;
-    static jx::Object vSplitterType;
-    static jx::Object menuBarType;
-    static jx::Object menuItemType;
-    static jx::Object openglContextType;
-    static jx::Object navigatorType;
-    //};
+    jx_status locateKnowns(jx::Hash node);
 
 };
 
