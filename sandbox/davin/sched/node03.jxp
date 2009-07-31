@@ -1,0 +1,123 @@
+
+# now we switch from having a dedicated thread per queue to having a single
+# queue with multitple threads pulling from it
+
+entity(JxonNodeProto, null, null, { 
+  _handler : null,
+  _inputs : raw([ input ]),
+  _outputs : raw([ output, error ]),
+  input : (lambda self, payload: self._handler(input, payload)), 
+  output : (lambda self, x: output( x )),
+  error : (lambda self, x: error( x ))
+  })
+
+#JxonNodeProto = [JxonNodeEntity, {}]
+
+# create a shared queue
+
+queue = []
+synchronize(queue)
+
+result = []
+synchronize(result)
+
+# create underlying functions which waste a bunch of CPU before
+# sending their payload
+
+def _add(self, port, payload):
+  self.error("_add called")
+  a = 20
+  while a > 0:
+    a -= 1
+    self.output( payload + 1 )
+
+def _negate(self, port, payload):
+  self.error("_negate called " + str(payload))
+  a = 100
+  while a > 0:
+    a -= 1
+    self.output( -payload )
+
+def _square(self, port, payload):
+  self.error("_square called" + str(payload))
+  a = 500
+  while a > 0:
+    a -= 1
+    value = payload * payload
+    result.append(value)
+
+# then we copy the prototype
+
+nodeA = [JxonNodeProto, {}]
+nodeB = [JxonNodeProto, {}]
+nodeC = [JxonNodeProto, {}]
+
+# and bind the underlying functions
+
+nodeA._handler = _add
+nodeB._handler = _negate
+nodeC._handler = _square
+
+# prepare for concurrent use
+
+synchronize(nodeA)
+synchronize(nodeB)
+synchronize(nodeC)
+
+# create piping functions
+
+def pipeB(self, payload):
+  queue.append([payload, nodeB])
+
+# NOTE: jxp does not currently support single line defs
+def pipeC(self, payload):
+  queue.append([payload, nodeC])
+
+nodeA.output = pipeB
+nodeB.output = pipeC
+
+FINAL_RESULT_SIZE = 10
+
+def mythread(master, head, queue, result):
+  if master == true:
+    a = FINAL_RESULT_SIZE
+    while a > 0:
+        a -= 1
+        print "sending 1+" + str(a)
+        head.input(1, a)
+    print "master thread done"
+  else:
+    print "slave thread started"
+    while true:
+      # NOTE: the following list assignment will not work right now...
+      #[target, payload] = queue.pop(0)
+      packet = queue.pop(0)
+      payload = packet.pop()
+      target = packet.pop()
+      if payload != null:
+        target.input(payload)
+        if len(result) == FINAL_RESULT_SIZE:
+          break
+      else:
+        print "taking a breather"
+        sleep(2)
+    print "slave thread done"
+
+# now use parmap to run the network with a bunch of slave threads
+
+paramap( mythread, [ 
+  [true, nodeA, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result],
+  [false, null, queue, result]
+  ])
+
+print len(result)
+
+
+
