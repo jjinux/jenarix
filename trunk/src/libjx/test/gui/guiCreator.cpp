@@ -73,15 +73,14 @@ bool GuiCreator::setOutputType(char *a)
   return false;
 }
 
-jx::Object GuiCreator::getMenuItem(jx::Object item, const char *attr) 
+jx::Object GuiCreator::getAttr(jx::Object entity, const char *attr) 
 {
-   return getAttr(item, attr);
-}
-jx::Object GuiCreator::getAttr(jx::Object item, const char *attr) 
-{
-    //return get_symbol_from_node(jx_list_borrow(item.get_jxob(), 2), attr);
-    jx::Object tmp = item.list_borrow(2);
-    return tmp.hash_get(attr);
+/* get "attribute" from entity, which is a list of three items, the last of
+   which is a hash of attributes */
+    jx::Object tmp = entity.list_borrow(2);
+    jx::Ident key = attr;
+    jx::Object result = tmp.hash_get(key);
+    return result;
 }
 
 jx::Object GuiCreator::getSource(jx::Object entity) 
@@ -89,7 +88,6 @@ jx::Object GuiCreator::getSource(jx::Object entity)
     jx::Object source = getAttr(entity, "source");
     jx::Object type = entity.list_borrow(0);
     if (source.null_check()) {
-      //if(jx_list_borrow(entity.get_jxob(),0) == openglContextType) {
       if(type == openglContextType) {
           return jx::Object("opengl.html");
       } else if(type == navigatorType) {
@@ -233,7 +231,7 @@ JX_MENU * GuiCreator::menuAction(jx::Object item, JX_MENU *menu_widget, jx::Obje
       //theAct->setShortcut(tr("Ctrl+B"));
       menu_widget->addAction(theAct);
       if (!callback.null_check()) {
-        if (jx_builtin_callable_check(callback.get_jxob())) {
+        if (callback.builtin_callable_check()) {
           if (has_checkbox) {
             QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
           } else if ( !strncmp( popup.as_str(), "fileDialog", 10) ) {
@@ -268,28 +266,29 @@ JX_MENU * GuiCreator::processMenuItem(jx::Object item, JX_MENU * menu_widget) {
    This returns any sub_menu that might be created.
    A sub_menu will display a label, but ignore any checkbox or callback.
 */
-  //jx_ob checkbox=jx_ob(), callback=jx_ob(), label=jx_ob(), popup=jx_ob();
 
 /* label attribute */
-  jx::Object label = getMenuItem(item, "label");
+  jx::Object label = getAttr(item, "label");
   if (out_type & GUI_PRINT) fprintf(stderr," label: %s", label.as_str());
 
 /* checkbox attribute */
-  jx::Object checkbox = getMenuItem(item, "checkbox");
+  jx::Object checkbox = getAttr(item, "checkbox");
   if ((out_type & GUI_PRINT) & !checkbox.null_check()) fprintf(stderr," checkbox: %s", checkbox.as_str());
 
+/* popup attribute */
+  jx::Object popup = getAttr(item, "popup");
+  if ((out_type & GUI_PRINT) & !popup.null_check()) fprintf(stderr," popup: %s", popup.as_str());
+
 /* callback attribute */
-  jx::Object callback = getMenuItem(item, "callback");
-  jx::Object popup = getMenuItem(item, "popup");
+  jx::Object callback = getAttr(item, "callback");
   if (callback.null_check()) {
     if (out_type & GUI_PRINT) fprintf(stderr,"\n");
-  } else if (jx_builtin_callable_check(callback.get_jxob())) {
+  } else if (callback.builtin_callable_check()) {
     if (out_type & GUI_PRINT) callback.jxon_dump(stderr, " callback");
   } else {
     if (out_type & GUI_PRINT) callback.jxon_dump(stderr, " unknown callback");
   }
 
-  
   JX_MENU *sub_menu = menuAction(item, menu_widget, label, callback, checkbox, popup);
 /*
   jx_ob_free(label);
@@ -344,7 +343,6 @@ void GuiCreator::printHFramesetHtml(jx::Object pane, int size)
 {
     printf("<FRAMESET COLS=");
     int width = getWidth(pane.list_borrow(0));
-    //int height = getHeight(jx_list_borrow(pane,0));
     printVal(width);
     for(int i=1;i<size;i++) {
       width = getWidth(pane.list_borrow(i));
@@ -358,7 +356,6 @@ void GuiCreator::printVFramesetHtml(jx::Object pane, int size)
 {
     printf("<FRAMESET ROWS=");
     int height = getHeight(pane.list_borrow(0));
-    //int width = getWidth(jx_list_borrow(pane,0));
     printVal(height);
     for(int i=1;i<size;i++) {
       height = getHeight(pane.list_borrow(i));
@@ -371,7 +368,7 @@ void GuiCreator::printVFramesetHtml(jx::Object pane, int size)
 JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
 {
   jx::Object pane = splitter.list_borrow(1);
-  jx_int i,size = pane.size();
+  int i,size = pane.size();
 
   JX_SPLITTER *s;
 #ifdef JX_QT
@@ -403,7 +400,7 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
 JX_SPLITTER * GuiCreator::processVSplitter(jx::Object splitter)
 {
   jx::Object pane = splitter.list_borrow(1);
-  jx_int i,size = pane.size();
+  int i,size = pane.size();
 
   JX_SPLITTER *s;
 #ifdef JX_QT
@@ -449,8 +446,6 @@ JX_WIDGET * GuiCreator::processComponents(jx::Object component)
 {
   jx::Object comp_type = component.list_borrow(0);
 
-  comp_type.jxon_dump(stderr, "comp_type");
-
   if(comp_type == hSplitterType) {
 
     return processHSplitter(component);
@@ -475,18 +470,16 @@ jx_ob GuiCreator::get_symbol_from_node(jx::Hash node, const char *ident)
   return symbol;
 }
 
-/*
 jx_status GuiCreator::freeKnowns()
 {
-  jx_ob_free vSplitterType;
-  jx_ob_free hSplitterType;
-  jx_ob_free menuBarType;
-  jx_ob_free menuItemType;
-  jx_ob_free openglContextType;
-  jx_ob_free navigatorType;
+  jx_ob_free(vSplitterType);
+  jx_ob_free(hSplitterType);
+  jx_ob_free(menuBarType);
+  jx_ob_free(menuItemType);
+  jx_ob_free(openglContextType);
+  jx_ob_free(navigatorType);
   return JX_STATUS_SUCCESS;
 }
-*/
 
 jx_status GuiCreator::locateKnowns(jx::Hash node)
 {
@@ -527,7 +520,7 @@ JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash node)
     
     /* when done...free what we took */
 
-    //freeKnowns();
+    freeKnowns();
     //jx_ob_free(gui);
 
     return w;

@@ -48,7 +48,7 @@ namespace jx {
    ..._in_... implies usage of the input object (usually transient)
 */
       jx_ob get_jxob();
-      void jxon_dump(FILE *, char *);
+      void jxon_dump(FILE *, const char *);
 
 /* these methods are used, for example:
       jx::Object a = jx::Object::from_int(47);
@@ -83,6 +83,7 @@ namespace jx {
       bool ident_check();
       bool list_check();
       bool hash_check();
+      bool builtin_callable_check();
 
 /* useful for Ob that is not declared a List, but is */
       Object list_borrow(int);
@@ -122,7 +123,7 @@ namespace jx {
     public:
       Hash();
 
-      Object get(const char *);
+      Object get(Object key);
       int size();
    };
 

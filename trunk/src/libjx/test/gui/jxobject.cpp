@@ -72,8 +72,8 @@ jx::Object::~Object() {
 jx_ob jx::Object::get_jxob() {
   return jxob;
 }
-void jx::Object::jxon_dump(FILE *f, char *prefix) {
-  jx_jxon_dump(f, prefix, jxob);
+void jx::Object::jxon_dump(FILE *f, const char *prefix) {
+  jx_jxon_dump(f, (jx_char *)prefix, jxob);
 }
 bool jx::Object::null_check() {
   return jx_null_check(jxob);
@@ -95,6 +95,9 @@ bool jx::Object::list_check() {
 }
 bool jx::Object::hash_check() {
   return jx_hash_check(jxob);
+}
+bool jx::Object::builtin_callable_check() {
+  return jx_builtin_callable_check(jxob);
 }
 
 /* these static "creators" are used, for example:
@@ -147,20 +150,13 @@ jx::Object jx::Object::list_borrow(int ielement) {
 }
 
 /* useful for Ob not declared a Hash, but is */
-jx::Object jx::Object::hash_get(const char * ckey) {
-  jx_ob key = jx_ob_from_str((jx_char *)ckey);
-  if (jx_hash_check(jxob)) {
-    return jx_hash_get(jxob, key);
-  } else {
-    return jx_ob_from_null();
-  }
-  jx_ob_free(key);
-}
 jx::Object jx::Object::hash_get(Object key) {
   if (jx_hash_check(jxob)) {
-    return jx_hash_get(jxob, key.get_jxob());
+    jx::Object result = jx_hash_get(jxob, key.get_jxob());
+    return result;
   } else {
-    return jx_ob_from_null();
+    jx::Object result = jx_ob_from_null();
+    return result;
   }
 }
 
@@ -241,6 +237,7 @@ jx::Hash::Hash() {
 int jx::Hash::size() {
   return jx_hash_size(jxob);
 }
-jx::Object jx::Hash::get(const char * key) {
-  return ((Object)this).hash_get(key);
+jx::Object jx::Hash::get(Object key) {
+  Object result = jx_hash_get(jxob, key.get_jxob());
+  return result;
 }
