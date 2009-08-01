@@ -6,8 +6,8 @@ jx::Object::Object() {
   jxob = jx_ob_from_null();
 };
 jx::Object::Object(jx_ob from) {
-  //jxob = jx_ob_copy(from);
-  jxob = from;
+  jxob = jx_ob_copy(from);
+  //jxob = from;
 };
 
 /*    could use from_, from_with, etc. methods, but these are cool */
@@ -41,6 +41,9 @@ jx::Object::Object(const char * st, int stlen) {
 bool jx::Object::operator == (const Object & rhs) {
   return jx_ob_identical(jxob, rhs.jxob);
 }
+bool jx::Object::operator == (const jx_ob rhs) {
+  return jx_ob_identical(jxob, rhs);
+}
 
 /* Copy */
 jx::Object::Object(const Object& from) {
@@ -68,6 +71,9 @@ jx::Object::~Object() {
 */
 jx_ob jx::Object::get_jxob() {
   return jxob;
+}
+void jx::Object::jxon_dump(FILE *f, char *prefix) {
+  jx_jxon_dump(f, prefix, jxob);
 }
 bool jx::Object::null_check() {
   return jx_null_check(jxob);
@@ -149,6 +155,13 @@ jx::Object jx::Object::hash_get(const char * ckey) {
     return jx_ob_from_null();
   }
   jx_ob_free(key);
+}
+jx::Object jx::Object::hash_get(Object key) {
+  if (jx_hash_check(jxob)) {
+    return jx_hash_get(jxob, key.get_jxob());
+  } else {
+    return jx_ob_from_null();
+  }
 }
 
 jx::Object jx::Object::to_int() {

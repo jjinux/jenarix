@@ -33,6 +33,7 @@ namespace jx {
       ~Object();
 
       bool operator == (const Object&);
+      bool operator == (const jx_ob);
 
 /* meaningful prepositions, for systematic memory management:
 
@@ -47,6 +48,7 @@ namespace jx {
    ..._in_... implies usage of the input object (usually transient)
 */
       jx_ob get_jxob();
+      void jxon_dump(FILE *, char *);
 
 /* these methods are used, for example:
       jx::Object a = jx::Object::from_int(47);
@@ -86,7 +88,7 @@ namespace jx {
       Object list_borrow(int);
 /* useful for Ob that is not declared a Hash, but is */
       Object hash_get(const char * key);
-      Object hash_get(Object * key);
+      Object hash_get(Object key);
 
       int size();
       int type();

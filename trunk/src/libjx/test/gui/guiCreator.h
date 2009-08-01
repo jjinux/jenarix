@@ -30,15 +30,6 @@
 
 class GuiCreator
 {
-    //struct known {
-    jx::Object hSplitterType;
-    jx::Object vSplitterType;
-    jx::Object menuBarType;
-    jx::Object menuItemType;
-    jx::Object openglContextType;
-    jx::Object navigatorType;
-    //};
-
 
 public:
     GuiCreator(int otype=GUI_NONE);
@@ -47,6 +38,15 @@ public:
     bool setOutputType(char *a);
     int out_type;
     JX_WIDGET *window;
+
+/*
+    jx::Object hSplitterType;
+    jx::Object vSplitterType;
+    jx::Object menuBarType;
+    jx::Object menuItemType;
+    jx::Object openglContextType;
+    jx::Object navigatorType;
+*/
 
 private:
     jx::Object gui;
@@ -78,7 +78,7 @@ private:
     JX_WIDGET * processMenuBar(jx::Object widget);
     JX_WIDGET * processWidget(jx::Object widget);
 
-    jx::Object get_symbol_from_node(jx::Hash node, const char *ident);
+    jx_ob get_symbol_from_node(jx::Hash node, const char *ident);
     jx::Object getAttr(jx::Object item, const char *attr);
     jx_status freeKnowns();
     jx_status locateKnowns(jx::Hash node);

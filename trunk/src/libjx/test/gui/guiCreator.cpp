@@ -41,16 +41,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include <string>
 
-/*
-typedef struct {
+//static struct KnownTypes {
   jx_ob hSplitterType;
   jx_ob vSplitterType;
   jx_ob menuBarType;
+  jx_ob menuItemType;
   jx_ob openglContextType;
   jx_ob navigatorType;
-} Knowns;
-*/
-
+//} guiType;
 
 GuiCreator::GuiCreator(int otype)
 {
@@ -286,9 +284,9 @@ JX_MENU * GuiCreator::processMenuItem(jx::Object item, JX_MENU * menu_widget) {
   if (callback.null_check()) {
     if (out_type & GUI_PRINT) fprintf(stderr,"\n");
   } else if (jx_builtin_callable_check(callback.get_jxob())) {
-    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" callback", callback.get_jxob());
+    if (out_type & GUI_PRINT) callback.jxon_dump(stderr, " callback");
   } else {
-    if (out_type & GUI_PRINT) jx_jxon_dump(stderr, (jx_char *)" unknown callback", callback.get_jxob());
+    if (out_type & GUI_PRINT) callback.jxon_dump(stderr, " unknown callback");
   }
 
   
@@ -451,6 +449,8 @@ JX_WIDGET * GuiCreator::processComponents(jx::Object component)
 {
   jx::Object comp_type = component.list_borrow(0);
 
+  comp_type.jxon_dump(stderr, "comp_type");
+
   if(comp_type == hSplitterType) {
 
     return processHSplitter(component);
@@ -466,14 +466,12 @@ JX_WIDGET * GuiCreator::processComponents(jx::Object component)
   }
 }
 
-jx::Object GuiCreator::get_symbol_from_node(jx::Hash node, const char *ident)
+jx_ob GuiCreator::get_symbol_from_node(jx::Hash node, const char *ident)
 {
 /* either style of creating tmp works */
   //jx::Object tmp = jx::Object::from_ident(ident);
   jx::Ident tmp = ident;
-  //jx::Object symbol = jx_hash_get(node,tmp.get_jxob());
-  jx::Object symbol = node.get(ident);
-  //jx_ob_free(tmp);
+  jx_ob symbol = jx_hash_get(node.get_jxob(),tmp.get_jxob());
   return symbol;
 }
 
@@ -493,14 +491,14 @@ jx_status GuiCreator::freeKnowns()
 jx_status GuiCreator::locateKnowns(jx::Hash node)
 {
 
-  vSplitterType = get_symbol_from_node(node, "VSplitter");
-  hSplitterType = get_symbol_from_node(node, "HSplitter");
-  menuBarType = get_symbol_from_node(node, "MenuBar");
-  menuItemType = get_symbol_from_node(node, "MenuItem");
+  vSplitterType     = get_symbol_from_node(node, "VSplitter");
+  hSplitterType     = get_symbol_from_node(node, "HSplitter");
+  menuBarType       = get_symbol_from_node(node, "MenuBar");
+  menuItemType      = get_symbol_from_node(node, "MenuItem");
   openglContextType = get_symbol_from_node(node, "OpenGLContext");
-  navigatorType = get_symbol_from_node(node, "Navigator");
+  navigatorType     = get_symbol_from_node(node, "Navigator");
 
-  return JX_SUCCESS;
+    return JX_SUCCESS;
 }
 
 JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash node)
@@ -516,8 +514,8 @@ JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash node)
     
     /* dump graph for debuggin' */
     
-    //jx_jxon_dump(stdout,"node",node);
-    //jx_jxon_dump(stdout,"gui",gui);
+    //gui.jxon_dump(stdout,"node");
+    //gui.jxon_dump(stdout,"gui");
     
     /* traverse the graph nondestructively, processing each component in turn */
     

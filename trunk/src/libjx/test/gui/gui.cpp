@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     exit_status = EXIT_SUCCESS;
 
     //jx_ob node = jx_hash_new();
-    jx::Hash node;
+    jx::Hash node = jx::Hash();
     
     //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
     if(jx_ok( jx_main_exec_in_node(0,NULL,node.get_jxob()) )) {
