@@ -86,10 +86,10 @@ namespace jx {
       bool builtin_callable_check();
 
 /* useful for Ob that is not declared a List, but is */
-      Object list_borrow(int);
+      jx::Object list_borrow(int);
 /* useful for Ob that is not declared a Hash, but is */
-      Object hash_get(const char * key);
-      Object hash_get(Object key);
+      jx::Object hash_get(const char * key);
+      jx::Object hash_get(const Object key);
 
       int size();
       int type();
@@ -123,7 +123,7 @@ namespace jx {
     public:
       Hash();
 
-      Object get(Object key);
+      jx_ob get(const Object key);
       int size();
    };
 

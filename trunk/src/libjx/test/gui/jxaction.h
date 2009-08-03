@@ -11,7 +11,7 @@ class JXAction : public QAction
     Q_OBJECT
 
 public:
-    JXAction(const QString & title, jx::Object callback, QWidget *parent = 0);
+    JXAction(const QString & title, jx::Object *callback, QWidget *parent = 0);
     ~JXAction();
 
 private:

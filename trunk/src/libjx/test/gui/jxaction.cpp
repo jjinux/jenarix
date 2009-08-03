@@ -2,10 +2,10 @@
 #include <QDebug>
 #include <QApplication>
 
-JXAction::JXAction(const QString & title, jx::Object callback, QWidget *parent)
+JXAction::JXAction(const QString & title, jx::Object *callback, QWidget *parent)
     : QAction(title, parent)
 {
-   this->callback = jx_ob_copy(callback.get_jxob());
+   this->callback = jx_ob_copy(callback->get_jxob());
 }
 
 JXAction::~JXAction()
@@ -16,8 +16,8 @@ JXAction::~JXAction()
 void JXAction::doCallback(bool checked)
 {
     jx_ob fn = jx_ob_copy(callback);
-    jx_function_call(fn, fn, jx_ob_from_bool(checked));
-    // fn is consumed, somehow
+    //jx_function_call(fn, fn, jx_ob_from_bool(checked));
+    jx_function_call(jx_ob_from_null(), fn, jx_ob_from_bool(checked)); // fn is consumed, somehow
     //jx_ob_free(fn);
 }
 
@@ -25,19 +25,19 @@ void JXAction::doCallback(QString s)
 {
     jx_ob fn = jx_ob_copy(callback);
     jx_ob arg= jx_ob_from_str(s.toAscii().data());
-    jx_function_call(fn, fn, arg);
+    jx_function_call(jx_ob_from_null(), fn, arg);
 }
 
 void JXAction::doCallback()
 {
     jx_ob fn = jx_ob_copy(callback);
-    jx_function_call(fn, fn, jx_ob());
+    jx_function_call(jx_ob_from_null(), fn, jx_ob());
 }
 
 void JXAction::doExit()
 {
     jx_ob fn = jx_ob_copy(callback);
-    jx_function_call(fn, fn, jx_ob());
+    jx_function_call(jx_ob_from_null(), fn, jx_ob());
     freeActions();
     exit(1);
 }

@@ -53,14 +53,15 @@ int main(int argc, char *argv[])
     exit_status = EXIT_SUCCESS;
 
     //jx_ob node = jx_hash_new();
-    jx::Hash node = jx::Hash();
+    jx::Hash *node = new jx::Hash();
     
     //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
-    if(jx_ok( jx_main_exec_in_node(0,NULL,node.get_jxob()) )) {
+    if(jx_ok( jx_main_exec_in_node(0,NULL,node->get_jxob()) )) {
       w = gui->gui_run_from_node(node);
     }
     
-    //jx_ob_free(node);
+    delete node;
+    //jx_ob_free(node->get_jxob());
     if (gui->out_type & GUI_QTUI) {
 #ifdef JX_QT
       layout = new QVBoxLayout;

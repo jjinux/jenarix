@@ -1,4 +1,4 @@
-CXXFLAGS=-DJX_QT
+CXXFLAGS=-DJX_QT -nowarn
 INCLUDES=-I../../include \
  -I../../src/core \
  -I../../src/main \

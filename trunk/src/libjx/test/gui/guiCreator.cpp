@@ -73,20 +73,19 @@ bool GuiCreator::setOutputType(char *a)
   return false;
 }
 
-jx::Object GuiCreator::getAttr(jx::Object entity, const char *attr) 
+jx::Object GuiCreator::getAttr(jx::Object *entity, const char *attr) 
 {
 /* get "attribute" from entity, which is a list of three items, the last of
    which is a hash of attributes */
-    jx::Object tmp = entity.list_borrow(2);
+    jx::Object tmp = entity->list_borrow(2);
     jx::Ident key = attr;
-    jx::Object result = tmp.hash_get(key);
-    return result;
+    return tmp.hash_get(key);
 }
 
-jx::Object GuiCreator::getSource(jx::Object entity) 
+jx::Object GuiCreator::getSource(jx::Object *entity) 
 {
     jx::Object source = getAttr(entity, "source");
-    jx::Object type = entity.list_borrow(0);
+    jx::Object type = entity->list_borrow(0);
     if (source.null_check()) {
       if(type == openglContextType) {
           return jx::Object("opengl.html");
@@ -101,56 +100,35 @@ jx::Object GuiCreator::getSource(jx::Object entity)
     return source;
 }
 
-int GuiCreator::getWidth(jx::Object entity) 
-{
-    int width = getAttr(entity, "width").as_int();
-/*
-    if (width == 0) {
-        width = 10;
-    }
-*/
-    return width;
-}
-int GuiCreator::getHeight(jx::Object entity) 
-{
-    int height = getAttr(entity, "height").as_int();
-    if (height == 0) {
-      if(entity.list_borrow(0) == menuBarType) {
-        height = GUI_MENUBAR_HEIGHT;
-      }
-    }
-    return height;
-}
-
 void GuiCreator::printVal(int v) {
   if (v == 0) printf("*");
   else printf("%d", v);
 }
 
 #ifdef JX_QT
-JX_WIDGET * GuiCreator::createQtWidget(jx::Object entity)
+JX_WIDGET * GuiCreator::createQtWidget(jx::Object *entity)
 {
     JX_WIDGET *widget;
-    int width = getWidth(entity);
-    int height = getHeight(entity);
+    int width = getAttr(entity, "width").as_int();
+    int height = getAttr(entity, "height").as_int();
     jx::Object src = getSource(entity);
     if (out_type & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.as_str(), width, height);
-    if(entity.list_borrow(0) == openglContextType) {
+    if(entity->list_borrow(0) == openglContextType) {
       GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
-    } else if(entity.list_borrow(0) == navigatorType) {
+    } else if(entity->list_borrow(0) == navigatorType) {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.as_str());
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
-    } else if(entity.list_borrow(0) == menuBarType) {
+    } else if(entity->list_borrow(0) == menuBarType) {
       QMenuBar *w = new QMenuBar;
       processMenuItems(entity,0,(JX_MENU *)w);
       widget = w;
-    } else if(entity.list_borrow(0) == menuItemType) {
+    } else if(entity->list_borrow(0) == menuItemType) {
     } else  {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.as_str());
@@ -162,10 +140,10 @@ JX_WIDGET * GuiCreator::createQtWidget(jx::Object entity)
     return widget;
 }
 
-JX_SPLITTER * GuiCreator::createQtHsplitter(jx::Object splitter, int size)
+JX_SPLITTER * GuiCreator::createQtHsplitter(jx::Object *splitter, int size)
 {
-    int width = getWidth(splitter);
-    int height = getHeight(splitter);
+    int width = getAttr(splitter, "width").as_int();
+    int height = getAttr(splitter, "height").as_int();
     QSplitter *s = new QSplitter(Qt::Horizontal);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
@@ -173,10 +151,10 @@ JX_SPLITTER * GuiCreator::createQtHsplitter(jx::Object splitter, int size)
     return s;
 }
 
-JX_SPLITTER * GuiCreator::createQtVsplitter(jx::Object splitter, int size)
+JX_SPLITTER * GuiCreator::createQtVsplitter(jx::Object *splitter, int size)
 {
-    int width = getWidth(splitter);
-    int height = getHeight(splitter);
+    int width = getAttr(splitter, "width").as_int();
+    int height = getAttr(splitter, "height").as_int();
     QSplitter *s = new QSplitter(Qt::Vertical);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
@@ -185,16 +163,17 @@ JX_SPLITTER * GuiCreator::createQtVsplitter(jx::Object splitter, int size)
 }
 #endif
 
-void GuiCreator::printWidgetInfo(jx::Object entity)
+void GuiCreator::printWidgetInfo(jx::Object *entity)
 {
-  int width = getWidth(entity);
-  int height = getHeight(entity);
+  int width = getAttr(entity, "width").as_int();
+  int height = getAttr(entity, "height").as_int();
   jx::Object src = getSource(entity);
-  if(entity.list_borrow(0) == openglContextType) {
+  if(entity->list_borrow(0) == openglContextType) {
      fprintf(stderr,"OpenGL widget %s %dx%d\n", src.as_str(), width, height);
-  } else if(entity.list_borrow(0) == navigatorType) {
+  } else if(entity->list_borrow(0) == navigatorType) {
      fprintf(stderr,"Navigator widget %s %dx%d\n", src.as_str(), width, height);
-  } else if(entity.list_borrow(0) == menuBarType) {
+  } else if(entity->list_borrow(0) == menuBarType) {
+     if (height == 0) height = GUI_MENUBAR_HEIGHT;
      fprintf(stderr,"MenuBar widget %s %dx%d\n", src.as_str(), width, height);
      if (out_type == GUI_PRINT) processMenuItems(entity,0,NULL);
   } else {
@@ -204,16 +183,16 @@ void GuiCreator::printWidgetInfo(jx::Object entity)
 }
 
 
-JX_MENU * GuiCreator::menuAction(jx::Object item, JX_MENU *menu_widget, jx::Object label, jx::Object callback, jx::Object checkbox, jx::Object popup)
+JX_MENU * GuiCreator::menuAction(jx::Object *item, JX_MENU *menu_widget, jx::Object *label, jx::Object *callback, jx::Object *checkbox, jx::Object *popup)
 {
   JX_MENU *sub_menu;
 #ifdef JX_QT
 
   int has_checkbox;
-  if (checkbox.null_check()) {
+  if (checkbox->null_check()) {
     has_checkbox = 0;
   } else {
-    if (!strncmp(checkbox.as_str(), "on", 2)) {
+    if (!strncmp(checkbox->as_str(), "on", 2)) {
       has_checkbox =  1;
     } else {
       has_checkbox = -1;
@@ -221,22 +200,22 @@ JX_MENU * GuiCreator::menuAction(jx::Object item, JX_MENU *menu_widget, jx::Obje
   }
 
   if (out_type & GUI_QTUI) {
-    if (item.list_borrow(1).size() > 0) { 
-      sub_menu = new JX_MENU(label.as_str());
+    if ((item->list_borrow(1)).size() > 0) { 
+      sub_menu = new JX_MENU(label->as_str());
       menu_widget->addMenu(sub_menu);
     } else {
 
-      JXAction *theAct = new JXAction(label.as_str(), callback, window);
+      JXAction *theAct = new JXAction(label->as_str(), callback, window);
       //Actions.push_back(theAct);
       //theAct->setShortcut(tr("Ctrl+B"));
       menu_widget->addAction(theAct);
-      if (!callback.null_check()) {
-        if (callback.builtin_callable_check()) {
+      if (!callback->null_check()) {
+        if (callback->builtin_callable_check()) {
           if (has_checkbox) {
             QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
-          } else if ( !strncmp( popup.as_str(), "fileDialog", 10) ) {
+          } else if ( !strncmp( popup->as_str(), "fileDialog", 10) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(openFile()));
-          } else if ( !strncmp( label.as_str(), "Exit", 4) ) {
+          } else if ( !strncmp( label->as_str(), "Exit", 4) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doExit()));
           } else {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
@@ -258,7 +237,7 @@ JX_MENU * GuiCreator::menuAction(jx::Object item, JX_MENU *menu_widget, jx::Obje
 #endif
 }
 
-JX_MENU * GuiCreator::processMenuItem(jx::Object item, JX_MENU * menu_widget) {
+JX_MENU * GuiCreator::processMenuItem(jx::Object *item, JX_MENU * menu_widget) {
 /*
    deal with attributes of a single menu item: label, checkbox, callback.
    This creates and adds an Action if this item is not a list.
@@ -289,7 +268,7 @@ JX_MENU * GuiCreator::processMenuItem(jx::Object item, JX_MENU * menu_widget) {
     if (out_type & GUI_PRINT) callback.jxon_dump(stderr, " unknown callback");
   }
 
-  JX_MENU *sub_menu = menuAction(item, menu_widget, label, callback, checkbox, popup);
+  JX_MENU *sub_menu = menuAction(item, menu_widget, &label, &callback, &checkbox, &popup);
 /*
   jx_ob_free(label);
   jx_ob_free(checkbox);
@@ -301,19 +280,19 @@ JX_MENU * GuiCreator::processMenuItem(jx::Object item, JX_MENU * menu_widget) {
   return sub_menu;
 }
 
-void GuiCreator::processMenuItems(jx::Object menu, int depth, JX_MENU *menu_widget)
+void GuiCreator::processMenuItems(jx::Object *menu, int depth, JX_MENU *menu_widget)
 {
 /*
   recursively process menuItemTypes
 */
   std::string blanx(depth*2, ' ');  // for pretty printing
-  jx::Object menu_items = menu.list_borrow(1);
+  jx::Object menu_items = menu->list_borrow(1);
   for (int i=0; i<menu_items.size(); ++i) {
     jx::Object item = menu_items.list_borrow(i);
     if(item.list_borrow(0) == menuItemType) {
       if (out_type & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
-      JX_MENU *sub_menu = processMenuItem(item, menu_widget);
-      processMenuItems(item, depth+1, (JX_MENU *)sub_menu);
+      JX_MENU *sub_menu = processMenuItem(&item, menu_widget);
+      processMenuItems(&item, depth+1, (JX_MENU *)sub_menu);
     } else if (item.str_check()) {
 #ifdef JX_QT
       if (out_type & GUI_QTUI) menu_widget->addAction(item.as_str());
@@ -327,10 +306,10 @@ void GuiCreator::processMenuItems(jx::Object menu, int depth, JX_MENU *menu_widg
   }
 }
 
-void GuiCreator::printFrameHtml(jx::Object entity)
+void GuiCreator::printFrameHtml(jx::Object *entity)
 {
-   int width = getWidth(entity);
-   int height = getHeight(entity);
+   int width = getAttr(entity, "width").as_int();
+   int height = getAttr(entity, "height").as_int();
    jx::Object src = getSource(entity);
    printf("  <FRAME SRC=\"%s\"", src.as_str());
    if (width > 0)  printf(" WIDTH=%d", width);
@@ -339,44 +318,44 @@ void GuiCreator::printFrameHtml(jx::Object entity)
    //jx_ob_free(src);
 }
 
-void GuiCreator::printHFramesetHtml(jx::Object pane, int size)
+void GuiCreator::printHFramesetHtml(jx::Object *pane, int size)
 {
     printf("<FRAMESET COLS=");
-    int width = getWidth(pane.list_borrow(0));
+    int width = getAttr(&pane->list_borrow(0), "width").as_int();
     printVal(width);
     for(int i=1;i<size;i++) {
-      width = getWidth(pane.list_borrow(i));
+      width = getAttr(&pane->list_borrow(i), "width").as_int();
       printf (",");
       printVal(width);
     }
     printf (">\n");
 }
 
-void GuiCreator::printVFramesetHtml(jx::Object pane, int size)
+void GuiCreator::printVFramesetHtml(jx::Object *pane, int size)
 {
     printf("<FRAMESET ROWS=");
-    int height = getHeight(pane.list_borrow(0));
+    int height = getAttr(&(pane->list_borrow(0)), "height").as_int();
     printVal(height);
     for(int i=1;i<size;i++) {
-      height = getHeight(pane.list_borrow(i));
+      height = getAttr(&(pane->list_borrow(i)), "height").as_int();
       printf (",");
       printVal(height);
     }
     printf (">\n");
 }
 
-JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
+JX_SPLITTER * GuiCreator::processHSplitter(jx::Object *splitter)
 {
-  jx::Object pane = splitter.list_borrow(1);
+  jx::Object pane = splitter->list_borrow(1);
   int i,size = pane.size();
 
   JX_SPLITTER *s;
 #ifdef JX_QT
-  int width = getWidth(splitter);
-  int height = getHeight(splitter);
+  int width = getAttr(splitter, "width").as_int();
+  int height = getAttr(splitter, "height").as_int();
 #endif
   if (out_type & GUI_PRINT) fprintf(stderr,"processing horizontal splitter %d widget...\n", size);
-  if (out_type & GUI_HTML) printHFramesetHtml(pane,size);
+  if (out_type & GUI_HTML) printHFramesetHtml(&pane,size);
 #ifdef JX_QT
   if (out_type & GUI_QTUI) {
     s = createQtHsplitter(splitter,size);
@@ -385,7 +364,7 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
 
   JX_WIDGET *w;
   for(i=0;i<size;i++) {
-    w = processComponents(pane.list_borrow(i));
+    w = processComponents(&(pane.list_borrow(i)));
 #ifdef JX_QT
     if (out_type & GUI_QTUI) {
        s->addWidget(w);
@@ -397,18 +376,18 @@ JX_SPLITTER * GuiCreator::processHSplitter(jx::Object splitter)
   return s;
 }
 
-JX_SPLITTER * GuiCreator::processVSplitter(jx::Object splitter)
+JX_SPLITTER * GuiCreator::processVSplitter(jx::Object *splitter)
 {
-  jx::Object pane = splitter.list_borrow(1);
+  jx::Object pane = splitter->list_borrow(1);
   int i,size = pane.size();
 
   JX_SPLITTER *s;
 #ifdef JX_QT
-  int width = getWidth(splitter);
-  int height = getHeight(splitter);
+  int width = getAttr(splitter, "width").as_int();
+  int height = getAttr(splitter, "height").as_int();
 #endif
   if (out_type & GUI_PRINT) fprintf(stderr,"processing vertical splitter %d widget...\n", size);
-  if (out_type & GUI_HTML)  printVFramesetHtml(pane, size);
+  if (out_type & GUI_HTML)  printVFramesetHtml(&pane, size);
 #ifdef JX_QT
   if (out_type & GUI_QTUI) {
     s = createQtVsplitter(splitter,size);
@@ -417,7 +396,7 @@ JX_SPLITTER * GuiCreator::processVSplitter(jx::Object splitter)
 
   JX_WIDGET *w;
   for(i=0;i<size;i++) {
-    w = processComponents(pane.list_borrow(i));
+    w = processComponents(&(pane.list_borrow(i)));
 #ifdef JX_QT
     if (out_type & GUI_QTUI) {
        s->addWidget(w);
@@ -429,7 +408,7 @@ JX_SPLITTER * GuiCreator::processVSplitter(jx::Object splitter)
   return s;
 }
 
-JX_WIDGET * GuiCreator::processWidget(jx::Object widget)
+JX_WIDGET * GuiCreator::processWidget(jx::Object *widget)
 {
   JX_WIDGET *w;
   if (out_type & GUI_PRINT) printWidgetInfo(widget);
@@ -442,9 +421,9 @@ JX_WIDGET * GuiCreator::processWidget(jx::Object widget)
   return w;
 }
 
-JX_WIDGET * GuiCreator::processComponents(jx::Object component)
+JX_WIDGET * GuiCreator::processComponents(jx::Object *component)
 {
-  jx::Object comp_type = component.list_borrow(0);
+  jx::Object comp_type = component->list_borrow(0);
 
   if(comp_type == hSplitterType) {
 
@@ -461,40 +440,50 @@ JX_WIDGET * GuiCreator::processComponents(jx::Object component)
   }
 }
 
-jx_ob GuiCreator::get_symbol_from_node(jx::Hash node, const char *ident)
+/*
+jx::Object GuiCreator::get_symbol_from_node(jx::Hash *hash, const char *ident)
 {
-/* either style of creating tmp works */
+// either style of creating tmp works 
   //jx::Object tmp = jx::Object::from_ident(ident);
   jx::Ident tmp = ident;
-  jx_ob symbol = jx_hash_get(node.get_jxob(),tmp.get_jxob());
+  //jx_ob symbol = jx_hash_get(hash->get_jxob(),tmp.get_jxob());
+  jx::Object symbol = hash->get(tmp);
+  //fprintf(stderr, "%d:", symbol);
+  symbol.jxon_dump(stderr, "symbol");
   return symbol;
 }
+*/
 
 jx_status GuiCreator::freeKnowns()
 {
+/*
   jx_ob_free(vSplitterType);
   jx_ob_free(hSplitterType);
   jx_ob_free(menuBarType);
   jx_ob_free(menuItemType);
   jx_ob_free(openglContextType);
   jx_ob_free(navigatorType);
+*/
   return JX_STATUS_SUCCESS;
 }
 
-jx_status GuiCreator::locateKnowns(jx::Hash node)
+jx_status GuiCreator::locateKnowns(jx::Hash *node)
 {
 
-  vSplitterType     = get_symbol_from_node(node, "VSplitter");
-  hSplitterType     = get_symbol_from_node(node, "HSplitter");
-  menuBarType       = get_symbol_from_node(node, "MenuBar");
-  menuItemType      = get_symbol_from_node(node, "MenuItem");
-  openglContextType = get_symbol_from_node(node, "OpenGLContext");
-  navigatorType     = get_symbol_from_node(node, "Navigator");
+  //vSplitterType     = get_symbol_from_node(node, "VSplitter");
+  vSplitterType     = node->get(jx::Ident("VSplitter"));
+  //jx_jxon_dump(stderr, "vSplitterType", vSplitterType);
+  hSplitterType     = node->get(jx::Ident("HSplitter"));
+  menuBarType       = node->get(jx::Ident("MenuBar"));
+  menuItemType      = node->get(jx::Ident("MenuItem"));
+  openglContextType = node->get(jx::Ident("OpenGLContext"));
+  navigatorType     = node->get(jx::Ident("Navigator"));
+  //jx_jxon_dump(stderr, "vSplitterType", vSplitterType);
 
-    return JX_SUCCESS;
+  return JX_SUCCESS;
 }
 
-JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash node)
+JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash *node)
 {
   
   JX_WIDGET *w;
@@ -502,26 +491,27 @@ JX_WIDGET * GuiCreator::gui_run_from_node(jx::Hash node)
 
     /* get the root gui component */
 
-    jx::Object gui = get_symbol_from_node(node, "gui");
-    this->gui = gui;
+    //jx::Object gui = get_symbol_from_node(node, "gui");
+    jx::Object gui = node->get(jx::Ident("gui"));
+    //this->gui = gui;
     
     /* dump graph for debuggin' */
     
     //gui.jxon_dump(stdout,"node");
-    //gui.jxon_dump(stdout,"gui");
+    gui.jxon_dump(stdout,"gui");
     
     /* traverse the graph nondestructively, processing each component in turn */
     
     //printf("processing components...\n");
     
-    w = processComponents(gui);
+    w = processComponents(&gui);
     
     /* would now run the GUI */
     
     /* when done...free what we took */
 
     freeKnowns();
-    //jx_ob_free(gui);
+    //jx_ob_free(gui.get_jxob());
 
     return w;
   }
