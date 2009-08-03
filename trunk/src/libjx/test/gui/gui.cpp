@@ -1,5 +1,5 @@
 #include "jx_public.h"
-#include "jx_main_tools.h"
+//#include "jx_main_tools.h"
 
 #include "guiCreator.h"
 #include "jxobject.h"
@@ -20,6 +20,10 @@ void usage() {
   printf("     -v     verbose output on stderr\n");
 }
 
+/* share these with guiCreator */
+int out_type = 0;
+JX_WIDGET *window;
+
 int main(int argc, char *argv[])
 {
 
@@ -29,7 +33,6 @@ int main(int argc, char *argv[])
   QVBoxLayout * layout;
 #endif
   JX_WIDGET *w;
-  GuiCreator *gui = new GuiCreator();
   bool geom = false;
   for (int i=1; i<argc; ++i) {
      if (strlen(argv[i]) == 2 && !strncmp(argv[i], "-h", 2)) {
@@ -37,39 +40,36 @@ int main(int argc, char *argv[])
      } else if (!strncmp(argv[i], "-geometry", 9)) {
        geom = true;
      } else {
-       gui->setOutputType(argv[i]);
+       out_type = setOutputType(out_type, argv[i]);
      }
   }
-  if (gui->out_type & GUI_QTUI) {
+  if (out_type & GUI_QTUI) {
 #ifdef JX_QT
       app = new QApplication(argc, argv);
-      gui->window = new QWidget;
+      window = new QWidget;
 #else
       printf ("qt output not supported in this version\n");
-      gui->out_type -= GUI_QTUI;
+      out_type -= GUI_QTUI;
 #endif
   }
   if(jx_ok( jx_os_process_init(argc,argv) )) {
     exit_status = EXIT_SUCCESS;
 
-    //jx_ob node = jx_hash_new();
     jx::Hash *node = new jx::Hash();
-    
     //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
-    if(jx_ok( jx_main_exec_in_node(0,NULL,node->get_jxob()) )) {
-      w = gui->gui_run_from_node(node);
+    if(jx_ok( jx_main_exec_in_node(0,NULL,node->ob()) )) {
+      w = gui_run_from_node(node);
     }
-    
     delete node;
-    //jx_ob_free(node->get_jxob());
-    if (gui->out_type & GUI_QTUI) {
+
+    if (out_type & GUI_QTUI) {
 #ifdef JX_QT
       layout = new QVBoxLayout;
       layout->addWidget(w);
-      gui->window->setLayout(layout);
-      gui->window->show();
+      window->setLayout(layout);
+      window->show();
       if (!geom) {
-        gui->window->resize(800,600);
+        window->resize(800,600);
       }
       return app->exec();
 #endif

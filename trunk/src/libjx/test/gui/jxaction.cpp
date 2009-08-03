@@ -2,15 +2,15 @@
 #include <QDebug>
 #include <QApplication>
 
-JXAction::JXAction(const QString & title, jx::Object *callback, QWidget *parent)
+JXAction::JXAction(const QString & title, jx::Ob *acallback, QWidget *parent)
     : QAction(title, parent)
 {
-   this->callback = jx_ob_copy(callback->get_jxob());
+   callback = jx_ob_copy(acallback->ob());
 }
 
 JXAction::~JXAction()
 {
-   jx_ob_free(this->callback);
+   jx_ob_free(callback);
 }
 
 void JXAction::doCallback(bool checked)

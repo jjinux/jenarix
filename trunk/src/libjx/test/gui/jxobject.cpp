@@ -2,57 +2,56 @@
 #include "jxobject.h"
 
 /* Constructors */
-jx::Object::Object() {
+jx::Ob::Ob() {
   jxob = jx_ob_from_null();
 }
-jx::Object::Object(jx_ob from) {
+jx::Ob::Ob(jx_ob from) {
   //jx_jxon_dump(stderr, "from", from);
   jxob = jx_ob_copy(from);
-  //jxob = from;
 }
 
 /*    could use from_, from_with, etc. methods, but these are cool */
-jx::Object::Object(int v) {
+jx::Ob::Ob(int v) {
   jxob = jx_ob_from_int(v);
 }
-jx::Object::Object(float v) {
+jx::Ob::Ob(float v) {
   jxob = jx_ob_from_float(v);
 }
-jx::Object::Object(double v) {
+jx::Ob::Ob(double v) {
   jxob = jx_ob_from_float(v);
 }
-jx::Object::Object(bool v) {
+jx::Ob::Ob(bool v) {
   jxob = jx_ob_from_bool(v);
 }
 /*    creates string type; ident must use from_ident method */
-jx::Object::Object(char * st) {
+jx::Ob::Ob(char * st) {
   jxob = jx_ob_from_str(st);
 }
-jx::Object::Object(const char * st) {
+jx::Ob::Ob(const char * st) {
   jxob = jx_ob_from_str((jx_char *)st);
 }
-jx::Object::Object(char * st, int stlen) {
+jx::Ob::Ob(char * st, int stlen) {
   jxob = jx_ob_from_str_with_len(st, stlen);
 }
-jx::Object::Object(const char * st, int stlen) {
+jx::Ob::Ob(const char * st, int stlen) {
   jxob = jx_ob_from_str_with_len((jx_char *)st, stlen);
 }
 
 /* Operators */
-bool jx::Object::operator == (const Object & rhs) {
+bool jx::Ob::operator == (const Ob & rhs) {
   return jx_ob_identical(jxob, rhs.jxob);
 }
-bool jx::Object::operator == (const jx_ob rhs) {
+bool jx::Ob::operator == (const jx_ob rhs) {
   return jx_ob_identical(jxob, rhs);
 }
 
 /* Copy */
-jx::Object::Object(const Object& from) {
+jx::Ob::Ob(const Ob& from) {
   jxob = jx_ob_copy(from.jxob);
 }
 
 /* Destructor */
-jx::Object::~Object() {
+jx::Ob::~Ob() {
   //fprintf(stderr, "free %d type %d", jxob, jx_ob_type(jxob));
   //jx_jxon_dump(stderr, "free", jxob);
   jx_ob_free(jxob);
@@ -70,79 +69,79 @@ jx::Object::~Object() {
 
    ..._in_... implies usage of the input object (usually transient)
 */
-jx_ob jx::Object::get_jxob() {
+jx_ob jx::Ob::ob() {
   return jxob;
 }
-void jx::Object::jxon_dump(FILE *f, const char *prefix) {
+void jx::Ob::jxon_dump(FILE *f, const char *prefix) {
   jx_jxon_dump(f, (jx_char *)prefix, jxob);
 }
-bool jx::Object::null_check() {
+bool jx::Ob::null_check() {
   return jx_null_check(jxob);
 }
-bool jx::Object::str_check() {
+bool jx::Ob::str_check() {
   return jx_str_check(jxob);
 }
-bool jx::Object::int_check() {
+bool jx::Ob::int_check() {
   return jx_int_check(jxob);
 }
-bool jx::Object::float_check() {
+bool jx::Ob::float_check() {
   return jx_float_check(jxob);
 }
-bool jx::Object::bool_check() {
+bool jx::Ob::bool_check() {
   return jx_bool_check(jxob);
 }
-bool jx::Object::list_check() {
+bool jx::Ob::list_check() {
   return jx_list_check(jxob);
 }
-bool jx::Object::hash_check() {
+bool jx::Ob::hash_check() {
   return jx_hash_check(jxob);
 }
-bool jx::Object::builtin_callable_check() {
+bool jx::Ob::builtin_callable_check() {
   return jx_builtin_callable_check(jxob);
 }
 
 /* these static "creators" are used, for example:
-    jx::Object i = jx::Object::from_int(123);
+    jx::Ob i = jx::Ob::from_int(123);
 */
-jx::Object jx::Object::from_int(int v) {
+jx::Ob jx::Ob::from_int(int v) {
   return jx_ob_from_int(v);
 }
-jx::Object jx::Object::from_float(float v) {
+jx::Ob jx::Ob::from_float(float v) {
   return jx_ob_from_float(v);
 }
-jx::Object jx::Object::from_float(double v) {
+jx::Ob jx::Ob::from_float(double v) {
   return jx_ob_from_float(v);
 }
-jx::Object jx::Object::from_bool(bool v) {
+jx::Ob jx::Ob::from_bool(bool v) {
   return jx_ob_from_bool(v);
 }
-jx::Object jx::Object::from_string(char * st) {
+jx::Ob jx::Ob::from_string(char * st) {
   return jx_ob_from_str(st);
 }
-jx::Object jx::Object::from_string(const char * st) {
+jx::Ob jx::Ob::from_string(const char * st) {
   return jx_ob_from_str((jx_char *)st);
 }
-jx::Object jx::Object::from_string(char * st, int stlen) {
+jx::Ob jx::Ob::from_string(char * st, int stlen) {
   return jx_ob_from_str_with_len((jx_char *)st, stlen);
 }
-jx::Object jx::Object::from_string(const char * st, int stlen) {
+jx::Ob jx::Ob::from_string(const char * st, int stlen) {
   return jx_ob_from_str_with_len((jx_char *)st, stlen);
 }
-jx::Object jx::Object::from_ident(char * st) {
+jx::Ob jx::Ob::from_ident(char * st) {
   return jx_ob_from_ident((jx_char *)st);
 }
-jx::Object jx::Object::from_ident(const char * st) {
+jx::Ob jx::Ob::from_ident(const char * st) {
   return jx_ob_from_ident((jx_char *)st);
 }
-jx::Object jx::Object::from_ident(char * st, int stlen) {
+jx::Ob jx::Ob::from_ident(char * st, int stlen) {
   return jx_ob_from_ident_with_len((jx_char *)st, stlen);
 }
-jx::Object jx::Object::from_ident(const char * st, int stlen) {
+jx::Ob jx::Ob::from_ident(const char * st, int stlen) {
   return jx_ob_from_ident_with_len((jx_char *)st, stlen);
 }
 
 /* useful for Ob not declared a List, but is */
-jx::Object jx::Object::list_borrow(int ielement) {
+jx::Ob jx::Ob::list_borrow(int ielement) {
   if (jx_list_check(jxob)) {
     return jx_list_borrow(jxob, ielement);
   } else {
@@ -151,38 +150,38 @@ jx::Object jx::Object::list_borrow(int ielement) {
 }
 
 /* useful for Ob not declared a Hash, but is */
-jx::Object jx::Object::hash_get(Object key) {
+jx_ob jx::Ob::hash_get(Ob key) {
   if (jx_hash_check(jxob)) {
-    return jx_hash_get(jxob, key.get_jxob());
+    return jx_hash_get(jxob, key.ob());
   } else {
     return jx_ob_from_null();
   }
 }
 
-jx::Object jx::Object::to_int() {
+jx::Ob jx::Ob::to_int() {
   return jx_ob_to_int(jxob);
 }
 
-int    jx::Object::as_int() {
+int    jx::Ob::as_int() {
   return jx_ob_as_int(jxob);
 }
-float  jx::Object::as_float() {
+float  jx::Ob::as_float() {
   return jx_ob_as_float(jxob);
 }
-bool   jx::Object::as_bool() {
+bool   jx::Ob::as_bool() {
   return jx_ob_as_bool(jxob);
 }
-char * jx::Object::as_str() {
+char * jx::Ob::as_str() {
   return (char *)jx_ob_as_str(&jxob);
 }
-char * jx::Object::as_ident() {
+char * jx::Ob::as_ident() {
   return (char *)jx_ob_as_ident(&jxob);
 }
 
-int jx::Object::size() {
+int jx::Ob::size() {
   return jx_ob_as_int(jx_ob_size(jxob));
 }
-int jx::Object::type() {
+int jx::Ob::type() {
   return jx_ob_type(jxob);
 }
 
@@ -204,15 +203,15 @@ jx::Ident::Ident(const char * st, int stlen) {
   jxob = jx_ob_from_ident_with_len((jx_char *)st, stlen);
 }
 
-/* List Object class */
+/* List Ob class */
 jx::List::List() {
   jxob = jx_list_new();
 }
 jx::List::List(int size) {
   jxob = jx_list_new_with_size(size);
 }
-jx::List::List(int size, Object &fill) {
-  jxob = jx_list_new_with_fill(size, jx_ob_copy(fill.get_jxob()));
+jx::List::List(int size, Ob &fill) {
+  jxob = jx_list_new_with_fill(size, jx_ob_copy(fill.ob()));
 }
 jx::List::List(int array[], int size) {
   jxob = jx_list_new_from_int_array(array, size);
@@ -221,14 +220,14 @@ jx::List::List(float array[], int size) {
   jxob = jx_list_new_from_float_array(array, size);
 }
 
-jx::Object jx::List::borrow(int ielement) {
-  return ((Object)this).list_borrow(ielement);
+jx::Ob jx::List::borrow(int ielement) {
+  return list_borrow(ielement);
 }
 int jx::List::size() {
   return jx_list_size(jxob);
 }
 
-/* Hash Object class */
+/* Hash Ob class */
 jx::Hash::Hash() {
   jxob = jx_hash_new();
 }
@@ -236,6 +235,6 @@ jx::Hash::Hash() {
 int jx::Hash::size() {
   return jx_hash_size(jxob);
 }
-jx_ob jx::Hash::get(Object key) {
-  return jx_hash_get(jxob, key.get_jxob());
+jx_ob jx::Hash::get(Ob key) {
+  return jx_hash_get(jxob, key.ob());
 }

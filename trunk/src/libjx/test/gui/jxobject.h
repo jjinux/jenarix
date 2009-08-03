@@ -8,31 +8,31 @@ namespace jx {
   
   static jx_ob env;
 
-  class Object {
+  class Ob {
 
     protected:
       jx_ob jxob; // underlying jx object representation 
 
 
     public:
-      Object();
-      Object(const Object&);
-      Object(jx_ob);
+      Ob();
+      Ob(const Ob&);
+      Ob(jx_ob);
 
 /*    could use from_, from_with, etc. methods, but these are cool */
-      Object(int);
-      Object(float);
-      Object(double);
-      Object(bool);
+      Ob(int);
+      Ob(float);
+      Ob(double);
+      Ob(bool);
 /*    creates string type; ident must use from_ident method */
-      Object(char *);
-      Object(const char *);
-      Object(char *, int);
-      Object(const char *, int);
+      Ob(char *);
+      Ob(const char *);
+      Ob(char *, int);
+      Ob(const char *, int);
 
-      ~Object();
+      ~Ob();
 
-      bool operator == (const Object&);
+      bool operator == (const Ob&);
       bool operator == (const jx_ob);
 
 /* meaningful prepositions, for systematic memory management:
@@ -47,27 +47,27 @@ namespace jx {
 
    ..._in_... implies usage of the input object (usually transient)
 */
-      jx_ob get_jxob();
+      jx_ob ob();
       void jxon_dump(FILE *, const char *);
 
 /* these methods are used, for example:
-      jx::Object a = jx::Object::from_int(47);
+      jx::Ob a = jx::Ob::from_int(47);
 */
-      static Object from_int(int);
-      static Object from_float(float);
-      static Object from_float(double);
-      static Object from_bool(bool);
-      static Object from_string(char *);
-      static Object from_string(const char *);
-      static Object from_string(char *, int);
-      static Object from_string(const char *, int);
-      static Object from_ident(char *);
-      static Object from_ident(const char *);
-      static Object from_ident(char *, int);
-      static Object from_ident(const char *, int);
+      static Ob from_int(int);
+      static Ob from_float(float);
+      static Ob from_float(double);
+      static Ob from_bool(bool);
+      static Ob from_string(char *);
+      static Ob from_string(const char *);
+      static Ob from_string(char *, int);
+      static Ob from_string(const char *, int);
+      static Ob from_ident(char *);
+      static Ob from_ident(const char *);
+      static Ob from_ident(char *, int);
+      static Ob from_ident(const char *, int);
 
-      //Object to_int(jx::Object &);
-      Object to_int();
+      //Ob to_int(jx::Ob &);
+      Ob to_int();
 
       int    as_int();
       float  as_float();
@@ -86,16 +86,16 @@ namespace jx {
       bool builtin_callable_check();
 
 /* useful for Ob that is not declared a List, but is */
-      jx::Object list_borrow(int);
+      jx::Ob list_borrow(int);
 /* useful for Ob that is not declared a Hash, but is */
-      jx::Object hash_get(const char * key);
-      jx::Object hash_get(const Object key);
+      jx_ob hash_get(const char * key);
+      jx_ob hash_get(const Ob key);
 
       int size();
       int type();
   };
 
-  class Ident: public Object {
+  class Ident: public Ob {
 
     public:
       Ident();
@@ -105,28 +105,28 @@ namespace jx {
       Ident(const char *, int);
   };
 
-  class List: public Object {
+  class List: public Ob {
 
     public:
       List();
       List(int size);
       List(int array[], int size);
       List(float array[], int size);
-      List(int size, Object &fill);
+      List(int size, Ob &fill);
 
-      Object borrow(int);
+      Ob borrow(int);
       int size();
   };
 
-  class Hash: public Object {
+  class Hash: public Ob {
 
     public:
       Hash();
 
-      jx_ob get(const Object key);
+      jx_ob get(const Ob key);
       int size();
    };
 
-  //Object Object_from_ident(char *);
+  //Ob Ob_from_ident(char *);
 };
 #endif
