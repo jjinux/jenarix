@@ -1,14 +1,16 @@
 
 # now we switch from having a dedicated thread per queue to having a single
 # queue with multitple threads pulling from it
+
+VERBOSITY = 0
  
 entity(JxonNodeProto, null, null, { 
   _handler : null,
   _inputs : [ raw(nodeinput) ],
   _outputs : [ raw(nodeoutput), raw(nodeerror) ],
   nodeinput : (lambda self, payload: self._handler(nodeinput, payload)), 
-  nodeoutput : (lambda self, x: nodeoutput( x )),
-  nodeerror : (lambda self, x: nodeerror( x ))
+  nodeoutput : (lambda self, x: output( x )),
+  nodeerror : (lambda self, x: error( x ))
   })
 
 #JxonNodeProto = [JxonNodeEntity, {}]
@@ -25,21 +27,24 @@ synchronize(result)
 # sending their payload
 
 def _add(self, port, payload):
-  self.nodeerror("_add called")
+  if VERBOSITY > 0:
+    self.nodeerror("_add called")
   a = 20
   while a > 0:
     a -= 1
     self.nodeoutput( payload + 1 )
 
 def _negate(self, port, payload):
-  self.nodeerror("_negate called " + str(payload))
+  if VERBOSITY > 0:
+    self.nodeerror("_negate called " + str(payload))
   a = 100
   while a > 0:
     a -= 1
     self.nodeoutput( -payload )
 
 def _square(self, port, payload):
-  self.nodeerror("_square called" + str(payload))
+  if VERBOSITY > 0:
+    self.nodeerror("_square called" + str(payload))
   a = 500
   while a > 0:
     a -= 1
@@ -67,27 +72,32 @@ synchronize(nodeC)
 # create piping functions
 
 def pipeB(self, payload):
-  print "pipeB called, " + str(payload)
+  if VERBOSITY > 2:
+    print "DBG pipeB called, " + str([payload, nodeB])
   queue.append([payload, nodeB])
   #queue = queue ++ [payload, nodeB]
-  print "pipeB queue len, " + str(len(queue)) + " : " + str(queue)
+  if VERBOSITY > 2:
+    print "DBG pipeB queue len, " + str(len(queue))
 
 # NOTE: jxp does not currently support single line defs
 def pipeC(self, payload):
   queue.append([payload, nodeC])
+  if VERBOSITY > 2:
+    print "DBG pipeC queue len, " + str(len(queue))
 
 nodeA.nodeoutput = pipeB
 nodeB.nodeoutput = pipeC
 
-FINAL_RESULT_SIZE = 10
+FINAL_RESULT_SIZE = 10000000
+INITIAL_SIZE = 100
 
 def mythread(master, head, queue, result):
   if master == true:
-    a = FINAL_RESULT_SIZE
+    a = INITIAL_SIZE
     while a > 0:
         a -= 1
-        print "sending 1+" + str(a)
-        head.nodeinput(1, a)
+        #print "sending 1+" + str(a)
+        head.nodeinput(null, a)
     print "master thread done"
   else:
     print "slave thread started"
@@ -96,16 +106,19 @@ def mythread(master, head, queue, result):
       #[target, payload] = queue.pop(0)
       packet = queue.pop(0)
       if packet != null:
-        print "delivering packet"
-        payload = packet.pop()
+        if VERBOSITY > 3:
+          print "delivering packet"
         target = packet.pop()
-        #output([payload,target])
+        payload = packet.pop()
+        #print "DBG got payload,target ", str([payload,target])
         target.nodeinput(payload)
-        if len(result) == FINAL_RESULT_SIZE:
-          break
+        #print "DBG back from target.nodeinput, " + str(len(result))
       else:
-        #print "taking a breather, " + str(len(result))
-        sleep(2)
+        if VERBOSITY > 3:
+          print "DBG taking a breather, " + str(len(result))
+        pass
+      if len(result) >= FINAL_RESULT_SIZE:
+        break
     print "slave thread done"
 
 # now use parmap to run the network with a bunch of slave threads
