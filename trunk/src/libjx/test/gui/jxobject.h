@@ -6,13 +6,12 @@
 
 namespace jx {
   
-  static jx_ob env;
+  //static jx_ob env;
 
   class Ob {
 
     protected:
       jx_ob jxob; // underlying jx object representation 
-
 
     public:
       Ob();
@@ -65,6 +64,7 @@ namespace jx {
       static Ob from_ident(const char *);
       static Ob from_ident(char *, int);
       static Ob from_ident(const char *, int);
+      static Ob from_hash(jx_ob);
 
       //Ob to_int(jx::Ob &);
       Ob to_int();
@@ -86,7 +86,7 @@ namespace jx {
       bool builtin_callable_check();
 
 /* useful for Ob that is not declared a List, but is */
-      jx::Ob list_borrow(int);
+      jx_ob list_get(int);
 /* useful for Ob that is not declared a Hash, but is */
       jx_ob hash_get(const char * key);
       jx_ob hash_get(const Ob key);
@@ -95,35 +95,64 @@ namespace jx {
       int type();
   };
 
-  class Ident: public Ob {
+  class Ident {
+
+    private:
+      jx_ob jxob;
 
     public:
       Ident();
+      Ident(const Ident&);
+      Ident(jx_ob);
       Ident(char *);
       Ident(const char *);
       Ident(char *, int);
       Ident(const char *, int);
+
+      ~Ident();
+
+      jx_ob ob();
   };
 
-  class List: public Ob {
+  class List {
+
+    private:
+      jx_ob jxob;
 
     public:
       List();
+      List(const List&);
+      List(jx_ob);
       List(int size);
       List(int array[], int size);
       List(float array[], int size);
       List(int size, Ob &fill);
 
-      Ob borrow(int);
+      ~List();
+
+      jx_ob ob();
+
+      jx_ob get(int);
       int size();
   };
 
-  class Hash: public Ob {
+  class Hash {
+
+    private:
+      jx_ob jxob;
 
     public:
       Hash();
+      Hash(const Hash&);
+      Hash(jx_ob);
+
+      ~Hash();
+
+      jx_ob ob();
 
       jx_ob get(const Ob key);
+      jx_ob get(const Ident key);
+      jx_ob get(const char *);
       int size();
    };
 

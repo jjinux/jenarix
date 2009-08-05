@@ -1,4 +1,3 @@
-#include "jx_public.h"
 //#include "jx_main_tools.h"
 
 #include "guiCreator.h"
@@ -21,7 +20,7 @@ void usage() {
 }
 
 /* share these with guiCreator */
-int out_type = 0;
+int OUT_TYPE = 0;
 JX_WIDGET *window;
 
 int main(int argc, char *argv[])
@@ -40,29 +39,28 @@ int main(int argc, char *argv[])
      } else if (!strncmp(argv[i], "-geometry", 9)) {
        geom = true;
      } else {
-       out_type = setOutputType(out_type, argv[i]);
+       OUT_TYPE = setOutputType(OUT_TYPE, argv[i]);
      }
   }
-  if (out_type & GUI_QTUI) {
+  if (OUT_TYPE & GUI_QTUI) {
 #ifdef JX_QT
       app = new QApplication(argc, argv);
       window = new QWidget;
 #else
       printf ("qt output not supported in this version\n");
-      out_type -= GUI_QTUI;
+      OUT_TYPE -= GUI_QTUI;
 #endif
   }
   if(jx_ok( jx_os_process_init(argc,argv) )) {
     exit_status = EXIT_SUCCESS;
 
     jx::Hash *node = new jx::Hash();
-    //if(jx_ok( jx_main_exec_in_node(argc,argv,node) )) {
     if(jx_ok( jx_main_exec_in_node(0,NULL,node->ob()) )) {
       w = gui_run_from_node(node);
     }
     delete node;
 
-    if (out_type & GUI_QTUI) {
+    if (OUT_TYPE & GUI_QTUI) {
 #ifdef JX_QT
       layout = new QVBoxLayout;
       layout->addWidget(w);
