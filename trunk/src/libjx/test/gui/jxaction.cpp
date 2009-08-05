@@ -16,9 +16,7 @@ JXAction::~JXAction()
 void JXAction::doCallback(bool checked)
 {
     jx_ob fn = jx_ob_copy(callback);
-    //jx_function_call(fn, fn, jx_ob_from_bool(checked));
     jx_function_call(jx_ob_from_null(), fn, jx_ob_from_bool(checked)); // fn is consumed, somehow
-    //jx_ob_free(fn);
 }
 
 void JXAction::doCallback(QString s)

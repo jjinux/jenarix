@@ -81,8 +81,9 @@ int getWidth(jx::Ob *entity) {
 int getHeight(jx::Ob *entity) {
   int height = getAttr(entity, "height").asInt();
   if (height < 1) {
-    jx::Ob type = entity->listGet(0);
-    if (type == Known::menuBarType) height = 50;
+    //jx::Ob type = entity->listGet(0);
+    //jx::Ob type = (*entity)[0];
+    if ((*entity)[0] == Known::menuBarType) height = 50;
   }
   return height;
 }
@@ -90,17 +91,22 @@ int getHeight(jx::Ob *entity) {
 jx::Ob getAttr(jx::Ob *entity, const char *attr) 
 {
 /* get "attribute" from entity, which is a list of three items, the last of
-   which is a hash of attributes */
+   which is a hash of attributes with idents as keys */
 
-    jx::Ob attrs = entity->listGet(2);
-    return attrs.hashGet((jx::Ident)attr);
+/* this mehtod demonstrates the use of the [] operator for lists and hashes */
+    //jx::Ob attrs = entity->listGet(2);
+    jx::Ob attrs = (*entity)[2];
+    //return attrs.hashGet((jx::Ident)attr);
+    //return (*entity)[2].hashGet((jx::Ident)attr);
+    //return attrs[jx::Ob::fromIdent(attr)];
+    return attrs[jx::Ident(attr)];
 }
 
 jx::Ob getSource(jx::Ob *entity) 
 {
     jx::Ob source = getAttr(entity, "source");
     if (source.nullCheck()) {
-      jx::Ob type = entity->listGet(0);
+      jx::Ob type = (*entity)[0];
       if(type == Known::openglContextType) {
           return jx::Ob("opengl.html");
       } else if(type == Known::navigatorType) {
@@ -127,7 +133,7 @@ JX_WIDGET * createQtWidget(jx::Ob *entity)
     int height = getHeight(entity);
     jx::Ob src = getSource(entity);
     if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.asStr(), width, height);
-    jx::Ob type = entity->listGet(0);
+    jx::Ob type = (*entity)[0];
     if(type == Known::openglContextType) {
       GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
@@ -182,7 +188,7 @@ void printWidgetInfo(jx::Ob *entity)
   int width = getWidth(entity);
   int height = getHeight(entity);
   jx::Ob src = getSource(entity);
-  jx::Ob type = entity->listGet(0);
+  jx::Ob type = (*entity)[0];
   if (type == Known::openglContextType) {
      fprintf(stderr,"OpenGL widget %s %dx%d\n", src.asStr(), width, height);
   } else if(type == Known::navigatorType) {
@@ -214,7 +220,7 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
   }
 
   if (OUT_TYPE & GUI_QTUI) {
-    jx::Ob sub_menu_items = item->listGet(1);
+    jx::Ob sub_menu_items = (*item)[1];
     if (sub_menu_items.size() > 0) { 
       sub_menu = new JX_MENU(label->asStr());
       menu_widget->addMenu(sub_menu);
@@ -294,10 +300,10 @@ void processMenuItems(jx::Ob *menu, int depth, JX_MENU *menu_widget)
   recursively process menuItemTypes
 */
   std::string blanx(depth*2, ' ');  // for pretty printing
-  jx::Ob menu_items = menu->listGet(1);
+  jx::Ob menu_items = (*menu)[1];
   for (int i=0; i<menu_items.size(); ++i) {
-    jx::Ob item = menu_items.listGet(i);
-    jx::Ob type = item.listGet(0);
+    jx::Ob item = menu_items[i];
+    jx::Ob type = item[0];
     if(type == Known::menuItemType) {
       if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
       JX_MENU *sub_menu = processMenuItem(&item, menu_widget);
@@ -330,7 +336,7 @@ void printHFramesetHtml(jx::Ob *pane, int size)
 {
     printf("<FRAMESET COLS=");
     for(int i=0;i<size;i++) {
-      jx::Ob tmp = pane->listGet(i);
+      jx::Ob tmp = (*pane)[i];
       int width = getWidth(&tmp);
       if (i>0) printf (",");
       printVal(width);
@@ -342,7 +348,7 @@ void printVFramesetHtml(jx::Ob *pane, int size)
 {
     printf("<FRAMESET ROWS=");
     for(int i=0;i<size;i++) {
-      jx::Ob tmp = pane->listGet(i);
+      jx::Ob tmp = (*pane)[i];
       int height = getHeight(&tmp);
       if (i>0) printf (",");
       printVal(height);
@@ -352,7 +358,7 @@ void printVFramesetHtml(jx::Ob *pane, int size)
 
 JX_SPLITTER * processHSplitter(jx::Ob *splitter)
 {
-  jx::Ob pane = splitter->listGet(1);
+  jx::Ob pane = (*splitter)[1];
   int i,size = pane.size();
 
   JX_SPLITTER *s;
@@ -370,7 +376,7 @@ JX_SPLITTER * processHSplitter(jx::Ob *splitter)
 
   JX_WIDGET *w;
   for(i=0;i<size;i++) {
-    jx::Ob tmp = pane.listGet(i);
+    jx::Ob tmp = pane[i];
     w = processComponents(&tmp);
 #ifdef JX_QT
     if (OUT_TYPE & GUI_QTUI) {
@@ -385,7 +391,7 @@ JX_SPLITTER * processHSplitter(jx::Ob *splitter)
 
 JX_SPLITTER * processVSplitter(jx::Ob *splitter)
 {
-  jx::Ob pane = splitter->listGet(1);
+  jx::Ob pane = (*splitter)[1];
   int i,size = pane.size();
 
   JX_SPLITTER *s;
@@ -403,7 +409,7 @@ JX_SPLITTER * processVSplitter(jx::Ob *splitter)
 
   JX_WIDGET *w;
   for(i=0;i<size;i++) {
-    jx::Ob tmp = pane.listGet(i);
+    jx::Ob tmp = pane[i];
     w = processComponents(&tmp);
 #ifdef JX_QT
     if (OUT_TYPE & GUI_QTUI) {
@@ -431,7 +437,7 @@ JX_WIDGET * processWidget(jx::Ob *widget)
 
 JX_WIDGET * processComponents(jx::Ob *component)
 {
-  jx::Ob comp_type = component->listGet(0);
+  jx::Ob comp_type = (*component)[0];
 
   if(comp_type == Known::hSplitterType) {
 

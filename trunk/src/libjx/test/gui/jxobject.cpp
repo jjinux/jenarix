@@ -43,6 +43,12 @@ bool jx::Ob::operator == (const Ob & rhs) {
 bool jx::Ob::operator == (const jx_ob rhs) {
   return jx_ob_identical(jxob, rhs);
 }
+jx::Ob jx::Ob::operator [] (int  ielement) {
+  return listGet(ielement);
+}
+jx::Ob jx::Ob::operator [] (const Ob & key) {
+  return hashGet(key);
+}
 
 /* Copy */
 jx::Ob::Ob(const Ob& from) {
@@ -155,7 +161,7 @@ jx::Ob jx::Ob::hashGet(Ob key) {
   return jx_hash_get(jxob, key.ob());
 }
 jx_ob jx::Ob::hashBorrow(Ob key) {
-  return jx_hash_get(jxob, key.ob());
+  return jx_hash_borrow(jxob, key.ob());
 }
 
 jx::Ob jx::Ob::toInt() {
@@ -247,13 +253,20 @@ jx_ob jx::List::ob() {
 */
 
 jx::Ob jx::List::get(int ielement) {
-  return makeOb(jx_list_get(jxob, ielement));
+  //return makeOb(jx_list_get(jxob, ielement));
+  return listGet(ielement);
 }
 jx_ob jx::List::borrow(int ielement) {
-  return jx_list_get(jxob, ielement);
+  //return jx_list_borrow(jxob, ielement);
+  return listBorrow(ielement);
 }
 int jx::List::size() {
   return jx_list_size(jxob);
+}
+/* Operators */
+jx::Ob jx::List::operator [] (int  ielement) {
+  //return makeOb(jx_list_get(jxob, ielement));
+  return listGet(ielement);
 }
 
 /* Hash Ob class */
@@ -283,14 +296,8 @@ int jx::Hash::size() {
   return jx_hash_size(jxob);
 }
 jx::Ob jx::Hash::get(Ob key) {
-  return makeOb(jx_hash_get(jxob, key.ob()));
-}
-jx::Ob jx::Hash::get(Ident key) {
-  return makeOb(jx_hash_get(jxob, key.ob()));
+  return hashGet(key);
 }
 jx_ob jx::Hash::borrow(Ob key) {
-  return jx_hash_get(jxob, key.ob());
-}
-jx_ob jx::Hash::borrow(Ident key) {
-  return jx_hash_get(jxob, key.ob());
+  return hashBorrow(key);
 }

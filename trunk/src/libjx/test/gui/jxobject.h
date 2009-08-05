@@ -36,6 +36,8 @@ namespace jx {
 
       bool operator == (const Ob&);
       bool operator == (const jx_ob);
+      Ob operator[] (int ielement);
+      Ob operator[] (const Ob&);
 
 /* meaningful prepositions, for systematic memory management:
 
@@ -96,6 +98,7 @@ namespace jx {
 
       int size();
       int type();
+
   };
 
   class Ident : public Ob {
@@ -131,6 +134,8 @@ namespace jx {
       Ob get(int);
       jx_ob borrow(int);  // return jx_ob, not Ob lest it get destroyed
       int size();
+
+      Ob operator[] (int ielement);
   };
 
   class Hash : public Ob {
@@ -144,11 +149,10 @@ namespace jx {
       ~Hash();
 
       Ob get(const Ob key);
-      Ob get(const Ident key);
       jx_ob borrow(const Ob key);  // return jx_ob, not Ob lest it get destroyed
-      jx_ob borrow(const Ident key);  // return jx_ob, not Ob lest it get destroyed
       int size();
    };
 
 };
+
 #endif
