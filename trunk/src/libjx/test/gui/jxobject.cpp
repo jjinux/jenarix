@@ -6,8 +6,6 @@ jx::Ob::Ob() {
   jxob = jx_ob_from_null();
 }
 jx::Ob::Ob(jx_ob from) {
-  //jx_jxon_dump(stderr, "from", from);
-  //jxob = jx_ob_copy(from);
   jxob = from;
 }
 
@@ -73,112 +71,110 @@ jx::Ob::~Ob() {
 jx_ob jx::Ob::ob() {
   return jxob;
 }
-void jx::Ob::jxon_dump(FILE *f, const char *prefix) {
+void jx::Ob::jxonDump(FILE *f, const char *prefix) {
   jx_jxon_dump(f, (jx_char *)prefix, jxob);
 }
-bool jx::Ob::null_check() {
+bool jx::Ob::nullCheck() {
   return jx_null_check(jxob);
 }
-bool jx::Ob::str_check() {
+bool jx::Ob::strCheck() {
   return jx_str_check(jxob);
 }
-bool jx::Ob::int_check() {
+bool jx::Ob::intCheck() {
   return jx_int_check(jxob);
 }
-bool jx::Ob::float_check() {
+bool jx::Ob::floatCheck() {
   return jx_float_check(jxob);
 }
-bool jx::Ob::bool_check() {
+bool jx::Ob::boolCheck() {
   return jx_bool_check(jxob);
 }
-bool jx::Ob::list_check() {
+bool jx::Ob::listCheck() {
   return jx_list_check(jxob);
 }
-bool jx::Ob::hash_check() {
+bool jx::Ob::hashCheck() {
   return jx_hash_check(jxob);
 }
-bool jx::Ob::builtin_callable_check() {
+bool jx::Ob::builtinCallableCheck() {
   return jx_builtin_callable_check(jxob);
 }
 
 /* these static "creators" are used, for example:
     jx::Ob i = jx::Ob::from_int(123);
 */
-jx::Ob jx::Ob::from_int(int v) {
+jx::Ob jx::Ob::makeOb(jx_ob from) {
+  return from;
+}
+jx::Ob jx::Ob::fromInt(int v) {
   return jx_ob_from_int(v);
 }
-jx::Ob jx::Ob::from_float(float v) {
+jx::Ob jx::Ob::fromFloat(float v) {
   return jx_ob_from_float(v);
 }
-jx::Ob jx::Ob::from_float(double v) {
+jx::Ob jx::Ob::fromFloat(double v) {
   return jx_ob_from_float(v);
 }
-jx::Ob jx::Ob::from_bool(bool v) {
+jx::Ob jx::Ob::fromBool(bool v) {
   return jx_ob_from_bool(v);
 }
-jx::Ob jx::Ob::from_string(char * st) {
+jx::Ob jx::Ob::fromString(char * st) {
   return jx_ob_from_str(st);
 }
-jx::Ob jx::Ob::from_string(const char * st) {
+jx::Ob jx::Ob::fromString(const char * st) {
   return jx_ob_from_str((jx_char *)st);
 }
-jx::Ob jx::Ob::from_string(char * st, int stlen) {
+jx::Ob jx::Ob::fromString(char * st, int stlen) {
   return jx_ob_from_str_with_len((jx_char *)st, stlen);
 }
-jx::Ob jx::Ob::from_string(const char * st, int stlen) {
+jx::Ob jx::Ob::fromString(const char * st, int stlen) {
   return jx_ob_from_str_with_len((jx_char *)st, stlen);
 }
-jx::Ob jx::Ob::from_ident(char * st) {
+jx::Ob jx::Ob::fromIdent(char * st) {
   return jx_ob_from_ident((jx_char *)st);
 }
-jx::Ob jx::Ob::from_ident(const char * st) {
+jx::Ob jx::Ob::fromIdent(const char * st) {
   return jx_ob_from_ident((jx_char *)st);
 }
-jx::Ob jx::Ob::from_ident(char * st, int stlen) {
+jx::Ob jx::Ob::fromIdent(char * st, int stlen) {
   return jx_ob_from_ident_with_len((jx_char *)st, stlen);
 }
-jx::Ob jx::Ob::from_ident(const char * st, int stlen) {
+jx::Ob jx::Ob::fromIdent(const char * st, int stlen) {
   return jx_ob_from_ident_with_len((jx_char *)st, stlen);
-}
-jx::Ob jx::Ob::from_hash(jx_ob from) {
-  return jx_ob_copy(from);
 }
 
 /* useful for Ob not declared a List, but is */
-jx::Ob jx::Ob::list_get(int ielement) {
-  if (jx_list_check(jxob)) {
-    return jx_list_get(jxob, ielement);
-  } else {
-    return jx_ob_from_null();
-  }
+jx::Ob jx::Ob::listGet(int ielement) {
+  return jx_list_get(jxob, ielement);
+}
+jx_ob jx::Ob::listBorrow(int ielement) {
+  return jx_list_borrow(jxob, ielement);
 }
 
 /* useful for Ob not declared a Hash, but is */
-jx::Ob jx::Ob::hash_get(Ob key) {
-  if (jx_hash_check(jxob)) {
-    return jx_hash_get(jxob, key.ob());
-  } else {
-    return jx_ob_from_null();
-  }
+jx::Ob jx::Ob::hashGet(Ob key) {
+  return jx_hash_get(jxob, key.ob());
+}
+jx_ob jx::Ob::hashBorrow(Ob key) {
+  return jx_hash_get(jxob, key.ob());
 }
 
-jx::Ob jx::Ob::to_int() {
+jx::Ob jx::Ob::toInt() {
   return jx_ob_to_int(jxob);
 }
 
-int    jx::Ob::as_int() {
+int    jx::Ob::asInt() {
   return jx_ob_as_int(jxob);
 }
-float  jx::Ob::as_float() {
+float  jx::Ob::asFloat() {
   return jx_ob_as_float(jxob);
 }
-bool   jx::Ob::as_bool() {
+bool   jx::Ob::asBool() {
   return jx_ob_as_bool(jxob);
 }
-char * jx::Ob::as_str() {
+char * jx::Ob::asStr() {
   return (char *)jx_ob_as_str(&jxob);
 }
-char * jx::Ob::as_ident() {
+char * jx::Ob::asIdent() {
   return (char *)jx_ob_as_ident(&jxob);
 }
 
@@ -193,10 +189,6 @@ int jx::Ob::type() {
 /* Ident Oject class */
 jx::Ident::Ident() {
   jxob = jx_ob_from_null();
-}
-jx::Ident::Ident(jx_ob from) {
-  //jxob = jx_ob_copy(from);
-  jxob = from;
 }
 jx::Ident::Ident(char * st) {
   jxob = jx_ob_from_ident((jx_char *)st);
@@ -228,10 +220,6 @@ jx_ob jx::Ident::ob() {
 jx::List::List() {
   jxob = jx_list_new();
 }
-jx::List::List(jx_ob from) {
-  //jxob = jx_ob_copy(from);
-  jxob = from;
-}
 jx::List::List(int size) {
   jxob = jx_list_new_with_size(size);
 }
@@ -259,6 +247,9 @@ jx_ob jx::List::ob() {
 */
 
 jx::Ob jx::List::get(int ielement) {
+  return makeOb(jx_list_get(jxob, ielement));
+}
+jx_ob jx::List::borrow(int ielement) {
   return jx_list_get(jxob, ielement);
 }
 int jx::List::size() {
@@ -269,11 +260,11 @@ int jx::List::size() {
 jx::Hash::Hash() {
   jxob = jx_hash_new();
 }
+/*
 jx::Hash::Hash(jx_ob from) {
-  //jx_jxon_dump(stderr, "from", from);
-  //jxob = jx_ob_copy(from);
   jxob = from;
 }
+*/
 /* Copy */
 jx::Hash::Hash(const Hash& from) {
   jxob = jx_ob_copy(from.jxob);
@@ -292,8 +283,14 @@ int jx::Hash::size() {
   return jx_hash_size(jxob);
 }
 jx::Ob jx::Hash::get(Ob key) {
-  return jx_hash_get(jxob, key.ob());
+  return makeOb(jx_hash_get(jxob, key.ob()));
 }
 jx::Ob jx::Hash::get(Ident key) {
+  return makeOb(jx_hash_get(jxob, key.ob()));
+}
+jx_ob jx::Hash::borrow(Ob key) {
+  return jx_hash_get(jxob, key.ob());
+}
+jx_ob jx::Hash::borrow(Ident key) {
   return jx_hash_get(jxob, key.ob());
 }

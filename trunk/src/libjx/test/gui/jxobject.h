@@ -12,20 +12,21 @@ namespace jx {
 
     protected:
       jx_ob jxob; // underlying jx object representation
+      static Ob makeOb(jx_ob);  // used internally, so I can make Ob from jx_ob via Ob(jx_ob)
 
     private:
+      Ob(jx_ob);  // don't let users do this, lest borrowed jx_ob's get destroyed
 
     public:
       Ob();
       Ob(const Ob&);
-      Ob(jx_ob);
 
 /*    could use from_, from_with, etc. methods, but these are cool */
       Ob(int);
       Ob(float);
       Ob(double);
       Ob(bool);
-/*    creates string type; ident must use from_ident method */
+/*    creates string type; ident must use from_ident method or Ident class */
       Ob(char *);
       Ob(const char *);
       Ob(char *, int);
@@ -49,55 +50,57 @@ namespace jx {
    ..._in_... implies usage of the input object (usually transient)
 */
       jx_ob ob();
-      void jxon_dump(FILE *, const char *);
+      void jxonDump(FILE *, const char *);
 
 /* these methods are used, for example:
-      jx::Ob a = jx::Ob::from_int(47);
+      jx::Ob a = jx::Ob::fromInt(47);
 */
-      static Ob from_int(int);
-      static Ob from_float(float);
-      static Ob from_float(double);
-      static Ob from_bool(bool);
-      static Ob from_string(char *);
-      static Ob from_string(const char *);
-      static Ob from_string(char *, int);
-      static Ob from_string(const char *, int);
-      static Ob from_ident(char *);
-      static Ob from_ident(const char *);
-      static Ob from_ident(char *, int);
-      static Ob from_ident(const char *, int);
-      static Ob from_hash(jx_ob);
+      static Ob fromInt(int);
+      static Ob fromFloat(float);
+      static Ob fromFloat(double);
+      static Ob fromBool(bool);
+      static Ob fromString(char *);
+      static Ob fromString(const char *);
+      static Ob fromString(char *, int);
+      static Ob fromString(const char *, int);
+      static Ob fromIdent(char *);
+      static Ob fromIdent(const char *);
+      static Ob fromIdent(char *, int);
+      static Ob fromIdent(const char *, int);
 
-      //Ob to_int(jx::Ob &);
-      Ob to_int();
+      //Ob toInt(jx::Ob &);
+      Ob toInt();
 
-      int    as_int();
-      float  as_float();
-      bool   as_bool();
-      char * as_str();
-      char * as_ident();
+      int    asInt();
+      float  asFloat();
+      bool   asBool();
+      char * asStr();
+      char * asIdent();
 
-      bool null_check();
-      bool int_check();
-      bool float_check();
-      bool bool_check();
-      bool str_check();
-      bool ident_check();
-      bool list_check();
-      bool hash_check();
-      bool builtin_callable_check();
+      bool nullCheck();
+      bool intCheck();
+      bool floatCheck();
+      bool boolCheck();
+      bool strCheck();
+      bool identCheck();
+      bool listCheck();
+      bool hashCheck();
+      bool builtinCallableCheck();
 
 /* useful for Ob that is not declared a List, but is */
-      Ob list_get(int);
+      Ob listGet(int);
+      jx_ob listBorrow(int);  // return jx_ob, not Ob lest it get destroyed
 /* useful for Ob that is not declared a Hash, but is */
-      Ob hash_get(const char * key);
-      Ob hash_get(const Ob key);
+      Ob hashGet(const Ob key);
+      jx_ob hashBorrow(const Ob key);  // return jx_ob, not Ob lest it get destroyed
 
       int size();
       int type();
   };
 
   class Ident : public Ob {
+
+    private:
 
     public:
       Ident();
@@ -106,13 +109,14 @@ namespace jx {
       Ident(const char *);
       Ident(char *, int);
       Ident(const char *, int);
-      Ident(jx_ob);
 
       ~Ident();
 
   };
 
   class List : public Ob {
+
+    private:
 
     public:
       List();
@@ -121,29 +125,30 @@ namespace jx {
       List(int array[], int size);
       List(float array[], int size);
       List(int size, Ob &fill);
-      List(jx_ob);
 
       ~List();
 
       Ob get(int);
+      jx_ob borrow(int);  // return jx_ob, not Ob lest it get destroyed
       int size();
   };
 
   class Hash : public Ob {
 
+    private:
+
     public:
       Hash();
       Hash(const Hash&);
-      Hash(jx_ob);
 
       ~Hash();
 
       Ob get(const Ob key);
       Ob get(const Ident key);
-      Ob get(const char *);
+      jx_ob borrow(const Ob key);  // return jx_ob, not Ob lest it get destroyed
+      jx_ob borrow(const Ident key);  // return jx_ob, not Ob lest it get destroyed
       int size();
    };
 
-  //Ob Ob_from_ident(char *);
 };
 #endif
