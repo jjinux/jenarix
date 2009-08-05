@@ -66,14 +66,25 @@ int setOutputType(int in_type, char *a)
 {
   int out_type = in_type;
   if (!strncmp(a,"-html",5)) {
-    out_type = in_type | GUI_HTML;
-    return true;
+    out_type |= GUI_HTML;
   } else if (!strncmp(a,"-qt",3)) {
-    out_type = in_type | GUI_QTUI;
+    out_type |=  GUI_QTUI;
   } else if (!strncmp(a,"-v",2)) {
-    out_type = in_type | GUI_PRINT;
+    out_type |= GUI_PRINT;
   }
   return out_type;
+}
+
+int getWidth(jx::Ob *entity) {
+  return getAttr(entity, "width").asInt();
+}
+int getHeight(jx::Ob *entity) {
+  int height = getAttr(entity, "height").asInt();
+  if (height < 1) {
+    jx::Ob type = entity->listGet(0);
+    if (type == Known::menuBarType) height = 50;
+  }
+  return height;
 }
 
 jx::Ob getAttr(jx::Ob *entity, const char *attr) 
@@ -112,8 +123,8 @@ void printVal(int v) {
 JX_WIDGET * createQtWidget(jx::Ob *entity)
 {
     JX_WIDGET *widget;
-    int width = getAttr(entity, "width").asInt();
-    int height = getAttr(entity, "height").asInt();
+    int width = getWidth(entity);
+    int height = getHeight(entity);
     jx::Ob src = getSource(entity);
     if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.asStr(), width, height);
     jx::Ob type = entity->listGet(0);
@@ -145,8 +156,8 @@ JX_WIDGET * createQtWidget(jx::Ob *entity)
 
 JX_SPLITTER * createQtHsplitter(jx::Ob *splitter, int size)
 {
-    int width = getAttr(splitter, "width").asInt();
-    int height = getAttr(splitter, "height").asInt();
+    int width = getWidth(splitter);
+    int height = getHeight(splitter);
     QSplitter *s = new QSplitter(Qt::Horizontal);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
@@ -156,8 +167,8 @@ JX_SPLITTER * createQtHsplitter(jx::Ob *splitter, int size)
 
 JX_SPLITTER * createQtVsplitter(jx::Ob *splitter, int size)
 {
-    int width = getAttr(splitter, "width").asInt();
-    int height = getAttr(splitter, "height").asInt();
+    int width = getWidth(splitter);
+    int height = getHeight(splitter);
     QSplitter *s = new QSplitter(Qt::Vertical);
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
@@ -168,8 +179,8 @@ JX_SPLITTER * createQtVsplitter(jx::Ob *splitter, int size)
 
 void printWidgetInfo(jx::Ob *entity)
 {
-  int width = getAttr(entity, "width").asInt();
-  int height = getAttr(entity, "height").asInt();
+  int width = getWidth(entity);
+  int height = getHeight(entity);
   jx::Ob src = getSource(entity);
   jx::Ob type = entity->listGet(0);
   if (type == Known::openglContextType) {
@@ -306,8 +317,8 @@ void processMenuItems(jx::Ob *menu, int depth, JX_MENU *menu_widget)
 
 void printFrameHtml(jx::Ob *entity)
 {
-   int width = getAttr(entity, "width").asInt();
-   int height = getAttr(entity, "height").asInt();
+   int width = getWidth(entity);
+   int height = getHeight(entity);
    jx::Ob src = getSource(entity);
    printf("  <FRAME SRC=\"%s\"", src.asStr());
    if (width > 0)  printf(" WIDTH=%d", width);
@@ -320,7 +331,7 @@ void printHFramesetHtml(jx::Ob *pane, int size)
     printf("<FRAMESET COLS=");
     for(int i=0;i<size;i++) {
       jx::Ob tmp = pane->listGet(i);
-      int width = getAttr(&tmp, "width").asInt();
+      int width = getWidth(&tmp);
       if (i>0) printf (",");
       printVal(width);
     }
@@ -332,7 +343,7 @@ void printVFramesetHtml(jx::Ob *pane, int size)
     printf("<FRAMESET ROWS=");
     for(int i=0;i<size;i++) {
       jx::Ob tmp = pane->listGet(i);
-      int height = getAttr(&tmp, "height").asInt();
+      int height = getHeight(&tmp);
       if (i>0) printf (",");
       printVal(height);
     }
@@ -346,8 +357,8 @@ JX_SPLITTER * processHSplitter(jx::Ob *splitter)
 
   JX_SPLITTER *s;
 #ifdef JX_QT
-  int width = getAttr(splitter, "width").asInt();
-  int height = getAttr(splitter, "height").asInt();
+  int width = getWidth(splitter);
+  int height = getHeight(splitter);
 #endif
   if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"processing horizontal splitter %d widget...\n", size);
   if (OUT_TYPE & GUI_HTML) printHFramesetHtml(&pane,size);
@@ -379,8 +390,8 @@ JX_SPLITTER * processVSplitter(jx::Ob *splitter)
 
   JX_SPLITTER *s;
 #ifdef JX_QT
-  int width = getAttr(splitter, "width").asInt();
-  int height = getAttr(splitter, "height").asInt();
+  int width = getWidth(splitter);
+  int height = getHeight(splitter);
 #endif
   if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"processing vertical splitter %d widget...\n", size);
   if (OUT_TYPE & GUI_HTML)  printVFramesetHtml(&pane, size);
