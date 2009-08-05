@@ -2,8 +2,14 @@
 # now we switch from having a dedicated thread per queue to having a single
 # queue with multitple threads pulling from it
 
-VERBOSITY = 0
+VERBOSITY = 1
  
+INITIAL_SIZE = 10
+MULTICOPY_ADD = 10
+MULTICOPY_NEG = 10
+MULTICOPY_SQR = 10
+FINAL_RESULT_SIZE = INITIAL_SIZE * MULTICOPY_ADD * MULTICOPY_NEG * MULTICOPY_SQR
+
 entity(JxonNodeProto, null, null, { 
   _handler : null,
   _inputs : [ raw(nodeinput) ],
@@ -27,25 +33,25 @@ synchronize(result)
 # sending their payload
 
 def _add(self, port, payload):
-  if VERBOSITY > 0:
-    self.nodeerror("_add called")
-  a = 20
+  if VERBOSITY > 1:
+    self.nodeerror("_add called, " + str(payload))
+  a = MULTICOPY_ADD
   while a > 0:
     a -= 1
     self.nodeoutput( payload + 1 )
 
 def _negate(self, port, payload):
-  if VERBOSITY > 0:
-    self.nodeerror("_negate called " + str(payload))
-  a = 100
+  if VERBOSITY > 1:
+    self.nodeerror("_negate called, " + str(payload))
+  a = MULTICOPY_NEG
   while a > 0:
     a -= 1
     self.nodeoutput( -payload )
 
 def _square(self, port, payload):
-  if VERBOSITY > 0:
-    self.nodeerror("_square called" + str(payload))
-  a = 500
+  if VERBOSITY > 1:
+    self.nodeerror("_square called, " + str(payload))
+  a = MULTICOPY_SQR
   while a > 0:
     a -= 1
     value = payload * payload
@@ -88,8 +94,6 @@ def pipeC(self, payload):
 nodeA.nodeoutput = pipeB
 nodeB.nodeoutput = pipeC
 
-FINAL_RESULT_SIZE = 10000000
-INITIAL_SIZE = 100
 
 def mythread(master, head, queue, result):
   if master == true:
@@ -97,7 +101,7 @@ def mythread(master, head, queue, result):
     while a > 0:
         a -= 1
         #print "sending 1+" + str(a)
-        head.nodeinput(null, a)
+        head.nodeinput(a)
     print "master thread done"
   else:
     print "slave thread started"
@@ -136,6 +140,7 @@ paramap( mythread, [
   ])
 
 print len(result)
-
+if VERBOSITY > 0:
+  print result
 
 
