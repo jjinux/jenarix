@@ -11,7 +11,9 @@ namespace jx {
   class Ob {
 
     protected:
-      jx_ob jxob; // underlying jx object representation 
+      jx_ob jxob; // underlying jx object representation
+
+    private:
 
     public:
       Ob();
@@ -86,60 +88,48 @@ namespace jx {
       bool builtin_callable_check();
 
 /* useful for Ob that is not declared a List, but is */
-      jx_ob list_get(int);
+      Ob list_get(int);
 /* useful for Ob that is not declared a Hash, but is */
-      jx_ob hash_get(const char * key);
-      jx_ob hash_get(const Ob key);
+      Ob hash_get(const char * key);
+      Ob hash_get(const Ob key);
 
       int size();
       int type();
   };
 
-  class Ident {
-
-    private:
-      jx_ob jxob;
+  class Ident : public Ob {
 
     public:
       Ident();
       Ident(const Ident&);
-      Ident(jx_ob);
       Ident(char *);
       Ident(const char *);
       Ident(char *, int);
       Ident(const char *, int);
+      Ident(jx_ob);
 
       ~Ident();
 
-      jx_ob ob();
   };
 
-  class List {
-
-    private:
-      jx_ob jxob;
+  class List : public Ob {
 
     public:
       List();
       List(const List&);
-      List(jx_ob);
       List(int size);
       List(int array[], int size);
       List(float array[], int size);
       List(int size, Ob &fill);
+      List(jx_ob);
 
       ~List();
 
-      jx_ob ob();
-
-      jx_ob get(int);
+      Ob get(int);
       int size();
   };
 
-  class Hash {
-
-    private:
-      jx_ob jxob;
+  class Hash : public Ob {
 
     public:
       Hash();
@@ -148,11 +138,9 @@ namespace jx {
 
       ~Hash();
 
-      jx_ob ob();
-
-      jx_ob get(const Ob key);
-      jx_ob get(const Ident key);
-      jx_ob get(const char *);
+      Ob get(const Ob key);
+      Ob get(const Ident key);
+      Ob get(const char *);
       int size();
    };
 

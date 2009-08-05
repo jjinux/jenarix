@@ -41,37 +41,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include <string>
 
+namespace Known {
 /*
-//can't jx_ob_copy entities?
-static jx::Symbol hSplitterType;
-static jx::Symbol vSplitterType;
-static jx::Symbol menuBarType;
-static jx::Symbol menuItemType;
-static jx::Symbol openglContextType;
-static jx::Symbol navigatorType;
+// doesn't work ??
+  jx::Ob hSplitterType;
+  jx::Ob vSplitterType;
+  jx::Ob menuBarType;
+  jx::Ob menuItemType;
+  jx::Ob openglContextType;
+  jx::Ob navigatorType;
 */
+  jx_ob hSplitterType;
+  jx_ob vSplitterType;
+  jx_ob menuBarType;
+  jx_ob menuItemType;
+  jx_ob openglContextType;
+  jx_ob navigatorType;
+};
 
-static jx_ob hSplitterType;
-static jx_ob vSplitterType;
-static jx_ob menuBarType;
-static jx_ob menuItemType;
-static jx_ob openglContextType;
-static jx_ob navigatorType;
 extern int OUT_TYPE;
 extern JX_WIDGET *window;
 
 int setOutputType(int in_type, char *a) 
 {
-  int OUT_TYPE = in_type;
+  int out_type = in_type;
   if (!strncmp(a,"-html",5)) {
-    OUT_TYPE = in_type | GUI_HTML;
+    out_type = in_type | GUI_HTML;
     return true;
   } else if (!strncmp(a,"-qt",3)) {
-    OUT_TYPE = in_type | GUI_QTUI;
+    out_type = in_type | GUI_QTUI;
   } else if (!strncmp(a,"-v",2)) {
-    OUT_TYPE = in_type | GUI_PRINT;
+    out_type = in_type | GUI_PRINT;
   }
-  return OUT_TYPE;
+  return out_type;
 }
 
 jx::Ob getAttr(jx::Ob *entity, const char *attr) 
@@ -79,8 +81,8 @@ jx::Ob getAttr(jx::Ob *entity, const char *attr)
 /* get "attribute" from entity, which is a list of three items, the last of
    which is a hash of attributes */
 
-    jx::Hash attrs = entity->list_get(2);
-    return attrs.get((jx::Ident)attr);
+    jx::Ob attrs = entity->list_get(2);
+    return attrs.hash_get((jx::Ident)attr);
 }
 
 jx::Ob getSource(jx::Ob *entity) 
@@ -88,11 +90,11 @@ jx::Ob getSource(jx::Ob *entity)
     jx::Ob source = getAttr(entity, "source");
     if (source.null_check()) {
       jx::Ob type = entity->list_get(0);
-      if(type == openglContextType) {
+      if(type == Known::openglContextType) {
           return jx::Ob("opengl.html");
-      } else if(type == navigatorType) {
+      } else if(type == Known::navigatorType) {
           return jx::Ob("navigator.html");
-      } else if(type == menuBarType) {
+      } else if(type == Known::menuBarType) {
           return jx::Ob("menubar.html");
       } else  {
           return jx::Ob("");
@@ -115,22 +117,22 @@ JX_WIDGET * createQtWidget(jx::Ob *entity)
     jx::Ob src = getSource(entity);
     if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.as_str(), width, height);
     jx::Ob type = entity->list_get(0);
-    if(type == openglContextType) {
+    if(type == Known::openglContextType) {
       GLWidget *w = new GLWidget;
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
-    } else if(type == navigatorType) {
+    } else if(type == Known::navigatorType) {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.as_str());
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
-    } else if(type == menuBarType) {
+    } else if(type == Known::menuBarType) {
       QMenuBar *w = new QMenuBar;
       processMenuItems(entity,0,(JX_MENU *)w);
       widget = w;
-    } else if(type == menuItemType) {
+    } else if(type == Known::menuItemType) {
     } else  {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.as_str());
@@ -170,11 +172,11 @@ void printWidgetInfo(jx::Ob *entity)
   int height = getAttr(entity, "height").as_int();
   jx::Ob src = getSource(entity);
   jx::Ob type = entity->list_get(0);
-  if (type == openglContextType) {
+  if (type == Known::openglContextType) {
      fprintf(stderr,"OpenGL widget %s %dx%d\n", src.as_str(), width, height);
-  } else if(type == navigatorType) {
+  } else if(type == Known::navigatorType) {
      fprintf(stderr,"Navigator widget %s %dx%d\n", src.as_str(), width, height);
-  } else if(type == menuBarType) {
+  } else if(type == Known::menuBarType) {
      if (height == 0) height = GUI_MENUBAR_HEIGHT;
      fprintf(stderr,"MenuBar widget %s %dx%d\n", src.as_str(), width, height);
      if (OUT_TYPE == GUI_PRINT) processMenuItems(entity,0,NULL);
@@ -285,7 +287,7 @@ void processMenuItems(jx::Ob *menu, int depth, JX_MENU *menu_widget)
   for (int i=0; i<menu_items.size(); ++i) {
     jx::Ob item = menu_items.list_get(i);
     jx::Ob type = item.list_get(0);
-    if(type == menuItemType) {
+    if(type == Known::menuItemType) {
       if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"%s  item", blanx.c_str());
       JX_MENU *sub_menu = processMenuItem(&item, menu_widget);
       processMenuItems(&item, depth+1, (JX_MENU *)sub_menu);
@@ -420,11 +422,11 @@ JX_WIDGET * processComponents(jx::Ob *component)
 {
   jx::Ob comp_type = component->list_get(0);
 
-  if(comp_type == hSplitterType) {
+  if(comp_type == Known::hSplitterType) {
 
     return processHSplitter(component);
 
-  } else if(comp_type == vSplitterType) {
+  } else if(comp_type == Known::vSplitterType) {
 
     return processVSplitter(component);    
 
@@ -435,35 +437,53 @@ JX_WIDGET * processComponents(jx::Ob *component)
   }
 }
 
-jx_status freeKnowns()
+bool freeKnowns()
 {
-  jx_ob_free(vSplitterType);
-  jx_ob_free(hSplitterType);
-  jx_ob_free(menuBarType);
-  jx_ob_free(menuItemType);
-  jx_ob_free(openglContextType);
-  jx_ob_free(navigatorType);
-  return JX_STATUS_SUCCESS;
+  jx_ob_free(Known::vSplitterType);
+  jx_ob_free(Known::hSplitterType);
+  jx_ob_free(Known::menuBarType);
+  jx_ob_free(Known::menuItemType);
+  jx_ob_free(Known::openglContextType);
+  jx_ob_free(Known::navigatorType);
+  return true;
 }
 
-jx_status locateKnowns(jx::Hash *node)
+bool locateKnowns(jx::Hash *node)
 {
 
-  vSplitterType     = node->get(jx::Ident("VSplitter"));
-  hSplitterType     = node->get(jx::Ident("HSplitter"));
-  menuBarType       = node->get(jx::Ident("MenuBar"));
-  menuItemType      = node->get(jx::Ident("MenuItem"));
-  openglContextType = node->get(jx::Ident("OpenGLContext"));
-  navigatorType     = node->get(jx::Ident("Navigator"));
+/*
+// doesn't work ??
+  Known::vSplitterType     = node->get(jx::Ident("VSplitter"));
+  Known::hSplitterType     = node->get(jx::Ident("HSplitter"));
+  Known::menuBarType       = node->get(jx::Ident("MenuBar"));
+  Known::menuItemType      = node->get(jx::Ident("MenuItem"));
+  Known::openglContextType = node->get(jx::Ident("OpenGLContext"))l
+  Known::navigatorType     = node->get(jx::Ident("Navigator"));
+*/
+  Known::vSplitterType     = jx_ob_copy(node->get(jx::Ident("VSplitter")).ob());
+  Known::hSplitterType     = jx_ob_copy(node->get(jx::Ident("HSplitter")).ob());
+  Known::menuBarType       = jx_ob_copy(node->get(jx::Ident("MenuBar")).ob());
+  Known::menuItemType      = jx_ob_copy(node->get(jx::Ident("MenuItem")).ob());
+  Known::openglContextType = jx_ob_copy(node->get(jx::Ident("OpenGLContext")).ob());
+  Known::navigatorType     = jx_ob_copy(node->get(jx::Ident("Navigator")).ob());
 
-  return JX_SUCCESS;
+  if (jx_null_check(Known::vSplitterType) ||
+      jx_null_check(Known::hSplitterType) ||
+      jx_null_check(Known::menuBarType) ||
+      jx_null_check(Known::menuItemType) ||
+      jx_null_check(Known::openglContextType) ||
+      jx_null_check(Known::navigatorType) ) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 JX_WIDGET * gui_run_from_node(jx::Hash *node)
 {
   
   JX_WIDGET *w;
-  if( jx_ok(locateKnowns(node)) ) {  
+  if( locateKnowns(node) ) {  
 
     /* get the root gui component */
 

@@ -145,7 +145,7 @@ jx::Ob jx::Ob::from_hash(jx_ob from) {
 }
 
 /* useful for Ob not declared a List, but is */
-jx_ob jx::Ob::list_get(int ielement) {
+jx::Ob jx::Ob::list_get(int ielement) {
   if (jx_list_check(jxob)) {
     return jx_list_get(jxob, ielement);
   } else {
@@ -154,7 +154,7 @@ jx_ob jx::Ob::list_get(int ielement) {
 }
 
 /* useful for Ob not declared a Hash, but is */
-jx_ob jx::Ob::hash_get(Ob key) {
+jx::Ob jx::Ob::hash_get(Ob key) {
   if (jx_hash_check(jxob)) {
     return jx_hash_get(jxob, key.ob());
   } else {
@@ -210,16 +210,19 @@ jx::Ident::Ident(char * st, int stlen) {
 jx::Ident::Ident(const char * st, int stlen) {
   jxob = jx_ob_from_ident_with_len((jx_char *)st, stlen);
 }
-jx::Ident::~Ident() {
-  jx_ob_free(jxob);
-}
 /* Copy */
 jx::Ident::Ident(const Ident& from) {
   jxob = jx_ob_copy(from.jxob);
 }
+/* Destructor */
+jx::Ident::~Ident() {
+  // let ~Ob() do it
+}
+/*
 jx_ob jx::Ident::ob() {
   return jxob;
 }
+*/
 
 /* List Ob class */
 jx::List::List() {
@@ -241,18 +244,21 @@ jx::List::List(int array[], int size) {
 jx::List::List(float array[], int size) {
   jxob = jx_list_new_from_float_array(array, size);
 }
-jx::List::~List() {
-  jx_ob_free(jxob);
-}
 /* Copy */
 jx::List::List(const List& from) {
   jxob = jx_ob_copy(from.jxob);
 }
+/* Destructor */
+jx::List::~List() {
+  // let Ob() do it
+}
+/*
 jx_ob jx::List::ob() {
   return jxob;
 }
+*/
 
-jx_ob jx::List::get(int ielement) {
+jx::Ob jx::List::get(int ielement) {
   return jx_list_get(jxob, ielement);
 }
 int jx::List::size() {
@@ -268,23 +274,26 @@ jx::Hash::Hash(jx_ob from) {
   //jxob = jx_ob_copy(from);
   jxob = from;
 }
-jx::Hash::~Hash() {
-  jx_ob_free(jxob);
-}
 /* Copy */
 jx::Hash::Hash(const Hash& from) {
   jxob = jx_ob_copy(from.jxob);
 }
+/* Destructor */
+jx::Hash::~Hash() {
+  // let ~Ob() do it
+}
+/*
 jx_ob jx::Hash::ob() {
   return jxob;
 }
+*/
 
 int jx::Hash::size() {
   return jx_hash_size(jxob);
 }
-jx_ob jx::Hash::get(Ob key) {
+jx::Ob jx::Hash::get(Ob key) {
   return jx_hash_get(jxob, key.ob());
 }
-jx_ob jx::Hash::get(Ident key) {
+jx::Ob jx::Hash::get(Ident key) {
   return jx_hash_get(jxob, key.ob());
 }
