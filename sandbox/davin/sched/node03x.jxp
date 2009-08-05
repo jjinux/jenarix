@@ -4,11 +4,11 @@
  
 entity(JxonNodeProto, null, null, { 
   _handler : null,
-  _inputs : [ raw(input) ],
-  _outputs : [ raw(output), raw(error) ],
-  input : (lambda self, payload: self._handler(input, payload)), 
-  output : (lambda self, x: output( x )),
-  error : (lambda self, x: error( x ))
+  _inputs : [ raw(nodeinput) ],
+  _outputs : [ raw(nodeoutput), raw(nodeerror) ],
+  nodeinput : (lambda self, payload: self._handler(nodeinput, payload)), 
+  nodeoutput : (lambda self, x: nodeoutput( x )),
+  nodeerror : (lambda self, x: nodeerror( x ))
   })
 
 #JxonNodeProto = [JxonNodeEntity, {}]
@@ -25,21 +25,21 @@ synchronize(result)
 # sending their payload
 
 def _add(self, port, payload):
-  self.error("_add called")
+  self.nodeerror("_add called")
   a = 20
   while a > 0:
     a -= 1
-    self.output( payload + 1 )
+    self.nodeoutput( payload + 1 )
 
 def _negate(self, port, payload):
-  self.error("_negate called " + str(payload))
+  self.nodeerror("_negate called " + str(payload))
   a = 100
   while a > 0:
     a -= 1
-    self.output( -payload )
+    self.nodeoutput( -payload )
 
 def _square(self, port, payload):
-  self.error("_square called" + str(payload))
+  self.nodeerror("_square called" + str(payload))
   a = 500
   while a > 0:
     a -= 1
@@ -76,8 +76,8 @@ def pipeB(self, payload):
 def pipeC(self, payload):
   queue.append([payload, nodeC])
 
-nodeA.output = pipeB
-nodeB.output = pipeC
+nodeA.nodeoutput = pipeB
+nodeB.nodeoutput = pipeC
 
 FINAL_RESULT_SIZE = 10
 
@@ -87,7 +87,7 @@ def mythread(master, head, queue, result):
     while a > 0:
         a -= 1
         print "sending 1+" + str(a)
-        head.input(1, a)
+        head.nodeinput(1, a)
     print "master thread done"
   else:
     print "slave thread started"
@@ -100,7 +100,7 @@ def mythread(master, head, queue, result):
         payload = packet.pop()
         target = packet.pop()
         #output([payload,target])
-        target.input(payload)
+        target.nodeinput(payload)
         if len(result) == FINAL_RESULT_SIZE:
           break
       else:
