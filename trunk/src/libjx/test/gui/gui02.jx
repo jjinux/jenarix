@@ -1,0 +1,107 @@
+(entity FileDialog
+  null
+  null
+  {__init__ : newFileDialog}
+  __init__
+);
+# newFileDialog must be defined externally BEFORE this is eval'ed.
+set GuiFileDialog QtFileDialog;
+
+(entity HSplitter);
+(entity VSplitter);
+
+(entity MenuBar);
+(entity MenuItem);
+(entity OpenGLContext);
+(entity Navigator);
+
+(entity Callback);
+
+# end-user-defined widget
+
+(entity MyWidget);
+
+ # end-user-defined entities
+
+set awidget {source: "awidget.html", height: 150};
+set bwidget {source: "bwidget.html", height: 100};
+
+# callback functions for later use
+def file_open      [f]     [output ("Open", f)];
+def display_smooth [state] [output ("Smooth:" state)];
+def display_depth  [state] [output ("Depth-cue:" state)];
+def help_about     []      [qtprint "This is the jxon gui builder"];
+def file_exit      []      [output "Exit, stage left"];
+
+# menu definition
+# file menu
+set menu_file (MenuItem [
+    (MenuItem null {label: "Open...", callback: file_open, popup: "fileDialog"})
+    (MenuItem null {label: "Exit", callback: file_exit})
+   ]
+   {label: "File"})
+;
+
+# edit menu
+set menu_edit (MenuItem [
+   (MenuItem null {label: "Undo", callback: edit_undo})
+   ]
+   {label: "Edit"})
+;
+
+# display menu
+# first, display sub-menus
+set menu_display_sequence_mode
+   (MenuItem [
+     "Residue codes",
+     "Residues",
+     "Chains",
+     "Atoms",
+     "States"
+     ]
+     {label: "Sequence Mode"})
+;
+# now the display menu incorporating the sub-menus
+set menu_display
+   (MenuItem [
+   "Sequence",
+   menu_display_sequence_mode,
+   (MenuItem null {label: "Smooth Lines", checkbox: "on", callback: display_smooth}),
+   (MenuItem null {label: "Depth Cue", checkbox: "off", callback: display_depth}),
+   "Two-sided Lighting"
+   ]
+   {label: "Display"})
+;
+
+# help menu
+set menu_help
+   (MenuItem [
+    (MenuItem null {label: "About", callback: help_about})
+   ]
+   {label: "Help"})
+;
+
+set menu_items [menu_file menu_edit menu_display menu_help];
+
+# the main gui
+( set gui 
+  ( VSplitter
+    [
+      ( MenuBar menu_items )
+      ( HSplitter
+        [
+          ( OpenGLContext )
+          ( VSplitter 
+            [
+              ( Navigator )
+              ( MyWidget null awidget )
+              ( MyWidget null bwidget )
+              ( MyWidget )
+            ]
+            { width: 200 }
+          )
+        ]
+      )
+    ]
+  )
+)

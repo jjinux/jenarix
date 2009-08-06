@@ -2,6 +2,7 @@
 
 #include "guiCreator.h"
 #include "jxobject.h"
+#include "qtBuiltins.h"
 #ifdef JX_QT
 #include "glwidget.h"
 #include <QDebug>
@@ -54,8 +55,11 @@ int main(int argc, char *argv[])
   if(jx_ok( jx_os_process_init(argc,argv) )) {
     exit_status = EXIT_SUCCESS;
 
-    jx::Hash *node = new jx::Hash();
+    jx::Ob *node = new jx::Hash();
     if(jx_ok( jx_main_exec_in_node(0,NULL,node->ob()) )) {
+      //node->jxonDump(stderr, "node before");
+      addQtBuiltins(node);
+      //node->jxonDump(stderr, "node after");
       w = gui_run_from_node(node);
     }
     delete node;

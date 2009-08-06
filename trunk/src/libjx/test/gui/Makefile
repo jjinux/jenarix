@@ -31,9 +31,11 @@ QTFLAGS=-DJX_QT
 #uncomment the above lines to disable QT
 CXXFLAGS=-g $(QTFLAGS)
 
-gui: gui.o guiCreator.o jxobject.o $(QTOBS)
+gui: gui.o guiCreator.o jxobject.o qtBuiltins.o $(QTOBS)
 	$(CXX) -o $@ -g $^ $(LIBS) $(QTLIBS)
 gui.o: gui.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
+qtBuiltins.o: qtBuiltins.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
 guiCreator.o: guiCreator.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
@@ -53,9 +55,10 @@ moc_glwidget.cpp: glwidget.h
 moc_jxaction.cpp: jxaction.h
 	$(MOC) -o $@ $<
 
-guiCreator.o: guiCreator.h
-gui.o: guiCreator.h
+guiCreator.o: guiCreator.h glwidget.h jxobject.h
+gui.o: guiCreator.h qtBuiltins.h jxobject.h
 jxobject.o: jxobject.h
+qtBuiltins.o: qtBuiltins.h jxobject.h
 
 clean:
 	rm -f gui *.o moc_*.cpp

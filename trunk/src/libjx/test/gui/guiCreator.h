@@ -29,7 +29,7 @@
 #endif
 
 int setOutputType(int in_type, char *a);
-JX_WIDGET * gui_run_from_node(jx::Hash *node);
+JX_WIDGET * gui_run_from_node(jx::Ob *node);
 void printVal(int v);
 void printHFramesetHtml(jx::Ob *pane, int size);
 void printVFramesetHtml(jx::Ob *pane, int size);
@@ -56,6 +56,6 @@ JX_WIDGET * processMenuBar(jx::Ob *widget);
 JX_WIDGET * processWidget(jx::Ob *widget);
 
 jx::Ob getAttr(jx::Ob *item, const char *attr);
-bool locateKnowns(jx::Hash *node);
+bool locateKnowns(jx::Ob *node);
 
 #endif

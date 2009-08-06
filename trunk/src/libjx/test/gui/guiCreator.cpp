@@ -456,7 +456,7 @@ JX_WIDGET * processComponents(jx::Ob *component)
   }
 }
 
-bool locateKnowns(jx::Hash *node)
+bool locateKnowns(jx::Ob *node)
 {
 
 /*
@@ -491,7 +491,7 @@ bool locateKnowns(jx::Hash *node)
   }
 }
 
-JX_WIDGET * gui_run_from_node(jx::Hash *node)
+JX_WIDGET * gui_run_from_node(jx::Ob *node)
 {
   
   JX_WIDGET *w;
