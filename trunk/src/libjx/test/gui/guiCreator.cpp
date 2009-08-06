@@ -44,15 +44,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Known {
 /*
 // doesn't work ??
-  jx::Ob hSplitterType;
   jx::Ob vSplitterType;
+  jx::Ob hSplitterType;
   jx::Ob menuBarType;
   jx::Ob menuItemType;
   jx::Ob openglContextType;
   jx::Ob navigatorType;
 */
-  jx_ob hSplitterType;
+  jx::Ob atest;
+  jx::Ob btest;
   jx_ob vSplitterType;
+  jx_ob hSplitterType;
   jx_ob menuBarType;
   jx_ob menuItemType;
   jx_ob openglContextType;
@@ -454,17 +456,6 @@ JX_WIDGET * processComponents(jx::Ob *component)
   }
 }
 
-bool freeKnowns()
-{
-  jx_ob_free(Known::vSplitterType);
-  jx_ob_free(Known::hSplitterType);
-  jx_ob_free(Known::menuBarType);
-  jx_ob_free(Known::menuItemType);
-  jx_ob_free(Known::openglContextType);
-  jx_ob_free(Known::navigatorType);
-  return true;
-}
-
 bool locateKnowns(jx::Hash *node)
 {
 
@@ -477,12 +468,16 @@ bool locateKnowns(jx::Hash *node)
   Known::openglContextType = node->get(jx::Ident("OpenGLContext"))l
   Known::navigatorType     = node->get(jx::Ident("Navigator"));
 */
-  Known::vSplitterType     = jx_ob_copy(node->get(jx::Ident("VSplitter")).ob());
-  Known::hSplitterType     = jx_ob_copy(node->get(jx::Ident("HSplitter")).ob());
-  Known::menuBarType       = jx_ob_copy(node->get(jx::Ident("MenuBar")).ob());
-  Known::menuItemType      = jx_ob_copy(node->get(jx::Ident("MenuItem")).ob());
-  Known::openglContextType = jx_ob_copy(node->get(jx::Ident("OpenGLContext")).ob());
-  Known::navigatorType     = jx_ob_copy(node->get(jx::Ident("Navigator")).ob());
+/* these are borrowed, so I'm not responsible for freeing them (shouldn't free them)
+   they will be freed with delete node, in main */
+  Known::atest     = node->get(jx::Ident("VSplitter"));
+  Known::btest     = Known::atest;
+  Known::vSplitterType     = node->borrow(jx::Ident("VSplitter"));
+  Known::hSplitterType     = node->borrow(jx::Ident("HSplitter"));
+  Known::menuBarType       = node->borrow(jx::Ident("MenuBar"));
+  Known::menuItemType      = node->borrow(jx::Ident("MenuItem"));
+  Known::openglContextType = node->borrow(jx::Ident("OpenGLContext"));
+  Known::navigatorType     = node->borrow(jx::Ident("Navigator"));
 
   if (jx_null_check(Known::vSplitterType) ||
       jx_null_check(Known::hSplitterType) ||
@@ -508,8 +503,8 @@ JX_WIDGET * gui_run_from_node(jx::Hash *node)
     
     /* dump graph for debuggin' */
     
-    //gui.jxonDump(stdout,"node");
-    //gui.jxonDump(stdout,"gui");
+    //node->jxonDump(stdout,"node");
+    //gui->jxonDump(stdout,"gui");
     
     /* traverse the graph nondestructively, processing each component in turn */
     
@@ -522,7 +517,6 @@ JX_WIDGET * gui_run_from_node(jx::Hash *node)
     /* when done...free what we took */
 
     delete gui;
-    freeKnowns();
 
     return w;
   }

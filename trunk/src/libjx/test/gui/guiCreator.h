@@ -56,7 +56,6 @@ JX_WIDGET * processMenuBar(jx::Ob *widget);
 JX_WIDGET * processWidget(jx::Ob *widget);
 
 jx::Ob getAttr(jx::Ob *item, const char *attr);
-bool freeKnowns();
 bool locateKnowns(jx::Hash *node);
 
 #endif

@@ -101,6 +101,9 @@ bool jx::Ob::boolCheck() {
 bool jx::Ob::listCheck() {
   return jx_list_check(jxob);
 }
+bool jx::Ob::identCheck() {
+  return jx_ident_check(jxob);
+}
 bool jx::Ob::hashCheck() {
   return jx_hash_check(jxob);
 }
