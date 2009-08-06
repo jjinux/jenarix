@@ -1,0 +1,37 @@
+1. As we have it now, a node can contain sub-nodes (as in jxn) and executable handler functions (something that does work).
+
+   * What does it look like if I do both?
+     input | self.handler() | local_symbol_A | local_symbol_B | output
+     Or should the above be implied that the self.handler() always grabs input?
+     But this might also be desirable:
+       input | local_symbol_A | self.handler() | local_symbol_B | output
+     Does this feel awkward, conceptually?
+
+   * Maybe we should make these two types (network or compute nodes) distinct?
+     Compute nodes would look like JxonNodeProto (entity from node03x.jxp)
+     Network nodes would look like node_type_D (see libjx/src/net/script.jxn)
+     If compute nodes are just "nodes" then are the network nodes instead "networknodes" or "netnodes"?
+
+
+2. Networks described to jxn feel like they need a 2-pass processing...
+
+   * These networks do not readily map to a single entity, which is okay.
+     Processing of a described network involves parsing the pipeline, then processing that pipeline description to affect the piping functions.
+
+   * Is a jxn network an entity or does it get first-class status as its own type in Jenarix?
+     If an entity, then the processing of the pipeline can happen when the entity is instantiated (via init())
+     If a first-class type, do we gain an ability not available as an entity?  (Kind of: convenient def of init()).
+     Currently, the jxn parser is, as a placeholder, oriented more towards the first-class type.
+     How do we implement code for init() in parser if we take the entity route?  Parser spits out a template for init() automatically?
+
+   * Mapping a jxn network into an entity would follow a template like:
+     [ Network [] {ports : [], pipes : [], subnodes_code : []} ]
+     Thus ports might look like [input, output, error] in the simplest case;
+     pipes might look like [[input, local_symbol_A, local_symbol_B, output], [local_symbol_A.error, error]]
+     subnodes_code would be a Jenarix code block where jxn input lines like:
+       local_symbol_A = node_type_A("abc", 'xyz', 123, 2.0)
+     get turned into code, stored in subnodes_code as a single entry in a longer list, like:
+       [copy,local_symbol_A,[node_type_A,"abc","xyz",123,2.0]]
+
+
+3. 
