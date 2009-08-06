@@ -12,10 +12,9 @@ namespace jx {
 
     protected:
       jx_ob jxob; // underlying jx object representation
-      static Ob makeOb(jx_ob);  // used internally, so I can make Ob from jx_ob via Ob(jx_ob)
 
     private:
-      Ob(jx_ob);  // don't let users do this, lest borrowed jx_ob's get destroyed
+      Ob(jx_ob);  // don't let users do this, lest borrowed jx_ob's get destructed
 
     public:
       Ob();
@@ -55,7 +54,7 @@ namespace jx {
       void jxonDump(FILE *, const char *);
 
 /* these methods are used, for example:
-      jx::Ob a = jx::Ob::fromInt(47);
+      jx::Ob a = jx::Ob::fromIdent("VSplitter");
 */
       static Ob fromInt(int);
       static Ob fromFloat(float);
@@ -70,7 +69,6 @@ namespace jx {
       static Ob fromIdent(char *, int);
       static Ob fromIdent(const char *, int);
 
-      //Ob toInt(jx::Ob &);
       Ob toInt();
 
       int    asInt();
@@ -89,12 +87,12 @@ namespace jx {
       bool hashCheck();
       bool builtinCallableCheck();
 
-/* useful for Ob that is not declared a List, but is */
-      Ob listGet(int);
-      jx_ob listBorrow(int);  // return jx_ob, not Ob lest it get destroyed
-/* useful for Ob that is not declared a Hash, but is */
-      Ob hashGet(const Ob key);
-      jx_ob hashBorrow(const Ob key);  // return jx_ob, not Ob lest it get destroyed
+/* useful for Ob that is a list (or jx::List) */
+      Ob get(int);
+      jx_ob borrow(int);  // return jx_ob, not Ob lest jxob get destructed
+/* useful for Ob that is a hash (or jx::Hash) */
+      Ob get(const Ob key);
+      jx_ob borrow(const Ob key);  // return jx_ob, not Ob lest jxob get destructed
 
       int size();
       int type();
@@ -132,7 +130,7 @@ namespace jx {
       ~List();
 
       Ob get(int);
-      jx_ob borrow(int);  // return jx_ob, not Ob lest it get destroyed
+      jx_ob borrow(int);  // return jx_ob, not Ob lest it get destructed
       int size();
 
       Ob operator[] (int ielement);
@@ -149,7 +147,7 @@ namespace jx {
       ~Hash();
 
       Ob get(const Ob key);
-      jx_ob borrow(const Ob key);  // return jx_ob, not Ob lest it get destroyed
+      jx_ob borrow(const Ob key);  // return jx_ob, not Ob lest it get destructed
       int size();
    };
 
