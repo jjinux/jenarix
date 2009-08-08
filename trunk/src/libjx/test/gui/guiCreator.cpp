@@ -51,8 +51,6 @@ namespace Known {
   jx::Ob openglContextType;
   jx::Ob navigatorType;
 */
-  jx::Ob atest;
-  jx::Ob btest;
   jx_ob vSplitterType;
   jx_ob hSplitterType;
   jx_ob menuBarType;
@@ -470,8 +468,6 @@ bool locateKnowns(jx::Ob *node)
 */
 /* these are borrowed, so I'm not responsible for freeing them (shouldn't free them)
    they will be freed with delete node, in main */
-  Known::atest     = node->get(jx::Ident("VSplitter"));
-  Known::btest     = Known::atest;
   Known::vSplitterType     = node->borrow(jx::Ident("VSplitter"));
   Known::hSplitterType     = node->borrow(jx::Ident("HSplitter"));
   Known::menuBarType       = node->borrow(jx::Ident("MenuBar"));
