@@ -42,12 +42,14 @@ void JXAction::doExit()
 }
 */
 
+/*
 void JXAction::openFile()
 {
   QString fileName = QFileDialog::getOpenFileName();
   if (!fileName.isEmpty())
     doCallback(fileName);
 }
+*/
 
 void JXAction::freeActions() {
   //QList<JXAction *> kids = parentWidget()->findChildren<JXAction *>();

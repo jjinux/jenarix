@@ -1,12 +1,3 @@
-(entity FileDialog
-  null
-  null
-  {__init__ : newFileDialog}
-  __init__
-);
-# newFileDialog must be defined externally BEFORE this is eval'ed.
-set GuiFileDialog QtFileDialog;
-
 (entity HSplitter);
 (entity VSplitter);
 
@@ -27,21 +18,23 @@ set awidget {source: "awidget.html", height: 150};
 set bwidget {source: "bwidget.html", height: 100};
 
 # define "generic" callback functions to use qt
-def gui_alert [msg] (output (qtAlert msg));
-def gui_exit  [c]   [output ((qtExit),c)]
+def gui_alert    [msg] (output (qtAlert msg));
+def gui_exit     []    [output (qtExit)];
+def gui_getfile  []    [output ("Open", (qtFile))];
+def gui_echo     [s]   [output s];
 
 # callback functions for later use
-def file_open      [f]     [output ("Open", f)];
-def display_smooth [state] [output ("Smooth:" state)];
-def display_depth  [state] [output ("Depth-cue:" state)];
+def file_open      []      [(gui_getfile)];
+def display_smooth [state] [(gui_echo ("Smooth:" state))];
+def display_depth  [state] [(gui_echo ("Depth-cue:" state))];
 def help_about     []      [(gui_alert "This is the jxon gui builder")];
-def file_exit      []      [(gui_exit 1)];
+def file_exit      []      [(gui_exit)];
 
 # menu definition
 # file menu
 set menu_file (MenuItem [
-    (MenuItem null {label: "Open...", callback: file_open, popup: "fileDialog"})
-    (MenuItem null {label: "Exit", callback: file_exit})
+    (MenuItem null {label: "Open...", callback: file_open})
+    (MenuItem null {label: "Exit",    callback: file_exit})
    ]
    {label: "File"})
 ;
@@ -70,8 +63,8 @@ set menu_display
    (MenuItem [
    "Sequence",
    menu_display_sequence_mode,
-   (MenuItem null {label: "Smooth Lines", checkbox: "on", callback: display_smooth}),
-   (MenuItem null {label: "Depth Cue", checkbox: "off", callback: display_depth}),
+   (MenuItem null {label: "Smooth Lines", checkbox: "on",  callback: display_smooth}),
+   (MenuItem null {label: "Depth Cue",    checkbox: "off", callback: display_depth}),
    "Two-sided Lighting"
    ]
    {label: "Display"})

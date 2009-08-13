@@ -234,8 +234,10 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
         if (callback->builtinCallableCheck()) {
           if (has_checkbox) {
             QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
+/*
           } else if ( !strncmp( popup->asStr(), "fileDialog", 10) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(openFile()));
+*/
 /*
           } else if ( !strncmp( label->asStr(), "Exit", 4) ) {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doExit()));

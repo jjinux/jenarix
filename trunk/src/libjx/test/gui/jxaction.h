@@ -22,7 +22,7 @@ public slots:
     void doCallback(QString s);
     void doCallback();
     //void doExit();
-    void openFile();
+    //void openFile();
     static void freeActions();
 
 };
