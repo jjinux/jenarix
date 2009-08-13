@@ -44,7 +44,8 @@ int main(int argc, char *argv[])
 
     jx_ob node = jx_hash_new();
 
-    if(!jx_ok(jx_main_exec_in_node(argc, argv, node))) {
+    if( !(jx_ok(jx_main_expose_builtins_in_node(node)) &&
+          jx_ok(jx_main_exec_in_node(argc, argv, node)))) {
       exit_status = EXIT_FAILURE;
     }
 

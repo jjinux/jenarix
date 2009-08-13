@@ -136,6 +136,20 @@ JX_INLINE jx_status jx_main_parse_mode(jx_int * mode, FILE ** input, int argc,
   return status;
 }
 
+JX_INLINE jx_status jx_main_expose_builtins_in_node(jx_ob node)
+{
+  jx_status status = JX_SUCCESS;
+  jx_ob builtins = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
+    
+  status = jx_code_expose_secure_builtins(builtins);
+  
+  if(jx_ok(status)) {
+    status = jx_hash_set(node, jx_builtins(), builtins);
+  }
+
+  return status;
+}
+
 JX_INLINE jx_status jx_main_exec_in_node(int argc, char *argv[], jx_ob node)
 {
   jx_status status = JX_SUCCESS;
@@ -145,7 +159,6 @@ JX_INLINE jx_status jx_main_exec_in_node(int argc, char *argv[], jx_ob node)
   if(jx_ok(status = jx_main_parse_mode(&mode, &input, argc, argv))) {
 
     jx_bool console = jx_adapt_for_console(input);
-    jx_ob builtins = jx_hash_new_with_flags(JX_HASH_FLAG_BIDIRECTIONAL);
     jx_ob scanner = jx_jxon_scanner_new_with_file
       (input, (mode == JX_MODE_UNIT_TESTING) ? JX_SCANNER_FLAG_ECHO_COMMENTS : 0);
 
@@ -156,9 +169,6 @@ JX_INLINE jx_status jx_main_exec_in_node(int argc, char *argv[], jx_ob node)
         mode = JX_MODE_EXECUTE;
     }
 
-    jx_code_expose_secure_builtins(builtins);
-
-    jx_hash_set(node, jx_builtins(), builtins);
 
     if(mode == JX_MODE_CONSOLE)
       printf
