@@ -26,12 +26,16 @@ set GuiFileDialog QtFileDialog;
 set awidget {source: "awidget.html", height: 150};
 set bwidget {source: "bwidget.html", height: 100};
 
+# define "generic" callback functions to use qt
+def gui_alert [msg] (output (qtAlert msg));
+def gui_exit  [c]   [output ((qtExit),c)]
+
 # callback functions for later use
 def file_open      [f]     [output ("Open", f)];
 def display_smooth [state] [output ("Smooth:" state)];
 def display_depth  [state] [output ("Depth-cue:" state)];
-def help_about     []      [qtprint "This is the jxon gui builder"];
-def file_exit      []      [output "Exit, stage left"];
+def help_about     []      [(gui_alert "This is the jxon gui builder")];
+def file_exit      []      [(gui_exit 1)];
 
 # menu definition
 # file menu

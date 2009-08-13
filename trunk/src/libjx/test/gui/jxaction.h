@@ -21,9 +21,9 @@ public slots:
     void doCallback(bool checked);
     void doCallback(QString s);
     void doCallback();
-    void doExit();
+    //void doExit();
     void openFile();
-    void freeActions();
+    static void freeActions();
 
 };
 #endif

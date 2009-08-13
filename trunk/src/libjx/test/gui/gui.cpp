@@ -56,10 +56,8 @@ int main(int argc, char *argv[])
     exit_status = EXIT_SUCCESS;
 
     jx::Ob *node = new jx::Hash();
+    addQtBuiltins(node);
     if(jx_ok( jx_main_exec_in_node(0,NULL,node->ob()) )) {
-      //node->jxonDump(stderr, "node before");
-      addQtBuiltins(node);
-      //node->jxonDump(stderr, "node after");
       w = gui_run_from_node(node);
     }
     delete node;

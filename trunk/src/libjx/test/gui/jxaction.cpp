@@ -32,6 +32,7 @@ void JXAction::doCallback()
     jx_function_call(jx_ob_from_null(), fn, jx_ob());
 }
 
+/*
 void JXAction::doExit()
 {
     jx_ob fn = jx_ob_copy(callback);
@@ -39,6 +40,7 @@ void JXAction::doExit()
     freeActions();
     exit(1);
 }
+*/
 
 void JXAction::openFile()
 {
@@ -48,9 +50,12 @@ void JXAction::openFile()
 }
 
 void JXAction::freeActions() {
-  QList<JXAction *> kids = parentWidget()->findChildren<JXAction *>();
+  //QList<JXAction *> kids = parentWidget()->findChildren<JXAction *>();
+  QList<JXAction *> kids = qApp->activeWindow()->findChildren<JXAction *>();
   for (int i=0; i < kids.size(); ++i) {
     //qDebug() << kids.at(i)->text();
     jx_ob_free(kids.at(i)->callback);
+    /* can't delete exit action */
+    //delete kids.at(i);
   }
 }
