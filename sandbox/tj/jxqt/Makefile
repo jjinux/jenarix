@@ -6,14 +6,14 @@ LIBS=../../../trunk/src/libjx/libjx.a  \
  -L/usr/lib \
  -lpthread -lm
 
-CFLAGS=-g
+CXXFLAGS=-g
 
 qtest: qtest.o qtBuiltins.o
-	$(CC) -o $@ $^ $(LIBS) $(QTLIBS)
-qtest.o: qtest.c
-	$(CC) $(CFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
-qtBuiltins.o: qtBuiltins.c
-	$(CC) $(CFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
+	$(CXX) -o $@ $^ $(LIBS) $(QTLIBS)
+qtest.o: qtest.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
+qtBuiltins.o: qtBuiltins.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $(QTINCS) $<
 
 clean:
 	rm -f qtest *.o
