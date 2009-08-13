@@ -52,12 +52,13 @@ void JXAction::openFile()
 */
 
 void JXAction::freeActions() {
+/* called from qtBuiltins */
   //QList<JXAction *> kids = parentWidget()->findChildren<JXAction *>();
   QList<JXAction *> kids = qApp->activeWindow()->findChildren<JXAction *>();
   for (int i=0; i < kids.size(); ++i) {
     //qDebug() << kids.at(i)->text();
     jx_ob_free(kids.at(i)->callback);
-    /* can't delete exit action */
+    /* don't delete exit action - it called this! */
     //delete kids.at(i);
   }
 }
