@@ -127,7 +127,7 @@ module ::= network(A) EOI.
 network(A) ::= wiring(B).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,B); 
 
 #ifdef JX_NET_PARSER_DEBUG
@@ -138,7 +138,7 @@ network(A) ::= wiring(B).
 network(A) ::= wiring(B) body(C).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,B); 
   jx_list_append(A,C); 
 #ifdef JX_NET_PARSER_DEBUG
@@ -149,7 +149,7 @@ network(A) ::= wiring(B) body(C).
 network(A) ::= body(C).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,C); 
   jx_list_append(A,jx_ob_from_ident("node")); 
 #ifdef JX_NET_PARSER_DEBUG
@@ -160,7 +160,7 @@ network(A) ::= body(C).
 network(A) ::= wiring(B) starter(C).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,B); 
   jx_list_append(A,jx_ob_from_null());
   jx_list_append(A,C); 
@@ -172,7 +172,7 @@ network(A) ::= wiring(B) starter(C).
 network(A) ::= wiring(B) body(C) starter(D).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,B); 
   jx_list_append(A,C); 
   jx_list_append(A,D); 
@@ -184,7 +184,7 @@ network(A) ::= wiring(B) body(C) starter(D).
 network(A) ::= body(C) starter(D).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,jx_ob_from_null()); 
   jx_list_append(A,C); 
   jx_list_append(A,D); 
@@ -196,7 +196,7 @@ network(A) ::= body(C) starter(D).
 network(A) ::= starter(D).
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,jx_ob_from_null());
   jx_list_append(A,jx_ob_from_null()); 
   jx_list_append(A,D); 
@@ -251,8 +251,22 @@ port_decl(A) ::= PORT port_name(B).
 
 port_decl(A) ::= port_decl(B) COMMA port_name(C).
 {
-  A = B;
-  jx_list_append(A,C);
+  /* Split multiple named ports into each their own declaration. */
+  if( jx_list_check(jx_list_borrow(B, 1)) ) {
+    jx_ob tmp = jx_list_new();
+    A = B;
+    jx_list_append(A,tmp);
+    jx_list_append(tmp,jx_ob_from_ident("port"));
+    jx_list_append(tmp,C);
+  } else {
+    jx_ob tmp = jx_list_new();
+    A = jx_list_new();
+    jx_list_append(A,jx_ob_from_ident("null_op"));
+    jx_list_append(A,B);
+    jx_list_append(A,tmp);
+    jx_list_append(tmp,jx_ob_from_ident("port"));
+    jx_list_append(tmp,C);
+  }
 #ifdef JX_NET_PARSER_DEBUG
   printf("port_decl(A) ::= port_decl(B) COMMA port_name(C).\n");
 #endif
@@ -307,8 +321,28 @@ pipe_chain(A) ::= node_or_port(B) PIPE node_or_port(C).
 
 pipe_chain(A) ::= pipe_chain(B) PIPE node_or_port(C).
 {
-  A = B;
-  jx_list_append(A,C);
+  /* Split multiple named ports into each their own declaration. */
+  if( jx_list_check(jx_list_borrow(B, 1)) ) {
+    jx_ob tmp = jx_list_new();
+    jx_ob popped_pipe_def = jx_list_pop(B);
+    jx_ob start_of_new_pipe = jx_list_get(popped_pipe_def, 2);
+    jx_list_push(B, popped_pipe_def);
+    A = B;
+    jx_list_append(A,tmp);
+    jx_list_append(tmp,jx_ob_from_ident("pipe"));
+    jx_list_append(tmp,start_of_new_pipe);
+    jx_list_append(tmp,C);
+  } else {
+    jx_ob tmp = jx_list_new();
+    jx_ob start_of_new_pipe = jx_list_get(B, 2);
+    A = jx_list_new();
+    jx_list_append(A,jx_ob_from_ident("null_op"));
+    jx_list_append(A,B);
+    jx_list_append(A,tmp);
+    jx_list_append(tmp,jx_ob_from_ident("pipe"));
+    jx_list_append(tmp,start_of_new_pipe);
+    jx_list_append(tmp,C);
+  }
 #ifdef JX_NET_PARSER_DEBUG
   printf("pipe_chain(A) ::= pipe_chain(B) PIPE node_or_port(C). %s:%d\n",__FILE__,__LINE__); 
 #endif
@@ -319,9 +353,14 @@ pipe_chain(A) ::= pipe_chain(B) PIPE node_or_port(C).
 entry(A) ::= NODE node_name(B) COLON NEWLINE node(C).
 {
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node_def"));
-  jx_list_append(A,B);
-  jx_list_append(A,C);
+  jx_list_append(A,jx_ob_from_ident("entity"));
+  jx_list_append(A,B); /* name */
+  jx_list_append(A,jx_ob_from_null()); /* base class */
+  /* TODO: implement base node-class */
+  jx_list_append(A,jx_ob_from_null()); /* content */
+  jx_list_append(A,jx_ob_from_null()); /* attr_hash */
+  jx_list_append(A,jx_ob_from_ident("__init__")); /* name of constructor */
+  jx_list_append(A,C); /* code */
 #ifdef JX_NET_PARSER_DEBUG
   printf("entry(A) ::= NODE node_name(B) COLON NEWLINE node(C). %s:%d\n",__FILE__,__LINE__); 
 #endif
@@ -330,16 +369,16 @@ entry(A) ::= NODE node_name(B) COLON NEWLINE node(C).
 node(A) ::= INDENT PASS NEWLINE DEDENT NEWLINE.
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
 #ifdef JX_NET_PARSER_DEBUG
-  printf("node(A) ::= INDENT wiring(C) DEDENT. %s:%d\n",__FILE__,__LINE__); 
+  printf("node(A) ::= INDENT PASS NEWLINE DEDENT. %s:%d\n",__FILE__,__LINE__); 
 #endif
 }
 
 node(A) ::= INDENT wiring(C) DEDENT NEWLINE.
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,C); 
 #ifdef JX_NET_PARSER_DEBUG
   printf("node(A) ::= INDENT wiring(C) DEDENT. %s:%d\n",__FILE__,__LINE__); 
@@ -349,7 +388,7 @@ node(A) ::= INDENT wiring(C) DEDENT NEWLINE.
 node(A) ::= INDENT wiring(C) body(D) DEDENT NEWLINE.
 {  
   A = jx_list_new();
-  jx_list_append(A,jx_ob_from_ident("node"));
+  jx_list_append(A,jx_ob_from_ident("null_op"));
   jx_list_append(A,C); 
   jx_list_append(A,D); 
 #ifdef JX_NET_PARSER_DEBUG
