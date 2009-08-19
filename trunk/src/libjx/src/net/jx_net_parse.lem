@@ -109,7 +109,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module ::= NEWLINE.
 {  
-#ifdef JX_PY_PARSER_DEBUG
+#ifdef JX_NET_PARSER_DEBUG
   printf("module ::= NEWLINE.%s:%d\n",__FILE__,__LINE__); 
 #endif
 }
