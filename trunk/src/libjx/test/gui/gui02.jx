@@ -10,7 +10,7 @@
 
 # end-user-defined widget
 
-(entity MyWidget);
+(entity Widget);
 
  # end-user-defined entities
 
@@ -91,9 +91,9 @@ set menu_items [menu_file menu_edit menu_display menu_help];
           ( VSplitter 
             [
               ( Navigator )
-              ( MyWidget null awidget )
-              ( MyWidget null bwidget )
-              ( MyWidget )
+              ( Widget null awidget )
+              ( Widget null bwidget )
+              ( Widget )
             ]
             { width: 200 }
           )
