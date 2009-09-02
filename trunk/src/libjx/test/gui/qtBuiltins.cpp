@@ -28,8 +28,10 @@ void exposeQtBuiltins(jx_ob names) {
 
 jx_ob qtJxon(jx_env *E, jx_ob payload) {
   jx_ob_free(payload);
-  qDebug() << "(";
-  return qtTree(qApp->activeWindow());
+  printf("<gui>\n");
+  jx_ob result = qtTree(qApp->activeWindow());
+  printf("</gui>\n");
+  return result;
 }
 
 jx_ob qtFile(jx_env *E, jx_ob payload) {
@@ -43,8 +45,8 @@ jx_ob qtExit(jx_env *E, jx_ob payload) {
   // free callback jx_ob's
   JXAction::freeActions();
   qApp->closeAllWindows();
-  qApp->exit();
-  qApp->quit();
+  //qApp->exit();
+  //qApp->quit();
   jx_ob_free(payload);
   return jx_ob_from_str((jx_char *)"exit return value");
 }
@@ -70,14 +72,36 @@ static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_native_fn
 jx_ob qtTree(QObject *parent) {
   //parent->dumpObjectTree();
   QList<QObject *> kids = parent->children();
+  QString name;
   for (int i=0; i < kids.size(); ++i) {
     QObject * kid = kids.at(kids.size() - 1 - i); // list is reversed
-    QString name = kid->objectName();
-    if (kid->parent() == parent && !name.startsWith("qt_") && !name.isNull()) {
-      qDebug() << name << "(";
-      qtTree(kid);
+    name = kid->objectName();
+    //if (kid->parent() == parent && !name.startsWith("qt_") && !name.isNull()) {
+    bool interesting = false;
+    if (kid->parent() == parent) {
+       if (name.isNull() || name.startsWith("qt_")) {
+        name = kid->metaObject()->className();
+      }
+      if (name == "QWidget") {
+/* eliminate cruft */
+      } else if (name == "QSplitterHandle") {
+        interesting = false;
+      } else if (name == "QTextControl") {
+        interesting = false;
+      } else if (name == "QVBoxLayout") {
+        interesting = false;
+      } else {
+/* the interesting stuff */
+        interesting = true;
+      }
+      if (interesting) {
+        printf("<%s>%d\n", name.toAscii().data(), kid->children().count());
+        qtTree(kid);
+      }
+    }
+    if (interesting) {
+      printf("</%s>\n", name.toAscii().data());
     }
   }
-  qDebug() << ")";
   return jx_ob_from_str("tree");
 }
