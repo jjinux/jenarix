@@ -136,23 +136,27 @@ JX_WIDGET * createQtWidget(jx::Ob *entity)
     jx::Ob type = (*entity)[0];
     if(type == Known::openglContextType) {
       GLWidget *w = new GLWidget;
+      w->setObjectName("OpenGLContext");
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
     } else if(type == Known::navigatorType) {
       QTextEdit *w = new QTextEdit;
+      w->setObjectName("Navigator");
       w->setPlainText(src.asStr());
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
     } else if(type == Known::menuBarType) {
       QMenuBar *w = new QMenuBar;
+      w->setObjectName("MenuBar");
       processMenuItems(entity,0,(JX_MENU *)w);
       widget = w;
     } else if(type == Known::menuItemType) {
     } else  {
       QTextEdit *w = new QTextEdit;
       w->setPlainText(src.asStr());
+      w->setObjectName("Widget");
       if (width > 0)  w->setFixedWidth(width);
       if (height > 0) w->setFixedHeight(height);
       widget = w;
@@ -165,6 +169,7 @@ JX_SPLITTER * createQtHsplitter(jx::Ob *splitter, int size)
     int width = getWidth(splitter);
     int height = getHeight(splitter);
     QSplitter *s = new QSplitter(Qt::Horizontal);
+    s->setObjectName("HSplitter");
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
     if (OUT_TYPE & GUI_PRINT) fprintf(stderr, "HSplitter %dx%d\n", width, height);
@@ -176,6 +181,7 @@ JX_SPLITTER * createQtVsplitter(jx::Ob *splitter, int size)
     int width = getWidth(splitter);
     int height = getHeight(splitter);
     QSplitter *s = new QSplitter(Qt::Vertical);
+    s->setObjectName("VSplitter");
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
     if (OUT_TYPE & GUI_PRINT) fprintf(stderr, "VSplitter %dx%d\n", width, height);
@@ -223,6 +229,7 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
     jx::Ob sub_menu_items = (*item)[1];
     if (sub_menu_items.size() > 0) { 
       sub_menu = new JX_MENU(label->asStr());
+      sub_menu->setObjectName("MenuItme");
       menu_widget->addMenu(sub_menu);
     } else {
 

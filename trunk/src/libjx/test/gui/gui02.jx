@@ -21,10 +21,12 @@ set bwidget {source: "bwidget.html", height: 100};
 def gui_alert    [msg] (output (qtAlert msg));
 def gui_exit     []    [output (qtExit)];
 def gui_getfile  []    [output ("Open", (qtFile))];
+def gui_jxon     []    [output ("JXON=", (qtJxon))];
 def gui_echo     [s]   [output s];
 
 # callback functions for later use
 def file_open      []      [(gui_getfile)];
+def file_jxon      []      [(gui_jxon)];
 def display_smooth [state] [(gui_echo ("Smooth:" state))];
 def display_depth  [state] [(gui_echo ("Depth-cue:" state))];
 def help_about     []      [(gui_alert "This is the jxon gui builder")];
@@ -34,6 +36,7 @@ def file_exit      []      [(gui_exit)];
 # file menu
 set menu_file (MenuItem [
     (MenuItem null {label: "Open...", callback: file_open})
+    (MenuItem null {label: "Save", callback: file_jxon})
     (MenuItem null {label: "Exit",    callback: file_exit})
    ]
    {label: "File"})
