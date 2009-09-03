@@ -69,12 +69,19 @@ static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_native_fn
   return ok;
 }
 
+#define XML true
 jx_ob qtTree(QObject *parent) {
   //parent->dumpObjectTree();
   QList<QObject *> kids = parent->children();
   QString name;
   for (int i=0; i < kids.size(); ++i) {
-    QObject * kid = kids.at(kids.size() - 1 - i); // list is reversed
+    QObject * kid;
+    QString ptype = parent->metaObject()->className();
+    if (ptype.contains("Splitter")) {
+      kid = kids.at(kids.size() - 1 - i); // list is reversed
+    } else {
+      kid = kids.at(i);
+    }
     name = kid->objectName();
     bool interesting = false;
     if (kid->parent() == parent) {
@@ -89,6 +96,8 @@ jx_ob qtTree(QObject *parent) {
         interesting = false;
       } else if (name == "QVBoxLayout") {
         interesting = false;
+      } else if (name == "QAction") {
+        interesting = false;
       } else if (name.startsWith("qt_")) {
         interesting = false;
       } else {
@@ -96,13 +105,20 @@ jx_ob qtTree(QObject *parent) {
         interesting = true;
       }
       if (interesting) {
-        printf("<%s>%s(%d)\n", name.replace(' ','_').toAscii().data(), kid->metaObject()->className(),
-           kid->children().count());
+        if (XML) {
+          printf("<%s>%s(%d)\n", name.replace(' ','_').toAscii().data(), kid->metaObject()->className(), kid->children().count());
+        } else {
+          printf("(%s\n", name.replace(' ','_').toAscii().data());
+        }
         qtTree(kid);
       }
     }
     if (interesting) {
-      printf("</%s>\n", name.replace(' ','_').toAscii().data());
+      if (XML) {
+        printf("</%s>\n", name.replace(' ','_').toAscii().data());
+      } else {
+        printf(")\n");
+      }
     }
   }
   return jx_ob_from_str("tree");

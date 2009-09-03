@@ -231,12 +231,16 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
       //sub_menu = new JX_MENU(label->asStr());
       sub_menu = new JX_MENU(label->asStr(), menu_widget);
       sub_menu->setObjectName(label->asStr());
+      //QString name = QString("(MenuItem [] {label:\"") + QString(label->asStr()) + QString("\"})");
+      //sub_menu->setObjectName(name);
       menu_widget->addMenu(sub_menu);
     } else {
 
       //JXAction *theAct = new JXAction(label->asStr(), callback, window);
       JXAction *theAct = new JXAction(label->asStr(), callback, menu_widget);
       theAct->setObjectName(label->asStr());
+      //QString name = QString("(MenuItem [] {label:\"") + QString(label->asStr()) + QString("\"})");
+      //theAct->setObjectName(name);
       menu_widget->addAction(theAct);
       //Actions.push_back(theAct);
       //theAct->setShortcut(tr("Ctrl+B"));
@@ -327,6 +331,8 @@ void processMenuItems(jx::Ob *menu, int depth, JX_MENU *menu_widget)
       if (OUT_TYPE & GUI_QTUI) {
         QAction *menu_string = new QAction(item.asStr(), menu_widget);
         menu_string->setObjectName(item.asStr());
+        //QString name = QString("(MenuItem [] {label:\"") + QString(item.asStr()) + QString("\"})");
+        //menu_string->setObjectName(name);
         menu_widget->addAction(menu_string);
       }
 #endif
