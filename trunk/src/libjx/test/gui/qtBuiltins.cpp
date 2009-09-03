@@ -76,10 +76,9 @@ jx_ob qtTree(QObject *parent) {
   for (int i=0; i < kids.size(); ++i) {
     QObject * kid = kids.at(kids.size() - 1 - i); // list is reversed
     name = kid->objectName();
-    //if (kid->parent() == parent && !name.startsWith("qt_") && !name.isNull()) {
     bool interesting = false;
     if (kid->parent() == parent) {
-       if (name.isNull() || name.startsWith("qt_")) {
+       if (name.isNull()) {
         name = kid->metaObject()->className();
       }
       if (name == "QWidget") {
@@ -90,17 +89,20 @@ jx_ob qtTree(QObject *parent) {
         interesting = false;
       } else if (name == "QVBoxLayout") {
         interesting = false;
+      } else if (name.startsWith("qt_")) {
+        interesting = false;
       } else {
 /* the interesting stuff */
         interesting = true;
       }
       if (interesting) {
-        printf("<%s>%d\n", name.toAscii().data(), kid->children().count());
+        printf("<%s>%s(%d)\n", name.replace(' ','_').toAscii().data(), kid->metaObject()->className(),
+           kid->children().count());
         qtTree(kid);
       }
     }
     if (interesting) {
-      printf("</%s>\n", name.toAscii().data());
+      printf("</%s>\n", name.replace(' ','_').toAscii().data());
     }
   }
   return jx_ob_from_str("tree");

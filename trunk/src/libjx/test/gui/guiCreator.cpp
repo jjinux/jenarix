@@ -132,7 +132,7 @@ JX_WIDGET * createQtWidget(jx::Ob *entity)
     int width = getWidth(entity);
     int height = getHeight(entity);
     jx::Ob src = getSource(entity);
-    if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"create Widget %s %dx%d\n", src.asStr(), width, height);
+    if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"create Widget %s %dX%d\n", src.asStr(), width, height);
     jx::Ob type = (*entity)[0];
     if(type == Known::openglContextType) {
       GLWidget *w = new GLWidget;
@@ -172,7 +172,7 @@ JX_SPLITTER * createQtHsplitter(jx::Ob *splitter, int size)
     s->setObjectName("HSplitter");
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
-    if (OUT_TYPE & GUI_PRINT) fprintf(stderr, "HSplitter %dx%d\n", width, height);
+    if (OUT_TYPE & GUI_PRINT) fprintf(stderr, "HSplitter %dX%d\n", width, height);
     return s;
 }
 
@@ -184,7 +184,7 @@ JX_SPLITTER * createQtVsplitter(jx::Ob *splitter, int size)
     s->setObjectName("VSplitter");
     if (width > 0)  s->setFixedWidth(width);
     if (height > 0) s->setFixedHeight(height);
-    if (OUT_TYPE & GUI_PRINT) fprintf(stderr, "VSplitter %dx%d\n", width, height);
+    if (OUT_TYPE & GUI_PRINT) fprintf(stderr, "VSplitter %dX%d\n", width, height);
     return s;
 }
 #endif
@@ -196,15 +196,15 @@ void printWidgetInfo(jx::Ob *entity)
   jx::Ob src = getSource(entity);
   jx::Ob type = (*entity)[0];
   if (type == Known::openglContextType) {
-     fprintf(stderr,"OpenGL widget %s %dx%d\n", src.asStr(), width, height);
+     fprintf(stderr,"OpenGL widget %s %dX%d\n", src.asStr(), width, height);
   } else if(type == Known::navigatorType) {
-     fprintf(stderr,"Navigator widget %s %dx%d\n", src.asStr(), width, height);
+     fprintf(stderr,"Navigator widget %s %dX%d\n", src.asStr(), width, height);
   } else if(type == Known::menuBarType) {
      if (height == 0) height = GUI_MENUBAR_HEIGHT;
-     fprintf(stderr,"MenuBar widget %s %dx%d\n", src.asStr(), width, height);
+     fprintf(stderr,"MenuBar widget %s %dX%d\n", src.asStr(), width, height);
      if (OUT_TYPE == GUI_PRINT) processMenuItems(entity,0,NULL);
   } else {
-     fprintf(stderr,"Generic widget %s %dx%d\n", src.asStr(), width, height);
+     fprintf(stderr,"Generic widget %s %dX%d\n", src.asStr(), width, height);
   }
 }
 
@@ -228,15 +228,18 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
   if (OUT_TYPE & GUI_QTUI) {
     jx::Ob sub_menu_items = (*item)[1];
     if (sub_menu_items.size() > 0) { 
-      sub_menu = new JX_MENU(label->asStr());
-      sub_menu->setObjectName("MenuItme");
+      //sub_menu = new JX_MENU(label->asStr());
+      sub_menu = new JX_MENU(label->asStr(), menu_widget);
+      sub_menu->setObjectName(label->asStr());
       menu_widget->addMenu(sub_menu);
     } else {
 
-      JXAction *theAct = new JXAction(label->asStr(), callback, window);
+      //JXAction *theAct = new JXAction(label->asStr(), callback, window);
+      JXAction *theAct = new JXAction(label->asStr(), callback, menu_widget);
+      theAct->setObjectName(label->asStr());
+      menu_widget->addAction(theAct);
       //Actions.push_back(theAct);
       //theAct->setShortcut(tr("Ctrl+B"));
-      menu_widget->addAction(theAct);
       if (!callback->nullCheck()) {
         if (callback->builtinCallableCheck()) {
           if (has_checkbox) {
@@ -321,7 +324,11 @@ void processMenuItems(jx::Ob *menu, int depth, JX_MENU *menu_widget)
       processMenuItems(&item, depth+1, (JX_MENU *)sub_menu);
     } else if (item.strCheck()) {
 #ifdef JX_QT
-      if (OUT_TYPE & GUI_QTUI) menu_widget->addAction(item.asStr());
+      if (OUT_TYPE & GUI_QTUI) {
+        QAction *menu_string = new QAction(item.asStr(), menu_widget);
+        menu_string->setObjectName(item.asStr());
+        menu_widget->addAction(menu_string);
+      }
 #endif
       if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"%s  string %s\n", blanx.c_str(), item.asStr());
     } else if (item.nullCheck()) {
@@ -377,7 +384,6 @@ JX_SPLITTER * processHSplitter(jx::Ob *splitter)
   int width = getWidth(splitter);
   int height = getHeight(splitter);
 #endif
-  if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"processing horizontal splitter %d widget...\n", size);
   if (OUT_TYPE & GUI_HTML) printHFramesetHtml(&pane,size);
 #ifdef JX_QT
   if (OUT_TYPE & GUI_QTUI) {
@@ -410,7 +416,6 @@ JX_SPLITTER * processVSplitter(jx::Ob *splitter)
   int width = getWidth(splitter);
   int height = getHeight(splitter);
 #endif
-  if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"processing vertical splitter %d widget...\n", size);
   if (OUT_TYPE & GUI_HTML)  printVFramesetHtml(&pane, size);
 #ifdef JX_QT
   if (OUT_TYPE & GUI_QTUI) {
