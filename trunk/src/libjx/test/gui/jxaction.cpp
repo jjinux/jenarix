@@ -13,6 +13,7 @@ JXAction::~JXAction()
    jx_ob_free(callback);
 }
 
+jx_ob JXAction::getCallback() { return callback; }
 void JXAction::doCallback(bool checked)
 {
     jx_ob fn = jx_ob_copy(callback);

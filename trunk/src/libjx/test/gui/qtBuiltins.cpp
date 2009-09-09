@@ -87,11 +87,31 @@ void obend(QString attr) {
   if (OUTXML) {
     printf("</%s>\n", attr.toAscii().data());
   } else if (OUTJX) {
-    if (attr.isNull()) {
-    } else {
+    if (!attr.isNull()) {
       printf("] {%s})\n", attr.toAscii().data());
     }
   }
+}
+QString callback_attr(JXAction *w) {
+  QString attr;
+  if (!jx_null_check(w->getCallback())) {
+    attr = "callback: ";
+    //attr.append(w->text());
+    attr.append("test");
+  }
+  return attr;
+}
+QString check_attr(QAction *w) {
+  QString attr;
+  if (w->isCheckable()) {
+    attr = "checkbox: ";
+    if (w->isChecked()) {
+      attr.append("\"on\"");
+    } else {
+      attr.append("\"off\"");
+    }
+  }
+  return attr;
 }
 QString obout(QObject *w) {
   QString attr; // return value
@@ -106,10 +126,9 @@ QString obout(QObject *w) {
   }
 
   QString outname;
-  if (wname.startsWith("qt_")) {
-
-  } else if (wname.isNull()) {
 /* eliminate cruft */
+  if (wname.startsWith("qt_")) {
+  } else if (wname.isNull()) {
     if (wtype == "QWidget") {
     } else if (wtype == "QSplitterHandle") {
     } else if (wtype == "QTextControl") {
@@ -144,16 +163,20 @@ QString obout(QObject *w) {
   } else if (wtype == "QAction") {
     outname = "MenuItem";
     attr = "label: "; attr.append('"'); attr.append(wname); attr.append('"');
+    QString check = check_attr((QAction *)w);
+    if (!check.isNull()) attr.append(","+check);
   } else if (wtype == "JXAction") {
     outname = "MenuItem";
     attr = "label: "; attr.append('"'); attr.append(wname); attr.append('"');
-    attr.append(",callback: test");
+    QString cback = callback_attr((JXAction *)w);
+    if (!cback.isNull()) attr.append(","+cback);
+    QString check = check_attr((QAction *)w);
+    if (!check.isNull()) attr.append(","+check);
   } else {
     attr = " ";
   }
 
-  if (outname.isNull()) {
-  } else {
+  if (!outname.isNull()) {
     //printf("(%s.%s [\n", outname.toAscii().data(), wtype.toAscii().data());
     printf("(%s [\n", outname.toAscii().data());
   }

@@ -209,7 +209,7 @@ void printWidgetInfo(jx::Ob *entity)
 }
 
 
-JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *callback, jx::Ob *checkbox, jx::Ob *popup)
+JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *callback, jx::Ob *checkbox)
 {
   JX_MENU *sub_menu;
 #ifdef JX_QT
@@ -248,14 +248,6 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
         if (callback->builtinCallableCheck()) {
           if (has_checkbox) {
             QObject::connect(theAct, SIGNAL(triggered(bool)), theAct, SLOT(doCallback(bool)));
-/*
-          } else if ( !strncmp( popup->asStr(), "fileDialog", 10) ) {
-            QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(openFile()));
-*/
-/*
-          } else if ( !strncmp( label->asStr(), "Exit", 4) ) {
-            QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doExit()));
-*/
           } else {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
           }
@@ -293,10 +285,6 @@ JX_MENU * processMenuItem(jx::Ob *item, JX_MENU * menu_widget) {
   jx::Ob checkbox = getAttr(item, "checkbox");
   if ((OUT_TYPE & GUI_PRINT) & !checkbox.nullCheck()) fprintf(stderr," checkbox: %s", checkbox.asStr());
 
-/* popup attribute */
-  jx::Ob popup = getAttr(item, "popup");
-  if ((OUT_TYPE & GUI_PRINT) & !popup.nullCheck()) fprintf(stderr," popup: %s", popup.asStr());
-
 /* callback attribute */
   jx::Ob callback = getAttr(item, "callback");
   if (callback.nullCheck()) {
@@ -307,7 +295,7 @@ JX_MENU * processMenuItem(jx::Ob *item, JX_MENU * menu_widget) {
     if (OUT_TYPE & GUI_PRINT) callback.jxonDump(stderr, " unknown callback");
   }
 
-  JX_MENU *sub_menu = menuAction(item, menu_widget, &label, &callback, &checkbox, &popup);
+  JX_MENU *sub_menu = menuAction(item, menu_widget, &label, &callback, &checkbox);
 
   return sub_menu;
 }

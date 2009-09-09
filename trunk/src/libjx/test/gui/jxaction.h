@@ -21,8 +21,7 @@ public slots:
     void doCallback(bool checked);
     void doCallback(QString s);
     void doCallback();
-    //void doExit();
-    //void openFile();
+    jx_ob getCallback();
     static void freeActions();
 
 };
