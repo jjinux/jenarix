@@ -88,7 +88,7 @@ set menu_help
 ;
 
 
-set menu_items [menu_file menu_edit menu_display menu_help "test" ];
+set menu_items [menu_file menu_edit menu_display menu_help ];
 
 # the main gui
 ( set gui 

@@ -7,6 +7,10 @@
 #include <QFileDialog>
 #include <QDebug>
 
+
+#define OUTXML false
+#define OUTJX  true
+
 void addQtBuiltins(jx::Ob * node) {
 
   jx_ob names = jx_hash_new();
@@ -28,9 +32,19 @@ void exposeQtBuiltins(jx_ob names) {
 
 jx_ob qtJxon(jx_env *E, jx_ob payload) {
   jx_ob_free(payload);
-  printf("<gui>\n");
+  if (OUTXML) printf("<gui>\n");
+  if (OUTJX) {
+    printf("(entity VSplitter)\n");
+    printf("(entity HSplitter)\n");
+    printf("(entity MenuBar)\n");
+    printf("(entity MenuItem)\n");
+    printf("(entity Navigator)\n");
+    printf("(entity Widget)\n");
+    printf("(entity OpenGLContext)\n");
+    printf("set gui \n");
+   }
   jx_ob result = qtTree(qApp->activeWindow());
-  printf("</gui>\n");
+  if (OUTXML) printf("</gui>\n");
   return result;
 }
 
@@ -69,11 +83,31 @@ static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_native_fn
   return ok;
 }
 
-#define XML true
+void jxend(QString name, QString type) {
+  printf("])\n");
+}
+void jxout(QString name, QString type) {
+
+  QString outname;
+  outname = name;
+  if        (name == "VSplitter") {
+  } else if (name == "HSplitter") {
+  } else if (name == "MenuBar") {
+  } else if (name == "MenuItem") {
+  } else if (name == "Navigator") {
+  } else if (name == "Widget") {
+  } else if (name == "OpenGLContext") {
+  } else {
+    outname = '"' + name + '"';
+  }
+  printf("(%s [\n", outname.toAscii().data());
+}
+
 jx_ob qtTree(QObject *parent) {
   //parent->dumpObjectTree();
   QList<QObject *> kids = parent->children();
-  QString name;
+  QString kname;
+  QString ktype;
   for (int i=0; i < kids.size(); ++i) {
     QObject * kid;
     QString ptype = parent->metaObject()->className();
@@ -82,42 +116,42 @@ jx_ob qtTree(QObject *parent) {
     } else {
       kid = kids.at(i);
     }
-    name = kid->objectName();
+    kname = kid->objectName();
+    ktype = kid->metaObject()->className();
     bool interesting = false;
     if (kid->parent() == parent) {
-       if (name.isNull()) {
-        name = kid->metaObject()->className();
-      }
-      if (name == "QWidget") {
+      if (kname.startsWith("qt_")) {
+        interesting = false;
+      } else if (kname.isNull()) {
+        if (ktype == "QWidget") {
 /* eliminate cruft */
-      } else if (name == "QSplitterHandle") {
-        interesting = false;
-      } else if (name == "QTextControl") {
-        interesting = false;
-      } else if (name == "QVBoxLayout") {
-        interesting = false;
-      } else if (name == "QAction") {
-        interesting = false;
-      } else if (name.startsWith("qt_")) {
-        interesting = false;
+        } else if (ktype == "QSplitterHandle") {
+          interesting = false;
+        } else if (ktype == "QTextControl") {
+          interesting = false;
+        } else if (ktype == "QVBoxLayout") {
+          interesting = false;
+        } else if (ktype == "QAction") {
+          interesting = false;
+        }
       } else {
 /* the interesting stuff */
         interesting = true;
       }
       if (interesting) {
-        if (XML) {
-          printf("<%s>%s(%d)\n", name.replace(' ','_').toAscii().data(), kid->metaObject()->className(), kid->children().count());
-        } else {
-          printf("(%s\n", name.replace(' ','_').toAscii().data());
+        if (OUTXML) {
+          printf("<%s>%s(%d)\n", kname.replace(' ','_').toAscii().data(), kid->metaObject()->className(), kid->children().count());
+        } else if (OUTJX) {
+          jxout(kname, ktype);
         }
         qtTree(kid);
       }
     }
     if (interesting) {
-      if (XML) {
-        printf("</%s>\n", name.replace(' ','_').toAscii().data());
-      } else {
-        printf(")\n");
+      if (OUTXML) {
+        printf("</%s>\n", kname.replace(' ','_').toAscii().data());
+      } else if (OUTJX) {
+        jxend(kname, ktype);
       }
     }
   }
