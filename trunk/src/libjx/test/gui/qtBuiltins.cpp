@@ -83,77 +83,102 @@ static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_native_fn
   return ok;
 }
 
-void jxend(QString name, QString type) {
-  printf("])\n");
+void obend(QString attr) {
+  if (OUTXML) {
+    printf("</%s>\n", attr.toAscii().data());
+  } else if (OUTJX) {
+    if (attr.isNull()) {
+    } else {
+      printf("] {%s})\n", attr.toAscii().data());
+    }
+  }
 }
-void jxout(QString name, QString type) {
+QString obout(QObject *w) {
+  QString attr; // return value
+
+  QString wname = w->objectName();
+  QString wtype = w->metaObject()->className();
+  //qDebug() << wname << wtype;
+
+  if (OUTXML) {
+    printf("<%s>\n", wname.replace(' ','_').toAscii().data());
+    return wname;
+  }
 
   QString outname;
-  outname = name;
-  if        (name == "VSplitter") {
-  } else if (name == "HSplitter") {
-  } else if (name == "MenuBar") {
-  } else if (name == "MenuItem") {
-  } else if (name == "Navigator") {
-  } else if (name == "Widget") {
-  } else if (name == "OpenGLContext") {
+  if (wname.startsWith("qt_")) {
+
+  } else if (wname.isNull()) {
+/* eliminate cruft */
+    if (wtype == "QWidget") {
+    } else if (wtype == "QSplitterHandle") {
+    } else if (wtype == "QTextControl") {
+    } else if (wtype == "QVBoxLayout") {
+    } else if (wtype == "QAction") {
+    }
+
+  } else if (wname == "VSplitter") {
+    outname = wname;
+    attr = " ";
+  } else if (wname == "HSplitter") {
+    outname = wname;
+    attr = " ";
+  } else if (wname == "MenuBar") {
+    outname = wname;
+    attr = " ";
+  } else if (wname == "MenuItem") {
+    outname = wname;
+    attr = " ";
+  } else if (wname == "Navigator") {
+    outname = wname;
+    attr = " ";
+  } else if (wname == "Widget") {
+    outname = wname;
+    attr = " ";
+  } else if (wname == "OpenGLContext") {
+    outname = wname;
+    attr = " ";
+  } else if (wtype == "QMenu") {
+    outname = "MenuItem";
+    attr = "label: "; attr.append('"'); attr.append(wname); attr.append('"');
+  } else if (wtype == "QAction") {
+    outname = "MenuItem";
+    attr = "label: "; attr.append('"'); attr.append(wname); attr.append('"');
+  } else if (wtype == "JXAction") {
+    outname = "MenuItem";
+    attr = "label: "; attr.append('"'); attr.append(wname); attr.append('"');
+    attr.append(",callback: test");
   } else {
-    outname = '"' + name + '"';
+    attr = " ";
   }
-  printf("(%s [\n", outname.toAscii().data());
+
+  if (outname.isNull()) {
+  } else {
+    //printf("(%s.%s [\n", outname.toAscii().data(), wtype.toAscii().data());
+    printf("(%s [\n", outname.toAscii().data());
+  }
+  return attr;
+
 }
 
 jx_ob qtTree(QObject *parent) {
+
   //parent->dumpObjectTree();
+  QString attr = obout(parent);
+
+  QString ptype = parent->metaObject()->className();
   QList<QObject *> kids = parent->children();
-  QString kname;
-  QString ktype;
   for (int i=0; i < kids.size(); ++i) {
     QObject * kid;
-    QString ptype = parent->metaObject()->className();
     if (ptype.contains("Splitter")) {
       kid = kids.at(kids.size() - 1 - i); // list is reversed
     } else {
       kid = kids.at(i);
     }
-    kname = kid->objectName();
-    ktype = kid->metaObject()->className();
-    bool interesting = false;
-    if (kid->parent() == parent) {
-      if (kname.startsWith("qt_")) {
-        interesting = false;
-      } else if (kname.isNull()) {
-        if (ktype == "QWidget") {
-/* eliminate cruft */
-        } else if (ktype == "QSplitterHandle") {
-          interesting = false;
-        } else if (ktype == "QTextControl") {
-          interesting = false;
-        } else if (ktype == "QVBoxLayout") {
-          interesting = false;
-        } else if (ktype == "QAction") {
-          interesting = false;
-        }
-      } else {
-/* the interesting stuff */
-        interesting = true;
-      }
-      if (interesting) {
-        if (OUTXML) {
-          printf("<%s>%s(%d)\n", kname.replace(' ','_').toAscii().data(), kid->metaObject()->className(), kid->children().count());
-        } else if (OUTJX) {
-          jxout(kname, ktype);
-        }
-        qtTree(kid);
-      }
-    }
-    if (interesting) {
-      if (OUTXML) {
-        printf("</%s>\n", kname.replace(' ','_').toAscii().data());
-      } else if (OUTJX) {
-        jxend(kname, ktype);
-      }
-    }
+    qtTree(kid);
   }
+
+  obend(attr);
+
   return jx_ob_from_str("tree");
 }
