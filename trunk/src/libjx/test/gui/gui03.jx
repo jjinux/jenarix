@@ -1,0 +1,47 @@
+(entity VSplitter)
+(entity HSplitter)
+(entity MenuBar)
+(entity MenuItem)
+(entity Navigator)
+(entity Widget)
+(entity OpenGLContext)
+set gui 
+(VSplitter [
+(MenuBar [
+ (MenuItem [
+  (MenuItem [ ] {label: "Open...",callback: test})
+  (MenuItem [ ] {label: "Save",callback: test})
+  (MenuItem [ ] {label: "Exit",callback: test})
+ ] {label: "File"})
+ (MenuItem [
+  (MenuItem [ ] {label: "Undo",callback: test})
+ ] {label: "Edit"})
+ (MenuItem [
+ (MenuItem [ ] {label: "Sequence"})
+  (MenuItem [
+   (MenuItem [ ] {label: "Residue codes"})
+   (MenuItem [ ] {label: "Residues"})
+   (MenuItem [ ] {label: "Chains"})
+   (MenuItem [ ] {label: "Atoms"})
+   (MenuItem [ ] {label: "States"})
+  ] {label: "Sequence Mode"})
+  (MenuItem [ ] {label: "Smooth Lines",callback: test})
+  (MenuItem [ ] {label: "Depth Cue",callback: test})
+  (MenuItem [ ] {label: "Two-sided Lighting"})
+ ] {label: "Display"})
+ (MenuItem [
+ (MenuItem [ ] {label: "About",callback: test})
+  ] {label: "Help"})
+] { })
+
+(HSplitter [
+(OpenGLContext [ ] { })
+ (VSplitter [
+  (Navigator [ ] { })
+  (Widget [ ] { })
+  (Widget [ ] { })
+  (Widget [ ] { })
+ ] { })
+] { })
+
+] { })
