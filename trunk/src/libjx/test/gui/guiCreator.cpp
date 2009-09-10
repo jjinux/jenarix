@@ -60,7 +60,7 @@ namespace Known {
 };
 
 extern int OUT_TYPE;
-extern JX_WIDGET *window;
+//extern JX_WIDGET *window;
 
 int setOutputType(int in_type, char *a) 
 {
@@ -93,8 +93,9 @@ jx::Ob getAttr(jx::Ob *entity, const char *attr)
 /* get "attribute" from entity, which is a list of three items, the last of
    which is a hash of attributes with idents as keys */
 
-/* this mehtod demonstrates the use of the [] operator for lists and hashes */
+/* this method demonstrates the use of the [] operator for lists and hashes */
     //jx::Ob attrs = entity->listGet(2);
+// should be changed to use jx_entitry stuff since hash could be [1] or [2]
     jx::Ob attrs = (*entity)[2];
     //return attrs.hashGet((jx::Ident)attr);
     //return (*entity)[2].hashGet((jx::Ident)attr);
@@ -209,7 +210,7 @@ void printWidgetInfo(jx::Ob *entity)
 }
 
 
-JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *callback, jx::Ob *checkbox)
+JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *callback, jx::Ob *checkbox, char * callname)
 {
   JX_MENU *sub_menu;
 #ifdef JX_QT
@@ -287,15 +288,20 @@ JX_MENU * processMenuItem(jx::Ob *item, JX_MENU * menu_widget) {
 
 /* callback attribute */
   jx::Ob callback = getAttr(item, "callback");
+  char * callname;
   if (callback.nullCheck()) {
     if (OUT_TYPE & GUI_PRINT) fprintf(stderr,"\n");
   } else if (callback.builtinCallableCheck()) {
     if (OUT_TYPE & GUI_PRINT) callback.jxonDump(stderr, " callback");
+    //jx_ob ftmp = jx_list_borrow(jx_function_to_impl(callback.ob()),0);
+    //callname = jx_ob_as_ident(&ftmp);
+    //printf("%s\n", callname);
+    //jx_ob_free(ftmp);
   } else {
     if (OUT_TYPE & GUI_PRINT) callback.jxonDump(stderr, " unknown callback");
   }
 
-  JX_MENU *sub_menu = menuAction(item, menu_widget, &label, &callback, &checkbox);
+  JX_MENU *sub_menu = menuAction(item, menu_widget, &label, &callback, &checkbox, callname);
 
   return sub_menu;
 }
@@ -450,15 +456,12 @@ JX_WIDGET * processComponents(jx::Ob *component)
   jx::Ob comp_type = (*component)[0];
 
   if(comp_type == Known::hSplitterType) {
-
     return processHSplitter(component);
 
   } else if(comp_type == Known::vSplitterType) {
-
     return processVSplitter(component);    
 
   } else { 
-
     return processWidget(component);
 
   }
@@ -468,7 +471,7 @@ bool locateKnowns(jx::Ob *node)
 {
 
 /*
-// doesn't work ??
+// get doesn't work ??
   Known::vSplitterType     = node->get(jx::Ident("VSplitter"));
   Known::hSplitterType     = node->get(jx::Ident("HSplitter"));
   Known::menuBarType       = node->get(jx::Ident("MenuBar"));
@@ -476,6 +479,7 @@ bool locateKnowns(jx::Ob *node)
   Known::openglContextType = node->get(jx::Ident("OpenGLContext"))l
   Known::navigatorType     = node->get(jx::Ident("Navigator"));
 */
+
 /* these are borrowed, so I'm not responsible for freeing them (shouldn't free them)
    they will be freed with delete node, in main */
   Known::vSplitterType     = node->borrow(jx::Ident("VSplitter"));

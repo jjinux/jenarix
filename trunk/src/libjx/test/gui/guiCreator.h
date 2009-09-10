@@ -42,7 +42,7 @@ JX_WIDGET * createQtWidget(jx::Ob *widget);
 JX_SPLITTER * createQtHsplitter(jx::Ob *pane, int size);
 JX_SPLITTER * createQtVsplitter(jx::Ob *pane, int size);
 
-JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *callback, jx::Ob *checkbox, jx::Ob *popup);
+JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *callback, jx::Ob *checkbox, jx::Ob *popup, char * callname);
 
 jx::Ob getMenuItem(jx::Ob *item, const char *attr);
 jx::Ob get_attr_from_entity(jx::Ob *entity, const char *attr);

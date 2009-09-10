@@ -22,7 +22,6 @@ void usage() {
 
 /* share these with guiCreator */
 int OUT_TYPE = 0;
-JX_WIDGET *window;
 
 int main(int argc, char *argv[])
 {
@@ -33,6 +32,7 @@ int main(int argc, char *argv[])
   QVBoxLayout * layout;
 #endif
   JX_WIDGET *w;
+  JX_WIDGET *window;
   bool geom = false;
   for (int i=1; i<argc; ++i) {
      if (strlen(argv[i]) == 2 && !strncmp(argv[i], "-h", 2)) {

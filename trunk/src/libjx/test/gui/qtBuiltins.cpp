@@ -96,8 +96,15 @@ QString callback_attr(JXAction *w) {
   QString attr;
   if (!jx_null_check(w->getCallback())) {
     attr = "callback: ";
-    //attr.append(w->text());
-    attr.append("test");
+    jx_ob ftmp = jx_function_to_impl(w->getCallback());
+    jx_ob fid = jx_list_borrow(ftmp,0);
+    if (jx_null_check(fid)) {
+     attr.append("test");
+    } else {
+     char * fname = jx_ob_as_ident(&fid);
+     attr.append(fname);
+     jx_ob_free(ftmp);
+    }
   }
   return attr;
 }
@@ -203,5 +210,5 @@ jx_ob qtTree(QObject *parent) {
 
   obend(attr);
 
-  return jx_ob_from_str("tree");
+  return jx_ob_from_str((jx_char *)"tree");
 }
