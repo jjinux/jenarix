@@ -252,6 +252,8 @@ JX_MENU * menuAction(jx::Ob *item, JX_MENU *menu_widget, jx::Ob *label, jx::Ob *
           } else {
             QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
           }
+        } else {
+          QObject::connect(theAct, SIGNAL(triggered()), theAct, SLOT(doCallback()));
         }
       }
       if (has_checkbox) {

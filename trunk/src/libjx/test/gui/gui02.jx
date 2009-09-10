@@ -18,17 +18,11 @@ set awidget {source: "awidget.html", height: 150};
 set bwidget {source: "bwidget.html", height: 100};
 
 # define "generic" callback functions to use qt
-#def gui_alert    [msg] (output (qtAlert msg));
-#def gui_exit     []    [output (qtExit)];
-#def gui_getfile  []    [output ("Open", (qtFile))];
-#def gui_jxon     []    [output ("JXON=", (qtJxon))];
-#def gui_echo     [s]   [output s];
-# quiet, so Save alone can ouccupy stdout
-def gui_alert    [msg] (test (qtAlert msg));
-def gui_exit     []    [test (qtExit)];
-def gui_getfile  []    [test ("Open", (qtFile))];
-def gui_jxon     []    [test ("JXON=", (qtJxon))];
-def gui_echo     [s]   [test s];
+def gui_alert    [msg] [output (qtAlert msg)];
+def gui_exit     []    [output (qtExit)];
+def gui_getfile  []    [output ("Open", (qtFile))];
+def gui_jxon     []    [output (qtJxon)];
+def gui_echo     [s]   [output s];
 
 # callback functions for later use
 def file_open      []      [(gui_getfile)];

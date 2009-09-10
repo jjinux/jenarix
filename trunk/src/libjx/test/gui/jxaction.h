@@ -18,6 +18,7 @@ private:
     jx_ob callback;
 
 public slots:
+    void callCallback(jx_ob arg);
     void doCallback(bool checked);
     void doCallback(QString s);
     void doCallback();

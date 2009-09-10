@@ -10,17 +10,18 @@
 
 #define OUTXML false
 #define OUTJX  true
+QString jxout;
 
-void addQtBuiltins(jx::Ob * node) {
+void QtBuiltins::add(jx::Ob * node) {
 
   jx_ob names = jx_hash_new();
   jx_code_expose_secure_builtins(names);
-  exposeQtBuiltins(names);
+  expose(names);
   jx_hash_set(node->ob(), jx_builtins(), jx_ob_copy(names));
   jx_ob_free(names);
 }
 
-void exposeQtBuiltins(jx_ob names) {
+void QtBuiltins::expose(jx_ob names) {
 
   jx_bool ok = JX_TRUE;
   ok = jx_declare(ok, names, (jx_char *)"qtAlert", qtAlert);
@@ -31,21 +32,27 @@ void exposeQtBuiltins(jx_ob names) {
 }
 
 jx_ob qtJxon(jx_env *E, jx_ob payload) {
+  jxout.clear();
   jx_ob_free(payload);
-  if (OUTXML) printf("<gui>\n");
+  if (OUTXML) jxout.append("<gui>\n");
   if (OUTJX) {
-    printf("(entity VSplitter)\n");
-    printf("(entity HSplitter)\n");
-    printf("(entity MenuBar)\n");
-    printf("(entity MenuItem)\n");
-    printf("(entity Navigator)\n");
-    printf("(entity Widget)\n");
-    printf("(entity OpenGLContext)\n");
-    printf("set gui \n");
+    jxout.append("(entity VSplitter)\n");
+    jxout.append("(entity HSplitter)\n");
+    jxout.append("(entity MenuBar)\n");
+    jxout.append("(entity MenuItem)\n");
+    jxout.append("(entity Navigator)\n");
+    jxout.append("(entity Widget)\n");
+    jxout.append("(entity OpenGLContext)\n");
+    jxout.append("set gui \n");
    }
-  jx_ob result = qtTree(qApp->activeWindow());
-  if (OUTXML) printf("</gui>\n");
-  return result;
+  QtBuiltins::tree(qApp->activeWindow());
+  if (OUTXML) jxout.append("</gui>\n");
+  QFile save("guiout.jx");
+  save.open(QIODevice::WriteOnly);
+  save.write(jxout.toAscii().data());
+  save.close();
+  //return jx_ob_from_str(jxout.toAscii().data());
+  return jx_ob_from_str("saved to file guiout.jx");
 }
 
 jx_ob qtFile(jx_env *E, jx_ob payload) {
@@ -83,29 +90,25 @@ static jx_bool jx_declare(jx_bool ok, jx_ob names, jx_char * ident, jx_native_fn
   return ok;
 }
 
-void obend(QString attr) {
-  if (OUTXML) {
-    printf("</%s>\n", attr.toAscii().data());
-  } else if (OUTJX) {
-    if (!attr.isNull()) {
-      printf("] {%s})\n", attr.toAscii().data());
-    }
-  }
-}
 QString callback_attr(JXAction *w) {
-  QString attr;
-  if (!jx_null_check(w->getCallback())) {
-    attr = "callback: ";
-    jx_ob ftmp = jx_function_to_impl(w->getCallback());
+  QString attr = "callback: ";
+  jx_ob callback = w->getCallback();
+  if (jx_builtin_callable_check(callback)) {
+    jx_ob ftmp = jx_function_to_impl(callback);
     jx_ob fid = jx_list_borrow(ftmp,0);
     if (jx_null_check(fid)) {
-     attr.append("test");
+     attr.append("nop");
     } else {
      char * fname = jx_ob_as_ident(&fid);
      attr.append(fname);
-     jx_ob_free(ftmp);
     }
+    jx_ob_free(ftmp);
+  } else if (jx_ident_check(callback)) {
+     attr.append(jx_ob_as_ident(&callback));
+  } else {
+   attr.append("nop");
   }
+  //jx_ob_free(callback);
   return attr;
 }
 QString check_attr(QAction *w) {
@@ -120,7 +123,7 @@ QString check_attr(QAction *w) {
   }
   return attr;
 }
-QString obout(QObject *w) {
+QString obout( QObject *w) {
   QString attr; // return value
 
   QString wname = w->objectName();
@@ -128,7 +131,8 @@ QString obout(QObject *w) {
   //qDebug() << wname << wtype;
 
   if (OUTXML) {
-    printf("<%s>\n", wname.replace(' ','_').toAscii().data());
+    //printf("<%s>\n", wname.replace(' ','_').toAscii().data());
+    jxout += "<" + wname.replace(' ','_') + " >\n";
     return wname;
   }
 
@@ -184,14 +188,25 @@ QString obout(QObject *w) {
   }
 
   if (!outname.isNull()) {
-    //printf("(%s.%s [\n", outname.toAscii().data(), wtype.toAscii().data());
-    printf("(%s [\n", outname.toAscii().data());
+    //printf("(%s [\n", outname.toAscii().data());
+    jxout += "( " + outname + " [\n";
   }
   return attr;
 
 }
+void obend(QString attr) {
+  if (OUTXML) {
+    //printf("</%s>\n", attr.toAscii().data());
+    jxout += "</" + attr + ">\n";
+  } else if (OUTJX) {
+    if (!attr.isNull()) {
+      //printf("] {%s})\n", attr.toAscii().data());
+      jxout += "] {" + attr + "})\n";
+    }
+  }
+}
 
-jx_ob qtTree(QObject *parent) {
+void QtBuiltins::tree(QObject *parent) {
 
   //parent->dumpObjectTree();
   QString attr = obout(parent);
@@ -205,10 +220,10 @@ jx_ob qtTree(QObject *parent) {
     } else {
       kid = kids.at(i);
     }
-    qtTree(kid);
+    tree(kid);
   }
 
   obend(attr);
 
-  return jx_ob_from_str((jx_char *)"tree");
+  return;
 }
