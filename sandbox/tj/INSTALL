@@ -1,7 +1,8 @@
 The jxgl app can be made operational from the source by:
 
-1. cd jsoncpp
+1. cd jsoncpp/src
    make
+   cd ../..
 2. cd jxgl
    qmake
    make
