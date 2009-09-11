@@ -5,12 +5,14 @@
 jx_ob Jenarix::parseJXON(bool process)
 {
     jx_ob result;
+    // what is this flag?
+    jx_int flags = 0;
   
     jx_ob anamespace = jx_hash_new();
-    jx_ob scanner = jx_jxon_scanner_new_with_file(stdin);
+    jx_ob scanner = jx_jxon_scanner_new_with_file(stdin, flags);
     jx_ob node = jx_hash_new();
 
-    //jx_code_expose_secure_builtins(anamespace);
+    jx_code_expose_secure_builtins(anamespace);
 
     {
       jx_ob source = JX_OB_NULL;
@@ -65,6 +67,8 @@ Jenarix::processJXON( jx_ob ob )
 /* expect a list of primitives,
  * each with a name, followed by an array of values
  */
+   printf ("null %d\n", jx_null_check(ob));
+   printf ("list %d\n", jx_list_check(ob));
    assert (jx_list_check(ob));
    int nval = jx_list_size(ob);
    int nprimitives = 0;
