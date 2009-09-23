@@ -1,0 +1,17 @@
+September 2009
+The files and folders here are "sandbox" applications testing
+various possible ways of using qt and jxon together.
+The most mature of these is jxongldock/jxdock.
+It uses the jxon libraries to parse a json input
+file of graphics primitives and displays it in qt/opengl window.
+The README file there gives further compile and run instructions.
+
+The python app sdf2json.py reads an sdf molecule file and creates
+a json file containing the graphics primitives to draw a colored
+ball and stick model of the (first) molecule.
+
+The typical use
+  python sdf2json.py < drugs.sdf | jxongldock/jxdock
+
+The others folders and apps use an older way of parsing json
+and may not be of much interest.

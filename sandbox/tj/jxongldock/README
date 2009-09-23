@@ -2,7 +2,7 @@ Sample app using qt4 to create a main window containing
 a menubar, opengl widget, command i/o widget and webkit widget.
 The app reads and display json jenarix graphics primitive on stdin on startup.
 For example: python ../sdf2json.py <../drugs.sdf  | ./jxdock
-or           ./jxdock < ../drug.json
+        or           ./jxdock < ../drug.json
 The webkit widget is a custom widget containing a text line
 input for a url and a webview widget to display the web page.
 The widgets are arranged using two "slider" frames to allow
@@ -13,6 +13,9 @@ Type 'qmake' to process the jxdock.pro file containing the
 info about which .h and .cpp files pertain to this project.
 This makes a Makefile.  Then type 'make' to create the jxdock executable
 (and assorted other moc_* and *.o files).
+It is possible to use the Makefile here without qmake,
+if necessary.  You may need to change the location
+the libjx libraries and header files.
 
 The menubar functions to:
  File/Open: opens a text file and displays it in the command widget.
@@ -45,5 +48,4 @@ jxprimitives.cpp: read and process json graphics primitives.
 drug.json:      sample input file
 *.h:            assorted header files associated with .cpp files
 moc_*.cpp:      created my qmake/make; totally standard/invisible qt4 stuff. 
-../jsoncpp/src/*.o:    json reader and writer
 Makefile:       created by qmake processing the jxdock.pro file
