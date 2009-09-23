@@ -6,6 +6,9 @@ jx::Ob::Ob() {
   jxob = jx_ob_from_null();
 }
 jx::Ob::Ob(jx_ob from) {
+/* not to be used lightly, since jxob will get destructed.
+   should not be used with borrowed jxob's.
+   to prevent accidents, this method is private */
   jxob = from;
 }
 
@@ -43,6 +46,12 @@ bool jx::Ob::operator == (const Ob & rhs) {
 bool jx::Ob::operator == (const jx_ob rhs) {
   return jx_ob_identical(jxob, rhs);
 }
+jx::Ob jx::Ob::operator [] (int  ielement) {
+  return get(ielement);
+}
+jx::Ob jx::Ob::operator [] (const Ob & key) {
+  return get(key);
+}
 
 /* Copy */
 jx::Ob::Ob(const Ob& from) {
@@ -68,12 +77,12 @@ jx::Ob::~Ob() {
 
    ..._in_... implies usage of the input object (usually transient)
 */
+
+/* in case the underlying jxob is needed */
 jx_ob jx::Ob::ob() {
   return jxob;
 }
-void jx::Ob::jxonDump(FILE *f, const char *prefix) {
-  jx_jxon_dump(f, (jx_char *)prefix, jxob);
-}
+
 bool jx::Ob::nullCheck() {
   return jx_null_check(jxob);
 }
@@ -100,11 +109,11 @@ bool jx::Ob::builtinCallableCheck() {
 }
 
 /* these static "creators" are used, for example:
-    jx::Ob i = jx::Ob::from_int(123);
+    jx::Ob id = jx::Ob::fromIdent("VSplitter");
+     could also use
+    jx::Ident id = "VSplitter";
+    jx::Ob id = jx::Ident("VSplitter");
 */
-jx::Ob jx::Ob::makeOb(jx_ob from) {
-  return from;
-}
 jx::Ob jx::Ob::fromInt(int v) {
   return jx_ob_from_int(v);
 }
@@ -143,25 +152,27 @@ jx::Ob jx::Ob::fromIdent(const char * st, int stlen) {
 }
 
 /* useful for Ob not declared a List, but is */
-jx::Ob jx::Ob::listGet(int ielement) {
+jx::Ob jx::Ob::get(int ielement) {
   return jx_list_get(jxob, ielement);
 }
-jx_ob jx::Ob::listBorrow(int ielement) {
+jx_ob jx::Ob::borrow(int ielement) {
   return jx_list_borrow(jxob, ielement);
 }
 
 /* useful for Ob not declared a Hash, but is */
-jx::Ob jx::Ob::hashGet(Ob key) {
+jx::Ob jx::Ob::get(Ob key) {
   return jx_hash_get(jxob, key.ob());
 }
-jx_ob jx::Ob::hashBorrow(Ob key) {
-  return jx_hash_get(jxob, key.ob());
+jx_ob jx::Ob::borrow(Ob key) {
+  return jx_hash_borrow(jxob, key.ob());
 }
 
+/* need more toXXX */
 jx::Ob jx::Ob::toInt() {
   return jx_ob_to_int(jxob);
 }
 
+/* AsXXX methods */
 int    jx::Ob::asInt() {
   return jx_ob_as_int(jxob);
 }
@@ -178,11 +189,16 @@ char * jx::Ob::asIdent() {
   return (char *)jx_ob_as_ident(&jxob);
 }
 
+/* miscellaneous */
 int jx::Ob::size() {
   return jx_ob_as_int(jx_ob_size(jxob));
 }
 int jx::Ob::type() {
   return jx_ob_type(jxob);
+}
+
+void jx::Ob::jxonDump(FILE *f, const char *prefix) {
+  jx_jxon_dump(f, (jx_char *)prefix, jxob);
 }
 
 
@@ -210,11 +226,6 @@ jx::Ident::Ident(const Ident& from) {
 jx::Ident::~Ident() {
   // let ~Ob() do it
 }
-/*
-jx_ob jx::Ident::ob() {
-  return jxob;
-}
-*/
 
 /* List Ob class */
 jx::List::List() {
@@ -240,31 +251,25 @@ jx::List::List(const List& from) {
 jx::List::~List() {
   // let Ob() do it
 }
-/*
-jx_ob jx::List::ob() {
-  return jxob;
-}
-*/
 
 jx::Ob jx::List::get(int ielement) {
-  return makeOb(jx_list_get(jxob, ielement));
+  return jx::Ob::get(ielement);
 }
 jx_ob jx::List::borrow(int ielement) {
-  return jx_list_get(jxob, ielement);
+  return jx::Ob::borrow(ielement);
 }
 int jx::List::size() {
   return jx_list_size(jxob);
+}
+/* Operators */
+jx::Ob jx::List::operator [] (int  ielement) {
+  return get(ielement);
 }
 
 /* Hash Ob class */
 jx::Hash::Hash() {
   jxob = jx_hash_new();
 }
-/*
-jx::Hash::Hash(jx_ob from) {
-  jxob = from;
-}
-*/
 /* Copy */
 jx::Hash::Hash(const Hash& from) {
   jxob = jx_ob_copy(from.jxob);
@@ -273,24 +278,13 @@ jx::Hash::Hash(const Hash& from) {
 jx::Hash::~Hash() {
   // let ~Ob() do it
 }
-/*
-jx_ob jx::Hash::ob() {
-  return jxob;
-}
-*/
 
 int jx::Hash::size() {
   return jx_hash_size(jxob);
 }
 jx::Ob jx::Hash::get(Ob key) {
-  return makeOb(jx_hash_get(jxob, key.ob()));
-}
-jx::Ob jx::Hash::get(Ident key) {
-  return makeOb(jx_hash_get(jxob, key.ob()));
+  return jx::Ob::get(key);
 }
 jx_ob jx::Hash::borrow(Ob key) {
-  return jx_hash_get(jxob, key.ob());
-}
-jx_ob jx::Hash::borrow(Ident key) {
-  return jx_hash_get(jxob, key.ob());
+  return jx::Ob::borrow(key);
 }

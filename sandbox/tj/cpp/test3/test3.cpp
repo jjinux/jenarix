@@ -37,12 +37,15 @@ int main(int argc, char **argv)
   OUT("string", s2);
   Ob s3 = Ob("this is another test", 11);
   OUT("string+len", s3);
+
 /* must use fromIdent for idents, to distinguish from string type
    or Ident derived class */
   Ob nid = Ob::fromIdent("aname");
   OUT("ident", nid);
   Ident xid = "bname";
   OUT("Ident", xid);
+  Ob zid = Ident("cname");
+  OUT("Ident", zid);
 
   Ob nint = v.toInt();
   OUT("float toInt", nint);
@@ -57,6 +60,7 @@ int main(int argc, char **argv)
   int jlist[5] = {1,2,3,4,5};
   List klist(jlist,5);
   OUT("List int array", klist);
+  fprintf(stderr, "%d\n", klist[3].asInt());
 
   int flist[3] = {1.2,3.4,5.6};
   List glist(flist,3);

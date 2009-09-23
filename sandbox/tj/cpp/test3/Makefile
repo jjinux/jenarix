@@ -7,8 +7,12 @@ LIBS=../../../../trunk/src/libjx/libjx.a  \
  -L/usr/lib \
  -lpthread
 
+ctest: ctest.o
+	$(CXX) -o $@ $^ $(LIBS)
 test3: test3.o jxobject.o
 	$(CXX) -o $@ $^ $(LIBS)
+ctest.o: ctest.c
+	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $<
 test3.o: test3.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $<
 jxobject.o: jxobject.cpp
