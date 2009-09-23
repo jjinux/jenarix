@@ -1,0 +1,57 @@
+September 2009
+This folder contains source files and sample input files for an
+app that demonstrates how jxon can be used to define a gui
+application containing:
+ horizontal and vertical splitters
+ menubars and menu items
+ opengl widgets
+ generic container widgets
+
+The Makefile should function to build the app by simply typing make.
+It does not require qt's qmake program, although it does require
+qt libraries.
+If this folder is moved from it's location in the jenarix/trunk subversion
+repository, you may need to change to location of the libjx and
+header files in Makefile.
+
+Usage:
+  ./gui -qt   <gui02.jx
+  ./gui -html <gui02.jx >x.html
+The -html option outputs an html file that can be displayed in a
+browser.  It reflects the structure of the gui as specified in the
+input .jx file, but does not function at all and does not
+implement any callbacks.
+The -qt option causes a qt MainWindow object (application) to open
+reflecting the gui as specified in the input .jx file.
+It functions by displaying a dummy object that can be rotated in the gl window.
+The callbacks in the input gui file operate fully, as specified by the
+callback jx function in the input file.  The following new jx functions are
+avaible for use withing the .jx input file, for use in callbacks.
+ (qtAlert msg) opens a qt MessageBox containg the string msg
+ (qtExit) cleans up jxon and qt objects and exits the app
+ (qtFile) opens a qt FileDialog and returns the string filename selected
+ (qtJxon) writes file guiout.jx containing a jxon representation of the gui
+
+Manifest:
+ glwidget.cpp GLWidget object
+ glwidget.h GLWidget object header file
+ gui01.jx sample input file
+ gui02.jx sample input file
+ gui03.jx sample input file
+ gui.cpp main program
+ guiCreator.cpp process input .jx file
+ guiCreator.h header
+ guiout.jx sample output
+ jxaction.cpp JXAction object for menu items
+ jxaction.h header
+ jxobject.cpp cpp wrapper around jx_ objects
+ jxobject.h header
+ Makefile makefile
+ menubar.html source file for html gui
+ navigator.html source file for html gui
+ opengl.html source file for html gui
+ qtBuiltins.cpp extend jxon "builtin" functions for qt
+ qtBuiltins.h header
+ README this file
+ widget.html source file for html gui
+ x.html sample output for html gui

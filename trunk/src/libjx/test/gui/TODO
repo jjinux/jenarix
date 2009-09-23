@@ -1,0 +1,16 @@
+September 2009
+
+Add qtJxin function to process jxon graphics primitives
+and display them in the opengl widget.  This would use code from the
+sandbox/tj/jxongldock programs that parses and displays these files
+in a fixed gui app.
+
+Extend qtJxon to take a filename to output, and/or just return the
+jxon string.
+
+Add qtHide, qtShow, qtDelete, qtInsert, etc. functions to modify the
+gui tree/list as defined in the input file.
+
+Modify jxobject.cpp to use the ENV features of jxon.
+
+Extend jxobject.cpp to include an Entity object.
