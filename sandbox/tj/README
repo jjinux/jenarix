@@ -6,6 +6,22 @@ It uses the jxon libraries to parse a json input
 file of graphics primitives and displays it in qt/opengl window.
 The README file there gives further compile and run instructions.
 
+The jxon graphics primitives are not a complete set.  Their
+structure is also open to change.  Their definition is not documented.
+The code in jxprimitives.cpp and the samples in drugs.json are the only
+"definition" of their structure.  The script sdf2json.py helps, too.
+Currently, the following graphics primitives can be drawn.
+cw means clockwise and cc counter-clockwise.
+ cylinder
+ sphere
+ colorsphere
+ triangle
+ cctriangle
+ cwtriangle
+ trianglenormal
+ cctrianglenormal
+ cwtrianglenormal
+
 The python app sdf2json.py reads an sdf molecule file and creates
 a json file containing the graphics primitives to draw a colored
 ball and stick model of the (first) molecule.
