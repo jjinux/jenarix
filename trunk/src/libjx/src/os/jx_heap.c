@@ -353,7 +353,7 @@ jx_status jx_heap_dump(jx_int32 flags)
             if(flags & JX_HEAP_DUMP_SORT) {
               jx_os_strcat(output[cnt].text, buffer);
             } else {
-              jx_os_fprintf(jx_os_stderr, buffer);
+              jx_os_fprintf(jx_os_stderr, "%s", buffer);
             }
           }
           if(flags & JX_HEAP_DUMP_FILES_TOO) {

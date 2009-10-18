@@ -812,10 +812,10 @@ jx_ob Jx_ob_from_str(jx_env * E, jx_char * str)
     jx_os_memcpy(result.data.io.tiny_str, str, len + 1);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = Jx_vla_new(E, 1, len + 1 + sizeof(jx_str), JX_TRUE);
+    result.data.io.str = Jx_vla_new(E, 1, len + 1 + sizeof(jx__str), JX_TRUE);
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
-      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len + 1);
+      jx_os_memcpy(result.data.io.str->str, str, len + 1);
     }
   }
   return result;
@@ -835,11 +835,11 @@ jx_ob Jx_ob_from_str_with_len(jx_env * E, jx_char * str, jx_int len)
     jx_os_memcpy(result.data.io.tiny_str, str, len);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = Jx_vla_new(E, 1, len + 1 + sizeof(jx_str), JX_TRUE);
+    result.data.io.str = Jx_vla_new(E, 1, len + 1 + sizeof(jx__str), JX_TRUE);
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
-      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
-      result.data.io.str[sizeof(jx_str) + len] = 0;
+      jx_os_memcpy(result.data.io.str->str, str, len);
+      result.data.io.str->str[len] = 0;
     }
   }
   return result;
@@ -859,11 +859,11 @@ jx_ob Jx_ob_from_ident_with_len(jx_env * E, jx_char * str, jx_int len)
     jx_os_memcpy(result.data.io.tiny_str, str, len);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = Jx_vla_new(E, 1, len + 1 + sizeof(jx_str), JX_TRUE);
+    result.data.io.str = Jx_vla_new(E, 1, len + 1 + sizeof(jx__str), JX_TRUE);
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
-      jx_os_memcpy(result.data.io.str + sizeof(jx_str), str, len);
-      result.data.io.str[sizeof(jx_str) + len] = 0;
+      jx_os_memcpy(result.data.io.str->str, str, len);
+      result.data.io.str->str[len] = 0;
     }
   }
   return result;
@@ -887,12 +887,13 @@ jx_ob jx_ob_with_str_vla(jx_char ** ref)
   } else {
     /* string not tiny -- use heap */
     jx_int size = jx_vla_size(ref);
-    if(jx_ok(jx_vla_resize(ref, size + sizeof(jx_str)))) {
+    if(jx_ok(jx_vla_resize(ref, size + sizeof(jx__str)))) {
+      jx__str *str = (jx__str *)(void *)(*ref);
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
       /* insert jx_str record in front of chars */
-      jx_os_memmove((*ref) + sizeof(jx_str), (*ref), size);
-      jx__gc_init((jx_gc *) * ref);
-      result.data.io.str = *ref;
+      jx_os_memmove(str->str, (* ref), size);
+      jx__gc_init(&str->gc);
+      result.data.io.str = str;
     } else {
       jx_vla_free(ref);
     }
@@ -913,12 +914,13 @@ static jx_ob jx_ob_with_ident_vla(jx_char ** ref)
   } else {
     /* string not tiny -- use heap */
     jx_int size = jx_vla_size(ref);
-    if(jx_ok(jx_vla_resize(ref, size + sizeof(jx_str)))) {
+    if(jx_ok(jx_vla_resize(ref, size + sizeof(jx__str)))) {
+      jx__str *str = (jx__str *)(void *)(*ref);
       result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
       /* insert jx_str record in front of chars */
-      jx_os_memmove((*ref) + sizeof(jx_str), (*ref), size);
-      jx__gc_init((jx_gc *) * ref);
-      result.data.io.str = *ref;
+      jx_os_memmove(str->str, (*ref), size);
+      jx__gc_init(&str->gc);
+      result.data.io.str = str;
     } else {
       jx_vla_free(ref);
     }
@@ -937,12 +939,13 @@ jx_ob jx__str__concat(jx_env * E, jx_char * left, jx_int left_len,
     return jx_ob_from_str_with_len(buffer, total_len);
   } else {
     jx_ob result = jx_ob_from_null();
-    jx_char *vla = Jx_vla_new(E, 1, total_len + sizeof(jx_str) + 1, JX_TRUE);
+    jx_char *vla = Jx_vla_new(E, 1, total_len + sizeof(jx__str) + 1, JX_TRUE);
     /* will be zero initialized */
     if(vla) {
-      jx_os_memcpy(vla + sizeof(jx_str), left, left_len);
-      jx_os_memcpy(vla + sizeof(jx_str) + left_len, right, right_len);
-      result.data.io.str = vla;
+      jx__str *str = (jx__str *)(void *)vla;
+      jx_os_memcpy(str->str, left, left_len);
+      jx_os_memcpy(str->str + left_len, right, right_len);
+      result.data.io.str = str;
       result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
     }
     return result;
@@ -985,10 +988,10 @@ jx_int jx__str_compare(jx_env * E, jx_ob left, jx_ob right)
   return 0;
 }
 
-jx_ob jx__str_gc_copy_strong(jx_env * E, jx_char * str)
+jx_ob jx__str_gc_copy_strong(jx_env * E, jx__str * str)
 {
   jx_ob result = jx_ob_from_null();
-  result.data.io.str = (jx_char *) Jx_vla_copy(E, &str);
+  result.data.io.str = (jx__str *) Jx_vla_copy(E, &str);
   if(result.data.io.str) {
     jx__gc_init((jx_gc *) result.data.io.str);
     result.meta.bits = result.meta.bits = JX_META_BIT_STR | JX_META_BIT_GC;
@@ -996,10 +999,10 @@ jx_ob jx__str_gc_copy_strong(jx_env * E, jx_char * str)
   return result;
 }
 
-jx_bool jx__str_free(jx_char * str)
+jx_bool jx__str_free(jx__str * str)
 {
-  jx_str *I = (jx_str *) str;
-  if(I->gc.shared) {
+  jx_gc *gc = &str->gc;
+  if(gc->shared) {
     return JX_STATUS_FREED_SHARED;
   } else {
     jx_vla_free(&str);
@@ -1192,21 +1195,21 @@ jx_ob jx_ob_from_ident(jx_char * ident)
     jx_os_memcpy(result.data.io.tiny_str, ident, len + 1);
   } else {
     /* string not tiny -- use heap */
-    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx_str));
+    result.data.io.str = jx_vla_new(1, len + 1 + sizeof(jx__str));
     if(result.data.io.str) {
       result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
-      jx_os_memcpy(result.data.io.str + sizeof(jx_str), ident, len + 1);
+      jx_os_memcpy(result.data.io.str->str, ident, len + 1);
     }
   }
   return result;
 }
 
-jx_ob jx__ident_gc_copy_strong(jx_env * E, jx_char * str)
+jx_ob jx__ident_gc_copy_strong(jx_env * E, jx__str * str)
 {
   jx_ob result = jx_ob_from_null();
-  result.data.io.str = (jx_char *) Jx_vla_copy(E, &str);
+  result.data.io.str = (jx__str *) Jx_vla_copy(E, &str);
   if(result.data.io.str) {
-    jx__gc_init((jx_gc *) result.data.io.str);
+    jx__gc_init( &result.data.io.str->gc);
     result.meta.bits = result.meta.bits = JX_META_BIT_IDENT | JX_META_BIT_GC;
   }
   return result;
@@ -1600,7 +1603,7 @@ jx_bool jx__ob_shared(jx_ob ob)
   switch (ob.meta.bits & JX_META_MASK_TYPE_BITS) {
   case JX_META_BIT_STR:
   case JX_META_BIT_IDENT:
-    return ((jx_str *) ob.data.io.str)->gc.shared;
+    return ob.data.io.str->gc.shared;
     break;
   case JX_META_BIT_LIST:
     return ob.data.io.list->gc.shared;

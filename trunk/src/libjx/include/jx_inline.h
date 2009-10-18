@@ -132,6 +132,11 @@ typedef jx_ob(*jx_native_fn) ();        /* {e}o, [ma] */
 typedef jx_ob(*jx_native_fn) (jx_env *, jx_ob);    /* {e}o, [ma] */
 #endif
 
+typedef struct {
+  jx_gc gc;
+  jx_char str[JX_ZERO_ARRAY_SIZE];
+} jx__str;
+
 typedef union {
   jx_bool bool_;
   jx_int int_;
@@ -142,8 +147,7 @@ typedef union {
   jx_char tiny_str[1];
 #endif
   jx_gc *gc;                    /* can be used to access the gc record for any GC'd entity */
-  jx_char *str;                 /* NEVER ACCESS DIRECTLY!
-                                   note: vla ptr to jx_str header, not first char */
+  jx__str *str;                 /* vla ptr to jx__str header, not to the first char */
   jx_list *list;
   jx_hash *hash;
   void *void_;                  /* builtin */
@@ -346,11 +350,6 @@ struct jx__function {
   jx_int mode;
 };
 
-typedef struct {
-  jx_gc gc;
-} jx_str;
-
-
 /* thread-local state */
 
 typedef struct jx__mem_chain jx_mem_chain;
@@ -526,7 +525,7 @@ JX_INLINE jx_char *jx_ob_as_str(jx_ob * ob)
   jx_fast_bits meta = ob->meta.bits;
   if(meta & JX_META_BIT_STR) {
     if(meta & JX_META_BIT_GC) {
-      return ob->data.io.str + sizeof(jx_str);
+      return ob->data.io.str->str;
     } else {
       return ob->data.io.tiny_str;
     }
@@ -541,7 +540,7 @@ JX_INLINE jx_char *jx_ob_as_ident(jx_ob * ob)
      ((meta & JX_META_BIT_BUILTIN) &&
       ((meta & JX_META_MASK_BUILTIN_TYPE) == JX_META_BIT_BUILTIN_ENTITY))) {
     if(meta & JX_META_BIT_GC) {
-      return ob->data.io.str + sizeof(jx_str);
+      return ob->data.io.str->str;
     } else {
       return ob->data.io.tiny_str;
     }
@@ -1299,7 +1298,7 @@ JX_INLINE jx_int jx_str_len(jx_ob ob)
   jx_fast_bits bits = ob.meta.bits;
   return ((bits & JX_META_BIT_STR) ?
           ((bits & JX_META_BIT_GC) ?
-           (ob.data.io.str ? jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx_str)) : 0)
+           (ob.data.io.str ? jx_vla_size(&ob.data.io.str) - (1 + sizeof(jx__str)) : 0)
            : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }
@@ -1309,7 +1308,7 @@ JX_INLINE jx_int jx_ident_len(jx_ob ob)
   jx_fast_bits bits = ob.meta.bits;
   return ((bits & JX_META_BIT_IDENT) ?
           ((bits & JX_META_BIT_GC) ? (ob.data.io.str ? jx_vla_size(&ob.data.io.str)
-                                      - (1 + sizeof(jx_str)) : 0)
+                                      - (1 + sizeof(jx__str)) : 0)
            : bits & JX_META_MASK_TINY_STR_SIZE)
           : 0);
 }

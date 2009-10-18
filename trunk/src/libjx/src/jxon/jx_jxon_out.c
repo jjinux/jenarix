@@ -511,11 +511,11 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char ** ref,
     break;
   case JX_META_BIT_STR:
     if(bits & JX_META_BIT_GC) {
-      jx_int size = jx_vla_size(&ob.data.io.str) - sizeof(jx_str);
+      jx_int size = jx_vla_size(&ob.data.io.str) - sizeof(jx__str);
       jx_char *buffer = jx_malloc(size + 2);
       if(buffer) {
         buffer[0] = '"';
-        jx_os_memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
+        jx_os_memcpy(buffer + 1, ob.data.io.str->str, size);
         buffer[size] = '"';
         buffer[size + 1] = 0;
         {
@@ -554,11 +554,11 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char ** ref,
     if(flags & JX_JXON_FLAG_JSON_LOSSY) {
       /* encode as an ordinary string */
       if(bits & JX_META_BIT_GC) {
-        jx_int size = jx_vla_size(&ob.data.io.str) - sizeof(jx_str);
+        jx_int size = jx_vla_size(&ob.data.io.str) - sizeof(jx__str);
         jx_char *buffer = jx_malloc(size + 2);
         if(buffer) {
           buffer[0] = '"';
-          jx_os_memcpy(buffer + 1, ob.data.io.str + sizeof(jx_str), size);
+          jx_os_memcpy(buffer + 1, ob.data.io.str->str, size);
           buffer[size] = '"';
           buffer[size + 1] = 0;
           {
@@ -594,7 +594,7 @@ jx_ob jx__ob_to_jxon_with_flags(jx_ob node, jx_ob ob, jx_char ** ref,
     } else {                    /* not lossy */
       jx_ob st;
       if(bits & JX_META_BIT_GC) {
-        st = jx_ob_from_str(ob.data.io.str + sizeof(jx_str));
+        st = jx_ob_from_str(ob.data.io.str->str);
       } else {
         st = jx_ob_from_str(ob.data.io.tiny_str);
       }
