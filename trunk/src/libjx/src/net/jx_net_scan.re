@@ -365,7 +365,7 @@ comment:
 JX_INLINE void jx_net_send(void *parser, int token, jx_ob ob, jx_net_parse_context *context)
 {
 #ifdef JX_NET_PARSER_DEBUG
-  printf("scanner: sending %d\n",token);
+  printf("scanner: sending %d\n",(int)token);
 #endif
   jx_net_(parser,token, ob, context);
 }
@@ -391,12 +391,12 @@ static void jx_net_scan_input(jx_net_scanner_state *s)
       s->saved_token = 0;
     }
 #ifdef JX_NET_PARSER_DEBUG
-    printf("scanner: token index %d: \n",tok_type);
+    printf("scanner: token index %d: \n",(int)tok_type);
     jx_jxon_dump(stdout,"scanner: indent_stack", s->indent_stack);
-    printf("scanner: current_indent %d\n",s->current_indent);
+    printf("scanner: current_indent %d\n",(int)s->current_indent);
     printf("scanner: newline_just_seen %d\n",s->newline_just_seen);
     printf("scanner: colon_just_seen %d\n",s->colon_just_seen);
-    printf("scanner: expected indent %d\n",jx_ob_as_int(jx_list_borrow(s->indent_stack,-1)));
+    printf("scanner: expected indent %d\n",(int)jx_ob_as_int(jx_list_borrow(s->indent_stack,-1)));
 #endif
     /* Python / block indentation handling - UGH - COMPLEX!!! */
 
