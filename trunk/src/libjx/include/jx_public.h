@@ -38,10 +38,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* learn how we're being (or have been) compiled */
 
-#ifdef JX_HAVE_CONFIG
-#include "jx_config.h"
-#else
+/* normally, a non-revision-controlled jx_config.h is created by the
+ Makefile, but the default config can be used instead if JX_NO_CONFIG */
+
+#ifdef JX_NO_CONFIG
 #include "jx_config_default.h"
+#else
+#include "jx_config.h"
 #endif
 
 /* establish our relationship with the underlying operating system */
