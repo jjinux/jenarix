@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     jx_status status = run_test();
 
     status = jx_os_process_complete();
-    return JX_OK(status) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return JX_OK(status) ? JX_EXIT_SUCCESS : JX_EXIT_FAILURE;
   }
-  return EXIT_FAILURE;
+  return JX_EXIT_FAILURE;
 }

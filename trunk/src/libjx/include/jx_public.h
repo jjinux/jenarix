@@ -38,8 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* learn how we're being (or have been) compiled */
 
+#ifdef JX_HAVE_CONFIG
 #include "jx_config.h"
-
+#else
+#include "jx_config_default.h"
+#endif
 
 /* establish our relationship with the underlying operating system */
 

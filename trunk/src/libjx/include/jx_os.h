@@ -92,6 +92,7 @@
 #define jx_os_fgets fgets
 #define jx_os_feof feof
 
+#define jx_os_printf printf
 #define jx_os_fprintf fprintf
 #ifdef WIN32
 #define jx_os_snprintf _snprintf
@@ -125,6 +126,7 @@
 #define jx_os_qsort qsort
 #define jx_os_rand rand
 
+#define jx_os_fopen fopen
 
 /* declare our own C types (to be used exclusively throughout) */
 
@@ -329,6 +331,7 @@ typedef struct timeval jx_os_timeval;
 
 /* convenience aliases */
 
+#define jx_printf jx_os_printf
 #define jx_fprintf  jx_os_fprintf
 #define jx_snprintf jx_os_snprintf
 #define jx_fflush jx_os_fflush
@@ -371,6 +374,10 @@ typedef struct timeval jx_os_timeval;
 #define JX_INLINE __inline__ static
 #endif
 
+/* constants we rely upon */
+
+#define JX_EXIT_SUCCESS EXIT_SUCCESS
+#define JX_EXIT_FAILURE EXIT_FAILURE
 
 /* workaround for compilers which disallow [0] size arrays */
 

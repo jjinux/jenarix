@@ -158,10 +158,10 @@ static void gui_run_from_node(jx_ob node)
 
 int main(int argc, char *argv[])
 {
-  int exit_status = EXIT_FAILURE;
+  int exit_status = JX_EXIT_FAILURE;
 
   if(jx_ok(jx_os_process_init(argc, argv))) {
-    exit_status = EXIT_SUCCESS;
+    exit_status = JX_EXIT_SUCCESS;
 
     jx_ob node = jx_hash_new();
 

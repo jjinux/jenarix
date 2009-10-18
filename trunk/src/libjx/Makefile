@@ -181,7 +181,7 @@ cleaner: .config
 
 distclean: 
 	/bin/rm -rf build
-	/bin/rm -f .config jx jxl jxs jxp jxj libjx.a bin
+	/bin/rm -f .config jx jxl jxs jxp jxj libjx.a bin include/jx_config.h
 
 restart: .config
 	make -f rules/main.mk restart mains

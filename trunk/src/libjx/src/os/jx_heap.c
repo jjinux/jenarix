@@ -89,7 +89,7 @@ static void Jx__heapInitialize(void)
   JX_HEAP_LOCK_INIT;
 
   if(Jx__heapInitialized)       /* uh oh, race on startup...so kill process */
-    exit(EXIT_FAILURE);
+    exit(JX_EXIT_FAILURE);
   else {                        /* no race detected, so let 'er rip! */
     atexit(Jx__atExit);
     Jx__heapInitialized = JX_TRUE;

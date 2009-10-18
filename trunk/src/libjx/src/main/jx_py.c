@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
-  int exit_status = EXIT_FAILURE;
+  int exit_status = JX_EXIT_FAILURE;
   FILE *input = stdin;
   jx_int mode = 0;
   jx_int status = jx_main_parse_mode(&mode, &input, argc, argv);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     jx_ob scanner = jx_py_scanner_new_with_file
       (input, (mode == JX_MODE_UNIT_TESTING) ? JX_SCANNER_FLAG_ECHO_COMMENTS : 0);
 
-    exit_status = EXIT_SUCCESS;
+    exit_status = JX_EXIT_SUCCESS;
     if(mode == JX_MODE_AUTOMATIC) {
       if(console)
         mode = JX_MODE_CONSOLE;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
                             if(jx_str_check(message))
                               printf("%s\n", jx_ob_as_str(&message));
                             jx_ob_free(message);
-                            exit_status = EXIT_FAILURE;
+                            exit_status = JX_EXIT_FAILURE;
                             done = JX_TRUE;
                           }
                           printf("\n"); /* add newline after test in output */

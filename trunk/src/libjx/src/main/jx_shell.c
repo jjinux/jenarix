@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 {
   FILE *input = stdin;
   if(argc > 1) {
-    input = fopen(argv[1], "rb");
+    input = jx_os_fopen(argv[1], "rb");
   }
   if(input && jx_ok(jx_os_process_init(argc, argv))) {
 
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     jx_ob_free(names);
 
     jx_os_process_complete();
-    return EXIT_SUCCESS;
+    return JX_EXIT_SUCCESS;
   }
-  return EXIT_FAILURE;
+  return JX_EXIT_FAILURE;
 }

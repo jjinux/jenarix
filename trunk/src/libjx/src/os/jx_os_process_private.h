@@ -55,16 +55,16 @@ extern "C" {
     if((num_size != sizeof(jx_int)) ||
        (tiny_size != JX_TINY_STR_SIZE) ||
        (ptr_size != sizeof(void *)) || (ob_size != sizeof(jx_ob))) {
-      fprintf(stderr, "FatalError: size mismatch: program vs. library\n");
-      fprintf(stderr, "FatalError: numbers:         %2d    vs.   %2d\n",
-              num_size, (int) sizeof(jx_int));
-      fprintf(stderr, "FatalError: tiny strings:    %2d    vs.   %2d\n",
-              tiny_size, (int) JX_TINY_STR_SIZE);
-      fprintf(stderr, "FatalError: pointers:        %2d    vs.   %2d\n",
-              ptr_size, (int) sizeof(void *));
-        fprintf(stderr, "FatalError: objects:         %2d    vs.   %2d\n",
-                ob_size, (int) sizeof(jx_ob));
-        exit(EXIT_FAILURE);
+      jx_fprintf(stderr, "FatalError: size mismatch: program vs. library\n");
+      jx_fprintf(stderr, "FatalError: numbers:         %2d    vs.   %2d\n",
+                 num_size, (int) sizeof(jx_int));
+      jx_fprintf(stderr, "FatalError: tiny strings:    %2d    vs.   %2d\n",
+                 tiny_size, (int) JX_TINY_STR_SIZE);
+      jx_fprintf(stderr, "FatalError: pointers:        %2d    vs.   %2d\n",
+                 ptr_size, (int) sizeof(void *));
+      jx_fprintf(stderr, "FatalError: objects:         %2d    vs.   %2d\n",
+                 ob_size, (int) sizeof(jx_ob));
+      exit(JX_EXIT_FAILURE);
     } else if(!jx_os_Process) {
 
 #ifdef JX_OS_ATOMICITY_MUTEX

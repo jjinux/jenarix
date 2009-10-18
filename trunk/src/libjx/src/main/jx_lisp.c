@@ -37,16 +37,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
-  int exit_status = EXIT_FAILURE;
+  int exit_status = JX_EXIT_FAILURE;
 
   if(jx_ok(jx_os_process_init(argc, argv))) {
-    exit_status = EXIT_SUCCESS;
+    exit_status = JX_EXIT_SUCCESS;
 
     jx_ob node = jx_hash_new();
 
     if( !(jx_ok(jx_main_expose_builtins_in_node(node)) &&
           jx_ok(jx_main_exec_in_node(argc, argv, node)))) {
-      exit_status = EXIT_FAILURE;
+      exit_status = JX_EXIT_FAILURE;
     }
 
     jx_ob_free(node);
