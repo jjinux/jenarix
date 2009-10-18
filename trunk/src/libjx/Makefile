@@ -4,7 +4,7 @@ all: depbuild mains
 # we can build the jx library with alternate prefixes: xx, ov, etc. so
 # as to have "private" versions co-existing in a global symbol namespace
 
-# deafult mode -- optimized builds without heap tracking
+# default mode -- optimized builds without heap tracking
 
 jx:
 	echo "JX_ARCH="`uname`-`uname -m` | sed 's/ /_/g' > .config
@@ -32,7 +32,7 @@ jx-dev:
 	echo
 	echo # Jenarix configured -- you can now run 'make'
 
-# quick-build 64-bit devel --  unoptimized 64 bit builds with heap trackng
+# quick-build 64-bit devel -- unoptimized 64 bit builds with heap trackng
 
 jx-dev64:
 	echo "JX_ARCH="`uname`-`uname -m`-dev64 | sed 's/ /_/g' > .config
@@ -214,6 +214,8 @@ dev64: jx-dev64
 run: jx-run
 
 run64: jx-run64
+
+64: run64
 
 mixed: jx-mixed
 

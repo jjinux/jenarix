@@ -49,6 +49,8 @@ int main(int argc, char **argv)
     jx_ob ob_0 = jx_ob_from_int(0);
     jx_ob ob_1 = jx_ob_from_int(1);
     jx_ob ob_2 = jx_ob_from_int(2);
+    jx_ob ob_12345678 = jx_ob_from_int(12345678);
+
     jx_ob ob_3pt0 = jx_ob_from_float(3.0F);
     jx_ob ob_tiny = jx_ob_from_str("tny");
     jx_ob ob_huge1 = jx_ob_from_str("this is a huge heap string.");
@@ -63,8 +65,17 @@ int main(int argc, char **argv)
     P1("0xfffceb8d == 0x%08x", jx_ob_hash_code(ob_1));
     P1("0x6488bdce == 0x%08x", jx_ob_hash_code(ob_2));
 
+    P1("0xe95e249b == 0x%08x", jx_ob_hash_code(ob_12345678));
+
+#ifndef JX_64_BIT
+    /* 32-bit floating point values have one bit pattern */
     P2("(0xaf6fbb0a == 0x%08x) || (0x9e069f3e == 0x%08x)",      /* x86 || ppc */
        jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
+#else
+    /* 64-bit floating point values have a different bit pattern */
+    P2("(0xaf6fbb0a == 0x%08x) || (0x423c6a51 == 0x%08x)",      /* x86_64 || ppc64 */
+       jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
+#endif
 
     P2("(0xced8ea80 == 0x%08x) || (0xf70711c3 == 0x%08x)",      /* x86 || ppc */
        jx_ob_hash_code(ob_tiny), jx_ob_hash_code(ob_tiny));
