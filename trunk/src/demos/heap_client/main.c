@@ -4,10 +4,6 @@
 
 #include "jx_heap.h"
 
-#ifdef JX_HEAP_TRACKER
-asdf
-#endif
-
 int main(int argc, char *argv[])
 {
   int exit_status = JX_EXIT_FAILURE;
