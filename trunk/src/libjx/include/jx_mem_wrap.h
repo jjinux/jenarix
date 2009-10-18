@@ -37,7 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JX_MEM_LOG_ALL 0
 #define JX_MEM_LOG_SUMMARY 1
 
-
 /* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -46,27 +45,35 @@ extern "C" {
 #endif
 #endif
 
-/* heap tracker requires and implies JX_MEM_WRAP */
+/* The Jenarix Heap Tracker requires and implies JX_MEM_WRAP */
 #ifdef JX_HEAP_TRACKER
 #define JX_MEM_WRAP
 #endif
+
 #ifndef JX_MEM_WRAP
 
-/* just use system malloc, etc. */
+/* not wrapping memory calls?  then just use system malloc, etc. */
+
 #define jx_malloc(s) malloc(s)
 #define jx_calloc(c,s) calloc(c,s)
 #define jx_realloc(p,s) realloc(p,s)
 #define jx_free(p) free(p)
 #define jx_mem_dump()
+
 #else
+/* else JX_MEM_WRAP is defined. */
+
 #ifndef JX_HEAP_TRACKER
 
-/* use our lightweight (threads blind) memory logger, counter, &
-   overrun detector */
+/* if we're not using the Jenarix Heap Tracker, then we instead use our
+   lightweight (thread blind) memory logger, counter, and overrun
+   detector (a simpler alternative to the Jenarix Heap Tracker) */
+
 #define jx_malloc(s) jx__malloc(s, JX__FILE__, JX__LINE__)
 #define jx_calloc(c,s) jx__calloc(c, s, JX__FILE__, JX__LINE__)
 #define jx_realloc(p,s) jx__realloc(p, s, JX__FILE__, JX__LINE__)
 #define jx_free(p) jx__free(p, JX__FILE__, JX__LINE__)
+
 void jx_mem_dump(void);
 
 void *jx__malloc(jx_size size, char *file, int line);
@@ -77,14 +84,8 @@ void jx__free(void *ptr, char *file, int line);
 
 #else
 
-/* use our robust, thread-safe, status-returning JX_HEAP system *//* disable C++ mangling */
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-#include "jx_heap.h"
+/* otherwise, the Jenarix Heap Tracker is active: provides a robust,
+   thread-safe, status-returning heap verifier */
 
 /* enable C++ mangling */
 #ifdef __cplusplus
@@ -93,6 +94,21 @@ extern "C" {
 }
 #endif
 #endif
+
+/* first, we need the JX_HEAP_* defines */
+
+#include "jx_heap.h"
+
+/* disable C++ mangling */
+#ifdef __cplusplus
+extern "C" {
+#if 0
+}
+#endif
+#endif
+
+/* then we use these to wrap our memory management calls */
+
 #define jx_mem_dump jx_heap_dump(0);
 #define jx_malloc(s) JX_HEAP_MALLOC_RAW_VOID(s)
 #define jx_calloc(c,s) JX_HEAP_CALLOC_RAW_VOID((c)*(s))

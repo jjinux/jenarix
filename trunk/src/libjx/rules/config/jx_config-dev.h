@@ -9,8 +9,8 @@
  * reserved.  It is unlawful to modify or remove this notice.
  * TRADEMARK NOTICE: Jenarix is a Trademark of DeLano Scientific LLC.
 */
-#ifndef _H_jx_config_default
-#define _H_jx_config_default
+#ifndef _H_jx_config
+#define _H_jx_config
 
 
 /* Jenarix configuration */
@@ -47,7 +47,7 @@
 
 /* track heap objects in depth? (print atexit) */
 
-#define noJX_HEAP_TRACKER
+#define JX_HEAP_TRACKER
 
 
 /* no heap tracker, but still wrap malloc, etc.? (print atexit) */

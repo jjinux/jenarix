@@ -13,7 +13,6 @@
 
 #include "jx_public.h"
 
-
 /* disable C++ mangling */
 #ifdef __cplusplus
 extern "C" {
@@ -22,13 +21,22 @@ extern "C" {
 #endif
 #endif
 
+/* This source file declares a series of macros and functions which
+   provide runtime heap management.  If JX_HEAP_TRACKER is defined,
+   then a significant amount of additional work is done to check and
+   verify that heap usage is correct.  Note that within a
+   multi-threaded application, heap calls are mutexed, which can cause
+   significant performance degredation. */
+
 /* Note -- this version of tracker is thread-save (but not
    thread-efficient) due to use of a global mutex */
+
 #define JX_HEAP_DUMP_FILES_TOO      0x1
 #define JX_HEAP_DUMP_NO_ADDRESSES   0x2
 #define JX_HEAP_DUMP_SUMMARY_ONLY   0x4
 #define JX_HEAP_DUMP_CONTENT_TOO    0x8
 #define JX_HEAP_DUMP_SORT          0x10
+
 typedef struct {
   jx_os_size_t size, alloc, unit_size;
   jx_bool auto_zero;
@@ -36,12 +44,19 @@ typedef struct {
 
 #ifdef JX_HEAP_TRACKER
 
+/* when the heap tracker is active, additional information is passed
+   along with each heap call, the heap dump routine can be used to
+   dump information to standard error, and heap usage can be measured */
+
 jx_status jx_heap_dump(jx_int32 flags);
 jx_size jx_heap_usage(void);
 #define _JX_HEAP_TRACKER_CALL , JX__FILE__, JX__LINE__
 #define _JX_HEAP_TRACKER_DECL , char *file, int line
 
 #else
+
+/* Jenarix Heap Tracker inactive, so jx_heap_dump does nothing, and
+   the heap usage routine returns zero. */
 
 JX_INLINE jx_status jx_heap_dump(jx_int32 flags)
 {
@@ -73,7 +88,7 @@ JX_INLINE jx_size jx_heap_usage(void)
 
 
 /* VOID suffix means that return a void* and that we don't atomically scale
-   arrays by the unit array element size */
+   arrays by the unit array element size -- sizes are in bytes instead */
 
 
 /* RECOPY suffix means that copy data into new memory and free the
@@ -178,7 +193,6 @@ JX_INLINE jx_size jx_heap_usage(void)
    jx_heap_VlaAddIndexRaw((void*)(ptr),idx _JX_HEAP_TRACKER_CALL)
 
 #if 0
-
 /* consider... */
 #define JX_HEAP_VLA_CHECK(result,idx) \
   (((*result) && (idx >= (*result)->size)) ? \

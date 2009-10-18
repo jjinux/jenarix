@@ -184,6 +184,8 @@ typedef float jx_float;
 
 #ifdef __APPLE__
 
+/* the following test only works on macs */
+
 #if ((0LL+SIZE_T_MAX) == 0x00000000FFFFFFFFLL)
 #define JX_TINY_STR_MIN_SIZE 0
 #else
@@ -191,6 +193,9 @@ typedef float jx_float;
 #endif
 
 #else
+
+/* if we're not on mac, do we have stdint.h defines? */
+
 #ifdef UINTPTR_MAX
 
 #if (UINTPTR_MAX) == (4294967295U)
@@ -200,6 +205,9 @@ typedef float jx_float;
 #endif
 
 #else
+
+/* not on mac, but do we have PTRDIFF_MAX? */
+
 #ifdef PTRDIFF_MAX
 
 #if (PTRDIFF_MAX) == (2147483647)
@@ -209,24 +217,16 @@ typedef float jx_float;
 #endif
 
 #endif
-
-
-/* ends ifdef PTRDIFF_MAX */
+/* end ifdef PTRDIFF_MAX */
 
 #endif
-
-
-/* ends ifdef UINTPTR_MAX */
+/* end ifdef UINTPTR_MAX */
 
 #endif
-
-
-/* ends ifdef __APPLE__ */
+/* end ifdef __APPLE__ */
 
 #endif
-
-
-/* ends ifdef JX_64_BIT */
+/* end ifdef JX_64_BIT */
 
 
 /* processes, threads, locks, etc. */

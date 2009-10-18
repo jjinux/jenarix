@@ -39,6 +39,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "jx_public.h"
 
+#ifdef JX_HEAP_TRACKER
+#include "jx_heap.h"
+#endif
+
 #ifndef WIN32
 #include<fcntl.h>
 #else
@@ -170,11 +174,18 @@ JX_INLINE jx_status jx_main_exec_in_node(int argc, char *argv[], jx_ob node)
     }
 
 
-    if(mode == JX_MODE_CONSOLE)
-      printf
+    if(mode == JX_MODE_CONSOLE) {
+      jx_printf
         ("Jenarix VM Syntax (JXON) [%d-byte numbers, %d-byte tiny strings, %d-byte jx_ob]\n",
          (int) sizeof(jx_int), JX_TINY_STR_SIZE, (int) sizeof(jx_ob));
-
+#ifdef JX_HEAP_TRACKER
+      {
+        jx_size usage = jx_heap_usage();
+        jx_printf("Heap: tracker reports 0x%x bytes (%1.3f MB) currently allocated.\n",
+                  (int)usage,(float)(usage/1048576.0));
+      }
+#endif
+    }
     {
       jx_ob source = jx_ob_from_null();
       jx_status status;

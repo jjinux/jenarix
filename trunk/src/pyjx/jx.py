@@ -124,6 +124,7 @@ def jx_jxon_dump(file,prompt,ob,builtins):
 
 def jx_code_expose_secure_builtins(names):
     names[('add',)] = JX_SELECTOR_ADD
+    names[('lt',)]  = JX_SELECTOR_LT
     names[('set',)] = JX_SELECTOR_SET
     names[('get',)] = JX_SELECTOR_GET
     names[('output',)] = JX_SELECTOR_OUTPUT

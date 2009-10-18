@@ -1,6 +1,6 @@
 
 ARCH_CFLAGS = -Wall -ansi -pedantic -std=gnu99 \
- -g -DJX_HEAP_TRACKER
+ -g -DJX_HAVE_CONFIG
 
 ARCH_CXXFLAGS = -ansi 
 
