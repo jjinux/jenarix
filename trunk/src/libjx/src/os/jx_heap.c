@@ -1207,3 +1207,90 @@ void *jx_heap_VlaCloneRaw(void *ptr
   }
   return result;
 }
+
+void *jx_heap_VlaDeleteRaw(void *ptr, jx_int index, jx_size count
+#ifdef JX_HEAP_TRACKER
+                           , char *file, int line
+#endif
+)
+{
+  if(ptr) {
+    jx_heap_vla *vla = ((jx_heap_vla *) ptr) - 1;
+    jx_size old_size = vla->size;
+
+    /* failsafe range-handling logic */
+
+    if(index<0) {
+      if(index < -old_size)
+        index = 0;
+      else
+        index = old_size + 1 + index;
+      if(index<0) index = 0;
+    }
+
+    if((count+index) > vla->size) {
+      count = vla->size - index;
+    }
+      
+    if((index >= 0) && (count > 0) &&
+       (index < vla->size) && ((count + index) <= vla->size)) {
+      jx_size new_size = old_size - count;
+      jx_char *base = (jx_char *) ptr;
+      jx_os_memmove(base + index * vla->unit_size,
+                    base + (count + index) * vla->unit_size,
+                    ((vla->size - index) - count) * vla->unit_size);
+
+      ptr = jx_heap_VlaSetSizeRaw(ptr, new_size
+#ifdef JX_HEAP_TRACKER
+                                  , file, line
+#endif
+                                  );
+    }
+  }
+  return ptr;
+}
+
+void *jx_heap_VlaInsertRaw(void *ptr, jx_int index, jx_size count
+#ifdef JX_HEAP_TRACKER
+                           , char *file, int line
+#endif
+)
+{
+  if(ptr) {
+    jx_heap_vla *vla = ((jx_heap_vla *) ptr) - 1;
+    jx_size old_size = vla->size;
+
+    /* failsafe range-handling logic */
+
+    if(index<0) {
+      if(index < -old_size)
+        index = 0;
+      else
+        index = old_size + 1 + index;
+      if(index<0) index = 0;
+    }
+    
+    if(index > old_size)
+      index = old_size;
+
+    if((index >= 0) && (count > 0) && (index <= old_size)) {
+      jx_int new_size = old_size + count;
+      
+      ptr = jx_heap_VlaSetSizeRaw(ptr, new_size
+#ifdef JX_HEAP_TRACKER
+                                  , file, line
+#endif
+                                  );
+
+      if(ptr) {
+        jx_char *base = (jx_char *) ptr;
+        jx_heap_vla *vla = ((jx_heap_vla *) ptr) - 1;
+        jx_os_memmove(base + (index + count) * vla->unit_size,
+                base + index * vla->unit_size, (old_size - index) * vla->unit_size);
+        if(vla->auto_zero) 
+          jx_os_memset(base + index * vla->unit_size, 0, vla->unit_size * count);
+      }
+    }
+  }
+  return ptr;
+}

@@ -192,6 +192,12 @@ JX_INLINE jx_size jx_heap_usage(void)
 #define JX_HEAP_VLA_ADD_INDEX_RAW(ptr,idx) \
    jx_heap_VlaAddIndexRaw((void*)(ptr),idx _JX_HEAP_TRACKER_CALL)
 
+#define JX_HEAP_VLA_INSERT_RAW(ptr,idx,cnt)                        \
+  jx_heap_VlaInsertRaw((void*)(ptr),idx,cnt _JX_HEAP_TRACKER_CALL)
+
+#define JX_HEAP_VLA_DELETE_RAW(ptr,idx,cnt)                        \
+  jx_heap_VlaDeleteRaw((void*)(ptr),idx,cnt _JX_HEAP_TRACKER_CALL)
+
 #if 0
 /* consider... */
 #define JX_HEAP_VLA_CHECK(result,idx) \
@@ -279,6 +285,9 @@ jx_status jx_heap_VlaGetSize(jx_size * result, void *array _JX_HEAP_TRACKER_DECL
 
 jx_size jx_heap_VlaGetSizeRaw(void *array _JX_HEAP_TRACKER_DECL);
 
+void *jx_heap_VlaInsertRaw(void *ptr, jx_int index, jx_size count _JX_HEAP_TRACKER_DECL);
+
+void *jx_heap_VlaDeleteRaw(void *ptr, jx_int index, jx_size count _JX_HEAP_TRACKER_DECL);
 
 /* enable C++ mangling */
 #ifdef __cplusplus
