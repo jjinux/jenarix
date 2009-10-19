@@ -77,13 +77,21 @@ int main(int argc, char **argv)
        jx_ob_hash_code(ob_3pt0), jx_ob_hash_code(ob_3pt0));
 #endif
 
+#if (JX_TINY_STR_SIZE > 0)
+    /* tiny-str based hash code */
     P2("(0xced8ea80 == 0x%08x) || (0xf70711c3 == 0x%08x)",      /* x86 || ppc */
        jx_ob_hash_code(ob_tiny), jx_ob_hash_code(ob_tiny));
+#else
+    /* heap-str based hash code */
+    P2("(0xced8ea80 == 0x%08x) || (0x1fcff618 == 0x%08x)",      /* x86 || ppc */
+       jx_ob_hash_code(ob_tiny), jx_ob_hash_code(ob_tiny));
+#endif
 
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge1));
     P1("0x09774a5a == 0x%08x", jx_ob_hash_code(ob_huge2));
     P1("0xba51b099 == 0x%08x", jx_ob_hash_code(ob_huge3));
 
+    P1("0 == %d", jx_ob_free(ob_tiny));
     P1("0 == %d", jx_ob_free(ob_huge1));
     P1("0 == %d", jx_ob_free(ob_huge2));
     P1("0 == %d", jx_ob_free(ob_huge3));
@@ -118,36 +126,46 @@ int main(int argc, char **argv)
     P1("1 == %d", (int) jx_hash_size(hash));
     P1("1 == %d", jx_hash_has_key(hash, jx_ob_from_int(1)));
 
-    P1("0 == %d", jx_hash_set(hash, jx_ob_from_str("ky1"), jx_ob_from_str("vl1")));
-    P1("2 == %d", (int) jx_hash_size(hash));
-    P1("1 == %d", jx_hash_has_key(hash, jx_ob_from_str("ky1")));
 
     {
-      jx_ob borrowed = jx_hash_borrow(hash, jx_ob_from_str("ky1"));
-      P1("'vl1' eq '%s'", jx_ob_as_str(&borrowed));
-    }
-
-    {
-      jx_ob key1 = jx_ob_from_str("heap string as a hash key");
-      jx_ob key2 = jx_ob_from_str("heap string as a hash key");
-      jx_ob value1 = jx_ob_from_str("heap string as a hash value");
-
-      P1("0 == %d", jx_hash_set(hash, key1, value1));
-      P1("1 == %d", jx_hash_has_key(hash, key1));
-      P1("1 == %d", jx_hash_has_key(hash, key2));
-      P1("3 == %d", (int) jx_hash_size(hash));
-
+      P1("0 == %d", jx_hash_set(hash, 
+                                jx_ob_from_str("ky1"),
+                                jx_ob_from_str("vl1")));
+      
+      P1("2 == %d", (int) jx_hash_size(hash));
       {
-        jx_ob borrowed = jx_hash_borrow(hash, key2);
-        P1("'heap string as a hash value' eq '%s'", jx_ob_as_str(&borrowed));
+        jx_ob str_ky1 = jx_ob_from_str("ky1");
+        P1("1 == %d", jx_hash_has_key(hash, str_ky1));
+
+        {
+          jx_ob borrowed = jx_hash_borrow(hash, str_ky1);
+          P1("'vl1' eq '%s'", jx_ob_as_str(&borrowed));
+        }
+        jx_ob_free(str_ky1);
       }
 
-      jx_ob_free(key2);
+      {
+        jx_ob key1 = jx_ob_from_str("heap string as a hash key");
+        jx_ob key2 = jx_ob_from_str("heap string as a hash key");
+        jx_ob value1 = jx_ob_from_str("heap string as a hash value");
+        
+        P1("0 == %d", jx_hash_set(hash, key1, value1));
+        P1("1 == %d", jx_hash_has_key(hash, key1));
+        P1("1 == %d", jx_hash_has_key(hash, key2));
+        P1("3 == %d", (int) jx_hash_size(hash));
+        
+        {
+          jx_ob borrowed = jx_hash_borrow(hash, key2);
+          P1("'heap string as a hash value' eq '%s'", jx_ob_as_str(&borrowed));
+        }
+        
+        jx_ob_free(key2);
+      }
     }
-
+    
     P1("0 == %d", jx_ob_free(hash));
   }
-
+  
   {
     jx_ob hash = jx_hash_new();
     jx_ob key1 = jx_ob_from_str("heap string as hash key");

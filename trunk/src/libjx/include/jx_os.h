@@ -110,6 +110,8 @@
 #define jx_os_close _close
 #endif
 
+#define jx_os_exit exit
+#define jx_os_abort abort
 
 /* commonly used routines */
 
@@ -160,8 +162,7 @@ typedef ptrdiff_t jx_word;
 
 #ifdef JX_64_BIT
 
-
-/* uses 64-bit integers and double-precision floating point */
+/* use 64-bit integers and double-precision floating point */
 typedef jx_int64 jx_int;
 typedef jx_uint64 jx_uint;
 typedef double jx_float;
@@ -171,16 +172,20 @@ typedef double jx_float;
 
 #else
 
+/* use 32-bit integers and single-precision floating point, EVEN if
+   -m64 is true */
 
-/* uses 32-bit integers and single-precision floating point */
 typedef jx_int32 jx_int;
 typedef jx_uint32 jx_uint;
 typedef float jx_float;
+
 #define JX_FLOAT_ZERO 0.0F
 #define JX_UINT_MAX 0xFFFFFFFF
 
+#if (JX_TINY_STR_SIZE > 0)
 
-/* make sure tiny_str matches pointer width */
+/* if using tiny strings, then make sure tiny_str matches pointer
+   width, if we are running in 64 bit mode */
 
 #ifdef __APPLE__
 
@@ -226,7 +231,10 @@ typedef float jx_float;
 /* end ifdef __APPLE__ */
 
 #endif
-/* end ifdef JX_64_BIT */
+/* end if (JX_TINY_STR_SIZE > 0) */
+
+#endif
+/* end ifdef JX_64_BIT, else clause */
 
 
 /* processes, threads, locks, etc. */
@@ -374,6 +382,10 @@ typedef struct timeval jx_os_timeval;
 #define JX_INLINE __inline__ static
 #endif
 
+/* how do we declare static methods */
+
+#define JX_STATIC static
+
 /* constants we rely upon */
 
 #define JX_EXIT_SUCCESS EXIT_SUCCESS
@@ -381,6 +393,14 @@ typedef struct timeval jx_os_timeval;
 
 /* workaround for compilers which disallow [0] size arrays */
 
+#ifdef __GNUC__
+
+/* array[] is permitted in the C99 standard, and GNUC supports this */
+#define JX_ZERO_ARRAY_SIZE 
+
+#else
+
 #define JX_ZERO_ARRAY_SIZE 1
+#endif
 
 #endif

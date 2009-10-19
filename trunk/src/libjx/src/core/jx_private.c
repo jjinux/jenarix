@@ -933,7 +933,7 @@ jx_ob jx__str__concat(jx_env * E, jx_char * left, jx_int left_len,
 {
   jx_int total_len = left_len + right_len;
   if(total_len < JX_TINY_STR_SIZE) {
-    jx_char buffer[JX_TINY_STR_SIZE];
+    jx_char buffer[JX_TINY_STR_SIZE + 1]; /* +1 for when TINY_STR_SIZE == 0 */
     jx_os_memcpy(buffer, left, left_len);
     jx_os_memcpy(buffer + left_len, right, right_len);
     return jx_ob_from_str_with_len(buffer, total_len);

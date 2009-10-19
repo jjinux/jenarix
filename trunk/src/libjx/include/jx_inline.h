@@ -53,10 +53,12 @@ extern "C" {
 }
 #endif
 #endif
+
 #if (JX_TINY_STR_SIZE < JX_TINY_STR_MIN_SIZE)
 #undef JX_TINY_STR_SIZE
 #define JX_TINY_STR_SIZE JX_TINY_STR_MIN_SIZE
 #endif
+
 #if (JX_TINY_STR_SIZE <= 6)
 typedef jx_int32 jx_data_word;
 typedef jx_uint16 jx_bits;
@@ -144,7 +146,7 @@ typedef union {
 #if (JX_TINY_STR_SIZE > 0)
   jx_char tiny_str[JX_TINY_STR_SIZE - sizeof(jx_bits)];
 #else
-  jx_char tiny_str[1];
+  jx_char tiny_str[4]; /* unused when JX_TINY_STR_SIZE is 0 */
 #endif
   jx_gc *gc;                    /* can be used to access the gc record for any GC'd entity */
   jx__str *str;                 /* vla ptr to jx__str header, not to the first char */
