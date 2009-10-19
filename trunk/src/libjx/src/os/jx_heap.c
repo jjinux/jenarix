@@ -157,6 +157,7 @@ JX_INLINE jx_status Jx_heapEntryFromPtr(Jx_heapTrackerEntry ** result,
     JX_HEAP_UNLOCK;
     if(!JX_OK(status)) {
       fprintf(stderr, "HeapTracker-Error: bad free or corrupted heap at %p\n", ptr);
+      abort();
     }
   }
   return status;

@@ -1151,10 +1151,10 @@ true;
 (assert "done!" (recfn 5))
 
 (assert (del recfn));
-(assert (del i))
+
+(assert (del i));
 
 (assert {} (symbols false))
-
 
 #
 

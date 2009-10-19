@@ -3260,22 +3260,30 @@ JX_INLINE jx_ob jx__function_call(jx_env * E, jx_ob function, jx_ob payload)
     while(1) {
       if(jx_null_check(args)) {
         /* inner functions run within the host node namespace */
-        jx_ob payload_ident = jx_ob_from_ident("_");
+        jx_ob payload_ident1 = jx_ob_from_ident("_");
         jx_ob saved_payload = jx_ob_from_null();
-        jx_bool saved = jx__hash_take(&saved_payload, node, payload_ident);
-        if(jx_ok(Jx_hash_set(E, node, payload_ident, payload))) {
+        jx_bool saved = jx__hash_take(&saved_payload, node, payload_ident1);
+        if(jx_ok(Jx_hash_set(E, node, payload_ident1, payload))) {
           /* call */
           result = fn->mode ? Jx_code_exec(E, 0, fn->body) :
             Jx_code_eval(E, 0, fn->body);
-          if(saved)
-            Jx_hash_set(E, node, payload_ident, saved_payload);
-          else
-            Jx_hash_del(E, node, payload_ident);
+          {
+            jx_ob payload_ident2 = jx_ob_from_ident("_");
+            if(saved) {
+              Jx_hash_set(E, node, payload_ident2, saved_payload);
+            } else {
+              Jx_hash_del(E, node, payload_ident2);
+              jx_ob_free(payload_ident2);
+            }
+          }
         } else {
-          if(saved)
-            Jx_hash_set(E, node, payload_ident, saved_payload);
-          else
-            Jx_hash_del(E, node, payload_ident);
+          jx_ob payload_ident2 = jx_ob_from_ident("_");
+          if(saved) {
+            Jx_hash_set(E, node, payload_ident2, saved_payload);
+          } else {
+            Jx_hash_del(E, node, payload_ident2);
+            jx_ob_free(payload_ident2);
+          }
         }
         payload = jx_ob_from_null();
       } else if(jx_hash_check(args)) { /* simple namespace -- no processing */

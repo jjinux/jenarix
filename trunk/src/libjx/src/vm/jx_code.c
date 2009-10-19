@@ -169,12 +169,12 @@ static jx_ob jx__code_bind_with_source(jx_env * E, jx_ob prebind, jx_ob source,
               Jx_list_replace(E, source, 0, builtin);
               return source;
               break;
-            case JX_SELECTOR_NOP:
+            case JX_SELECTOR_NOP:  /* [nop ...] -> [...] */
               {
                 jx_ob tst = jx_list_borrow(source, 1);
                 if(!(tst.meta.bits & (JX_META_BIT_LIST | JX_META_BIT_IDENT |
                                       JX_META_BIT_BUILTIN | JX_META_BIT_OPCODE))) {
-                  jx_list_take(source, 0);
+                  jx_list_delete(source, 0);
                   return jx__code_bind_with_source(E, prebind, source, unresol_depth);
                 }
               }
@@ -301,7 +301,7 @@ static jx_ob jx__code_bind_with_source(jx_env * E, jx_ob prebind, jx_ob source,
               {
                 jx_int i, entry_size = jx_list_size(entry);
                 for(i = 0; i < entry_size; i++) {
-                  jx_ob entry_entry = jx_list_borrow(entry, i);
+                  jx_ob entry_entry = jx_list_swap_with_null(entry, i);
                   if(jx_ident_check(entry_entry)) {
                     entry_entry = jx_ident_split_with_dotted(E, entry_entry);
                   } else {
@@ -800,7 +800,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_env * E, jx_int flags, jx_ob callable, jx_ob 
             jx_native_fn native_fn = callable.data.io.native_fn;
             if(native_fn) {
               for(i = 1; i < size; i++) {
-                *right_ob = *(inp_ob++);
+                Jx_ob_replace(E, right_ob, *(inp_ob++)); /* *right_ob = *(inp_ob++); */
                 Jx_ob_replace(E, left_ob,
                               native_fn(E, Jx_ob_copy(E, arg_ob)));
               }
@@ -809,7 +809,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_env * E, jx_int flags, jx_ob callable, jx_ob 
           break;
         case JX_META_BIT_BUILTIN_FUNCTION:
           for(i = 1; i < size; i++) {
-            *right_ob = *(inp_ob++);
+            Jx_ob_replace(E, right_ob, *(inp_ob++)); /* *right_ob = *(inp_ob++); */
             Jx_ob_replace(E, left_ob,
                           jx__function_call(E,
                                             callable_weak_ref, Jx_ob_copy(E, arg_ob)));
@@ -817,7 +817,7 @@ JX_INLINE jx_ob jx__code_reduce(jx_env * E, jx_int flags, jx_ob callable, jx_ob 
           break;
         default:
           for(i = 1; i < size; i++) {
-            *right_ob = *(inp_ob++);
+            Jx_ob_replace(E, right_ob, *(inp_ob++)); /* *right_ob = *(inp_ob++); */
             Jx_ob_replace(E, left_ob,
                           jx__code_apply_callable
                           (E, callable_weak_ref, Jx_ob_copy(E, arg_ob)));

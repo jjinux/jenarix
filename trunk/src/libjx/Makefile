@@ -32,6 +32,20 @@ jx-dev:
 	echo
 	echo # Jenarix configured -- you can now run 'make'
 
+# dev32nts: unoptimized builds with heap tracking and no tiny strings
+
+jx-dev32nts:
+	echo "JX_ARCH="`uname`-`uname -m`-dev | sed 's/ /_/g' > .config
+	echo "JX_CONFIG=-dev" >> .config
+	echo "JX_BASE="`pwd` >> .config
+	echo "JX_PREFIX1=jx" >> .config
+	echo "JX_PREFIX2=JX" >> .config
+	echo "JX_PREFIX3=Jx" >> .config
+	cp -f rules/config/jx_config-dev32nts.h include/jx_config.h
+	make -f rules/srclink.mk direct
+	echo
+	echo # Jenarix configured -- you can now run 'make'
+
 # quick-build 64-bit devel -- unoptimized 64 bit builds with heap trackng
 
 jx-dev64:
@@ -42,6 +56,20 @@ jx-dev64:
 	echo "JX_PREFIX2=JX" >> .config
 	echo "JX_PREFIX3=Jx" >> .config
 	cp -f rules/config/jx_config-dev64.h include/jx_config.h
+	make -f rules/srclink.mk direct
+	echo
+	echo # Jenarix configured -- you can now run 'make'
+
+# dev64nts: unoptimized 64 bit builds with heap tracking and no tiny strings
+
+jx-dev64nts:
+	echo "JX_ARCH="`uname`-`uname -m`-dev64 | sed 's/ /_/g' > .config
+	echo "JX_CONFIG=-dev64" >> .config
+	echo "JX_BASE="`pwd` >> .config
+	echo "JX_PREFIX1=jx" >> .config
+	echo "JX_PREFIX2=JX" >> .config
+	echo "JX_PREFIX3=Jx" >> .config
+	cp -f rules/config/jx_config-dev64nts.h include/jx_config.h
 	make -f rules/srclink.mk direct
 	echo
 	echo # Jenarix configured -- you can now run 'make'
@@ -210,6 +238,10 @@ dc: distclean
 dev: jx-dev 
 
 dev64: jx-dev64
+
+nts: jx-dev32nts
+
+nts64: jx-dev64nts
 
 run: jx-run
 
